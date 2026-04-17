@@ -29,8 +29,13 @@ const ADMIN_TOP = [
 ] as const;
 
 const ADMIN_BOTTOM = [
+  { to: "/ideas", label: "بنك الأفكار", icon: Lightbulb },
   { to: "/grooms", label: "سجل العرسان", icon: HeartHandshake },
   { to: "/reports", label: "التقارير والجودة", icon: FileBarChart },
+] as const;
+
+const RESTRICTED_EXTRA = [
+  { to: "/ideas", label: "بنك الأفكار", icon: Lightbulb },
 ] as const;
 
 interface AppShellProps {
