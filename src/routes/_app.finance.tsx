@@ -179,6 +179,17 @@ function FinancePage() {
                         </div>
                       </div>
                       <div className="flex items-center gap-3 flex-wrap">
+                        {r.invoice_url && (
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            onClick={() => openInvoice(r.invoice_url!)}
+                            className="gap-1.5"
+                          >
+                            <FileText className="h-3.5 w-3.5" /> عرض الفاتورة
+                          </Button>
+                        )}
                         <span className="font-bold">{fmt(Number(r.amount))} ر.س</span>
                         <Badge variant="outline" className={s.cls}>{s.label}</Badge>
                       </div>
