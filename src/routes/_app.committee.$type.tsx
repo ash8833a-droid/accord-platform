@@ -232,8 +232,24 @@ function CommitteePage() {
                 <div className="space-y-2"><Label>عنوان الطلب</Label><Input value={prTitle} onChange={(e) => setPrTitle(e.target.value)} required placeholder="مثال: عهدة لشراء مستلزمات الحفل" /></div>
                 <div className="space-y-2"><Label>المبلغ المطلوب (ر.س)</Label><Input type="number" min="1" value={prAmount} onChange={(e) => setPrAmount(e.target.value)} required dir="ltr" /></div>
                 <div className="space-y-2"><Label>تفاصيل الطلب</Label><Textarea value={prDesc} onChange={(e) => setPrDesc(e.target.value)} rows={4} placeholder="اشرح سبب الطلب وبنود الصرف" /></div>
-                <Button type="submit" className="w-full bg-gradient-hero text-primary-foreground">
-                  <Wallet className="h-4 w-4 ms-1" /> رفع الطلب
+                <div className="space-y-2">
+                  <Label>الفاتورة (PDF أو صورة) — اختياري</Label>
+                  <label className="flex items-center justify-center gap-2 px-4 py-3 rounded-lg border-2 border-dashed border-input cursor-pointer hover:border-primary/60 hover:bg-muted/40 transition">
+                    <Upload className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm text-muted-foreground truncate">
+                      {prFile ? prFile.name : "اضغط لاختيار ملف (حد أقصى 10 ميجابايت)"}
+                    </span>
+                    <input
+                      type="file"
+                      accept="application/pdf,image/*"
+                      className="hidden"
+                      onChange={(e) => setPrFile(e.target.files?.[0] ?? null)}
+                    />
+                  </label>
+                </div>
+                <Button type="submit" disabled={prSubmitting} className="w-full bg-gradient-hero text-primary-foreground">
+                  {prSubmitting ? <Loader2 className="h-4 w-4 ms-1 animate-spin" /> : <Wallet className="h-4 w-4 ms-1" />}
+                  {prSubmitting ? "جاري الرفع..." : "رفع الطلب"}
                 </Button>
               </form>
             </DialogContent>
@@ -247,11 +263,19 @@ function CommitteePage() {
             const s = PR_STATUS[r.status] ?? PR_STATUS.pending;
             return (
               <div key={r.id} className="px-6 py-4 flex items-center justify-between gap-4 hover:bg-muted/30 transition-colors">
-                <div className="min-w-0">
-                  <p className="font-medium truncate">{r.title}</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    {new Date(r.created_at).toLocaleDateString("ar-SA")}
-                  </p>
+                <div className="min-w-0 flex items-center gap-3">
+                  {r.invoice_url && (
+                    <span className="h-9 w-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0" title="فاتورة مرفقة">
+                      <FileText className="h-4 w-4" />
+                    </span>
+                  )}
+                  <div className="min-w-0">
+                    <p className="font-medium truncate">{r.title}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      {new Date(r.created_at).toLocaleDateString("ar-SA")}
+                      {r.invoice_url && " • فاتورة مرفقة"}
+                    </p>
+                  </div>
                 </div>
                 <div className="flex items-center gap-3">
                   <span className="font-bold text-sm">{fmt(Number(r.amount))} ر.س</span>
