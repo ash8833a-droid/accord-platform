@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { CalendarClock, Megaphone, X } from "lucide-react";
+import { useAuth } from "@/lib/auth";
 
 // Soft chime via Web Audio API — no asset required
 function playChime() {
@@ -133,6 +134,8 @@ export function AnnouncementsBanner() {
     }
   });
   const [closed, setClosed] = useState(false);
+  const { hasRole } = useAuth();
+  const isAdmin = hasRole("admin");
   const now = useNow(1000);
   const knownIdsRef = useRef<Set<string> | null>(null);
   const userInteractedRef = useRef(false);
@@ -223,7 +226,7 @@ export function AnnouncementsBanner() {
   if (closed || visible.length === 0) return null;
 
   // Scroll speed — lower duration = faster
-  const duration = Math.max(40, visible.length * 18);
+  const duration = Math.max(25, visible.length * 11);
 
   const dismissAll = () => {
     const next = [...dismissed, ...visible.map((v) => v.id)];
@@ -269,13 +272,15 @@ export function AnnouncementsBanner() {
           </div>
         </div>
 
-        <button
-          onClick={dismissAll}
-          className="shrink-0 h-8 w-8 mx-2 rounded-md hover:bg-white/15 flex items-center justify-center transition"
-          aria-label="إغلاق الشريط"
-        >
-          <X className="h-4 w-4" />
-        </button>
+        {isAdmin && (
+          <button
+            onClick={dismissAll}
+            className="shrink-0 h-8 w-8 mx-2 rounded-md hover:bg-white/15 flex items-center justify-center transition"
+            aria-label="إغلاق الشريط"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        )}
       </div>
     </div>
   );
