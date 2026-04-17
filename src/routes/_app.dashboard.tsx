@@ -21,6 +21,39 @@ export const Route = createFileRoute("/_app/dashboard")({
   component: Dashboard,
 });
 
+type PmpPhase = "initiating" | "planning" | "executing" | "monitoring" | "closing";
+
+const PHASE_LABELS: Record<PmpPhase, string> = {
+  initiating: "البدء",
+  planning: "التخطيط",
+  executing: "التنفيذ",
+  monitoring: "المراقبة",
+  closing: "الإغلاق",
+};
+
+const PHASE_TONE: Record<PmpPhase, string> = {
+  initiating: "bg-sky-500/15 text-sky-700 dark:text-sky-300",
+  planning: "bg-violet-500/15 text-violet-700 dark:text-violet-300",
+  executing: "bg-amber-500/15 text-amber-700 dark:text-amber-300",
+  monitoring: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300",
+  closing: "bg-rose-500/15 text-rose-700 dark:text-rose-300",
+};
+
+const PHASE_PREFIX: Record<string, PmpPhase> = {
+  "[البدء]": "initiating",
+  "[التخطيط]": "planning",
+  "[التنفيذ]": "executing",
+  "[المراقبة]": "monitoring",
+  "[الإغلاق]": "closing",
+};
+
+const detectPhase = (title: string): PmpPhase | null => {
+  for (const [pre, ph] of Object.entries(PHASE_PREFIX)) {
+    if (title.startsWith(pre)) return ph;
+  }
+  return null;
+};
+
 interface CommitteeStat {
   id: string;
   type: CommitteeType;
@@ -29,8 +62,15 @@ interface CommitteeStat {
   budget_spent: number;
   total_tasks: number;
   done_tasks: number;
+  in_progress_tasks: number;
   pending_requests: number;
   paid_requests: number;
+  /** PMP phase progress: { phase: { total, done } } */
+  phases: Record<PmpPhase, { total: number; done: number }>;
+  /** Schedule Performance Index proxy = done / total */
+  spi: number;
+  /** Cost Performance Index proxy = (allocated - spent) / allocated */
+  cpi: number;
 }
 
 function Dashboard() {
@@ -53,7 +93,7 @@ function Dashboard() {
         supabase.from("committees").select("id, type, name, budget_allocated, budget_spent"),
         supabase.from("grooms").select("id", { count: "exact", head: true }),
         supabase.from("subscriptions").select("status, amount"),
-        supabase.from("committee_tasks").select("committee_id, status"),
+        supabase.from("committee_tasks").select("committee_id, status, title"),
         supabase.from("payment_requests").select("committee_id, status, amount"),
       ]);
 
@@ -81,16 +121,37 @@ function Dashboard() {
         committees.map((c) => {
           const ct = taskList.filter((t) => t.committee_id === c.id);
           const cr = reqList.filter((r) => r.committee_id === c.id);
+          const phases: Record<PmpPhase, { total: number; done: number }> = {
+            initiating: { total: 0, done: 0 },
+            planning: { total: 0, done: 0 },
+            executing: { total: 0, done: 0 },
+            monitoring: { total: 0, done: 0 },
+            closing: { total: 0, done: 0 },
+          };
+          ct.forEach((t) => {
+            const ph = detectPhase(t.title ?? "");
+            if (ph) {
+              phases[ph].total += 1;
+              if (t.status === "completed") phases[ph].done += 1;
+            }
+          });
+          const allocated = Number(c.budget_allocated);
+          const spentC = Number(c.budget_spent);
+          const doneCount = ct.filter((t) => t.status === "completed").length;
           return {
             id: c.id,
             type: c.type as CommitteeType,
             name: c.name,
-            budget_allocated: Number(c.budget_allocated),
-            budget_spent: Number(c.budget_spent),
+            budget_allocated: allocated,
+            budget_spent: spentC,
             total_tasks: ct.length,
-            done_tasks: ct.filter((t) => t.status === "completed").length,
+            done_tasks: doneCount,
+            in_progress_tasks: ct.filter((t) => t.status === "in_progress").length,
             pending_requests: cr.filter((r) => r.status === "pending").length,
             paid_requests: cr.filter((r) => r.status === "paid").length,
+            phases,
+            spi: ct.length > 0 ? doneCount / ct.length : 0,
+            cpi: allocated > 0 ? Math.max(0, (allocated - spentC) / allocated) : 1,
           };
         }),
       );
@@ -253,14 +314,48 @@ function Dashboard() {
                   </div>
                 </div>
 
-                {/* Stats footer */}
-                <div className="flex items-center justify-between pt-2 mt-2 border-t border-border/60 text-[10px] text-muted-foreground">
-                  <span className="flex items-center gap-1">
+                {/* PMP phase chips */}
+                <div className="mb-2.5">
+                  <p className="text-[10px] text-muted-foreground mb-1.5">مراحل PMP</p>
+                  <div className="grid grid-cols-5 gap-1">
+                    {(Object.keys(PHASE_LABELS) as PmpPhase[]).map((ph) => {
+                      const p = c.phases[ph];
+                      const pct = p.total > 0 ? (p.done / p.total) * 100 : 0;
+                      return (
+                        <div
+                          key={ph}
+                          className={`rounded-md px-1 py-1 text-center ${PHASE_TONE[ph]}`}
+                          title={`${PHASE_LABELS[ph]}: ${p.done}/${p.total}`}
+                        >
+                          <p className="text-[9px] font-bold leading-tight truncate">{PHASE_LABELS[ph]}</p>
+                          <p className="text-[10px] font-extrabold mt-0.5 leading-none">
+                            {p.total > 0 ? `${Math.round(pct)}%` : "—"}
+                          </p>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* SPI / CPI footer */}
+                <div className="flex items-center justify-between pt-2 mt-2 border-t border-border/60 text-[10px]">
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`px-1.5 py-0.5 rounded font-bold ${c.spi >= 0.8 ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300" : c.spi >= 0.5 ? "bg-amber-500/15 text-amber-700 dark:text-amber-300" : "bg-destructive/15 text-destructive"}`}
+                      title="مؤشر أداء الجدول"
+                    >
+                      SPI {c.spi.toFixed(2)}
+                    </span>
+                    <span
+                      className={`px-1.5 py-0.5 rounded font-bold ${c.cpi >= 0.3 ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300" : c.cpi >= 0.1 ? "bg-amber-500/15 text-amber-700 dark:text-amber-300" : "bg-destructive/15 text-destructive"}`}
+                      title="مؤشر أداء التكلفة"
+                    >
+                      CPI {c.cpi.toFixed(2)}
+                    </span>
+                  </div>
+                  <span className="flex items-center gap-1 text-muted-foreground">
                     <Receipt className="h-3 w-3" />
-                    {c.paid_requests} مصروف
-                  </span>
-                  <span className="text-primary font-semibold opacity-0 group-hover:opacity-100 transition-opacity">
-                    عرض اللجنة ←
+                    {c.paid_requests}
                   </span>
                 </div>
               </Link>
