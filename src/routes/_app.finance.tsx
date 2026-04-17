@@ -53,6 +53,9 @@ function FinancePage() {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [branch, setBranch] = useState("");
+  const [invoiceUrl, setInvoiceUrl] = useState<string | null>(null);
+  const [invoiceTitle, setInvoiceTitle] = useState<string>("");
+  const [invoiceLoading, setInvoiceLoading] = useState(false);
 
   const load = async () => {
     const [{ data: dels }, { data: subs }, { data: prs }, { data: coms }] = await Promise.all([
@@ -106,12 +109,16 @@ function FinancePage() {
     load();
   };
 
-  const openInvoice = async (path: string) => {
+  const openInvoice = async (path: string, title: string) => {
+    setInvoiceTitle(title);
+    setInvoiceUrl(null);
+    setInvoiceLoading(true);
     const { data, error } = await supabase.storage.from("invoices").createSignedUrl(path, 60 * 10);
+    setInvoiceLoading(false);
     if (error || !data?.signedUrl) {
       return toast.error("تعذر فتح الفاتورة", { description: error?.message });
     }
-    window.open(data.signedUrl, "_blank", "noopener,noreferrer");
+    setInvoiceUrl(data.signedUrl);
   };
 
   const totalCollected = delegates.reduce((a, d) => a + (d.collected ?? 0), 0);
@@ -192,7 +199,7 @@ function FinancePage() {
                             type="button"
                             size="sm"
                             variant="outline"
-                            onClick={() => openInvoice(r.invoice_url!)}
+                            onClick={() => openInvoice(r.invoice_url!, r.title)}
                             className="gap-1.5"
                           >
                             <FileText className="h-3.5 w-3.5" /> عرض الفاتورة
@@ -302,6 +309,41 @@ function FinancePage() {
           </div>
         </TabsContent>
       </Tabs>
+
+      {/* Invoice preview dialog */}
+      <Dialog open={!!invoiceUrl || invoiceLoading} onOpenChange={(o) => { if (!o) { setInvoiceUrl(null); setInvoiceLoading(false); } }}>
+        <DialogContent dir="rtl" className="max-w-5xl w-[95vw] h-[88vh] p-0 flex flex-col gap-0 overflow-hidden">
+          <DialogHeader className="px-5 py-3 border-b bg-gradient-to-l from-gold/5 to-transparent shrink-0">
+            <DialogTitle className="flex items-center gap-2 text-base">
+              <FileText className="h-4 w-4 text-gold" />
+              معاينة الفاتورة — {invoiceTitle}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="flex-1 bg-muted/30 overflow-hidden">
+            {invoiceLoading && (
+              <div className="h-full flex items-center justify-center text-sm text-muted-foreground">جاري تحميل الفاتورة...</div>
+            )}
+            {invoiceUrl && (
+              <iframe
+                src={invoiceUrl}
+                title="معاينة الفاتورة"
+                className="w-full h-full border-0"
+              />
+            )}
+          </div>
+          <div className="px-5 py-3 border-t flex items-center justify-between gap-2 shrink-0 bg-card">
+            <p className="text-[11px] text-muted-foreground">رابط مؤقت صالح لمدة 10 دقائق</p>
+            <div className="flex gap-2">
+              {invoiceUrl && (
+                <a href={invoiceUrl} target="_blank" rel="noopener noreferrer">
+                  <Button size="sm" variant="outline">فتح في تبويب جديد</Button>
+                </a>
+              )}
+              <Button size="sm" variant="ghost" onClick={() => { setInvoiceUrl(null); setInvoiceLoading(false); }}>إغلاق</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
