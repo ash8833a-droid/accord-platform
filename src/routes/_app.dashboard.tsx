@@ -314,14 +314,48 @@ function Dashboard() {
                   </div>
                 </div>
 
-                {/* Stats footer */}
-                <div className="flex items-center justify-between pt-2 mt-2 border-t border-border/60 text-[10px] text-muted-foreground">
-                  <span className="flex items-center gap-1">
+                {/* PMP phase chips */}
+                <div className="mb-2.5">
+                  <p className="text-[10px] text-muted-foreground mb-1.5">مراحل PMP</p>
+                  <div className="grid grid-cols-5 gap-1">
+                    {(Object.keys(PHASE_LABELS) as PmpPhase[]).map((ph) => {
+                      const p = c.phases[ph];
+                      const pct = p.total > 0 ? (p.done / p.total) * 100 : 0;
+                      return (
+                        <div
+                          key={ph}
+                          className={`rounded-md px-1 py-1 text-center ${PHASE_TONE[ph]}`}
+                          title={`${PHASE_LABELS[ph]}: ${p.done}/${p.total}`}
+                        >
+                          <p className="text-[9px] font-bold leading-tight truncate">{PHASE_LABELS[ph]}</p>
+                          <p className="text-[10px] font-extrabold mt-0.5 leading-none">
+                            {p.total > 0 ? `${Math.round(pct)}%` : "—"}
+                          </p>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* SPI / CPI footer */}
+                <div className="flex items-center justify-between pt-2 mt-2 border-t border-border/60 text-[10px]">
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`px-1.5 py-0.5 rounded font-bold ${c.spi >= 0.8 ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300" : c.spi >= 0.5 ? "bg-amber-500/15 text-amber-700 dark:text-amber-300" : "bg-destructive/15 text-destructive"}`}
+                      title="مؤشر أداء الجدول"
+                    >
+                      SPI {c.spi.toFixed(2)}
+                    </span>
+                    <span
+                      className={`px-1.5 py-0.5 rounded font-bold ${c.cpi >= 0.3 ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300" : c.cpi >= 0.1 ? "bg-amber-500/15 text-amber-700 dark:text-amber-300" : "bg-destructive/15 text-destructive"}`}
+                      title="مؤشر أداء التكلفة"
+                    >
+                      CPI {c.cpi.toFixed(2)}
+                    </span>
+                  </div>
+                  <span className="flex items-center gap-1 text-muted-foreground">
                     <Receipt className="h-3 w-3" />
-                    {c.paid_requests} مصروف
-                  </span>
-                  <span className="text-primary font-semibold opacity-0 group-hover:opacity-100 transition-opacity">
-                    عرض اللجنة ←
+                    {c.paid_requests}
                   </span>
                 </div>
               </Link>
