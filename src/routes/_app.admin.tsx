@@ -48,10 +48,10 @@ function AdminCenter() {
           <div>
             <p className="text-sm text-primary-foreground/70">مركز الإدارة العليا</p>
             <h1 className="text-2xl lg:text-3xl font-bold">
-              <span className="text-shimmer-gold">قيادة وتوجيه</span> فريق العمل
+              <span className="text-shimmer-gold">تنسيق وتمكين</span> فريق العمل
             </h1>
             <p className="text-primary-foreground/80 text-sm mt-1">
-              إدارة المهام، جدولة الاجتماعات، ونشر الأخبار لجميع اللجان
+              مساحةٌ جامعةٌ لتنظيم المهام، وتنسيق الاجتماعات، ومشاركة الأخبار بين جميع اللجان بروحٍ واحدة
             </p>
           </div>
         </div>
