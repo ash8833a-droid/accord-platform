@@ -37,8 +37,8 @@ export function GroomContributions({ totalCollected, totalBudgetNeeded }: Props)
 
   useEffect(() => { load(); }, []);
 
-  // Eligible grooms = approved or completed
-  const eligible = grooms;
+  // Eligible grooms = approved or completed (deficit distributed among them)
+  const eligible = grooms.filter((g) => g.status === "approved" || g.status === "completed");
   const baseTotal = eligible.length * BASE_CONTRIBUTION;
   const totalAvailable = totalCollected + baseTotal;
   const deficit = Math.max(0, totalBudgetNeeded - totalAvailable);
