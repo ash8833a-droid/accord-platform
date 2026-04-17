@@ -14,6 +14,7 @@ import {
   ChevronDown,
   ShieldCheck,
   Users,
+  Lightbulb,
 } from "lucide-react";
 import { Logo } from "./Logo";
 import { useAuth } from "@/lib/auth";
