@@ -342,6 +342,9 @@ function CommitteePage() {
         </div>
       )}
 
+      {/* Quality committee — comprehensive performance scorecard */}
+      {type === "quality" && <QualityScorecard />}
+
 
       <Dialog open={prOpen} onOpenChange={setPrOpen}>
         <DialogTrigger asChild>
