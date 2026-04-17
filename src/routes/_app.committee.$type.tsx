@@ -142,7 +142,7 @@ function CommitteePage() {
 
   const resetTaskForm = () => {
     setEditingId(null);
-    setTTitle(""); setTDesc(""); setTStatus("todo"); setTPriority("medium");
+    setTTitle(""); setTDesc(""); setTStatus("todo"); setTPriority("medium"); setTAssignee("none");
   };
 
   const openNewTask = () => {
@@ -156,21 +156,23 @@ function CommitteePage() {
     setTDesc(t.description ?? "");
     setTStatus(t.status);
     setTPriority(t.priority);
+    setTAssignee(t.assigned_to ?? "none");
     setTaskOpen(true);
   };
 
   const saveTask = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!committee) return;
+    const assigned_to = tAssignee === "none" ? null : tAssignee;
     if (editingId) {
       const { error } = await supabase.from("committee_tasks")
-        .update({ title: tTitle, description: tDesc, status: tStatus, priority: tPriority })
+        .update({ title: tTitle, description: tDesc, status: tStatus, priority: tPriority, assigned_to })
         .eq("id", editingId);
       if (error) return toast.error("تعذر التحديث", { description: error.message });
       toast.success("تم تحديث المهمة");
     } else {
       const { error } = await supabase.from("committee_tasks").insert({
-        committee_id: committee.id, title: tTitle, description: tDesc, status: tStatus, priority: tPriority,
+        committee_id: committee.id, title: tTitle, description: tDesc, status: tStatus, priority: tPriority, assigned_to,
       });
       if (error) return toast.error("تعذرت الإضافة", { description: error.message });
       toast.success("تمت إضافة المهمة");
