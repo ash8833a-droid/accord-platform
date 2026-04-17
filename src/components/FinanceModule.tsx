@@ -208,11 +208,14 @@ export function FinanceModule() {
       </div>
 
       <Tabs defaultValue="requests" dir="rtl">
-        <TabsList className="grid grid-cols-4 w-full max-w-3xl">
+        <TabsList className="flex flex-wrap h-auto w-full justify-start gap-1">
           <TabsTrigger value="requests" className="gap-2">
             <Receipt className="h-4 w-4" /> طلبات الصرف
             {pendingCount > 0 && <span className="bg-gold text-gold-foreground text-[10px] px-1.5 py-0.5 rounded-full font-bold">{pendingCount}</span>}
           </TabsTrigger>
+          <TabsTrigger value="shares" className="gap-2"><TreePine className="h-4 w-4" /> أسهم الفروع</TabsTrigger>
+          <TabsTrigger value="grooms" className="gap-2"><HeartHandshake className="h-4 w-4" /> مساهمات العرسان</TabsTrigger>
+          <TabsTrigger value="limits" className="gap-2"><Settings2 className="h-4 w-4" /> مخصصات اللجان</TabsTrigger>
           <TabsTrigger value="delegates" className="gap-2"><Users2 className="h-4 w-4" /> المناديب</TabsTrigger>
           <TabsTrigger value="subs" className="gap-2"><CheckCircle2 className="h-4 w-4" /> الاشتراكات</TabsTrigger>
           <TabsTrigger value="safety" className="gap-2"><ShieldCheck className="h-4 w-4" /> السلامة المالية</TabsTrigger>
