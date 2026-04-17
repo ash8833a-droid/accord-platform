@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, ReactNode, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Session, User } from "@supabase/supabase-js";
 
@@ -8,62 +8,123 @@ interface AuthCtx {
   user: User | null;
   session: Session | null;
   roles: Role[];
+  committeeId: string | null;
+  approved: boolean;
   loading: boolean;
-  signIn: (email: string, password: string) => Promise<{ error?: string }>;
-  signUp: (email: string, password: string, fullName: string, phone?: string) => Promise<{ error?: string }>;
+  signIn: (phone: string, password: string) => Promise<{ error?: string }>;
+  signUp: (
+    phone: string,
+    password: string,
+    fullName: string,
+    familyBranch: string,
+    requestedCommitteeId?: string,
+    notes?: string,
+  ) => Promise<{ error?: string }>;
   signOut: () => Promise<void>;
   hasRole: (r: Role) => boolean;
+  refreshAccess: () => Promise<void>;
 }
 
 const Ctx = createContext<AuthCtx | undefined>(undefined);
+
+// Convert "05xxxxxxxx" → pseudo-email for Supabase email auth
+export const phoneToEmail = (raw: string) => {
+  const digits = raw.replace(/\D/g, "");
+  return `${digits}@phone.local`;
+};
+export const emailToPhone = (email?: string | null) => {
+  if (!email) return "";
+  return email.replace(/@phone\.local$/i, "");
+};
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [roles, setRoles] = useState<Role[]>([]);
+  const [committeeId, setCommitteeId] = useState<string | null>(null);
+  const [approved, setApproved] = useState(false);
   const [loading, setLoading] = useState(true);
+
+  const loadAccess = useCallback(async (uid: string) => {
+    const { data } = await supabase
+      .from("user_roles")
+      .select("role, committee_id, created_at")
+      .eq("user_id", uid)
+      .order("created_at", { ascending: true });
+    const rs = (data ?? []).map((r) => r.role as Role);
+    setRoles(rs);
+    const firstCommittee = (data ?? []).find((r) => r.committee_id)?.committee_id ?? null;
+    setCommitteeId(firstCommittee);
+    setApproved(rs.length > 0);
+  }, []);
 
   useEffect(() => {
     const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => {
       setSession(s);
       setUser(s?.user ?? null);
       if (s?.user) {
-        setTimeout(() => loadRoles(s.user.id), 0);
+        setTimeout(() => loadAccess(s.user.id), 0);
       } else {
         setRoles([]);
+        setCommitteeId(null);
+        setApproved(false);
       }
     });
 
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session);
       setUser(data.session?.user ?? null);
-      if (data.session?.user) loadRoles(data.session.user.id);
+      if (data.session?.user) loadAccess(data.session.user.id);
       setLoading(false);
     });
 
     return () => sub.subscription.unsubscribe();
-  }, []);
+  }, [loadAccess]);
 
-  const loadRoles = async (uid: string) => {
-    const { data } = await supabase.from("user_roles").select("role").eq("user_id", uid);
-    setRoles((data ?? []).map((r) => r.role as Role));
-  };
-
-  const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+  const signIn = async (phone: string, password: string) => {
+    const { error } = await supabase.auth.signInWithPassword({
+      email: phoneToEmail(phone),
+      password,
+    });
     return { error: error?.message };
   };
 
-  const signUp = async (email: string, password: string, fullName: string, phone?: string) => {
-    const { error } = await supabase.auth.signUp({
+  const signUp = async (
+    phone: string,
+    password: string,
+    fullName: string,
+    familyBranch: string,
+    requestedCommitteeId?: string,
+    notes?: string,
+  ) => {
+    const email = phoneToEmail(phone);
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         emailRedirectTo: `${window.location.origin}/`,
-        data: { full_name: fullName, phone },
+        data: { full_name: fullName, phone, family_branch: familyBranch },
       },
     });
-    return { error: error?.message };
+    if (error) return { error: error.message };
+
+    // Sign in immediately (we did NOT enable email confirmation)
+    const { error: signInErr } = await supabase.auth.signInWithPassword({ email, password });
+    if (signInErr) return { error: signInErr.message };
+
+    const uid = data.user?.id;
+    if (uid) {
+      const { error: reqErr } = await supabase.from("membership_requests").insert({
+        user_id: uid,
+        full_name: fullName,
+        phone,
+        family_branch: familyBranch,
+        requested_committee_id: requestedCommitteeId ?? null,
+        notes: notes ?? null,
+      });
+      if (reqErr) return { error: reqErr.message };
+    }
+    return {};
   };
 
   const signOut = async () => {
@@ -71,9 +132,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const hasRole = (r: Role) => roles.includes(r);
+  const refreshAccess = async () => {
+    if (user) await loadAccess(user.id);
+  };
 
   return (
-    <Ctx.Provider value={{ user, session, roles, loading, signIn, signUp, signOut, hasRole }}>
+    <Ctx.Provider
+      value={{
+        user,
+        session,
+        roles,
+        committeeId,
+        approved,
+        loading,
+        signIn,
+        signUp,
+        signOut,
+        hasRole,
+        refreshAccess,
+      }}
+    >
       {children}
     </Ctx.Provider>
   );
