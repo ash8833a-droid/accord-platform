@@ -126,6 +126,7 @@ export function GroomContributions({ totalCollected, totalBudgetNeeded }: Props)
               <tr className="text-right">
                 <th className="px-4 py-3 font-medium">العريس</th>
                 <th className="px-4 py-3 font-medium">الفرع</th>
+                <th className="px-4 py-3 font-medium">الحالة</th>
                 <th className="px-4 py-3 font-medium">المقدم</th>
                 <th className="px-4 py-3 font-medium">حصة العجز</th>
                 <th className="px-4 py-3 font-medium">الإجمالي</th>
@@ -135,10 +136,20 @@ export function GroomContributions({ totalCollected, totalBudgetNeeded }: Props)
             <tbody>
               {grooms.map((g) => {
                 const total = Number(g.groom_contribution) + Number(g.deficit_share);
+                const isEligible = g.status === "approved" || g.status === "completed";
+                const statusMap: Record<string, { label: string; cls: string }> = {
+                  new: { label: "جديد", cls: "bg-muted text-foreground" },
+                  under_review: { label: "قيد المراجعة", cls: "bg-amber-500/15 text-amber-700 border-amber-500/30" },
+                  approved: { label: "معتمد", cls: "bg-emerald-500/15 text-emerald-700 border-emerald-500/30" },
+                  rejected: { label: "مرفوض", cls: "bg-rose-500/15 text-rose-700 border-rose-500/30" },
+                  completed: { label: "مكتمل", cls: "bg-gold/15 text-gold-foreground border-gold/30" },
+                };
+                const s = statusMap[g.status] ?? statusMap.new;
                 return (
-                  <tr key={g.id} className="border-t hover:bg-muted/20">
+                  <tr key={g.id} className={`border-t hover:bg-muted/20 ${!isEligible ? "opacity-60" : ""}`}>
                     <td className="px-4 py-3 font-medium">{g.full_name}</td>
                     <td className="px-4 py-3"><Badge variant="outline" className="bg-primary/5">{g.family_branch}</Badge></td>
+                    <td className="px-4 py-3"><Badge variant="outline" className={s.cls}>{s.label}</Badge></td>
                     <td className="px-4 py-3">
                       <Input
                         type="number"
@@ -153,6 +164,7 @@ export function GroomContributions({ totalCollected, totalBudgetNeeded }: Props)
                         defaultValue={g.deficit_share}
                         onBlur={(e) => updateGroomShare(g.id, "deficit_share", Number(e.target.value))}
                         className="h-8 w-28"
+                        disabled={!isEligible}
                       />
                     </td>
                     <td className="px-4 py-3 font-bold">
@@ -175,8 +187,8 @@ export function GroomContributions({ totalCollected, totalBudgetNeeded }: Props)
                 );
               })}
               {grooms.length === 0 && (
-                <tr><td colSpan={6} className="text-center py-12 text-muted-foreground">
-                  لا يوجد عرسان معتمدون بعد. اعتمد العرسان من سجل العرسان أولاً.
+                <tr><td colSpan={7} className="text-center py-12 text-muted-foreground">
+                  لا يوجد عرسان مسجلون بعد.
                 </td></tr>
               )}
             </tbody>
