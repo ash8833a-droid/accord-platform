@@ -74,6 +74,9 @@ const PR_STATUS: Record<string, { label: string; cls: string }> = {
   rejected: { label: "مرفوض", cls: "bg-rose-500/15 text-rose-700 border-rose-500/30" },
 };
 
+const initials = (name: string) =>
+  name.trim().split(/\s+/).slice(0, 2).map((s) => s[0] ?? "").join("").toUpperCase() || "؟";
+
 function CommitteePage() {
   const { type } = Route.useParams();
   const meta = committeeByType(type);
