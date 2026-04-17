@@ -358,6 +358,15 @@ export function FinanceModule() {
             <p className="text-xs text-muted-foreground mt-4">يقوم كل مندوب بإدخال اشتراكات أبناء فرعه (300 ر.س لكل عضو)</p>
           </div>
         </TabsContent>
+
+        <TabsContent value="safety" className="mt-5">
+          <FinancialSafetyPanel
+            requests={requests}
+            totalCollected={totalCollected}
+            totalPaid={totalPaid}
+            pendingCount={pendingCount}
+          />
+        </TabsContent>
       </Tabs>
 
       {/* Invoice preview */}
