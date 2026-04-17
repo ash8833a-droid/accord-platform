@@ -222,8 +222,8 @@ export function AnnouncementsBanner() {
 
   if (closed || visible.length === 0) return null;
 
-  // Slower, calmer scroll — duration scales with content count
-  const duration = Math.max(60, visible.length * 28);
+  // Scroll speed — lower duration = faster
+  const duration = Math.max(40, visible.length * 18);
 
   const dismissAll = () => {
     const next = [...dismissed, ...visible.map((v) => v.id)];
