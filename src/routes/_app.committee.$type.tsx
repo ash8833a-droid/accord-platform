@@ -115,15 +115,52 @@ function CommitteePage() {
   const Icon = meta.icon;
   const fmt = (n: number) => new Intl.NumberFormat("ar-SA").format(n);
 
-  const addTask = async (e: React.FormEvent) => {
+  const resetTaskForm = () => {
+    setEditingId(null);
+    setTTitle(""); setTDesc(""); setTStatus("todo"); setTPriority("medium");
+  };
+
+  const openNewTask = () => {
+    resetTaskForm();
+    setTaskOpen(true);
+  };
+
+  const openEditTask = (t: Task) => {
+    setEditingId(t.id);
+    setTTitle(t.title);
+    setTDesc(t.description ?? "");
+    setTStatus(t.status);
+    setTPriority(t.priority);
+    setTaskOpen(true);
+  };
+
+  const saveTask = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!committee) return;
-    const { error } = await supabase.from("committee_tasks").insert({
-      committee_id: committee.id, title: tTitle, description: tDesc, status: tStatus,
-    });
-    if (error) return toast.error("تعذرت الإضافة", { description: error.message });
-    toast.success("تمت إضافة المهمة");
-    setTTitle(""); setTDesc(""); setTaskOpen(false); load();
+    if (editingId) {
+      const { error } = await supabase.from("committee_tasks")
+        .update({ title: tTitle, description: tDesc, status: tStatus, priority: tPriority })
+        .eq("id", editingId);
+      if (error) return toast.error("تعذر التحديث", { description: error.message });
+      toast.success("تم تحديث المهمة");
+    } else {
+      const { error } = await supabase.from("committee_tasks").insert({
+        committee_id: committee.id, title: tTitle, description: tDesc, status: tStatus, priority: tPriority,
+      });
+      if (error) return toast.error("تعذرت الإضافة", { description: error.message });
+      toast.success("تمت إضافة المهمة");
+    }
+    resetTaskForm();
+    setTaskOpen(false);
+    load();
+  };
+
+  const deleteTask = async (id: string) => {
+    if (!confirm("هل أنت متأكد من حذف هذه المهمة؟")) return;
+    const { error } = await supabase.from("committee_tasks").delete().eq("id", id);
+    if (error) return toast.error("تعذر الحذف", { description: error.message });
+    toast.success("تم حذف المهمة");
+    load();
   };
 
   const moveTask = async (id: string, to: Task["status"]) => {
