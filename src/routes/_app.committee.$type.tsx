@@ -212,7 +212,14 @@ function CommitteePage() {
         </div>
       </div>
 
-      {/* Professional FAB for payment requests — bottom-left, always visible */}
+      {/* Finance committee gets the full finance module embedded here */}
+      {type === "finance" && (
+        <div className="rounded-2xl border bg-card p-5 shadow-soft">
+          <FinanceModule />
+        </div>
+      )}
+
+
       <Dialog open={prOpen} onOpenChange={setPrOpen}>
         <DialogTrigger asChild>
           <button
