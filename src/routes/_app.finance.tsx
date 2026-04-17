@@ -106,6 +106,14 @@ function FinancePage() {
     load();
   };
 
+  const openInvoice = async (path: string) => {
+    const { data, error } = await supabase.storage.from("invoices").createSignedUrl(path, 60 * 10);
+    if (error || !data?.signedUrl) {
+      return toast.error("تعذر فتح الفاتورة", { description: error?.message });
+    }
+    window.open(data.signedUrl, "_blank", "noopener,noreferrer");
+  };
+
   const totalCollected = delegates.reduce((a, d) => a + (d.collected ?? 0), 0);
   const totalSubs = delegates.reduce((a, d) => a + (d.subs_count ?? 0), 0);
   const pendingCount = requests.filter((r) => r.status === "pending").length;
