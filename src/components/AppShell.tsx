@@ -39,13 +39,15 @@ interface AppShellProps {
 }
 
 export function AppShell({ children, restricted = false, restrictedToCommitteeType = null }: AppShellProps) {
-  const { user, signOut } = useAuth();
+  const { user, signOut, hasRole } = useAuth();
   const nav = useNavigate();
   const path = useRouterState({ select: (s) => s.location.pathname });
   const [open, setOpen] = useState(false);
   const [committeesOpen, setCommitteesOpen] = useState(
     path.startsWith("/committee"),
   );
+  const [pendingCount, setPendingCount] = useState(0);
+  const isAdminUser = hasRole("admin");
   const TOP_NAV = restricted
     ? [{ to: "/dashboard", label: "لوحة التحكم", icon: LayoutDashboard } as const]
     : ADMIN_TOP;
@@ -53,6 +55,29 @@ export function AppShell({ children, restricted = false, restrictedToCommitteeTy
   const visibleCommittees = restricted
     ? COMMITTEES.filter((c) => c.type === restrictedToCommitteeType)
     : COMMITTEES;
+
+  useEffect(() => {
+    if (!isAdminUser) return;
+    const fetchPending = async () => {
+      const { count } = await supabase
+        .from("membership_requests")
+        .select("id", { count: "exact", head: true })
+        .eq("status", "pending");
+      setPendingCount(count ?? 0);
+    };
+    fetchPending();
+    const channel = supabase
+      .channel("membership_requests_badge")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "membership_requests" },
+        () => fetchPending(),
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [isAdminUser]);
 
   const handleLogout = async () => {
     await signOut();
