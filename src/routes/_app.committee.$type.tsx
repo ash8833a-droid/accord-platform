@@ -211,24 +211,26 @@ function CommitteePage() {
         </div>
       </div>
 
-      {/* Floating side icon for payment requests */}
+      {/* Professional FAB for payment requests — bottom-left, always visible */}
       <Dialog open={prOpen} onOpenChange={setPrOpen}>
         <DialogTrigger asChild>
           <button
             type="button"
-            className="fixed top-1/2 -translate-y-1/2 left-4 z-40 group flex flex-col items-center gap-2"
-            aria-label="طلبات الصرف والعهد"
+            aria-label="رفع طلب صرف أو عهدة مالية"
+            className="fixed bottom-6 left-6 z-50 group flex items-center gap-3 ps-2 pe-5 py-2 rounded-full bg-gradient-hero text-primary-foreground shadow-elegant hover:shadow-gold transition-all hover:scale-105 active:scale-95 animate-fade-up"
           >
-            <span className="relative h-14 w-14 rounded-2xl bg-gradient-hero text-primary-foreground shadow-elegant flex items-center justify-center transition-transform group-hover:scale-110">
-              <Receipt className="h-6 w-6" />
+            <span className="absolute inset-0 rounded-full bg-primary/30 animate-ping opacity-40 group-hover:opacity-0" aria-hidden="true" />
+            <span className="relative h-11 w-11 rounded-full bg-gold text-gold-foreground flex items-center justify-center shadow-gold shrink-0">
+              <Receipt className="h-5 w-5" />
               {requests.length > 0 && (
-                <span className="absolute -top-1 -right-1 h-5 min-w-5 px-1 rounded-full bg-gold text-gold-foreground text-[10px] font-bold flex items-center justify-center shadow-gold">
+                <span className="absolute -top-1 -right-1 h-5 min-w-5 px-1 rounded-full bg-rose-500 text-white text-[10px] font-bold flex items-center justify-center ring-2 ring-background">
                   {requests.length}
                 </span>
               )}
             </span>
-            <span className="text-[10px] font-medium bg-card border rounded-full px-2 py-0.5 shadow-soft whitespace-nowrap">
-              طلب صرف
+            <span className="relative flex flex-col items-start leading-tight">
+              <span className="text-sm font-bold">طلب صرف / عهدة</span>
+              <span className="text-[10px] opacity-85">إرسال للجنة المالية</span>
             </span>
           </button>
         </DialogTrigger>
