@@ -16,6 +16,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
+import { QualitySummaryCard } from "@/components/quality/QualityScorecard";
 
 export const Route = createFileRoute("/_app/dashboard")({
   component: Dashboard,
@@ -212,8 +213,8 @@ function Dashboard() {
         />
       </div>
 
-      {/* Secondary KPIs */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+      {/* Secondary KPIs + Quality summary */}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-5">
         <StatCard
           label="عدد اللجان"
           value={fmt(stats.committees)}
@@ -232,6 +233,9 @@ function Dashboard() {
           hint={`${stats.doneTasks} مكتملة`}
           icon={ListTodo}
         />
+        <Link to="/committee/$type" params={{ type: "quality" }} className="block">
+          <QualitySummaryCard />
+        </Link>
       </div>
 
       {/* Per-committee multi-indicator grid */}
