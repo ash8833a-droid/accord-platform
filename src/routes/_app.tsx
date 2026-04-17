@@ -50,8 +50,8 @@ function AppLayout() {
     }
     if (!restricted || !typeLoaded) return;
 
-    // Allowed: /dashboard + their committee page only (everything else redirects)
-    const allowed: string[] = ["/dashboard"];
+    // Allowed: /dashboard + /ideas + their committee page only
+    const allowed: string[] = ["/dashboard", "/ideas"];
     if (myCommitteeType) allowed.push(`/committee/${myCommitteeType}`);
     const ok = allowed.some((p) => path === p || path.startsWith(p + "/"));
     if (!ok) {

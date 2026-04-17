@@ -16,6 +16,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppTeamRouteImport } from './routes/_app.team'
 import { Route as AppReportsRouteImport } from './routes/_app.reports'
 import { Route as AppPaymentRequestsRouteImport } from './routes/_app.payment-requests'
+import { Route as AppIdeasRouteImport } from './routes/_app.ideas'
 import { Route as AppGroomsRouteImport } from './routes/_app.grooms'
 import { Route as AppFinanceRouteImport } from './routes/_app.finance'
 import { Route as AppDashboardRouteImport } from './routes/_app.dashboard'
@@ -56,6 +57,11 @@ const AppPaymentRequestsRoute = AppPaymentRequestsRouteImport.update({
   path: '/payment-requests',
   getParentRoute: () => AppRoute,
 } as any)
+const AppIdeasRoute = AppIdeasRouteImport.update({
+  id: '/ideas',
+  path: '/ideas',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppGroomsRoute = AppGroomsRouteImport.update({
   id: '/grooms',
   path: '/grooms',
@@ -90,6 +96,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof AppDashboardRoute
   '/finance': typeof AppFinanceRoute
   '/grooms': typeof AppGroomsRoute
+  '/ideas': typeof AppIdeasRoute
   '/payment-requests': typeof AppPaymentRequestsRoute
   '/reports': typeof AppReportsRoute
   '/team': typeof AppTeamRoute
@@ -103,6 +110,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AppDashboardRoute
   '/finance': typeof AppFinanceRoute
   '/grooms': typeof AppGroomsRoute
+  '/ideas': typeof AppIdeasRoute
   '/payment-requests': typeof AppPaymentRequestsRoute
   '/reports': typeof AppReportsRoute
   '/team': typeof AppTeamRoute
@@ -118,6 +126,7 @@ export interface FileRoutesById {
   '/_app/dashboard': typeof AppDashboardRoute
   '/_app/finance': typeof AppFinanceRoute
   '/_app/grooms': typeof AppGroomsRoute
+  '/_app/ideas': typeof AppIdeasRoute
   '/_app/payment-requests': typeof AppPaymentRequestsRoute
   '/_app/reports': typeof AppReportsRoute
   '/_app/team': typeof AppTeamRoute
@@ -133,6 +142,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/finance'
     | '/grooms'
+    | '/ideas'
     | '/payment-requests'
     | '/reports'
     | '/team'
@@ -146,6 +156,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/finance'
     | '/grooms'
+    | '/ideas'
     | '/payment-requests'
     | '/reports'
     | '/team'
@@ -160,6 +171,7 @@ export interface FileRouteTypes {
     | '/_app/dashboard'
     | '/_app/finance'
     | '/_app/grooms'
+    | '/_app/ideas'
     | '/_app/payment-requests'
     | '/_app/reports'
     | '/_app/team'
@@ -224,6 +236,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppPaymentRequestsRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/ideas': {
+      id: '/_app/ideas'
+      path: '/ideas'
+      fullPath: '/ideas'
+      preLoaderRoute: typeof AppIdeasRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/grooms': {
       id: '/_app/grooms'
       path: '/grooms'
@@ -267,6 +286,7 @@ interface AppRouteChildren {
   AppDashboardRoute: typeof AppDashboardRoute
   AppFinanceRoute: typeof AppFinanceRoute
   AppGroomsRoute: typeof AppGroomsRoute
+  AppIdeasRoute: typeof AppIdeasRoute
   AppPaymentRequestsRoute: typeof AppPaymentRequestsRoute
   AppReportsRoute: typeof AppReportsRoute
   AppTeamRoute: typeof AppTeamRoute
@@ -278,6 +298,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppDashboardRoute: AppDashboardRoute,
   AppFinanceRoute: AppFinanceRoute,
   AppGroomsRoute: AppGroomsRoute,
+  AppIdeasRoute: AppIdeasRoute,
   AppPaymentRequestsRoute: AppPaymentRequestsRoute,
   AppReportsRoute: AppReportsRoute,
   AppTeamRoute: AppTeamRoute,

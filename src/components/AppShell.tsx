@@ -14,6 +14,7 @@ import {
   ChevronDown,
   ShieldCheck,
   Users,
+  Lightbulb,
 } from "lucide-react";
 import { Logo } from "./Logo";
 import { useAuth } from "@/lib/auth";
@@ -28,8 +29,13 @@ const ADMIN_TOP = [
 ] as const;
 
 const ADMIN_BOTTOM = [
+  { to: "/ideas", label: "بنك الأفكار", icon: Lightbulb },
   { to: "/grooms", label: "سجل العرسان", icon: HeartHandshake },
   { to: "/reports", label: "التقارير والجودة", icon: FileBarChart },
+] as const;
+
+const RESTRICTED_EXTRA = [
+  { to: "/ideas", label: "بنك الأفكار", icon: Lightbulb },
 ] as const;
 
 interface AppShellProps {
@@ -51,7 +57,7 @@ export function AppShell({ children, restricted = false, restrictedToCommitteeTy
   const TOP_NAV = restricted
     ? [{ to: "/dashboard", label: "لوحة التحكم", icon: LayoutDashboard } as const]
     : ADMIN_TOP;
-  const BOTTOM_NAV = restricted ? [] : ADMIN_BOTTOM;
+  const BOTTOM_NAV = restricted ? RESTRICTED_EXTRA : ADMIN_BOTTOM;
   const visibleCommittees = restricted
     ? COMMITTEES.filter((c) => c.type === restrictedToCommitteeType)
     : COMMITTEES;
