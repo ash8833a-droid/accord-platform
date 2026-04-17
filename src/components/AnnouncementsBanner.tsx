@@ -186,6 +186,17 @@ export function AnnouncementsBanner() {
       if (!it.meetingAt) return true;
       return it.meetingAt + 2 * 3600 * 1000 > Date.now();
     });
+
+    // Detect newly arrived items (skip first load) and chime
+    const currentIds = new Set(filtered.map((it) => it.id));
+    if (knownIdsRef.current !== null) {
+      const hasNew = filtered.some((it) => !knownIdsRef.current!.has(it.id));
+      if (hasNew && userInteractedRef.current && !document.hidden) {
+        playChime();
+      }
+    }
+    knownIdsRef.current = currentIds;
+
     setItems(filtered);
   };
 
