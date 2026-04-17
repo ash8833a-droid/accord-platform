@@ -11,8 +11,8 @@ export function Logo({ size = 40, withText = true }: { size?: number; withText?:
       </div>
       {withText && (
         <div className="flex flex-col leading-tight">
-          <span className="text-shimmer-gold font-bold text-base">الزواج الجماعي</span>
-          <span className="text-[10px] text-sidebar-foreground/70">منصة البرنامج العائلي</span>
+          <span className="text-shimmer-gold font-bold text-base">منصة عمل لجنة الزواج الجماعي</span>
+          <span className="text-[10px] text-sidebar-foreground/70">لقبيلة الهملة من قريش</span>
         </div>
       )}
     </div>
