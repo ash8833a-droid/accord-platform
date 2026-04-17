@@ -99,7 +99,9 @@ export type Database = {
           description: string | null
           head_user_id: string | null
           id: string
+          max_budget: number
           max_members: number
+          min_budget: number
           name: string
           type: Database["public"]["Enums"]["committee_type"]
           updated_at: string
@@ -111,7 +113,9 @@ export type Database = {
           description?: string | null
           head_user_id?: string | null
           id?: string
+          max_budget?: number
           max_members?: number
+          min_budget?: number
           name: string
           type: Database["public"]["Enums"]["committee_type"]
           updated_at?: string
@@ -123,7 +127,9 @@ export type Database = {
           description?: string | null
           head_user_id?: string | null
           id?: string
+          max_budget?: number
           max_members?: number
+          min_budget?: number
           name?: string
           type?: Database["public"]["Enums"]["committee_type"]
           updated_at?: string
@@ -201,10 +207,13 @@ export type Database = {
       grooms: {
         Row: {
           bride_name: string | null
+          contribution_paid: boolean
           created_at: string
           created_by: string | null
+          deficit_share: number
           family_branch: string
           full_name: string
+          groom_contribution: number
           id: string
           national_id: string | null
           notes: string | null
@@ -216,10 +225,13 @@ export type Database = {
         }
         Insert: {
           bride_name?: string | null
+          contribution_paid?: boolean
           created_at?: string
           created_by?: string | null
+          deficit_share?: number
           family_branch: string
           full_name: string
+          groom_contribution?: number
           id?: string
           national_id?: string | null
           notes?: string | null
@@ -231,10 +243,13 @@ export type Database = {
         }
         Update: {
           bride_name?: string | null
+          contribution_paid?: boolean
           created_at?: string
           created_by?: string | null
+          deficit_share?: number
           family_branch?: string
           full_name?: string
+          groom_contribution?: number
           id?: string
           national_id?: string | null
           notes?: string | null
