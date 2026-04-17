@@ -1,4 +1,4 @@
-import { ReactNode, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import {
   LayoutDashboard,
@@ -19,6 +19,7 @@ import { Logo } from "./Logo";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { COMMITTEES } from "@/lib/committees";
+import { supabase } from "@/integrations/supabase/client";
 
 const ADMIN_TOP = [
   { to: "/dashboard", label: "لوحة التحكم", icon: LayoutDashboard },
@@ -38,13 +39,15 @@ interface AppShellProps {
 }
 
 export function AppShell({ children, restricted = false, restrictedToCommitteeType = null }: AppShellProps) {
-  const { user, signOut } = useAuth();
+  const { user, signOut, hasRole } = useAuth();
   const nav = useNavigate();
   const path = useRouterState({ select: (s) => s.location.pathname });
   const [open, setOpen] = useState(false);
   const [committeesOpen, setCommitteesOpen] = useState(
     path.startsWith("/committee"),
   );
+  const [pendingCount, setPendingCount] = useState(0);
+  const isAdminUser = hasRole("admin");
   const TOP_NAV = restricted
     ? [{ to: "/dashboard", label: "لوحة التحكم", icon: LayoutDashboard } as const]
     : ADMIN_TOP;
@@ -52,6 +55,29 @@ export function AppShell({ children, restricted = false, restrictedToCommitteeTy
   const visibleCommittees = restricted
     ? COMMITTEES.filter((c) => c.type === restrictedToCommitteeType)
     : COMMITTEES;
+
+  useEffect(() => {
+    if (!isAdminUser) return;
+    const fetchPending = async () => {
+      const { count } = await supabase
+        .from("membership_requests")
+        .select("id", { count: "exact", head: true })
+        .eq("status", "pending");
+      setPendingCount(count ?? 0);
+    };
+    fetchPending();
+    const channel = supabase
+      .channel("membership_requests_badge")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "membership_requests" },
+        () => fetchPending(),
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [isAdminUser]);
 
   const handleLogout = async () => {
     await signOut();
@@ -74,10 +100,16 @@ export function AppShell({ children, restricted = false, restrictedToCommitteeTy
       <nav className="flex-1 px-3 py-5 space-y-1 overflow-y-auto">
         {TOP_NAV.map(({ to, label, icon: Icon }) => {
           const active = path === to || path.startsWith(to + "/");
+          const showBadge = to === "/admin" && pendingCount > 0;
           return (
             <Link key={to} to={to} onClick={() => setOpen(false)} className={linkClass(active)}>
               <Icon className="h-5 w-5" />
               <span className="flex-1 text-right">{label}</span>
+              {showBadge && (
+                <span className="min-w-5 h-5 px-1.5 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold flex items-center justify-center">
+                  {pendingCount}
+                </span>
+              )}
             </Link>
           );
         })}
