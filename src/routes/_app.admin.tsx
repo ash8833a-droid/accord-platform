@@ -62,8 +62,11 @@ function AdminCenter() {
         </div>
       )}
 
-      <Tabs defaultValue="tasks" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 max-w-2xl">
+      <Tabs defaultValue="members" className="w-full">
+        <TabsList className="grid w-full grid-cols-4 max-w-3xl">
+          <TabsTrigger value="members" className="gap-2">
+            <UserCheck className="h-4 w-4" /> اعتماد الأعضاء
+          </TabsTrigger>
           <TabsTrigger value="tasks" className="gap-2">
             <ListTodo className="h-4 w-4" /> المهام
           </TabsTrigger>
@@ -75,6 +78,9 @@ function AdminCenter() {
           </TabsTrigger>
         </TabsList>
 
+        <TabsContent value="members" className="mt-6">
+          <MembersApproval isAdmin={isAdmin} />
+        </TabsContent>
         <TabsContent value="tasks" className="mt-6">
           <TasksManager />
         </TabsContent>
