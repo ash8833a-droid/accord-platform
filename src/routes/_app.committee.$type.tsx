@@ -211,81 +211,96 @@ function CommitteePage() {
         </div>
       </div>
 
-      {/* Payment requests */}
-      <section className="rounded-2xl border bg-card shadow-soft overflow-hidden">
-        <div className="px-6 py-4 border-b flex items-center justify-between bg-gradient-to-l from-gold/5 to-transparent">
-          <h3 className="font-bold flex items-center gap-2">
-            <Receipt className="h-5 w-5 text-gold" />
-            طلبات الصرف والعهد المالية
-          </h3>
-          <Dialog open={prOpen} onOpenChange={setPrOpen}>
-            <DialogTrigger asChild>
-              <Button size="sm" className="bg-gradient-hero text-primary-foreground">
-                <Plus className="h-4 w-4 ms-1" /> طلب صرف جديد
-              </Button>
-            </DialogTrigger>
-            <DialogContent dir="rtl">
-              <DialogHeader>
-                <DialogTitle>رفع طلب صرف للجنة المالية</DialogTitle>
-              </DialogHeader>
-              <form onSubmit={submitRequest} className="space-y-3 pt-2">
-                <div className="space-y-2"><Label>عنوان الطلب</Label><Input value={prTitle} onChange={(e) => setPrTitle(e.target.value)} required placeholder="مثال: عهدة لشراء مستلزمات الحفل" /></div>
-                <div className="space-y-2"><Label>المبلغ المطلوب (ر.س)</Label><Input type="number" min="1" value={prAmount} onChange={(e) => setPrAmount(e.target.value)} required dir="ltr" /></div>
-                <div className="space-y-2"><Label>تفاصيل الطلب</Label><Textarea value={prDesc} onChange={(e) => setPrDesc(e.target.value)} rows={4} placeholder="اشرح سبب الطلب وبنود الصرف" /></div>
-                <div className="space-y-2">
-                  <Label>الفاتورة (PDF أو صورة) — اختياري</Label>
-                  <label className="flex items-center justify-center gap-2 px-4 py-3 rounded-lg border-2 border-dashed border-input cursor-pointer hover:border-primary/60 hover:bg-muted/40 transition">
-                    <Upload className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm text-muted-foreground truncate">
-                      {prFile ? prFile.name : "اضغط لاختيار ملف (حد أقصى 10 ميجابايت)"}
-                    </span>
-                    <input
-                      type="file"
-                      accept="application/pdf,image/*"
-                      className="hidden"
-                      onChange={(e) => setPrFile(e.target.files?.[0] ?? null)}
-                    />
-                  </label>
-                </div>
-                <Button type="submit" disabled={prSubmitting} className="w-full bg-gradient-hero text-primary-foreground">
-                  {prSubmitting ? <Loader2 className="h-4 w-4 ms-1 animate-spin" /> : <Wallet className="h-4 w-4 ms-1" />}
-                  {prSubmitting ? "جاري الرفع..." : "رفع الطلب"}
-                </Button>
-              </form>
-            </DialogContent>
-          </Dialog>
-        </div>
-        <div className="divide-y">
-          {requests.length === 0 && (
-            <p className="text-center text-sm text-muted-foreground py-10">لا توجد طلبات صرف بعد</p>
-          )}
-          {requests.map((r) => {
-            const s = PR_STATUS[r.status] ?? PR_STATUS.pending;
-            return (
-              <div key={r.id} className="px-6 py-4 flex items-center justify-between gap-4 hover:bg-muted/30 transition-colors">
-                <div className="min-w-0 flex items-center gap-3">
-                  {r.invoice_url && (
-                    <span className="h-9 w-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0" title="فاتورة مرفقة">
-                      <FileText className="h-4 w-4" />
-                    </span>
-                  )}
-                  <div className="min-w-0">
-                    <p className="font-medium truncate">{r.title}</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">
-                      {new Date(r.created_at).toLocaleDateString("ar-SA")}
-                      {r.invoice_url && " • فاتورة مرفقة"}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="font-bold text-sm">{fmt(Number(r.amount))} ر.س</span>
-                  <Badge variant="outline" className={s.cls}>{s.label}</Badge>
-                </div>
+      {/* Floating side icon for payment requests */}
+      <Dialog open={prOpen} onOpenChange={setPrOpen}>
+        <DialogTrigger asChild>
+          <button
+            type="button"
+            className="fixed top-1/2 -translate-y-1/2 left-4 z-40 group flex flex-col items-center gap-2"
+            aria-label="طلبات الصرف والعهد"
+          >
+            <span className="relative h-14 w-14 rounded-2xl bg-gradient-hero text-primary-foreground shadow-elegant flex items-center justify-center transition-transform group-hover:scale-110">
+              <Receipt className="h-6 w-6" />
+              {requests.length > 0 && (
+                <span className="absolute -top-1 -right-1 h-5 min-w-5 px-1 rounded-full bg-gold text-gold-foreground text-[10px] font-bold flex items-center justify-center shadow-gold">
+                  {requests.length}
+                </span>
+              )}
+            </span>
+            <span className="text-[10px] font-medium bg-card border rounded-full px-2 py-0.5 shadow-soft whitespace-nowrap">
+              طلب صرف
+            </span>
+          </button>
+        </DialogTrigger>
+        <DialogContent dir="rtl" className="max-w-2xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Receipt className="h-5 w-5 text-gold" />
+              طلبات الصرف والعهد المالية
+            </DialogTitle>
+          </DialogHeader>
+
+          <form onSubmit={submitRequest} className="space-y-3 pt-2 border-b pb-5">
+            <div className="space-y-2"><Label>عنوان الطلب</Label><Input value={prTitle} onChange={(e) => setPrTitle(e.target.value)} required placeholder="مثال: عهدة لشراء مستلزمات الحفل" /></div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2"><Label>المبلغ (ر.س)</Label><Input type="number" min="1" value={prAmount} onChange={(e) => setPrAmount(e.target.value)} required dir="ltr" /></div>
+              <div className="space-y-2">
+                <Label>الفاتورة (اختياري)</Label>
+                <label className="flex items-center justify-center gap-2 px-3 h-9 rounded-md border border-dashed border-input cursor-pointer hover:border-primary/60 hover:bg-muted/40 transition text-xs">
+                  <Upload className="h-3.5 w-3.5 text-muted-foreground" />
+                  <span className="text-muted-foreground truncate max-w-[140px]">
+                    {prFile ? prFile.name : "اختر ملف"}
+                  </span>
+                  <input
+                    type="file"
+                    accept="application/pdf,image/*"
+                    className="hidden"
+                    onChange={(e) => setPrFile(e.target.files?.[0] ?? null)}
+                  />
+                </label>
               </div>
-            );
-          })}
-        </div>
-      </section>
+            </div>
+            <div className="space-y-2"><Label>تفاصيل الطلب</Label><Textarea value={prDesc} onChange={(e) => setPrDesc(e.target.value)} rows={3} placeholder="اشرح سبب الطلب وبنود الصرف" /></div>
+            <Button type="submit" disabled={prSubmitting} className="w-full bg-gradient-hero text-primary-foreground">
+              {prSubmitting ? <Loader2 className="h-4 w-4 ms-1 animate-spin" /> : <Wallet className="h-4 w-4 ms-1" />}
+              {prSubmitting ? "جاري الرفع..." : "رفع الطلب للجنة المالية"}
+            </Button>
+          </form>
+
+          <div>
+            <h4 className="text-sm font-bold mb-3 mt-2">الطلبات السابقة ({requests.length})</h4>
+            <div className="divide-y rounded-lg border">
+              {requests.length === 0 && (
+                <p className="text-center text-sm text-muted-foreground py-6">لا توجد طلبات صرف بعد</p>
+              )}
+              {requests.map((r) => {
+                const s = PR_STATUS[r.status] ?? PR_STATUS.pending;
+                return (
+                  <div key={r.id} className="px-4 py-3 flex items-center justify-between gap-3 hover:bg-muted/30 transition-colors">
+                    <div className="min-w-0 flex items-center gap-2">
+                      {r.invoice_url && (
+                        <span className="h-8 w-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                          <FileText className="h-3.5 w-3.5" />
+                        </span>
+                      )}
+                      <div className="min-w-0">
+                        <p className="font-medium truncate text-sm">{r.title}</p>
+                        <p className="text-[11px] text-muted-foreground mt-0.5">
+                          {new Date(r.created_at).toLocaleDateString("ar-SA")}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className="font-bold text-xs">{fmt(Number(r.amount))} ر.س</span>
+                      <Badge variant="outline" className={`${s.cls} text-[10px]`}>{s.label}</Badge>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Tasks Kanban */}
       <section>
