@@ -82,12 +82,18 @@ function CommitteePage() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [requests, setRequests] = useState<PaymentRequest[]>([]);
 
+  const { user } = useAuth();
+  const [profileName, setProfileName] = useState<string | null>(null);
+  const [members, setMembers] = useState<TeamMember[]>([]);
+  const [showMine, setShowMine] = useState(false);
+
   const [taskOpen, setTaskOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [tTitle, setTTitle] = useState("");
   const [tDesc, setTDesc] = useState("");
   const [tStatus, setTStatus] = useState<Task["status"]>("todo");
   const [tPriority, setTPriority] = useState<Task["priority"]>("medium");
+  const [tAssignee, setTAssignee] = useState<string>("none");
 
   const [prOpen, setPrOpen] = useState(false);
   const [prTitle, setPrTitle] = useState("");
@@ -107,17 +113,25 @@ function CommitteePage() {
       return;
     }
     setCommittee(c);
-    const [{ data: t }, { data: p }] = await Promise.all([
-      supabase.from("committee_tasks").select("id, title, description, status, priority").eq("committee_id", c.id),
+    const [{ data: t }, { data: p }, { data: m }] = await Promise.all([
+      supabase.from("committee_tasks").select("id, title, description, status, priority, assigned_to").eq("committee_id", c.id),
       supabase.from("payment_requests").select("id, title, amount, status, created_at, invoice_url").eq("committee_id", c.id).order("created_at", { ascending: false }),
+      supabase.from("team_members").select("id, full_name, role_title, is_head").eq("committee_id", c.id).order("display_order"),
     ]);
     setTasks((t ?? []) as Task[]);
     setRequests((p ?? []) as PaymentRequest[]);
+    setMembers((m ?? []) as TeamMember[]);
   };
 
   useEffect(() => {
     if (meta) load();
   }, [type]);
+
+  useEffect(() => {
+    if (!user) { setProfileName(null); return; }
+    supabase.from("profiles").select("full_name").eq("user_id", user.id).maybeSingle()
+      .then(({ data }) => setProfileName(data?.full_name ?? null));
+  }, [user]);
 
   if (!meta) {
     throw notFound();
