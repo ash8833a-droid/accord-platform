@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Wallet, Users2, Plus, CheckCircle2, Clock, Receipt, TrendingUp, XCircle, CheckCheck } from "lucide-react";
+import { Wallet, Users2, Plus, CheckCircle2, Clock, Receipt, TrendingUp, XCircle, CheckCheck, FileText } from "lucide-react";
 import { toast } from "sonner";
 import { StatCard } from "@/components/StatCard";
 import { committeeByType } from "@/lib/committees";
@@ -34,6 +34,7 @@ interface PaymentRequest {
   status: "pending" | "approved" | "rejected" | "paid";
   created_at: string;
   committee_id: string;
+  invoice_url: string | null;
   committee_name?: string;
   committee_type?: string;
 }
@@ -103,6 +104,14 @@ function FinancePage() {
     if (error) return toast.error("تعذر التحديث", { description: error.message });
     toast.success("تم تحديث حالة الطلب");
     load();
+  };
+
+  const openInvoice = async (path: string) => {
+    const { data, error } = await supabase.storage.from("invoices").createSignedUrl(path, 60 * 10);
+    if (error || !data?.signedUrl) {
+      return toast.error("تعذر فتح الفاتورة", { description: error?.message });
+    }
+    window.open(data.signedUrl, "_blank", "noopener,noreferrer");
   };
 
   const totalCollected = delegates.reduce((a, d) => a + (d.collected ?? 0), 0);
@@ -178,6 +187,17 @@ function FinancePage() {
                         </div>
                       </div>
                       <div className="flex items-center gap-3 flex-wrap">
+                        {r.invoice_url && (
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            onClick={() => openInvoice(r.invoice_url!)}
+                            className="gap-1.5"
+                          >
+                            <FileText className="h-3.5 w-3.5" /> عرض الفاتورة
+                          </Button>
+                        )}
                         <span className="font-bold">{fmt(Number(r.amount))} ر.س</span>
                         <Badge variant="outline" className={s.cls}>{s.label}</Badge>
                       </div>
