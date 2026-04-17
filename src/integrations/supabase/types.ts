@@ -270,6 +270,80 @@ export type Database = {
         }
         Relationships: []
       }
+      idea_votes: {
+        Row: {
+          created_at: string
+          id: string
+          idea_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          idea_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          idea_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "idea_votes_idea_id_fkey"
+            columns: ["idea_id"]
+            isOneToOne: false
+            referencedRelation: "ideas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ideas: {
+        Row: {
+          admin_response: string | null
+          category: string | null
+          created_at: string
+          description: string
+          id: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: Database["public"]["Enums"]["idea_status"]
+          title: string
+          updated_at: string
+          user_id: string
+          votes_count: number
+        }
+        Insert: {
+          admin_response?: string | null
+          category?: string | null
+          created_at?: string
+          description: string
+          id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["idea_status"]
+          title: string
+          updated_at?: string
+          user_id: string
+          votes_count?: number
+        }
+        Update: {
+          admin_response?: string | null
+          category?: string | null
+          created_at?: string
+          description?: string
+          id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["idea_status"]
+          title?: string
+          updated_at?: string
+          user_id?: string
+          votes_count?: number
+        }
+        Relationships: []
+      }
       membership_requests: {
         Row: {
           assigned_committee_id: string | null
@@ -729,6 +803,12 @@ export type Database = {
         | "approved"
         | "rejected"
         | "completed"
+      idea_status:
+        | "new"
+        | "under_review"
+        | "approved"
+        | "implemented"
+        | "archived"
       payment_request_status: "pending" | "approved" | "rejected" | "paid"
       subscription_status: "pending" | "confirmed" | "rejected"
       task_priority: "low" | "medium" | "high" | "urgent"
@@ -877,6 +957,13 @@ export const Constants = {
         "approved",
         "rejected",
         "completed",
+      ],
+      idea_status: [
+        "new",
+        "under_review",
+        "approved",
+        "implemented",
+        "archived",
       ],
       payment_request_status: ["pending", "approved", "rejected", "paid"],
       subscription_status: ["pending", "confirmed", "rejected"],
