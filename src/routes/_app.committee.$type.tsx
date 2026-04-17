@@ -332,6 +332,13 @@ function CommitteePage() {
         </div>
       )}
 
+      {/* Media committee gets invitation cards distribution */}
+      {type === "media" && (
+        <div className="rounded-2xl border bg-card p-5 shadow-soft">
+          <InvitationCards />
+        </div>
+      )}
+
 
       <Dialog open={prOpen} onOpenChange={setPrOpen}>
         <DialogTrigger asChild>
