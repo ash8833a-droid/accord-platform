@@ -372,10 +372,28 @@ export function exportRequestsPDF(
   }
 
   <div class="footer">
-    <div>
-      <span class="stamp">منصة الزواج الجماعي العائلي</span> — وثيقة رسمية تمثل بيانات اللحظة وقت التصدير
+    <div class="signatures">
+      <div class="sig-box">
+        <div class="sig-label">اعتمد من قِبل</div>
+        <div class="sig-name">${escapeHtml(signature?.name ?? "................................")}</div>
+        <div class="sig-title">${escapeHtml(signature?.title ?? "رئيس اللجنة")}${signature?.committee ? " — " + escapeHtml(signature.committee) : ""}</div>
+        <div class="sig-line">التوقيع والتاريخ</div>
+        <div class="sig-stamp">ختم<br/>اللجنة</div>
+      </div>
+      <div class="sig-box">
+        <div class="sig-label">اطّلع عليه</div>
+        <div class="sig-name">................................</div>
+        <div class="sig-title">رئيس اللجنة العليا للبرنامج</div>
+        <div class="sig-line">التوقيع والتاريخ</div>
+        <div class="sig-stamp">ختم<br/>الإدارة</div>
+      </div>
     </div>
-    <div>صفحة ١ — جودة وشفافية</div>
+    <div class="footer-bottom">
+      <div>
+        <span class="stamp">منصة الزواج الجماعي العائلي</span> — وثيقة رسمية تمثل بيانات اللحظة وقت التصدير
+      </div>
+      <div>صفحة ١ — جودة وشفافية</div>
+    </div>
   </div>
 
   <script>
