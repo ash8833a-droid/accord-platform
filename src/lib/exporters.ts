@@ -192,13 +192,13 @@ export function exportRequestsPDF(
   }
   .h-row { display: flex; justify-content: space-between; align-items: center; position: relative; }
   .brand { display: flex; align-items: center; gap: 14px; }
-  .logo {
-    width: 56px; height: 56px; border-radius: 14px;
-    background: linear-gradient(135deg, #C4A25C, #E0C784);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 26px; font-weight: 900; color: #1B4F58;
-    box-shadow: 0 4px 14px rgba(196,162,92,0.4);
+  .logo-img {
+    width: 64px; height: 64px; border-radius: 14px;
+    background: rgba(255,255,255,0.95);
+    padding: 4px;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.18);
   }
+  .logo-img img { width: 100%; height: 100%; display: block; }
   .brand h1 { margin: 0; font-size: 18pt; font-weight: 900; letter-spacing: 0.3px; }
   .brand p  { margin: 2px 0 0; font-size: 10pt; opacity: 0.85; }
   .h-meta { text-align: left; font-size: 9pt; opacity: 0.9; line-height: 1.6; }
