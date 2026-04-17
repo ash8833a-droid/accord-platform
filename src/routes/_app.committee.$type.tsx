@@ -418,58 +418,88 @@ function CommitteePage() {
 
       {/* Tasks Kanban */}
       <section>
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
           <h3 className="font-bold flex items-center gap-2">
             <ListTodo className="h-5 w-5 text-primary" /> لوحة المهام
           </h3>
-          <Dialog open={taskOpen} onOpenChange={(o) => { setTaskOpen(o); if (!o) resetTaskForm(); }}>
-            <Button size="sm" onClick={openNewTask} className="bg-gradient-gold text-gold-foreground shadow-gold">
-              <Plus className="h-4 w-4 ms-1" /> مهمة جديدة
-            </Button>
-            <DialogContent dir="rtl">
-              <DialogHeader><DialogTitle>{editingId ? "تعديل المهمة" : "إضافة مهمة"}</DialogTitle></DialogHeader>
-              <form onSubmit={saveTask} className="space-y-3 pt-2">
-                <div className="space-y-2"><Label>العنوان</Label><Input value={tTitle} onChange={(e) => setTTitle(e.target.value)} required /></div>
-                <div className="space-y-2"><Label>الوصف</Label><Textarea value={tDesc} onChange={(e) => setTDesc(e.target.value)} rows={3} /></div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-2">
-                    <Label>الحالة</Label>
-                    <Select value={tStatus} onValueChange={(v) => setTStatus(v as Task["status"])}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="todo">قائمة الانتظار</SelectItem>
-                        <SelectItem value="in_progress">قيد التنفيذ</SelectItem>
-                        <SelectItem value="completed">مكتملة</SelectItem>
-                      </SelectContent>
-                    </Select>
+          <div className="flex items-center gap-2">
+            {myMemberId && (
+              <Button
+                size="sm"
+                variant={showMine ? "default" : "outline"}
+                onClick={() => setShowMine((v) => !v)}
+                className={showMine ? "bg-primary text-primary-foreground" : ""}
+              >
+                <UserIcon className="h-3.5 w-3.5 ms-1" />
+                {showMine ? `مهامي (${mineCount})` : "مهامي"}
+              </Button>
+            )}
+            <Dialog open={taskOpen} onOpenChange={(o) => { setTaskOpen(o); if (!o) resetTaskForm(); }}>
+              <Button size="sm" onClick={openNewTask} className="bg-gradient-gold text-gold-foreground shadow-gold">
+                <Plus className="h-4 w-4 ms-1" /> مهمة جديدة
+              </Button>
+              <DialogContent dir="rtl">
+                <DialogHeader><DialogTitle>{editingId ? "تعديل المهمة" : "إضافة مهمة"}</DialogTitle></DialogHeader>
+                <form onSubmit={saveTask} className="space-y-3 pt-2">
+                  <div className="space-y-2"><Label>العنوان</Label><Input value={tTitle} onChange={(e) => setTTitle(e.target.value)} required /></div>
+                  <div className="space-y-2"><Label>الوصف</Label><Textarea value={tDesc} onChange={(e) => setTDesc(e.target.value)} rows={3} /></div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-2">
+                      <Label>الحالة</Label>
+                      <Select value={tStatus} onValueChange={(v) => setTStatus(v as Task["status"])}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="todo">قائمة الانتظار</SelectItem>
+                          <SelectItem value="in_progress">قيد التنفيذ</SelectItem>
+                          <SelectItem value="completed">مكتملة</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>الأولوية</Label>
+                      <Select value={tPriority} onValueChange={(v) => setTPriority(v as Task["priority"])}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="low">منخفضة</SelectItem>
+                          <SelectItem value="medium">متوسطة</SelectItem>
+                          <SelectItem value="high">عالية</SelectItem>
+                          <SelectItem value="urgent">عاجلة</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
                   <div className="space-y-2">
-                    <Label>الأولوية</Label>
-                    <Select value={tPriority} onValueChange={(v) => setTPriority(v as Task["priority"])}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
+                    <Label className="flex items-center gap-1.5"><Users className="h-3.5 w-3.5" /> المسؤول عن المهمة</Label>
+                    <Select value={tAssignee} onValueChange={setTAssignee}>
+                      <SelectTrigger><SelectValue placeholder="اختر عضواً" /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="low">منخفضة</SelectItem>
-                        <SelectItem value="medium">متوسطة</SelectItem>
-                        <SelectItem value="high">عالية</SelectItem>
-                        <SelectItem value="urgent">عاجلة</SelectItem>
+                        <SelectItem value="none">— بدون تعيين —</SelectItem>
+                        {members.map((m) => (
+                          <SelectItem key={m.id} value={m.id}>
+                            {m.full_name}{m.role_title ? ` · ${m.role_title}` : ""}{m.is_head ? " (رئيس)" : ""}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
+                    {members.length === 0 && (
+                      <p className="text-[11px] text-muted-foreground">لا يوجد أعضاء لهذه اللجنة. أضف أعضاء من صفحة فريق العمل.</p>
+                    )}
                   </div>
-                </div>
-                <Button type="submit" className="w-full bg-gradient-hero text-primary-foreground">
-                  {editingId ? "حفظ التعديلات" : "إضافة"}
-                </Button>
-              </form>
-            </DialogContent>
-          </Dialog>
+                  <Button type="submit" className="w-full bg-gradient-hero text-primary-foreground">
+                    {editingId ? "حفظ التعديلات" : "إضافة"}
+                  </Button>
+                </form>
+              </DialogContent>
+            </Dialog>
+          </div>
         </div>
 
         <p className="text-[11px] text-muted-foreground mb-3">
-          💡 اسحب البطاقة وأفلتها بين الأعمدة لتغيير حالتها
+          💡 اسحب البطاقة وأفلتها بين الأعمدة لتغيير حالتها{showMine ? " · يتم عرض مهامك فقط" : ""}
         </p>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {(["todo", "in_progress", "completed"] as const).map((col) => {
-            const colTasks = tasks.filter((t) => t.status === col);
+            const colTasks = visibleTasks.filter((t) => t.status === col);
             const isOver = dragOverCol === col;
             return (
               <div
@@ -488,52 +518,75 @@ function CommitteePage() {
                   </span>
                 </h4>
                 <div className="space-y-2">
-                  {colTasks.map((t) => (
-                    <div
-                      key={t.id}
-                      draggable
-                      onDragStart={(e) => onDragStart(e, t.id)}
-                      onDragEnd={onDragEnd}
-                      className={`group rounded-lg bg-card p-3 shadow-soft border hover:border-primary/40 transition cursor-grab active:cursor-grabbing ${
-                        dragId === t.id ? "opacity-40 scale-95" : ""
-                      }`}
-                    >
-                      <div className="flex items-start gap-2 mb-1.5">
-                        <GripVertical className="h-3.5 w-3.5 text-muted-foreground/60 mt-0.5 shrink-0" />
-                        <p className="font-medium text-sm flex-1">{t.title}</p>
-                        <Badge variant="secondary" className={`${PRIORITY_TONE[t.priority]} text-[10px] shrink-0`}>
-                          {PRIORITY_LABELS[t.priority]}
-                        </Badge>
-                      </div>
-                      {t.description && (
-                        <p className="text-[11px] text-muted-foreground line-clamp-2 mb-2 ps-5">{t.description}</p>
-                      )}
+                  {colTasks.map((t) => {
+                    const assignee = t.assigned_to ? memberById.get(t.assigned_to) : undefined;
+                    const isMine = !!myMemberId && t.assigned_to === myMemberId;
+                    return (
+                      <div
+                        key={t.id}
+                        draggable
+                        onDragStart={(e) => onDragStart(e, t.id)}
+                        onDragEnd={onDragEnd}
+                        className={`group rounded-lg bg-card p-3 shadow-soft border hover:border-primary/40 transition cursor-grab active:cursor-grabbing ${
+                          dragId === t.id ? "opacity-40 scale-95" : ""
+                        } ${isMine ? "ring-1 ring-primary/40" : ""}`}
+                      >
+                        <div className="flex items-start gap-2 mb-1.5">
+                          <GripVertical className="h-3.5 w-3.5 text-muted-foreground/60 mt-0.5 shrink-0" />
+                          <p className="font-medium text-sm flex-1">{t.title}</p>
+                          <Badge variant="secondary" className={`${PRIORITY_TONE[t.priority]} text-[10px] shrink-0`}>
+                            {PRIORITY_LABELS[t.priority]}
+                          </Badge>
+                        </div>
+                        {t.description && (
+                          <p className="text-[11px] text-muted-foreground line-clamp-2 mb-2 ps-5">{t.description}</p>
+                        )}
 
-                      <div className="ps-5 mb-2">
-                        <TaskAttachments taskId={t.id} committeeId={committee.id} compact />
-                      </div>
+                        <div className="ps-5 mb-2">
+                          <TaskAttachments taskId={t.id} committeeId={committee.id} compact />
+                        </div>
 
-                      <div className="flex items-center justify-end gap-0.5 pt-1 border-t border-border/50 opacity-60 group-hover:opacity-100 transition">
-                        <button
-                          onClick={() => openEditTask(t)}
-                          className="h-6 w-6 rounded flex items-center justify-center hover:bg-primary/10 hover:text-primary transition"
-                          aria-label="تعديل"
-                        >
-                          <Pencil className="h-3 w-3" />
-                        </button>
-                        <button
-                          onClick={() => deleteTask(t.id)}
-                          className="h-6 w-6 rounded flex items-center justify-center hover:bg-destructive/10 hover:text-destructive transition"
-                          aria-label="حذف"
-                        >
-                          <Trash2 className="h-3 w-3" />
-                        </button>
+                        <div className="flex items-center justify-between gap-2 pt-1 border-t border-border/50">
+                          {assignee ? (
+                            <div className="flex items-center gap-1.5 min-w-0" title={assignee.full_name}>
+                              <Avatar className="h-6 w-6 border border-primary/20">
+                                <AvatarFallback className="text-[10px] bg-primary/10 text-primary font-bold">
+                                  {initials(assignee.full_name)}
+                                </AvatarFallback>
+                              </Avatar>
+                              <span className="text-[11px] text-muted-foreground truncate">
+                                {assignee.full_name.split(" ").slice(0, 2).join(" ")}
+                              </span>
+                              {isMine && <Badge variant="secondary" className="bg-primary/10 text-primary text-[9px] px-1.5 h-4">أنت</Badge>}
+                            </div>
+                          ) : (
+                            <span className="text-[10px] text-muted-foreground/70 inline-flex items-center gap-1">
+                              <UserIcon className="h-3 w-3" /> غير معيّن
+                            </span>
+                          )}
+                          <div className="flex items-center gap-0.5 opacity-60 group-hover:opacity-100 transition">
+                            <button
+                              onClick={() => openEditTask(t)}
+                              className="h-6 w-6 rounded flex items-center justify-center hover:bg-primary/10 hover:text-primary transition"
+                              aria-label="تعديل"
+                            >
+                              <Pencil className="h-3 w-3" />
+                            </button>
+                            <button
+                              onClick={() => deleteTask(t.id)}
+                              className="h-6 w-6 rounded flex items-center justify-center hover:bg-destructive/10 hover:text-destructive transition"
+                              aria-label="حذف"
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </button>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                   {colTasks.length === 0 && (
                     <p className="text-xs text-muted-foreground text-center py-8 border-2 border-dashed border-muted rounded-lg">
-                      {isOver ? "أفلت هنا" : "لا توجد مهام"}
+                      {isOver ? "أفلت هنا" : showMine ? "لا توجد مهام معيّنة لك" : "لا توجد مهام"}
                     </p>
                   )}
                 </div>
