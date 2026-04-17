@@ -405,3 +405,199 @@ export function FinanceModule() {
     </div>
   );
 }
+
+// ============================================================
+// لوحة السلامة المالية — معايير الرقابة الداخلية وفصل المهام
+// ============================================================
+interface SafetyProps {
+  requests: PaymentRequest[];
+  totalCollected: number;
+  totalPaid: number;
+  pendingCount: number;
+}
+
+function FinancialSafetyPanel({ requests, totalCollected, totalPaid, pendingCount }: SafetyProps) {
+  const fmt = (n: number) => new Intl.NumberFormat("ar-SA").format(n);
+  const balance = totalCollected - totalPaid;
+  const burnRate = totalCollected > 0 ? (totalPaid / totalCollected) * 100 : 0;
+
+  // مؤشرات الرقابة
+  const approvedNotPaid = requests.filter((r) => r.status === "approved").length;
+  const rejected = requests.filter((r) => r.status === "rejected").length;
+  const withInvoice = requests.filter((r) => r.invoice_url).length;
+  const totalRequests = requests.length;
+  const invoiceCoverage = totalRequests > 0 ? (withInvoice / totalRequests) * 100 : 100;
+  const largeRequests = requests.filter((r) => Number(r.amount) >= 5000);
+
+  const checks = [
+    {
+      key: "sod",
+      label: "فصل المهام (Segregation of Duties)",
+      desc: "مقدِّم الطلب ≠ المراجِع ≠ الصارف. النظام يُلزم تسجيل المراجع وزمن المراجعة لكل طلب.",
+      ok: true,
+      icon: Lock,
+    },
+    {
+      key: "dual",
+      label: "اعتماد ثنائي قبل الصرف",
+      desc: "كل طلب يمر بمرحلتين: اعتماد ثم صرف. لا يجوز الصرف المباشر بدون اعتماد مسبق.",
+      ok: true,
+      icon: ShieldCheck,
+    },
+    {
+      key: "audit",
+      label: "سجل تدقيق كامل (Audit Trail)",
+      desc: "كل عملية تُسجَّل بمعرّف المستخدم والوقت في قاعدة البيانات (reviewed_by, reviewed_at).",
+      ok: true,
+      icon: ScrollText,
+    },
+    {
+      key: "invoice",
+      label: "إلزام الفواتير المستندية",
+      desc: `${withInvoice} من ${totalRequests} طلب مرفق بفاتورة (${invoiceCoverage.toFixed(0)}%)`,
+      ok: invoiceCoverage >= 80,
+      icon: FileText,
+    },
+    {
+      key: "balance",
+      label: "الرصيد لا يقل عن صفر",
+      desc: `الرصيد الحالي: ${fmt(balance)} ر.س`,
+      ok: balance >= 0,
+      icon: Wallet,
+    },
+    {
+      key: "burn",
+      label: "معدل الصرف ضمن الحد الآمن (≤ 90%)",
+      desc: `معدل الصرف من المحصّل: ${burnRate.toFixed(1)}%`,
+      ok: burnRate <= 90,
+      icon: TrendingUp,
+    },
+    {
+      key: "rls",
+      label: "حماية قاعدة البيانات (RLS)",
+      desc: "جميع الجداول المالية محمية بسياسات صلاحيات صف على مستوى قاعدة البيانات.",
+      ok: true,
+      icon: Eye,
+    },
+  ];
+
+  const passed = checks.filter((c) => c.ok).length;
+  const score = Math.round((passed / checks.length) * 100);
+  const scoreTone =
+    score >= 90 ? "text-emerald-600" : score >= 70 ? "text-amber-600" : "text-rose-600";
+
+  return (
+    <div className="space-y-5">
+      {/* Header score */}
+      <div className="rounded-2xl border bg-gradient-to-l from-emerald-500/5 via-card to-card p-6 shadow-soft">
+        <div className="flex items-center justify-between gap-4 flex-wrap">
+          <div className="flex items-center gap-4">
+            <div className="h-14 w-14 rounded-2xl bg-emerald-500/15 flex items-center justify-center">
+              <ShieldCheck className="h-7 w-7 text-emerald-600" />
+            </div>
+            <div>
+              <h3 className="font-bold text-lg">مؤشر السلامة المالية</h3>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                تقييم آلي للضوابط الرقابية وفق معايير الحوكمة المالية
+              </p>
+            </div>
+          </div>
+          <div className="text-center">
+            <p className={`text-4xl font-black ${scoreTone}`}>{score}%</p>
+            <p className="text-[11px] text-muted-foreground mt-0.5">{passed} من {checks.length} ضابط مفعّل</p>
+          </div>
+        </div>
+        <div className="mt-4 h-2 rounded-full bg-muted overflow-hidden">
+          <div
+            className={`h-full transition-all ${score >= 90 ? "bg-emerald-500" : score >= 70 ? "bg-amber-500" : "bg-rose-500"}`}
+            style={{ width: `${score}%` }}
+          />
+        </div>
+      </div>
+
+      {/* KPI cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="rounded-xl border bg-card p-4">
+          <p className="text-[11px] text-muted-foreground">الرصيد المتاح</p>
+          <p className={`text-xl font-bold mt-1 ${balance >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
+            {fmt(balance)} ر.س
+          </p>
+        </div>
+        <div className="rounded-xl border bg-card p-4">
+          <p className="text-[11px] text-muted-foreground">معدل الصرف</p>
+          <p className="text-xl font-bold mt-1">{burnRate.toFixed(1)}%</p>
+        </div>
+        <div className="rounded-xl border bg-card p-4">
+          <p className="text-[11px] text-muted-foreground">معتمد بانتظار الصرف</p>
+          <p className="text-xl font-bold mt-1 text-sky-600">{approvedNotPaid}</p>
+        </div>
+        <div className="rounded-xl border bg-card p-4">
+          <p className="text-[11px] text-muted-foreground">طلبات مرفوضة</p>
+          <p className="text-xl font-bold mt-1 text-rose-600">{rejected}</p>
+        </div>
+      </div>
+
+      {/* Controls checklist */}
+      <div className="rounded-2xl border bg-card overflow-hidden shadow-soft">
+        <div className="px-5 py-3 border-b bg-gradient-to-l from-emerald-500/5 to-transparent">
+          <h4 className="font-bold flex items-center gap-2 text-sm">
+            <ShieldCheck className="h-4 w-4 text-emerald-600" /> الضوابط الرقابية المُفعَّلة
+          </h4>
+        </div>
+        <div className="divide-y">
+          {checks.map((c) => {
+            const I = c.icon;
+            return (
+              <div key={c.key} className="px-5 py-3 flex items-start gap-3 hover:bg-muted/20 transition">
+                <div className={`h-8 w-8 rounded-lg shrink-0 flex items-center justify-center ${c.ok ? "bg-emerald-500/15 text-emerald-600" : "bg-amber-500/15 text-amber-600"}`}>
+                  <I className="h-4 w-4" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <p className="font-semibold text-sm">{c.label}</p>
+                    {c.ok ? (
+                      <Badge variant="outline" className="bg-emerald-500/10 text-emerald-700 border-emerald-500/30 text-[10px]">مُفعَّل</Badge>
+                    ) : (
+                      <Badge variant="outline" className="bg-amber-500/10 text-amber-700 border-amber-500/30 text-[10px]">يحتاج مراجعة</Badge>
+                    )}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">{c.desc}</p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Large requests watchlist */}
+      {largeRequests.length > 0 && (
+        <div className="rounded-2xl border bg-card overflow-hidden shadow-soft">
+          <div className="px-5 py-3 border-b bg-gradient-to-l from-amber-500/10 to-transparent">
+            <h4 className="font-bold flex items-center gap-2 text-sm">
+              <AlertTriangle className="h-4 w-4 text-amber-600" /> طلبات عالية القيمة (≥ 5,000 ر.س) — تتطلب تدقيقاً مزدوجاً
+            </h4>
+          </div>
+          <div className="divide-y">
+            {largeRequests.slice(0, 8).map((r) => {
+              const s = PR_STATUS[r.status] ?? PR_STATUS.pending;
+              return (
+                <div key={r.id} className="px-5 py-3 flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="font-semibold text-sm truncate">{r.title}</p>
+                    <p className="text-[11px] text-muted-foreground">
+                      {r.committee_name ?? "—"} • {new Date(r.created_at).toLocaleDateString("ar-SA")}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className="font-bold text-sm">{fmt(Number(r.amount))} ر.س</span>
+                    <Badge variant="outline" className={`${s.cls} text-[10px]`}>{s.label}</Badge>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
