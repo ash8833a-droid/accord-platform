@@ -8,10 +8,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Plus, ListTodo, Receipt, Wallet, ArrowLeft, FileText, Upload, Loader2, Pencil, Trash2 } from "lucide-react";
+import { Plus, ListTodo, Receipt, Wallet, ArrowLeft, FileText, Upload, Loader2, Pencil, Trash2, GripVertical } from "lucide-react";
 import { toast } from "sonner";
 import { committeeByType, COMMITTEES } from "@/lib/committees";
 import { FinanceModule } from "@/components/FinanceModule";
+import { TaskAttachments } from "@/components/TaskAttachments";
 
 export const Route = createFileRoute("/_app/committee/$type")({
   component: CommitteePage,
@@ -164,8 +165,35 @@ function CommitteePage() {
   };
 
   const moveTask = async (id: string, to: Task["status"]) => {
-    await supabase.from("committee_tasks").update({ status: to }).eq("id", id);
-    load();
+    const current = tasks.find((t) => t.id === id);
+    if (!current || current.status === to) return;
+    // optimistic update
+    setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, status: to } : t)));
+    const { error } = await supabase.from("committee_tasks").update({ status: to }).eq("id", id);
+    if (error) {
+      toast.error("تعذر النقل", { description: error.message });
+      load();
+    }
+  };
+
+  const [dragId, setDragId] = useState<string | null>(null);
+  const [dragOverCol, setDragOverCol] = useState<Task["status"] | null>(null);
+  const onDragStart = (e: React.DragEvent, id: string) => {
+    setDragId(id);
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("text/plain", id);
+  };
+  const onDragEnd = () => { setDragId(null); setDragOverCol(null); };
+  const onDragOverCol = (e: React.DragEvent, col: Task["status"]) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    setDragOverCol(col);
+  };
+  const onDropCol = (e: React.DragEvent, col: Task["status"]) => {
+    e.preventDefault();
+    const id = e.dataTransfer.getData("text/plain") || dragId;
+    setDragId(null); setDragOverCol(null);
+    if (id) moveTask(id, col);
   };
 
   const submitRequest = async (e: React.FormEvent) => {
