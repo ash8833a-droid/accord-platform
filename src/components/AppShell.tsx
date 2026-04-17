@@ -97,7 +97,7 @@ export function AppShell({ children, restricted = false, restrictedToCommitteeTy
           </button>
           {committeesOpen && (
             <div className="mt-1 mr-3 ps-2 border-s border-sidebar-border/60 space-y-0.5 animate-fade-up">
-              {COMMITTEES.map(({ type, label, icon: Icon, tone }) => {
+              {visibleCommittees.map(({ type, label, icon: Icon, tone }) => {
                 const to = `/committee/${type}`;
                 const active = path === to;
                 return (
