@@ -100,10 +100,16 @@ export function AppShell({ children, restricted = false, restrictedToCommitteeTy
       <nav className="flex-1 px-3 py-5 space-y-1 overflow-y-auto">
         {TOP_NAV.map(({ to, label, icon: Icon }) => {
           const active = path === to || path.startsWith(to + "/");
+          const showBadge = to === "/admin" && pendingCount > 0;
           return (
             <Link key={to} to={to} onClick={() => setOpen(false)} className={linkClass(active)}>
               <Icon className="h-5 w-5" />
               <span className="flex-1 text-right">{label}</span>
+              {showBadge && (
+                <span className="min-w-5 h-5 px-1.5 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold flex items-center justify-center">
+                  {pendingCount}
+                </span>
+              )}
             </Link>
           );
         })}
