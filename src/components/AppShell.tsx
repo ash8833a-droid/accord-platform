@@ -21,7 +21,7 @@ import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { COMMITTEES } from "@/lib/committees";
 import { supabase } from "@/integrations/supabase/client";
-import { AnnouncementsBanner } from "./AnnouncementsBanner";
+
 
 const ADMIN_TOP = [
   { to: "/dashboard", label: "لوحة التحكم", icon: LayoutDashboard },
@@ -209,9 +209,6 @@ export function AppShell({ children, restricted = false, restrictedToCommitteeTy
       )}
 
       <div className="flex-1 flex flex-col min-w-0">
-        <div className="sticky top-0 z-40">
-          <AnnouncementsBanner />
-        </div>
         <header className="sticky top-0 z-30 glass border-b">
           <div className="flex items-center justify-between px-4 lg:px-8 h-16">
             <button

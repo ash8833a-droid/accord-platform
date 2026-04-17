@@ -2,6 +2,7 @@ import { Outlet, createRootRoute, HeadContent, Scripts, Link } from "@tanstack/r
 import appCss from "../styles.css?url";
 import { AuthProvider } from "@/lib/auth";
 import { Toaster } from "@/components/ui/sonner";
+import { AnnouncementsBanner } from "@/components/AnnouncementsBanner";
 
 function NotFound() {
   return (
@@ -44,6 +45,9 @@ export const Route = createRootRoute({
   shellComponent: RootShell,
   component: () => (
     <AuthProvider>
+      <div className="sticky top-0 z-50">
+        <AnnouncementsBanner />
+      </div>
       <Outlet />
       <Toaster richColors position="top-center" />
     </AuthProvider>
