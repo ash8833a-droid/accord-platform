@@ -80,7 +80,11 @@ function ReportsPage() {
 
   const filtered = useMemo(() => {
     return reports.filter((r) => {
-      if (yearFilter !== "all" && String(r.archive_year ?? "") !== yearFilter) return false;
+      if (yearFilter === "unfiled") {
+        if (r.archive_year) return false;
+      } else if (yearFilter !== "all" && String(r.archive_year ?? "") !== yearFilter) {
+        return false;
+      }
       if (committeeFilter !== "all" && r.committee_id !== committeeFilter) return false;
       return true;
     });
