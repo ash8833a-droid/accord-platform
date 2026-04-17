@@ -142,7 +142,7 @@ function GroomsPage() {
                     <td className="px-4 py-3">{g.bride_name ?? "—"}</td>
                     <td className="px-4 py-3"><Badge className={b.cls}>{b.label}</Badge></td>
                     <td className="px-4 py-3">
-                      <Select value={g.status} onValueChange={(v) => updateStatus(g.id, v)}>
+                      <Select value={g.status} onValueChange={(v) => updateStatus(g.id, v as GroomStatus)}>
                         <SelectTrigger className="h-8 w-36 text-xs"><SelectValue /></SelectTrigger>
                         <SelectContent>
                           {Object.entries(STATUS_BADGE).map(([k, v]) => (
