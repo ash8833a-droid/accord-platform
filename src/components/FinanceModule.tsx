@@ -57,6 +57,7 @@ export function FinanceModule() {
   const [invoicePath, setInvoicePath] = useState<string | null>(null);
   const [invoiceTitle, setInvoiceTitle] = useState<string>("");
   const [invoiceLoading, setInvoiceLoading] = useState(false);
+  const [totalBudgetNeeded, setTotalBudgetNeeded] = useState(0);
 
   const load = async () => {
     const [{ data: dels }, { data: subs }, { data: prs }, { data: coms }] = await Promise.all([
