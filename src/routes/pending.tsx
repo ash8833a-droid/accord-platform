@@ -4,7 +4,7 @@ import { useAuth } from "@/lib/auth";
 import { Logo } from "@/components/Logo";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Clock, LogOut, RefreshCw } from "lucide-react";
+import { Clock, LogOut, RefreshCw, Sparkles, HeartHandshake } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/pending")({
@@ -60,6 +60,28 @@ function PendingPage() {
               : "تم استلام طلبك وسيقوم مسؤول الإدارة العليا بمراجعته وتسكينك في اللجنة المناسبة. سنُعلمك فور الاعتماد."}
           </p>
         </div>
+
+        <div className="rounded-2xl border border-gold/30 bg-gold/5 p-5 space-y-3 text-right">
+          <div className="flex items-center gap-2 text-gold">
+            <HeartHandshake className="h-5 w-5" />
+            <span className="text-xs font-bold tracking-wide">حديث شريف</span>
+          </div>
+          <p className="text-base leading-loose font-semibold text-foreground">
+            «خَيْرُ النَّاسِ أَنْفَعُهُمْ لِلنَّاسِ»
+          </p>
+          <p className="text-[11px] text-muted-foreground">رواه الطبراني وحسّنه الألباني</p>
+        </div>
+
+        <div className="rounded-2xl bg-gradient-to-br from-primary/5 to-gold/10 p-5 space-y-2 text-right">
+          <div className="flex items-center gap-2 text-primary">
+            <Sparkles className="h-5 w-5" />
+            <span className="text-xs font-bold tracking-wide">استحضر النية</span>
+          </div>
+          <p className="text-sm leading-relaxed text-foreground/90">
+            اجعل عملك خالصاً لوجه الله، فما تبذله من جهدٍ لخدمة أهلك وأبناء عائلتك صدقةٌ جاريةٌ وأثرٌ باقٍ. النيّة الصادقة تُحوِّل العادة إلى عبادة، وتجعل من كل لحظةٍ تُقدّمها قربةً تُرفع بها درجاتك.
+          </p>
+        </div>
+
         <div className="flex gap-3 justify-center">
           <Button onClick={recheck} variant="outline" className="gap-2">
             <RefreshCw className="h-4 w-4" /> تحديث الحالة
