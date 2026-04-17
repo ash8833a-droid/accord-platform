@@ -26,9 +26,20 @@ export const Route = createFileRoute("/_app/committee/$type")({
 interface Task {
   id: string;
   title: string;
+  description?: string | null;
   status: "todo" | "in_progress" | "completed";
-  priority: string;
+  priority: "low" | "medium" | "high" | "urgent";
 }
+
+const PRIORITY_LABELS: Record<Task["priority"], string> = {
+  low: "منخفضة", medium: "متوسطة", high: "عالية", urgent: "عاجلة",
+};
+const PRIORITY_TONE: Record<Task["priority"], string> = {
+  low: "bg-muted text-muted-foreground",
+  medium: "bg-sky-500/15 text-sky-700 dark:text-sky-300",
+  high: "bg-amber-500/15 text-amber-700 dark:text-amber-300",
+  urgent: "bg-destructive/15 text-destructive",
+};
 
 interface PaymentRequest {
   id: string;
