@@ -147,7 +147,7 @@ function ReportsPage() {
               <SelectTrigger className="h-8 w-[120px]"><SelectValue placeholder="كل السنوات" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">كل السنوات</SelectItem>
-                <SelectItem value="">غير مُسكَّن</SelectItem>
+                <SelectItem value="unfiled">غير مُسكَّن</SelectItem>
                 {years.map((y) => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}
               </SelectContent>
             </Select>
