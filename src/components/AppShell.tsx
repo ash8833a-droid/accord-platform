@@ -12,7 +12,6 @@ import {
   Bell,
   Megaphone,
   ChevronDown,
-  Receipt,
   ShieldCheck,
   Users,
 } from "lucide-react";
@@ -28,7 +27,6 @@ const TOP_NAV = [
 ] as const;
 
 const BOTTOM_NAV = [
-  { to: "/payment-requests", label: "طلبات الصرف", icon: Receipt },
   { to: "/grooms", label: "سجل العرسان", icon: HeartHandshake },
   { to: "/reports", label: "التقارير والجودة", icon: FileBarChart },
 ] as const;

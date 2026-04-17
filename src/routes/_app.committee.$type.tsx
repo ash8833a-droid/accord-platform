@@ -8,10 +8,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Plus, ListTodo, Receipt, Wallet, ArrowLeft, FileText, Upload, Loader2, Pencil, Trash2 } from "lucide-react";
+import { Plus, ListTodo, Receipt, Wallet, ArrowLeft, FileText, Upload, Loader2, Pencil, Trash2, GripVertical } from "lucide-react";
 import { toast } from "sonner";
 import { committeeByType, COMMITTEES } from "@/lib/committees";
 import { FinanceModule } from "@/components/FinanceModule";
+import { TaskAttachments } from "@/components/TaskAttachments";
 
 export const Route = createFileRoute("/_app/committee/$type")({
   component: CommitteePage,
@@ -164,8 +165,35 @@ function CommitteePage() {
   };
 
   const moveTask = async (id: string, to: Task["status"]) => {
-    await supabase.from("committee_tasks").update({ status: to }).eq("id", id);
-    load();
+    const current = tasks.find((t) => t.id === id);
+    if (!current || current.status === to) return;
+    // optimistic update
+    setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, status: to } : t)));
+    const { error } = await supabase.from("committee_tasks").update({ status: to }).eq("id", id);
+    if (error) {
+      toast.error("تعذر النقل", { description: error.message });
+      load();
+    }
+  };
+
+  const [dragId, setDragId] = useState<string | null>(null);
+  const [dragOverCol, setDragOverCol] = useState<Task["status"] | null>(null);
+  const onDragStart = (e: React.DragEvent, id: string) => {
+    setDragId(id);
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("text/plain", id);
+  };
+  const onDragEnd = () => { setDragId(null); setDragOverCol(null); };
+  const onDragOverCol = (e: React.DragEvent, col: Task["status"]) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    setDragOverCol(col);
+  };
+  const onDropCol = (e: React.DragEvent, col: Task["status"]) => {
+    e.preventDefault();
+    const id = e.dataTransfer.getData("text/plain") || dragId;
+    setDragId(null); setDragOverCol(null);
+    if (id) moveTask(id, col);
   };
 
   const submitRequest = async (e: React.FormEvent) => {
@@ -410,36 +438,56 @@ function CommitteePage() {
           </Dialog>
         </div>
 
+        <p className="text-[11px] text-muted-foreground mb-3">
+          💡 اسحب البطاقة وأفلتها بين الأعمدة لتغيير حالتها
+        </p>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {(["todo", "in_progress", "completed"] as const).map((col) => (
-            <div key={col} className="rounded-2xl border bg-muted/30 p-4 min-h-[260px]">
-              <h4 className="text-sm font-bold mb-3 flex items-center justify-between">
-                <span>{STATUS_LABELS[col]}</span>
-                <span className="text-xs text-muted-foreground">
-                  {tasks.filter((t) => t.status === col).length}
-                </span>
-              </h4>
-              <div className="space-y-2">
-                {tasks.filter((t) => t.status === col).map((t) => (
-                  <div key={t.id} className="group rounded-lg bg-card p-3 shadow-soft border hover:border-primary/40 transition">
-                    <div className="flex items-start justify-between gap-2 mb-1.5">
-                      <p className="font-medium text-sm flex-1">{t.title}</p>
-                      <Badge variant="secondary" className={`${PRIORITY_TONE[t.priority]} text-[10px] shrink-0`}>
-                        {PRIORITY_LABELS[t.priority]}
-                      </Badge>
-                    </div>
-                    {t.description && (
-                      <p className="text-[11px] text-muted-foreground line-clamp-2 mb-2">{t.description}</p>
-                    )}
-                    <div className="flex items-center justify-between gap-1 pt-1 border-t border-border/50">
-                      <div className="flex gap-1 flex-wrap">
-                        {(["todo", "in_progress", "completed"] as const).filter((s) => s !== t.status).map((s) => (
-                          <button key={s} onClick={() => moveTask(t.id, s)} className="text-[10px] px-2 py-0.5 rounded bg-muted hover:bg-primary hover:text-primary-foreground transition">
-                            {STATUS_LABELS[s]}
-                          </button>
-                        ))}
+          {(["todo", "in_progress", "completed"] as const).map((col) => {
+            const colTasks = tasks.filter((t) => t.status === col);
+            const isOver = dragOverCol === col;
+            return (
+              <div
+                key={col}
+                onDragOver={(e) => onDragOverCol(e, col)}
+                onDragLeave={() => setDragOverCol((c) => (c === col ? null : c))}
+                onDrop={(e) => onDropCol(e, col)}
+                className={`rounded-2xl border bg-muted/30 p-4 min-h-[280px] transition-all ${
+                  isOver ? "border-primary border-2 bg-primary/5 ring-2 ring-primary/20" : ""
+                }`}
+              >
+                <h4 className="text-sm font-bold mb-3 flex items-center justify-between">
+                  <span>{STATUS_LABELS[col]}</span>
+                  <span className="text-xs text-muted-foreground bg-card rounded-full px-2 py-0.5 border">
+                    {colTasks.length}
+                  </span>
+                </h4>
+                <div className="space-y-2">
+                  {colTasks.map((t) => (
+                    <div
+                      key={t.id}
+                      draggable
+                      onDragStart={(e) => onDragStart(e, t.id)}
+                      onDragEnd={onDragEnd}
+                      className={`group rounded-lg bg-card p-3 shadow-soft border hover:border-primary/40 transition cursor-grab active:cursor-grabbing ${
+                        dragId === t.id ? "opacity-40 scale-95" : ""
+                      }`}
+                    >
+                      <div className="flex items-start gap-2 mb-1.5">
+                        <GripVertical className="h-3.5 w-3.5 text-muted-foreground/60 mt-0.5 shrink-0" />
+                        <p className="font-medium text-sm flex-1">{t.title}</p>
+                        <Badge variant="secondary" className={`${PRIORITY_TONE[t.priority]} text-[10px] shrink-0`}>
+                          {PRIORITY_LABELS[t.priority]}
+                        </Badge>
                       </div>
-                      <div className="flex items-center gap-0.5 opacity-60 group-hover:opacity-100 transition">
+                      {t.description && (
+                        <p className="text-[11px] text-muted-foreground line-clamp-2 mb-2 ps-5">{t.description}</p>
+                      )}
+
+                      <div className="ps-5 mb-2">
+                        <TaskAttachments taskId={t.id} committeeId={committee.id} compact />
+                      </div>
+
+                      <div className="flex items-center justify-end gap-0.5 pt-1 border-t border-border/50 opacity-60 group-hover:opacity-100 transition">
                         <button
                           onClick={() => openEditTask(t)}
                           className="h-6 w-6 rounded flex items-center justify-center hover:bg-primary/10 hover:text-primary transition"
@@ -456,14 +504,16 @@ function CommitteePage() {
                         </button>
                       </div>
                     </div>
-                  </div>
-                ))}
-                {tasks.filter((t) => t.status === col).length === 0 && (
-                  <p className="text-xs text-muted-foreground text-center py-6">لا توجد مهام</p>
-                )}
+                  ))}
+                  {colTasks.length === 0 && (
+                    <p className="text-xs text-muted-foreground text-center py-8 border-2 border-dashed border-muted rounded-lg">
+                      {isOver ? "أفلت هنا" : "لا توجد مهام"}
+                    </p>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </section>
     </div>
