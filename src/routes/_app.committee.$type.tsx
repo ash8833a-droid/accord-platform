@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Plus, ListTodo, Receipt, Wallet, ArrowLeft, FileText, Upload, Loader2 } from "lucide-react";
+import { Plus, ListTodo, Receipt, Wallet, ArrowLeft, FileText, Upload, Loader2, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { committeeByType, COMMITTEES } from "@/lib/committees";
 import { FinanceModule } from "@/components/FinanceModule";
@@ -26,9 +26,20 @@ export const Route = createFileRoute("/_app/committee/$type")({
 interface Task {
   id: string;
   title: string;
+  description?: string | null;
   status: "todo" | "in_progress" | "completed";
-  priority: string;
+  priority: "low" | "medium" | "high" | "urgent";
 }
+
+const PRIORITY_LABELS: Record<Task["priority"], string> = {
+  low: "منخفضة", medium: "متوسطة", high: "عالية", urgent: "عاجلة",
+};
+const PRIORITY_TONE: Record<Task["priority"], string> = {
+  low: "bg-muted text-muted-foreground",
+  medium: "bg-sky-500/15 text-sky-700 dark:text-sky-300",
+  high: "bg-amber-500/15 text-amber-700 dark:text-amber-300",
+  urgent: "bg-destructive/15 text-destructive",
+};
 
 interface PaymentRequest {
   id: string;
@@ -61,9 +72,11 @@ function CommitteePage() {
   const [requests, setRequests] = useState<PaymentRequest[]>([]);
 
   const [taskOpen, setTaskOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [tTitle, setTTitle] = useState("");
   const [tDesc, setTDesc] = useState("");
   const [tStatus, setTStatus] = useState<Task["status"]>("todo");
+  const [tPriority, setTPriority] = useState<Task["priority"]>("medium");
 
   const [prOpen, setPrOpen] = useState(false);
   const [prTitle, setPrTitle] = useState("");
@@ -84,7 +97,7 @@ function CommitteePage() {
     }
     setCommittee(c);
     const [{ data: t }, { data: p }] = await Promise.all([
-      supabase.from("committee_tasks").select("id, title, status, priority").eq("committee_id", c.id),
+      supabase.from("committee_tasks").select("id, title, description, status, priority").eq("committee_id", c.id),
       supabase.from("payment_requests").select("id, title, amount, status, created_at, invoice_url").eq("committee_id", c.id).order("created_at", { ascending: false }),
     ]);
     setTasks((t ?? []) as Task[]);
@@ -102,15 +115,52 @@ function CommitteePage() {
   const Icon = meta.icon;
   const fmt = (n: number) => new Intl.NumberFormat("ar-SA").format(n);
 
-  const addTask = async (e: React.FormEvent) => {
+  const resetTaskForm = () => {
+    setEditingId(null);
+    setTTitle(""); setTDesc(""); setTStatus("todo"); setTPriority("medium");
+  };
+
+  const openNewTask = () => {
+    resetTaskForm();
+    setTaskOpen(true);
+  };
+
+  const openEditTask = (t: Task) => {
+    setEditingId(t.id);
+    setTTitle(t.title);
+    setTDesc(t.description ?? "");
+    setTStatus(t.status);
+    setTPriority(t.priority);
+    setTaskOpen(true);
+  };
+
+  const saveTask = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!committee) return;
-    const { error } = await supabase.from("committee_tasks").insert({
-      committee_id: committee.id, title: tTitle, description: tDesc, status: tStatus,
-    });
-    if (error) return toast.error("تعذرت الإضافة", { description: error.message });
-    toast.success("تمت إضافة المهمة");
-    setTTitle(""); setTDesc(""); setTaskOpen(false); load();
+    if (editingId) {
+      const { error } = await supabase.from("committee_tasks")
+        .update({ title: tTitle, description: tDesc, status: tStatus, priority: tPriority })
+        .eq("id", editingId);
+      if (error) return toast.error("تعذر التحديث", { description: error.message });
+      toast.success("تم تحديث المهمة");
+    } else {
+      const { error } = await supabase.from("committee_tasks").insert({
+        committee_id: committee.id, title: tTitle, description: tDesc, status: tStatus, priority: tPriority,
+      });
+      if (error) return toast.error("تعذرت الإضافة", { description: error.message });
+      toast.success("تمت إضافة المهمة");
+    }
+    resetTaskForm();
+    setTaskOpen(false);
+    load();
+  };
+
+  const deleteTask = async (id: string) => {
+    if (!confirm("هل أنت متأكد من حذف هذه المهمة؟")) return;
+    const { error } = await supabase.from("committee_tasks").delete().eq("id", id);
+    if (error) return toast.error("تعذر الحذف", { description: error.message });
+    toast.success("تم حذف المهمة");
+    load();
   };
 
   const moveTask = async (id: string, to: Task["status"]) => {
@@ -318,29 +368,43 @@ function CommitteePage() {
           <h3 className="font-bold flex items-center gap-2">
             <ListTodo className="h-5 w-5 text-primary" /> لوحة المهام
           </h3>
-          <Dialog open={taskOpen} onOpenChange={setTaskOpen}>
-            <DialogTrigger asChild>
-              <Button size="sm" className="bg-gradient-gold text-gold-foreground shadow-gold">
-                <Plus className="h-4 w-4 ms-1" /> مهمة جديدة
-              </Button>
-            </DialogTrigger>
+          <Dialog open={taskOpen} onOpenChange={(o) => { setTaskOpen(o); if (!o) resetTaskForm(); }}>
+            <Button size="sm" onClick={openNewTask} className="bg-gradient-gold text-gold-foreground shadow-gold">
+              <Plus className="h-4 w-4 ms-1" /> مهمة جديدة
+            </Button>
             <DialogContent dir="rtl">
-              <DialogHeader><DialogTitle>إضافة مهمة</DialogTitle></DialogHeader>
-              <form onSubmit={addTask} className="space-y-3 pt-2">
+              <DialogHeader><DialogTitle>{editingId ? "تعديل المهمة" : "إضافة مهمة"}</DialogTitle></DialogHeader>
+              <form onSubmit={saveTask} className="space-y-3 pt-2">
                 <div className="space-y-2"><Label>العنوان</Label><Input value={tTitle} onChange={(e) => setTTitle(e.target.value)} required /></div>
-                <div className="space-y-2"><Label>الوصف</Label><Textarea value={tDesc} onChange={(e) => setTDesc(e.target.value)} /></div>
-                <div className="space-y-2">
-                  <Label>الحالة</Label>
-                  <Select value={tStatus} onValueChange={(v) => setTStatus(v as Task["status"])}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="todo">قائمة الانتظار</SelectItem>
-                      <SelectItem value="in_progress">قيد التنفيذ</SelectItem>
-                      <SelectItem value="completed">مكتملة</SelectItem>
-                    </SelectContent>
-                  </Select>
+                <div className="space-y-2"><Label>الوصف</Label><Textarea value={tDesc} onChange={(e) => setTDesc(e.target.value)} rows={3} /></div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <Label>الحالة</Label>
+                    <Select value={tStatus} onValueChange={(v) => setTStatus(v as Task["status"])}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="todo">قائمة الانتظار</SelectItem>
+                        <SelectItem value="in_progress">قيد التنفيذ</SelectItem>
+                        <SelectItem value="completed">مكتملة</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>الأولوية</Label>
+                    <Select value={tPriority} onValueChange={(v) => setTPriority(v as Task["priority"])}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="low">منخفضة</SelectItem>
+                        <SelectItem value="medium">متوسطة</SelectItem>
+                        <SelectItem value="high">عالية</SelectItem>
+                        <SelectItem value="urgent">عاجلة</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
-                <Button type="submit" className="w-full bg-gradient-hero text-primary-foreground">حفظ</Button>
+                <Button type="submit" className="w-full bg-gradient-hero text-primary-foreground">
+                  {editingId ? "حفظ التعديلات" : "إضافة"}
+                </Button>
               </form>
             </DialogContent>
           </Dialog>
@@ -357,14 +421,40 @@ function CommitteePage() {
               </h4>
               <div className="space-y-2">
                 {tasks.filter((t) => t.status === col).map((t) => (
-                  <div key={t.id} className="rounded-lg bg-card p-3 shadow-soft border hover:border-primary/40 transition">
-                    <p className="font-medium text-sm mb-2">{t.title}</p>
-                    <div className="flex gap-1">
-                      {(["todo", "in_progress", "completed"] as const).filter((s) => s !== t.status).map((s) => (
-                        <button key={s} onClick={() => moveTask(t.id, s)} className="text-[10px] px-2 py-0.5 rounded bg-muted hover:bg-primary hover:text-primary-foreground transition">
-                          {STATUS_LABELS[s]}
+                  <div key={t.id} className="group rounded-lg bg-card p-3 shadow-soft border hover:border-primary/40 transition">
+                    <div className="flex items-start justify-between gap-2 mb-1.5">
+                      <p className="font-medium text-sm flex-1">{t.title}</p>
+                      <Badge variant="secondary" className={`${PRIORITY_TONE[t.priority]} text-[10px] shrink-0`}>
+                        {PRIORITY_LABELS[t.priority]}
+                      </Badge>
+                    </div>
+                    {t.description && (
+                      <p className="text-[11px] text-muted-foreground line-clamp-2 mb-2">{t.description}</p>
+                    )}
+                    <div className="flex items-center justify-between gap-1 pt-1 border-t border-border/50">
+                      <div className="flex gap-1 flex-wrap">
+                        {(["todo", "in_progress", "completed"] as const).filter((s) => s !== t.status).map((s) => (
+                          <button key={s} onClick={() => moveTask(t.id, s)} className="text-[10px] px-2 py-0.5 rounded bg-muted hover:bg-primary hover:text-primary-foreground transition">
+                            {STATUS_LABELS[s]}
+                          </button>
+                        ))}
+                      </div>
+                      <div className="flex items-center gap-0.5 opacity-60 group-hover:opacity-100 transition">
+                        <button
+                          onClick={() => openEditTask(t)}
+                          className="h-6 w-6 rounded flex items-center justify-center hover:bg-primary/10 hover:text-primary transition"
+                          aria-label="تعديل"
+                        >
+                          <Pencil className="h-3 w-3" />
                         </button>
-                      ))}
+                        <button
+                          onClick={() => deleteTask(t.id)}
+                          className="h-6 w-6 rounded flex items-center justify-center hover:bg-destructive/10 hover:text-destructive transition"
+                          aria-label="حذف"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 ))}
