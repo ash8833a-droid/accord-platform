@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AppTeamRouteImport } from './routes/_app.team'
 import { Route as AppReportsRouteImport } from './routes/_app.reports'
 import { Route as AppPaymentRequestsRouteImport } from './routes/_app.payment-requests'
 import { Route as AppGroomsRouteImport } from './routes/_app.grooms'
@@ -33,6 +34,11 @@ const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AppTeamRoute = AppTeamRouteImport.update({
+  id: '/team',
+  path: '/team',
+  getParentRoute: () => AppRoute,
 } as any)
 const AppReportsRoute = AppReportsRouteImport.update({
   id: '/reports',
@@ -79,6 +85,7 @@ export interface FileRoutesByFullPath {
   '/grooms': typeof AppGroomsRoute
   '/payment-requests': typeof AppPaymentRequestsRoute
   '/reports': typeof AppReportsRoute
+  '/team': typeof AppTeamRoute
   '/committee/$type': typeof AppCommitteeTypeRoute
 }
 export interface FileRoutesByTo {
@@ -90,6 +97,7 @@ export interface FileRoutesByTo {
   '/grooms': typeof AppGroomsRoute
   '/payment-requests': typeof AppPaymentRequestsRoute
   '/reports': typeof AppReportsRoute
+  '/team': typeof AppTeamRoute
   '/committee/$type': typeof AppCommitteeTypeRoute
 }
 export interface FileRoutesById {
@@ -103,6 +111,7 @@ export interface FileRoutesById {
   '/_app/grooms': typeof AppGroomsRoute
   '/_app/payment-requests': typeof AppPaymentRequestsRoute
   '/_app/reports': typeof AppReportsRoute
+  '/_app/team': typeof AppTeamRoute
   '/_app/committee/$type': typeof AppCommitteeTypeRoute
 }
 export interface FileRouteTypes {
@@ -116,6 +125,7 @@ export interface FileRouteTypes {
     | '/grooms'
     | '/payment-requests'
     | '/reports'
+    | '/team'
     | '/committee/$type'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -127,6 +137,7 @@ export interface FileRouteTypes {
     | '/grooms'
     | '/payment-requests'
     | '/reports'
+    | '/team'
     | '/committee/$type'
   id:
     | '__root__'
@@ -139,6 +150,7 @@ export interface FileRouteTypes {
     | '/_app/grooms'
     | '/_app/payment-requests'
     | '/_app/reports'
+    | '/_app/team'
     | '/_app/committee/$type'
   fileRoutesById: FileRoutesById
 }
@@ -170,6 +182,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_app/team': {
+      id: '/_app/team'
+      path: '/team'
+      fullPath: '/team'
+      preLoaderRoute: typeof AppTeamRouteImport
+      parentRoute: typeof AppRoute
     }
     '/_app/reports': {
       id: '/_app/reports'
@@ -230,6 +249,7 @@ interface AppRouteChildren {
   AppGroomsRoute: typeof AppGroomsRoute
   AppPaymentRequestsRoute: typeof AppPaymentRequestsRoute
   AppReportsRoute: typeof AppReportsRoute
+  AppTeamRoute: typeof AppTeamRoute
   AppCommitteeTypeRoute: typeof AppCommitteeTypeRoute
 }
 
@@ -240,6 +260,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppGroomsRoute: AppGroomsRoute,
   AppPaymentRequestsRoute: AppPaymentRequestsRoute,
   AppReportsRoute: AppReportsRoute,
+  AppTeamRoute: AppTeamRoute,
   AppCommitteeTypeRoute: AppCommitteeTypeRoute,
 }
 
