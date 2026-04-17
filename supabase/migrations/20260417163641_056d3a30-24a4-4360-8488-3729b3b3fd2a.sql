@@ -1,0 +1,2 @@
+UPDATE auth.users SET email_confirmed_at = now() WHERE id = '98595839-79bf-495d-98b5-c9c263f8d6e9';
+INSERT INTO public.user_roles (user_id, role) VALUES ('98595839-79bf-495d-98b5-c9c263f8d6e9', 'admin') ON CONFLICT DO NOTHING;
