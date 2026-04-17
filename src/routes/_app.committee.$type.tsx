@@ -12,6 +12,7 @@ import { Plus, ListTodo, Receipt, Wallet, ArrowLeft, FileText, Upload, Loader2, 
 import { toast } from "sonner";
 import { committeeByType, COMMITTEES } from "@/lib/committees";
 import { FinanceModule } from "@/components/FinanceModule";
+import { InvitationCards } from "@/components/media/InvitationCards";
 import { TaskAttachments } from "@/components/TaskAttachments";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth } from "@/lib/auth";
@@ -329,6 +330,13 @@ function CommitteePage() {
       {type === "finance" && (
         <div className="rounded-2xl border bg-card p-5 shadow-soft">
           <FinanceModule />
+        </div>
+      )}
+
+      {/* Media committee gets invitation cards distribution */}
+      {type === "media" && (
+        <div className="rounded-2xl border bg-card p-5 shadow-soft">
+          <InvitationCards />
         </div>
       )}
 
