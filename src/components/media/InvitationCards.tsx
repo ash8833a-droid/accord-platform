@@ -2,12 +2,15 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Mail, Users, User, Printer, CheckCircle2, Clock, Calculator } from "lucide-react";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Mail, Users, User, Printer, CheckCircle2, Clock, Calculator, Receipt, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 const DEFAULT_MEN = 50;
 const DEFAULT_WOMEN = 30;
+const DEFAULT_PRICE = 5;
 const fmt = (n: number) => new Intl.NumberFormat("ar-SA").format(n);
 
 interface Groom {
@@ -22,13 +25,21 @@ interface Groom {
 
 export function InvitationCards() {
   const [grooms, setGrooms] = useState<Groom[]>([]);
+  const [mediaCommitteeId, setMediaCommitteeId] = useState<string | null>(null);
+  const [prOpen, setPrOpen] = useState(false);
+  const [price, setPrice] = useState<number>(DEFAULT_PRICE);
+  const [submitting, setSubmitting] = useState(false);
 
   const load = async () => {
-    const { data } = await supabase
-      .from("grooms")
-      .select("id, full_name, family_branch, status, cards_men, cards_women, cards_printed")
-      .order("created_at", { ascending: false });
+    const [{ data }, { data: c }] = await Promise.all([
+      supabase
+        .from("grooms")
+        .select("id, full_name, family_branch, status, cards_men, cards_women, cards_printed")
+        .order("created_at", { ascending: false }),
+      supabase.from("committees").select("id").eq("type", "media").maybeSingle(),
+    ]);
     setGrooms((data ?? []) as Groom[]);
+    setMediaCommitteeId(c?.id ?? null);
   };
 
   useEffect(() => { load(); }, []);
@@ -47,6 +58,32 @@ export function InvitationCards() {
   const totalWomen = grooms.reduce((a, g) => a + Number(g.cards_women), 0);
   const totalCards = totalMen + totalWomen;
   const printedCount = grooms.filter((g) => g.cards_printed).length;
+  const totalAmount = totalCards * price;
+
+  const submitPaymentRequest = async () => {
+    if (!mediaCommitteeId) return toast.error("لم يتم العثور على اللجنة الإعلامية");
+    if (totalCards === 0) return toast.error("لا توجد كروت لإصدار طلب صرف");
+    if (price <= 0) return toast.error("سعر الكرت غير صحيح");
+    setSubmitting(true);
+    try {
+      const { data: u } = await supabase.auth.getUser();
+      const { error } = await supabase.from("payment_requests").insert({
+        committee_id: mediaCommitteeId,
+        title: `طباعة كروت الدعوة (${fmt(totalCards)} كرت)`,
+        amount: totalAmount,
+        description: `طلب صرف تلقائي لطباعة كروت دعوة الزواج الجماعي.\n• عدد العرسان: ${grooms.length}\n• كروت رجال: ${fmt(totalMen)}\n• كروت نساء: ${fmt(totalWomen)}\n• إجمالي الكروت: ${fmt(totalCards)}\n• سعر الكرت: ${fmt(price)} ر.س\n• المعادلة: ${fmt(totalCards)} × ${fmt(price)} = ${fmt(totalAmount)} ر.س`,
+        requested_by: u.user?.id,
+      });
+      if (error) {
+        toast.error("تعذر إنشاء الطلب", { description: error.message });
+        return;
+      }
+      toast.success("تم إنشاء طلب الصرف وإرساله للجنة المالية");
+      setPrOpen(false);
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
     <div className="space-y-5">
@@ -74,7 +111,59 @@ export function InvitationCards() {
           <p>تمت الطباعة لـ <span className="font-bold text-foreground">{printedCount}</span> من <span className="font-bold text-foreground">{grooms.length}</span> عريس</p>
           <p>المعادلة: <span className="font-mono">عدد العرسان × ({DEFAULT_MEN} + {DEFAULT_WOMEN}) = {fmt(grooms.length * (DEFAULT_MEN + DEFAULT_WOMEN))} كرت</span></p>
         </div>
+
+        <div className="mt-4 flex justify-end">
+          <Button
+            type="button"
+            onClick={() => setPrOpen(true)}
+            disabled={totalCards === 0}
+            className="gap-2 bg-gradient-to-r from-rose-600 to-pink-600 text-white hover:opacity-90"
+          >
+            <Receipt className="h-4 w-4" />
+            إصدار طلب صرف لطباعة الكروت
+          </Button>
+        </div>
       </div>
+
+      {/* Payment request dialog */}
+      <Dialog open={prOpen} onOpenChange={setPrOpen}>
+        <DialogContent dir="rtl" className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Receipt className="h-5 w-5 text-rose-600" />
+              إصدار طلب صرف لطباعة كروت الدعوة
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label>سعر الكرت الواحد (ر.س)</Label>
+              <Input
+                type="number"
+                min={0.1}
+                step="0.1"
+                value={price}
+                onChange={(e) => setPrice(Number(e.target.value))}
+                dir="ltr"
+              />
+            </div>
+            <div className="rounded-xl border bg-muted/30 p-4 space-y-2 text-sm">
+              <div className="flex justify-between"><span className="text-muted-foreground">عدد العرسان</span><span className="font-bold">{fmt(grooms.length)}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">إجمالي كروت الرجال</span><span className="font-bold">{fmt(totalMen)}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">إجمالي كروت النساء</span><span className="font-bold">{fmt(totalWomen)}</span></div>
+              <div className="flex justify-between border-t pt-2"><span className="text-muted-foreground">إجمالي الكروت</span><span className="font-bold">{fmt(totalCards)} كرت</span></div>
+              <div className="flex justify-between text-base"><span className="font-semibold">المبلغ الإجمالي</span><span className="font-bold text-rose-700">{fmt(totalAmount)} ر.س</span></div>
+              <p className="text-xs text-muted-foreground pt-2 font-mono">{fmt(totalCards)} × {fmt(price)} = {fmt(totalAmount)} ر.س</p>
+            </div>
+          </div>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setPrOpen(false)} disabled={submitting}>إلغاء</Button>
+            <Button onClick={submitPaymentRequest} disabled={submitting} className="bg-gradient-to-r from-rose-600 to-pink-600 text-white">
+              {submitting ? <Loader2 className="h-4 w-4 ms-1 animate-spin" /> : <Receipt className="h-4 w-4 ms-1" />}
+              {submitting ? "جاري الإرسال..." : "إرسال للجنة المالية"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Grooms table */}
       <div className="rounded-2xl border bg-card overflow-hidden shadow-soft">
