@@ -140,6 +140,12 @@ function CommitteePage() {
   const Icon = meta.icon;
   const fmt = (n: number) => new Intl.NumberFormat("ar-SA").format(n);
 
+  const memberById = new Map(members.map((m) => [m.id, m]));
+  const myMemberId = profileName
+    ? members.find((m) => m.full_name.trim() === profileName.trim())?.id ?? null
+    : null;
+  const visibleTasks = showMine && myMemberId ? tasks.filter((t) => t.assigned_to === myMemberId) : tasks;
+  const mineCount = myMemberId ? tasks.filter((t) => t.assigned_to === myMemberId).length : 0;
   const resetTaskForm = () => {
     setEditingId(null);
     setTTitle(""); setTDesc(""); setTStatus("todo"); setTPriority("medium"); setTAssignee("none");
