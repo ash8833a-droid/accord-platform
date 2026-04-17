@@ -109,12 +109,16 @@ function FinancePage() {
     load();
   };
 
-  const openInvoice = async (path: string) => {
+  const openInvoice = async (path: string, title: string) => {
+    setInvoiceTitle(title);
+    setInvoiceUrl(null);
+    setInvoiceLoading(true);
     const { data, error } = await supabase.storage.from("invoices").createSignedUrl(path, 60 * 10);
+    setInvoiceLoading(false);
     if (error || !data?.signedUrl) {
       return toast.error("تعذر فتح الفاتورة", { description: error?.message });
     }
-    window.open(data.signedUrl, "_blank", "noopener,noreferrer");
+    setInvoiceUrl(data.signedUrl);
   };
 
   const totalCollected = delegates.reduce((a, d) => a + (d.collected ?? 0), 0);
