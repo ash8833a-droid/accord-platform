@@ -61,7 +61,7 @@ function GroomsPage() {
   };
 
   const updateStatus = async (id: string, status: string) => {
-    await supabase.from("grooms").update({ status }).eq("id", id);
+    await supabase.from("grooms").update({ status: status as Groom["status"] }).eq("id", id);
     load();
   };
 
