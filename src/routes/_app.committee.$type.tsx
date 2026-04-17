@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Plus, ListTodo, Receipt, Wallet, ArrowLeft, FileText, Upload, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { committeeByType, COMMITTEES } from "@/lib/committees";
+import { FinanceModule } from "@/components/FinanceModule";
 
 export const Route = createFileRoute("/_app/committee/$type")({
   component: CommitteePage,
