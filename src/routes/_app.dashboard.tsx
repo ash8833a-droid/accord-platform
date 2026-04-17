@@ -21,6 +21,39 @@ export const Route = createFileRoute("/_app/dashboard")({
   component: Dashboard,
 });
 
+type PmpPhase = "initiating" | "planning" | "executing" | "monitoring" | "closing";
+
+const PHASE_LABELS: Record<PmpPhase, string> = {
+  initiating: "البدء",
+  planning: "التخطيط",
+  executing: "التنفيذ",
+  monitoring: "المراقبة",
+  closing: "الإغلاق",
+};
+
+const PHASE_TONE: Record<PmpPhase, string> = {
+  initiating: "bg-sky-500/15 text-sky-700 dark:text-sky-300",
+  planning: "bg-violet-500/15 text-violet-700 dark:text-violet-300",
+  executing: "bg-amber-500/15 text-amber-700 dark:text-amber-300",
+  monitoring: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300",
+  closing: "bg-rose-500/15 text-rose-700 dark:text-rose-300",
+};
+
+const PHASE_PREFIX: Record<string, PmpPhase> = {
+  "[البدء]": "initiating",
+  "[التخطيط]": "planning",
+  "[التنفيذ]": "executing",
+  "[المراقبة]": "monitoring",
+  "[الإغلاق]": "closing",
+};
+
+const detectPhase = (title: string): PmpPhase | null => {
+  for (const [pre, ph] of Object.entries(PHASE_PREFIX)) {
+    if (title.startsWith(pre)) return ph;
+  }
+  return null;
+};
+
 interface CommitteeStat {
   id: string;
   type: CommitteeType;
@@ -29,8 +62,15 @@ interface CommitteeStat {
   budget_spent: number;
   total_tasks: number;
   done_tasks: number;
+  in_progress_tasks: number;
   pending_requests: number;
   paid_requests: number;
+  /** PMP phase progress: { phase: { total, done } } */
+  phases: Record<PmpPhase, { total: number; done: number }>;
+  /** Schedule Performance Index proxy = done / total */
+  spi: number;
+  /** Cost Performance Index proxy = (allocated - spent) / allocated */
+  cpi: number;
 }
 
 function Dashboard() {
@@ -53,7 +93,7 @@ function Dashboard() {
         supabase.from("committees").select("id, type, name, budget_allocated, budget_spent"),
         supabase.from("grooms").select("id", { count: "exact", head: true }),
         supabase.from("subscriptions").select("status, amount"),
-        supabase.from("committee_tasks").select("committee_id, status"),
+        supabase.from("committee_tasks").select("committee_id, status, title"),
         supabase.from("payment_requests").select("committee_id, status, amount"),
       ]);
 
@@ -81,16 +121,37 @@ function Dashboard() {
         committees.map((c) => {
           const ct = taskList.filter((t) => t.committee_id === c.id);
           const cr = reqList.filter((r) => r.committee_id === c.id);
+          const phases: Record<PmpPhase, { total: number; done: number }> = {
+            initiating: { total: 0, done: 0 },
+            planning: { total: 0, done: 0 },
+            executing: { total: 0, done: 0 },
+            monitoring: { total: 0, done: 0 },
+            closing: { total: 0, done: 0 },
+          };
+          ct.forEach((t) => {
+            const ph = detectPhase(t.title ?? "");
+            if (ph) {
+              phases[ph].total += 1;
+              if (t.status === "completed") phases[ph].done += 1;
+            }
+          });
+          const allocated = Number(c.budget_allocated);
+          const spentC = Number(c.budget_spent);
+          const doneCount = ct.filter((t) => t.status === "completed").length;
           return {
             id: c.id,
             type: c.type as CommitteeType,
             name: c.name,
-            budget_allocated: Number(c.budget_allocated),
-            budget_spent: Number(c.budget_spent),
+            budget_allocated: allocated,
+            budget_spent: spentC,
             total_tasks: ct.length,
-            done_tasks: ct.filter((t) => t.status === "completed").length,
+            done_tasks: doneCount,
+            in_progress_tasks: ct.filter((t) => t.status === "in_progress").length,
             pending_requests: cr.filter((r) => r.status === "pending").length,
             paid_requests: cr.filter((r) => r.status === "paid").length,
+            phases,
+            spi: ct.length > 0 ? doneCount / ct.length : 0,
+            cpi: allocated > 0 ? Math.max(0, (allocated - spentC) / allocated) : 1,
           };
         }),
       );
