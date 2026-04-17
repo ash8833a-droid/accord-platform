@@ -31,8 +31,7 @@ export function GroomContributions({ totalCollected, totalBudgetNeeded }: Props)
     const { data } = await supabase
       .from("grooms")
       .select("id, full_name, family_branch, status, groom_contribution, deficit_share, contribution_paid")
-      .in("status", ["approved", "completed"])
-      .order("full_name");
+      .order("created_at", { ascending: false });
     setGrooms((data ?? []) as Groom[]);
   };
 
