@@ -25,13 +25,21 @@ interface Groom {
 
 export function InvitationCards() {
   const [grooms, setGrooms] = useState<Groom[]>([]);
+  const [mediaCommitteeId, setMediaCommitteeId] = useState<string | null>(null);
+  const [prOpen, setPrOpen] = useState(false);
+  const [price, setPrice] = useState<number>(DEFAULT_PRICE);
+  const [submitting, setSubmitting] = useState(false);
 
   const load = async () => {
-    const { data } = await supabase
-      .from("grooms")
-      .select("id, full_name, family_branch, status, cards_men, cards_women, cards_printed")
-      .order("created_at", { ascending: false });
+    const [{ data }, { data: c }] = await Promise.all([
+      supabase
+        .from("grooms")
+        .select("id, full_name, family_branch, status, cards_men, cards_women, cards_printed")
+        .order("created_at", { ascending: false }),
+      supabase.from("committees").select("id").eq("type", "media").maybeSingle(),
+    ]);
     setGrooms((data ?? []) as Groom[]);
+    setMediaCommitteeId(c?.id ?? null);
   };
 
   useEffect(() => { load(); }, []);
@@ -50,6 +58,32 @@ export function InvitationCards() {
   const totalWomen = grooms.reduce((a, g) => a + Number(g.cards_women), 0);
   const totalCards = totalMen + totalWomen;
   const printedCount = grooms.filter((g) => g.cards_printed).length;
+  const totalAmount = totalCards * price;
+
+  const submitPaymentRequest = async () => {
+    if (!mediaCommitteeId) return toast.error("لم يتم العثور على اللجنة الإعلامية");
+    if (totalCards === 0) return toast.error("لا توجد كروت لإصدار طلب صرف");
+    if (price <= 0) return toast.error("سعر الكرت غير صحيح");
+    setSubmitting(true);
+    try {
+      const { data: u } = await supabase.auth.getUser();
+      const { error } = await supabase.from("payment_requests").insert({
+        committee_id: mediaCommitteeId,
+        title: `طباعة كروت الدعوة (${fmt(totalCards)} كرت)`,
+        amount: totalAmount,
+        description: `طلب صرف تلقائي لطباعة كروت دعوة الزواج الجماعي.\n• عدد العرسان: ${grooms.length}\n• كروت رجال: ${fmt(totalMen)}\n• كروت نساء: ${fmt(totalWomen)}\n• إجمالي الكروت: ${fmt(totalCards)}\n• سعر الكرت: ${fmt(price)} ر.س\n• المعادلة: ${fmt(totalCards)} × ${fmt(price)} = ${fmt(totalAmount)} ر.س`,
+        requested_by: u.user?.id,
+      });
+      if (error) {
+        toast.error("تعذر إنشاء الطلب", { description: error.message });
+        return;
+      }
+      toast.success("تم إنشاء طلب الصرف وإرساله للجنة المالية");
+      setPrOpen(false);
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
     <div className="space-y-5">
