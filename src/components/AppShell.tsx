@@ -21,7 +21,6 @@ import { COMMITTEES } from "@/lib/committees";
 
 const TOP_NAV = [
   { to: "/dashboard", label: "لوحة التحكم", icon: LayoutDashboard },
-  { to: "/finance", label: "المالية", icon: Wallet },
 ] as const;
 
 const BOTTOM_NAV = [
