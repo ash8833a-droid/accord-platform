@@ -242,11 +242,35 @@ export function exportRequestsPDF(
   td.amt { font-weight: 700; color: #1B4F58; font-variant-numeric: tabular-nums; }
 
   .footer {
-    margin-top: 18px; padding-top: 12px; border-top: 2px dashed #C4A25C;
-    display: flex; justify-content: space-between; font-size: 8.5pt; color: #6B7280;
+    margin-top: 20px; padding-top: 12px; border-top: 2px dashed #C4A25C;
+    font-size: 8.5pt; color: #6B7280;
   }
-  .footer .stamp {
-    color: #1B4F58; font-weight: 700;
+  .footer .stamp { color: #1B4F58; font-weight: 700; }
+  .signatures {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 18px;
+    margin-top: 18px;
+  }
+  .sig-box {
+    border: 1px solid #E5D6AC; border-radius: 12px; padding: 14px 16px;
+    background: linear-gradient(135deg, rgba(196,162,92,0.06), rgba(27,79,88,0.04));
+    position: relative;
+  }
+  .sig-box .sig-label { font-size: 9pt; color: #6B7280; margin-bottom: 4px; }
+  .sig-box .sig-name { font-size: 12pt; font-weight: 800; color: #1B4F58; margin-bottom: 2px; }
+  .sig-box .sig-title { font-size: 9pt; color: #8C6E2E; font-weight: 600; margin-bottom: 36px; }
+  .sig-line {
+    border-top: 1.5px dotted #1B4F58; padding-top: 4px;
+    text-align: center; font-size: 8pt; color: #9CA3AF;
+  }
+  .sig-stamp {
+    position: absolute; left: 16px; bottom: 18px;
+    width: 70px; height: 70px; border: 2px solid #C4A25C; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: #C4A25C; font-weight: 900; font-size: 7pt; text-align: center;
+    transform: rotate(-12deg); opacity: 0.55;
+  }
+  .footer-bottom {
+    display: flex; justify-content: space-between; margin-top: 14px;
   }
   .empty {
     text-align: center; padding: 40px; color: #9CA3AF; font-size: 11pt;
@@ -279,7 +303,7 @@ export function exportRequestsPDF(
     <div class="header-pattern"></div>
     <div class="h-row">
       <div class="brand">
-        <div class="logo">ز</div>
+        <div class="logo-img"><img src="${BRAND_LOGO_DATA_URI}" alt="شعار البرنامج"/></div>
         <div>
           <h1>منصة الزواج الجماعي العائلي</h1>
           <p>تقرير اللجنة المالية — طلبات الصرف والاشتراكات</p>
@@ -287,7 +311,7 @@ export function exportRequestsPDF(
       </div>
       <div class="h-meta">
         <b>مرجع التقرير</b>
-        ${filename}<br/>
+        ${escapeHtml(filename)}<br/>
         ${todayAr()}
       </div>
     </div>
