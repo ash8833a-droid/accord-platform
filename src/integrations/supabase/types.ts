@@ -504,32 +504,44 @@ export type Database = {
       }
       reports: {
         Row: {
+          archive_year: number | null
           committee_id: string | null
           created_at: string
           created_by: string | null
           description: string | null
+          file_size: number | null
+          file_type: string | null
           file_url: string | null
           id: string
+          is_archived: boolean
           report_year: number
           title: string
         }
         Insert: {
+          archive_year?: number | null
           committee_id?: string | null
           created_at?: string
           created_by?: string | null
           description?: string | null
+          file_size?: number | null
+          file_type?: string | null
           file_url?: string | null
           id?: string
+          is_archived?: boolean
           report_year?: number
           title: string
         }
         Update: {
+          archive_year?: number | null
           committee_id?: string | null
           created_at?: string
           created_by?: string | null
           description?: string | null
+          file_size?: number | null
+          file_type?: string | null
           file_url?: string | null
           id?: string
+          is_archived?: boolean
           report_year?: number
           title?: string
         }
