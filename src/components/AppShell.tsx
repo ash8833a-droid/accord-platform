@@ -14,6 +14,7 @@ import {
   ChevronDown,
   Receipt,
   ShieldCheck,
+  Users,
 } from "lucide-react";
 import { Logo } from "./Logo";
 import { useAuth } from "@/lib/auth";
@@ -23,6 +24,7 @@ import { COMMITTEES } from "@/lib/committees";
 const TOP_NAV = [
   { to: "/dashboard", label: "لوحة التحكم", icon: LayoutDashboard },
   { to: "/admin", label: "الإدارة العليا", icon: ShieldCheck },
+  { to: "/team", label: "فريق العمل", icon: Users },
 ] as const;
 
 const BOTTOM_NAV = [
