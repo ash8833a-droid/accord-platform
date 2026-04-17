@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Wallet, Users2, Plus, CheckCircle2, Clock, Receipt, TrendingUp, XCircle, CheckCheck } from "lucide-react";
+import { Wallet, Users2, Plus, CheckCircle2, Clock, Receipt, TrendingUp, XCircle, CheckCheck, FileText } from "lucide-react";
 import { toast } from "sonner";
 import { StatCard } from "@/components/StatCard";
 import { committeeByType } from "@/lib/committees";
@@ -34,6 +34,7 @@ interface PaymentRequest {
   status: "pending" | "approved" | "rejected" | "paid";
   created_at: string;
   committee_id: string;
+  invoice_url: string | null;
   committee_name?: string;
   committee_type?: string;
 }
