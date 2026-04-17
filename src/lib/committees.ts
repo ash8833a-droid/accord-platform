@@ -6,7 +6,6 @@ import {
   UtensilsCrossed,
   Truck,
   HeartHandshake,
-  Palette,
   type LucideIcon,
 } from "lucide-react";
 
@@ -17,8 +16,7 @@ export type CommitteeType =
   | "programs"
   | "dinner"
   | "logistics"
-  | "reception"
-  | "design";
+  | "reception";
 
 export interface CommitteeMeta {
   type: CommitteeType;
@@ -36,7 +34,6 @@ export const COMMITTEES: CommitteeMeta[] = [
   { type: "dinner",    label: "لجنة العشاء",     icon: UtensilsCrossed, tone: "bg-amber-500/15 text-amber-600",     description: "ترتيبات الطعام والضيافة" },
   { type: "logistics", label: "لجنة التجهيزات",  icon: Truck,           tone: "bg-orange-500/15 text-orange-600",   description: "النقل والتجهيزات اللوجستية" },
   { type: "reception", label: "لجنة الاستقبال",  icon: HeartHandshake,  tone: "bg-pink-500/15 text-pink-600",       description: "استقبال الضيوف والعرسان" },
-  { type: "design",    label: "لجنة التصميم",    icon: Palette,         tone: "bg-indigo-500/15 text-indigo-600",   description: "التصميم البصري والهوية" },
 ];
 
 export const committeeByType = (t: string) => COMMITTEES.find((c) => c.type === t);
