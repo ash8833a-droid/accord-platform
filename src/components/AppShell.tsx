@@ -57,7 +57,7 @@ export function AppShell({ children, restricted = false, restrictedToCommitteeTy
   const TOP_NAV = restricted
     ? [{ to: "/dashboard", label: "لوحة التحكم", icon: LayoutDashboard } as const]
     : ADMIN_TOP;
-  const BOTTOM_NAV = restricted ? [] : ADMIN_BOTTOM;
+  const BOTTOM_NAV = restricted ? RESTRICTED_EXTRA : ADMIN_BOTTOM;
   const visibleCommittees = restricted
     ? COMMITTEES.filter((c) => c.type === restrictedToCommitteeType)
     : COMMITTEES;
