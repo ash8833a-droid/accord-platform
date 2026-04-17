@@ -1,0 +1,10 @@
+-- Committee budget bounds
+ALTER TABLE public.committees
+  ADD COLUMN IF NOT EXISTS min_budget NUMERIC NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS max_budget NUMERIC NOT NULL DEFAULT 0;
+
+-- Groom contributions
+ALTER TABLE public.grooms
+  ADD COLUMN IF NOT EXISTS groom_contribution NUMERIC NOT NULL DEFAULT 10000,
+  ADD COLUMN IF NOT EXISTS deficit_share NUMERIC NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS contribution_paid BOOLEAN NOT NULL DEFAULT false;
