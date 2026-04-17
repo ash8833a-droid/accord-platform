@@ -366,6 +366,18 @@ export function FinanceModule() {
           </div>
         </TabsContent>
 
+        <TabsContent value="shares" className="mt-5">
+          <SharesByBranch />
+        </TabsContent>
+
+        <TabsContent value="grooms" className="mt-5">
+          <GroomContributions totalCollected={totalCollected} totalBudgetNeeded={totalBudgetNeeded} />
+        </TabsContent>
+
+        <TabsContent value="limits" className="mt-5">
+          <CommitteeBudgetLimits onTotalChange={setTotalBudgetNeeded} />
+        </TabsContent>
+
         <TabsContent value="safety" className="mt-5">
           <FinancialSafetyPanel
             requests={requests}
