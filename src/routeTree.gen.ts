@@ -13,10 +13,11 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppReportsRouteImport } from './routes/_app.reports'
+import { Route as AppPaymentRequestsRouteImport } from './routes/_app.payment-requests'
 import { Route as AppGroomsRouteImport } from './routes/_app.grooms'
 import { Route as AppFinanceRouteImport } from './routes/_app.finance'
 import { Route as AppDashboardRouteImport } from './routes/_app.dashboard'
-import { Route as AppCommitteesRouteImport } from './routes/_app.committees'
+import { Route as AppCommitteeTypeRouteImport } from './routes/_app.committee.$type'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -37,6 +38,11 @@ const AppReportsRoute = AppReportsRouteImport.update({
   path: '/reports',
   getParentRoute: () => AppRoute,
 } as any)
+const AppPaymentRequestsRoute = AppPaymentRequestsRouteImport.update({
+  id: '/payment-requests',
+  path: '/payment-requests',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppGroomsRoute = AppGroomsRouteImport.update({
   id: '/grooms',
   path: '/grooms',
@@ -52,70 +58,76 @@ const AppDashboardRoute = AppDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AppRoute,
 } as any)
-const AppCommitteesRoute = AppCommitteesRouteImport.update({
-  id: '/committees',
-  path: '/committees',
+const AppCommitteeTypeRoute = AppCommitteeTypeRouteImport.update({
+  id: '/committee/$type',
+  path: '/committee/$type',
   getParentRoute: () => AppRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
-  '/committees': typeof AppCommitteesRoute
   '/dashboard': typeof AppDashboardRoute
   '/finance': typeof AppFinanceRoute
   '/grooms': typeof AppGroomsRoute
+  '/payment-requests': typeof AppPaymentRequestsRoute
   '/reports': typeof AppReportsRoute
+  '/committee/$type': typeof AppCommitteeTypeRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
-  '/committees': typeof AppCommitteesRoute
   '/dashboard': typeof AppDashboardRoute
   '/finance': typeof AppFinanceRoute
   '/grooms': typeof AppGroomsRoute
+  '/payment-requests': typeof AppPaymentRequestsRoute
   '/reports': typeof AppReportsRoute
+  '/committee/$type': typeof AppCommitteeTypeRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_app': typeof AppRouteWithChildren
   '/auth': typeof AuthRoute
-  '/_app/committees': typeof AppCommitteesRoute
   '/_app/dashboard': typeof AppDashboardRoute
   '/_app/finance': typeof AppFinanceRoute
   '/_app/grooms': typeof AppGroomsRoute
+  '/_app/payment-requests': typeof AppPaymentRequestsRoute
   '/_app/reports': typeof AppReportsRoute
+  '/_app/committee/$type': typeof AppCommitteeTypeRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/auth'
-    | '/committees'
     | '/dashboard'
     | '/finance'
     | '/grooms'
+    | '/payment-requests'
     | '/reports'
+    | '/committee/$type'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/auth'
-    | '/committees'
     | '/dashboard'
     | '/finance'
     | '/grooms'
+    | '/payment-requests'
     | '/reports'
+    | '/committee/$type'
   id:
     | '__root__'
     | '/'
     | '/_app'
     | '/auth'
-    | '/_app/committees'
     | '/_app/dashboard'
     | '/_app/finance'
     | '/_app/grooms'
+    | '/_app/payment-requests'
     | '/_app/reports'
+    | '/_app/committee/$type'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -154,6 +166,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppReportsRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/payment-requests': {
+      id: '/_app/payment-requests'
+      path: '/payment-requests'
+      fullPath: '/payment-requests'
+      preLoaderRoute: typeof AppPaymentRequestsRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/grooms': {
       id: '/_app/grooms'
       path: '/grooms'
@@ -175,30 +194,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppDashboardRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/committees': {
-      id: '/_app/committees'
-      path: '/committees'
-      fullPath: '/committees'
-      preLoaderRoute: typeof AppCommitteesRouteImport
+    '/_app/committee/$type': {
+      id: '/_app/committee/$type'
+      path: '/committee/$type'
+      fullPath: '/committee/$type'
+      preLoaderRoute: typeof AppCommitteeTypeRouteImport
       parentRoute: typeof AppRoute
     }
   }
 }
 
 interface AppRouteChildren {
-  AppCommitteesRoute: typeof AppCommitteesRoute
   AppDashboardRoute: typeof AppDashboardRoute
   AppFinanceRoute: typeof AppFinanceRoute
   AppGroomsRoute: typeof AppGroomsRoute
+  AppPaymentRequestsRoute: typeof AppPaymentRequestsRoute
   AppReportsRoute: typeof AppReportsRoute
+  AppCommitteeTypeRoute: typeof AppCommitteeTypeRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
-  AppCommitteesRoute: AppCommitteesRoute,
   AppDashboardRoute: AppDashboardRoute,
   AppFinanceRoute: AppFinanceRoute,
   AppGroomsRoute: AppGroomsRoute,
+  AppPaymentRequestsRoute: AppPaymentRequestsRoute,
   AppReportsRoute: AppReportsRoute,
+  AppCommitteeTypeRoute: AppCommitteeTypeRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
@@ -211,3 +232,12 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}

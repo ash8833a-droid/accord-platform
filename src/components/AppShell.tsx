@@ -11,15 +11,21 @@ import {
   X,
   Bell,
   Megaphone,
+  ChevronDown,
+  Receipt,
 } from "lucide-react";
 import { Logo } from "./Logo";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
+import { COMMITTEES } from "@/lib/committees";
 
-const NAV = [
+const TOP_NAV = [
   { to: "/dashboard", label: "لوحة التحكم", icon: LayoutDashboard },
-  { to: "/finance", label: "المالية والمناديب", icon: Wallet },
-  { to: "/committees", label: "اللجان والمهام", icon: Users2 },
+  { to: "/finance", label: "المالية", icon: Wallet },
+] as const;
+
+const BOTTOM_NAV = [
+  { to: "/payment-requests", label: "طلبات الصرف", icon: Receipt },
   { to: "/grooms", label: "سجل العرسان", icon: HeartHandshake },
   { to: "/reports", label: "التقارير والجودة", icon: FileBarChart },
 ] as const;
@@ -29,11 +35,21 @@ export function AppShell({ children }: { children: ReactNode }) {
   const nav = useNavigate();
   const path = useRouterState({ select: (s) => s.location.pathname });
   const [open, setOpen] = useState(false);
+  const [committeesOpen, setCommitteesOpen] = useState(
+    path.startsWith("/committee"),
+  );
 
   const handleLogout = async () => {
     await signOut();
     nav({ to: "/auth" });
   };
+
+  const linkClass = (active: boolean) =>
+    `group flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all ${
+      active
+        ? "bg-gradient-gold text-gold-foreground shadow-gold"
+        : "hover:bg-sidebar-accent text-sidebar-foreground/80 hover:text-sidebar-foreground"
+    }`;
 
   const SidebarInner = (
     <div className="flex h-full flex-col bg-sidebar text-sidebar-foreground">
@@ -42,20 +58,62 @@ export function AppShell({ children }: { children: ReactNode }) {
       </div>
 
       <nav className="flex-1 px-3 py-5 space-y-1 overflow-y-auto">
-        {NAV.map(({ to, label, icon: Icon }) => {
+        {TOP_NAV.map(({ to, label, icon: Icon }) => {
           const active = path === to || path.startsWith(to + "/");
           return (
-            <Link
-              key={to}
-              to={to}
-              onClick={() => setOpen(false)}
-              className={`group flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all ${
-                active
-                  ? "bg-gradient-gold text-gold-foreground shadow-gold"
-                  : "hover:bg-sidebar-accent text-sidebar-foreground/80 hover:text-sidebar-foreground"
-              }`}
-            >
-              <Icon className={`h-5 w-5 ${active ? "" : "group-hover:scale-110 transition-transform"}`} />
+            <Link key={to} to={to} onClick={() => setOpen(false)} className={linkClass(active)}>
+              <Icon className="h-5 w-5" />
+              <span className="flex-1 text-right">{label}</span>
+            </Link>
+          );
+        })}
+
+        {/* Committees collapsible */}
+        <div>
+          <button
+            type="button"
+            onClick={() => setCommitteesOpen((v) => !v)}
+            className={linkClass(path.startsWith("/committee"))}
+          >
+            <Users2 className="h-5 w-5" />
+            <span className="flex-1 text-right">اللجان والمهام</span>
+            <ChevronDown
+              className={`h-4 w-4 transition-transform ${committeesOpen ? "rotate-180" : ""}`}
+            />
+          </button>
+          {committeesOpen && (
+            <div className="mt-1 mr-3 ps-2 border-s border-sidebar-border/60 space-y-0.5 animate-fade-up">
+              {COMMITTEES.map(({ type, label, icon: Icon, tone }) => {
+                const to = `/committee/${type}`;
+                const active = path === to;
+                return (
+                  <Link
+                    key={type}
+                    to="/committee/$type"
+                    params={{ type }}
+                    onClick={() => setOpen(false)}
+                    className={`flex items-center gap-3 rounded-lg px-3 py-2 text-xs font-medium transition-all ${
+                      active
+                        ? "bg-sidebar-accent text-sidebar-foreground"
+                        : "text-sidebar-foreground/70 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground"
+                    }`}
+                  >
+                    <span className={`h-7 w-7 rounded-md flex items-center justify-center ${tone}`}>
+                      <Icon className="h-3.5 w-3.5" />
+                    </span>
+                    <span className="flex-1 text-right">{label}</span>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {BOTTOM_NAV.map(({ to, label, icon: Icon }) => {
+          const active = path === to || path.startsWith(to + "/");
+          return (
+            <Link key={to} to={to} onClick={() => setOpen(false)} className={linkClass(active)}>
+              <Icon className="h-5 w-5" />
               <span className="flex-1 text-right">{label}</span>
             </Link>
           );
@@ -86,12 +144,10 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="min-h-screen flex" dir="rtl">
-      {/* Right sidebar (RTL means right is start) */}
       <aside className="hidden lg:flex w-72 shrink-0 sticky top-0 h-screen border-l border-sidebar-border">
         {SidebarInner}
       </aside>
 
-      {/* Mobile drawer */}
       {open && (
         <div className="lg:hidden fixed inset-0 z-50 flex">
           <div className="absolute inset-0 bg-black/50" onClick={() => setOpen(false)} />
