@@ -64,7 +64,7 @@ function AdminCenter() {
       )}
 
       <Tabs defaultValue="members" className="w-full">
-        <TabsList className="grid w-full grid-cols-5 max-w-3xl">
+        <TabsList className="grid w-full grid-cols-5 max-w-3xl me-auto">
           <TabsTrigger value="members" className="gap-2">
             <UserCheck className="h-4 w-4" /> طلبات الانضمام
           </TabsTrigger>
