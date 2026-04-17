@@ -1,6 +1,37 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { CalendarClock, Megaphone, X } from "lucide-react";
+
+// Soft chime via Web Audio API — no asset required
+function playChime() {
+  try {
+    const Ctx =
+      (window.AudioContext as typeof AudioContext | undefined) ||
+      ((window as unknown as { webkitAudioContext?: typeof AudioContext })
+        .webkitAudioContext as typeof AudioContext | undefined);
+    if (!Ctx) return;
+    const ctx = new Ctx();
+    const now = ctx.currentTime;
+    const playNote = (freq: number, start: number, dur = 0.45) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0.0001, now + start);
+      gain.gain.exponentialRampToValueAtTime(0.18, now + start + 0.04);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + start + dur);
+      osc.connect(gain).connect(ctx.destination);
+      osc.start(now + start);
+      osc.stop(now + start + dur + 0.05);
+    };
+    // Pleasant two-note chime (E5 → A5)
+    playNote(659.25, 0);
+    playNote(880, 0.18, 0.55);
+    setTimeout(() => ctx.close().catch(() => {}), 1200);
+  } catch {
+    /* ignore audio errors */
+  }
+}
 
 interface AnnouncementRow {
   id: string;
@@ -103,6 +134,22 @@ export function AnnouncementsBanner() {
   });
   const [closed, setClosed] = useState(false);
   const now = useNow(1000);
+  const knownIdsRef = useRef<Set<string> | null>(null);
+  const userInteractedRef = useRef(false);
+
+  useEffect(() => {
+    const markInteracted = () => {
+      userInteractedRef.current = true;
+      window.removeEventListener("pointerdown", markInteracted);
+      window.removeEventListener("keydown", markInteracted);
+    };
+    window.addEventListener("pointerdown", markInteracted);
+    window.addEventListener("keydown", markInteracted);
+    return () => {
+      window.removeEventListener("pointerdown", markInteracted);
+      window.removeEventListener("keydown", markInteracted);
+    };
+  }, []);
 
   const load = async () => {
     const { data } = await supabase
