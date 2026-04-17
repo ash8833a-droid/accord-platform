@@ -13,6 +13,7 @@ import {
   Megaphone,
   ChevronDown,
   Receipt,
+  ShieldCheck,
 } from "lucide-react";
 import { Logo } from "./Logo";
 import { useAuth } from "@/lib/auth";
@@ -21,6 +22,7 @@ import { COMMITTEES } from "@/lib/committees";
 
 const TOP_NAV = [
   { to: "/dashboard", label: "لوحة التحكم", icon: LayoutDashboard },
+  { to: "/admin", label: "الإدارة العليا", icon: ShieldCheck },
 ] as const;
 
 const BOTTOM_NAV = [
