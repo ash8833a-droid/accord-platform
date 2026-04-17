@@ -80,7 +80,11 @@ function ReportsPage() {
 
   const filtered = useMemo(() => {
     return reports.filter((r) => {
-      if (yearFilter !== "all" && String(r.archive_year ?? "") !== yearFilter) return false;
+      if (yearFilter === "unfiled") {
+        if (r.archive_year) return false;
+      } else if (yearFilter !== "all" && String(r.archive_year ?? "") !== yearFilter) {
+        return false;
+      }
       if (committeeFilter !== "all" && r.committee_id !== committeeFilter) return false;
       return true;
     });
@@ -147,7 +151,7 @@ function ReportsPage() {
               <SelectTrigger className="h-8 w-[120px]"><SelectValue placeholder="كل السنوات" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">كل السنوات</SelectItem>
-                <SelectItem value="">غير مُسكَّن</SelectItem>
+                <SelectItem value="unfiled">غير مُسكَّن</SelectItem>
                 {years.map((y) => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}
               </SelectContent>
             </Select>
