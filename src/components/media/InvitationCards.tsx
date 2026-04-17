@@ -111,7 +111,59 @@ export function InvitationCards() {
           <p>تمت الطباعة لـ <span className="font-bold text-foreground">{printedCount}</span> من <span className="font-bold text-foreground">{grooms.length}</span> عريس</p>
           <p>المعادلة: <span className="font-mono">عدد العرسان × ({DEFAULT_MEN} + {DEFAULT_WOMEN}) = {fmt(grooms.length * (DEFAULT_MEN + DEFAULT_WOMEN))} كرت</span></p>
         </div>
+
+        <div className="mt-4 flex justify-end">
+          <Button
+            type="button"
+            onClick={() => setPrOpen(true)}
+            disabled={totalCards === 0}
+            className="gap-2 bg-gradient-to-r from-rose-600 to-pink-600 text-white hover:opacity-90"
+          >
+            <Receipt className="h-4 w-4" />
+            إصدار طلب صرف لطباعة الكروت
+          </Button>
+        </div>
       </div>
+
+      {/* Payment request dialog */}
+      <Dialog open={prOpen} onOpenChange={setPrOpen}>
+        <DialogContent dir="rtl" className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Receipt className="h-5 w-5 text-rose-600" />
+              إصدار طلب صرف لطباعة كروت الدعوة
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label>سعر الكرت الواحد (ر.س)</Label>
+              <Input
+                type="number"
+                min={0.1}
+                step="0.1"
+                value={price}
+                onChange={(e) => setPrice(Number(e.target.value))}
+                dir="ltr"
+              />
+            </div>
+            <div className="rounded-xl border bg-muted/30 p-4 space-y-2 text-sm">
+              <div className="flex justify-between"><span className="text-muted-foreground">عدد العرسان</span><span className="font-bold">{fmt(grooms.length)}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">إجمالي كروت الرجال</span><span className="font-bold">{fmt(totalMen)}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">إجمالي كروت النساء</span><span className="font-bold">{fmt(totalWomen)}</span></div>
+              <div className="flex justify-between border-t pt-2"><span className="text-muted-foreground">إجمالي الكروت</span><span className="font-bold">{fmt(totalCards)} كرت</span></div>
+              <div className="flex justify-between text-base"><span className="font-semibold">المبلغ الإجمالي</span><span className="font-bold text-rose-700">{fmt(totalAmount)} ر.س</span></div>
+              <p className="text-xs text-muted-foreground pt-2 font-mono">{fmt(totalCards)} × {fmt(price)} = {fmt(totalAmount)} ر.س</p>
+            </div>
+          </div>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setPrOpen(false)} disabled={submitting}>إلغاء</Button>
+            <Button onClick={submitPaymentRequest} disabled={submitting} className="bg-gradient-to-r from-rose-600 to-pink-600 text-white">
+              {submitting ? <Loader2 className="h-4 w-4 ms-1 animate-spin" /> : <Receipt className="h-4 w-4 ms-1" />}
+              {submitting ? "جاري الإرسال..." : "إرسال للجنة المالية"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Grooms table */}
       <div className="rounded-2xl border bg-card overflow-hidden shadow-soft">
