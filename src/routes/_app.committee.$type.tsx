@@ -14,6 +14,7 @@ import { committeeByType, COMMITTEES } from "@/lib/committees";
 import { FinanceModule } from "@/components/FinanceModule";
 import { InvitationCards } from "@/components/media/InvitationCards";
 import { TaskAttachments } from "@/components/TaskAttachments";
+import { CommitteeArchive } from "@/components/CommitteeArchive";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth } from "@/lib/auth";
 
@@ -612,6 +613,9 @@ function CommitteePage() {
           })}
         </div>
       </section>
+
+      {/* Archive of past reports / files / images for this committee */}
+      <CommitteeArchive committeeId={committee.id} committeeName={committee.name} />
     </div>
   );
 }
