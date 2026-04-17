@@ -2,12 +2,15 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Mail, Users, User, Printer, CheckCircle2, Clock, Calculator } from "lucide-react";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Mail, Users, User, Printer, CheckCircle2, Clock, Calculator, Receipt, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 const DEFAULT_MEN = 50;
 const DEFAULT_WOMEN = 30;
+const DEFAULT_PRICE = 5;
 const fmt = (n: number) => new Intl.NumberFormat("ar-SA").format(n);
 
 interface Groom {
