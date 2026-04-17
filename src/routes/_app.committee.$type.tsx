@@ -32,6 +32,14 @@ interface Task {
   description?: string | null;
   status: "todo" | "in_progress" | "completed";
   priority: "low" | "medium" | "high" | "urgent";
+  assigned_to?: string | null;
+}
+
+interface TeamMember {
+  id: string;
+  full_name: string;
+  role_title: string | null;
+  is_head: boolean;
 }
 
 const PRIORITY_LABELS: Record<Task["priority"], string> = {
