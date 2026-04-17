@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Plus, ListTodo, Receipt, Wallet, ArrowLeft } from "lucide-react";
+import { Plus, ListTodo, Receipt, Wallet, ArrowLeft, FileText, Upload, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { committeeByType, COMMITTEES } from "@/lib/committees";
 
@@ -35,6 +35,7 @@ interface PaymentRequest {
   amount: number;
   status: "pending" | "approved" | "rejected" | "paid";
   created_at: string;
+  invoice_url: string | null;
 }
 
 const STATUS_LABELS: Record<string, string> = {
@@ -67,6 +68,8 @@ function CommitteePage() {
   const [prTitle, setPrTitle] = useState("");
   const [prAmount, setPrAmount] = useState("");
   const [prDesc, setPrDesc] = useState("");
+  const [prFile, setPrFile] = useState<File | null>(null);
+  const [prSubmitting, setPrSubmitting] = useState(false);
 
   const load = async () => {
     const { data: c } = await supabase
@@ -81,7 +84,7 @@ function CommitteePage() {
     setCommittee(c);
     const [{ data: t }, { data: p }] = await Promise.all([
       supabase.from("committee_tasks").select("id, title, status, priority").eq("committee_id", c.id),
-      supabase.from("payment_requests").select("id, title, amount, status, created_at").eq("committee_id", c.id).order("created_at", { ascending: false }),
+      supabase.from("payment_requests").select("id, title, amount, status, created_at, invoice_url").eq("committee_id", c.id).order("created_at", { ascending: false }),
     ]);
     setTasks((t ?? []) as Task[]);
     setRequests((p ?? []) as PaymentRequest[]);
@@ -119,17 +122,47 @@ function CommitteePage() {
     if (!committee) return;
     const amount = Number(prAmount);
     if (!amount || amount <= 0) return toast.error("المبلغ غير صحيح");
-    const { data: u } = await supabase.auth.getUser();
-    const { error } = await supabase.from("payment_requests").insert({
-      committee_id: committee.id,
-      title: prTitle,
-      amount,
-      description: prDesc,
-      requested_by: u.user?.id,
-    });
-    if (error) return toast.error("تعذر الإرسال", { description: error.message });
-    toast.success("تم رفع الطلب للجنة المالية");
-    setPrTitle(""); setPrAmount(""); setPrDesc(""); setPrOpen(false); load();
+    if (prFile && prFile.size > 10 * 1024 * 1024) return toast.error("حجم الملف أكبر من 10 ميجابايت");
+
+    setPrSubmitting(true);
+    try {
+      const { data: u } = await supabase.auth.getUser();
+
+      let invoice_url: string | null = null;
+      if (prFile) {
+        const ext = prFile.name.split(".").pop() || "pdf";
+        const path = `${committee.id}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+        const { error: upErr } = await supabase.storage.from("invoices").upload(path, prFile, {
+          contentType: prFile.type || "application/pdf",
+          upsert: false,
+        });
+        if (upErr) {
+          toast.error("تعذر رفع الفاتورة", { description: upErr.message });
+          setPrSubmitting(false);
+          return;
+        }
+        invoice_url = path;
+      }
+
+      const { error } = await supabase.from("payment_requests").insert({
+        committee_id: committee.id,
+        title: prTitle,
+        amount,
+        description: prDesc,
+        requested_by: u.user?.id,
+        invoice_url,
+      });
+      if (error) {
+        toast.error("تعذر الإرسال", { description: error.message });
+        setPrSubmitting(false);
+        return;
+      }
+      toast.success("تم رفع الطلب للجنة المالية");
+      setPrTitle(""); setPrAmount(""); setPrDesc(""); setPrFile(null); setPrOpen(false);
+      load();
+    } finally {
+      setPrSubmitting(false);
+    }
   };
 
   if (!committee) {
