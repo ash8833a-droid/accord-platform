@@ -207,6 +207,9 @@ export type Database = {
       grooms: {
         Row: {
           bride_name: string | null
+          cards_men: number
+          cards_printed: boolean
+          cards_women: number
           contribution_paid: boolean
           created_at: string
           created_by: string | null
@@ -225,6 +228,9 @@ export type Database = {
         }
         Insert: {
           bride_name?: string | null
+          cards_men?: number
+          cards_printed?: boolean
+          cards_women?: number
           contribution_paid?: boolean
           created_at?: string
           created_by?: string | null
@@ -243,6 +249,9 @@ export type Database = {
         }
         Update: {
           bride_name?: string | null
+          cards_men?: number
+          cards_printed?: boolean
+          cards_women?: number
           contribution_paid?: boolean
           created_at?: string
           created_by?: string | null
