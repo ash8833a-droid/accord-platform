@@ -53,6 +53,9 @@ function FinancePage() {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [branch, setBranch] = useState("");
+  const [invoiceUrl, setInvoiceUrl] = useState<string | null>(null);
+  const [invoiceTitle, setInvoiceTitle] = useState<string>("");
+  const [invoiceLoading, setInvoiceLoading] = useState(false);
 
   const load = async () => {
     const [{ data: dels }, { data: subs }, { data: prs }, { data: coms }] = await Promise.all([
