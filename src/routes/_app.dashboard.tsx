@@ -164,19 +164,21 @@ function Dashboard() {
   return (
     <div className="space-y-8">
       {/* Hero */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-hero p-8 lg:p-10 text-primary-foreground shadow-elegant">
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-hero p-8 text-primary-foreground shadow-elegant">
         <div className="absolute -top-10 -left-10 w-72 h-72 bg-gold/20 rounded-full blur-3xl" />
-        <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-6">
-          <div className="space-y-3 text-center lg:text-right">
+        <div className="relative z-10 flex items-center gap-4">
+          <div className="h-14 w-14 rounded-2xl bg-gold/20 flex items-center justify-center backdrop-blur-sm shrink-0">
+            <TrendingUp className="h-7 w-7 text-gold" />
+          </div>
+          <div>
             <p className="text-sm text-primary-foreground/70">لوحة الإدارة العليا</p>
-            <h1 className="text-3xl lg:text-4xl font-bold">
+            <h1 className="text-2xl lg:text-3xl font-bold">
               نظرة عامة على <span className="text-shimmer-gold">برنامج الزواج الجماعي</span>
             </h1>
-            <p className="text-primary-foreground/80 max-w-xl">
-              متابعة شاملة لأداء جميع اللجان: الميزانيات، المهام، طلبات الصرف، الاشتراكات وملفات العرسان.
+            <p className="text-primary-foreground/80 text-sm mt-1">
+              متابعة شاملة لأداء جميع اللجان: الميزانيات، المهام، طلبات الصرف، الاشتراكات وملفات العرسان
             </p>
           </div>
-          <AnimatedRings className="w-56 h-32" />
         </div>
       </div>
 
