@@ -1,11 +1,9 @@
 import { createFileRoute, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
-import { useEffect, useMemo } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { AppShell } from "@/components/AppShell";
 import { Loader2 } from "lucide-react";
-import { COMMITTEES } from "@/lib/committees";
 import { supabase } from "@/integrations/supabase/client";
-import { useQuery } from "@tanstack/react-query";
 
 export const Route = createFileRoute("/_app")({
   component: AppLayout,
@@ -15,27 +13,30 @@ function AppLayout() {
   const { user, loading, approved, hasRole, committeeId } = useAuth();
   const nav = useNavigate();
   const path = useRouterState({ select: (s) => s.location.pathname });
-
-  // Fetch the type of the user's assigned committee (for committee members)
-  const { data: myCommitteeType } = useQuery({
-    enabled: !!committeeId,
-    queryKey: ["my-committee-type", committeeId],
-    queryFn: async () => {
-      const { data } = await supabase.from("committees").select("type").eq("id", committeeId!).maybeSingle();
-      return data?.type ?? null;
-    },
-  });
+  const [myCommitteeType, setMyCommitteeType] = useState<string | null>(null);
+  const [typeLoaded, setTypeLoaded] = useState(false);
 
   const isAdmin = hasRole("admin");
   const isQuality = hasRole("quality");
+  const restricted = !isAdmin && !isQuality;
 
-  // Allowed paths for non-admin / non-quality committee members
-  const allowedPath = useMemo(() => {
-    if (isAdmin || isQuality) return null; // unrestricted
-    const allowed = ["/dashboard"];
-    if (myCommitteeType) allowed.push(`/committee/${myCommitteeType}`);
-    return allowed;
-  }, [isAdmin, isQuality, myCommitteeType]);
+  useEffect(() => {
+    if (!committeeId) {
+      setMyCommitteeType(null);
+      setTypeLoaded(true);
+      return;
+    }
+    setTypeLoaded(false);
+    supabase
+      .from("committees")
+      .select("type")
+      .eq("id", committeeId)
+      .maybeSingle()
+      .then(({ data }) => {
+        setMyCommitteeType(data?.type ?? null);
+        setTypeLoaded(true);
+      });
+  }, [committeeId]);
 
   useEffect(() => {
     if (loading) return;
@@ -47,15 +48,17 @@ function AppLayout() {
       nav({ to: "/pending" });
       return;
     }
-    // Restrict committee members to their own committee + dashboard
-    if (allowedPath && committeeId !== undefined) {
-      const ok = allowedPath.some((p) => path === p || path.startsWith(p + "/"));
-      if (!ok) {
-        if (myCommitteeType) nav({ to: "/committee/$type", params: { type: myCommitteeType } });
-        else nav({ to: "/dashboard" });
-      }
+    if (!restricted || !typeLoaded) return;
+
+    // Allowed: /dashboard + their committee page only (everything else redirects)
+    const allowed: string[] = ["/dashboard"];
+    if (myCommitteeType) allowed.push(`/committee/${myCommitteeType}`);
+    const ok = allowed.some((p) => path === p || path.startsWith(p + "/"));
+    if (!ok) {
+      if (myCommitteeType) nav({ to: "/committee/$type", params: { type: myCommitteeType } });
+      else nav({ to: "/dashboard" });
     }
-  }, [user, loading, approved, nav, path, allowedPath, committeeId, myCommitteeType]);
+  }, [user, loading, approved, nav, path, restricted, typeLoaded, myCommitteeType]);
 
   if (loading || !user || !approved) {
     return (
@@ -66,26 +69,8 @@ function AppLayout() {
   }
 
   return (
-    <AppShell>
+    <AppShell restrictedToCommitteeType={restricted ? myCommitteeType : null} restricted={restricted}>
       <Outlet />
     </AppShell>
   );
-}
-
-// Helper for AppShell to know which committees are visible
-export function useVisibleCommittees() {
-  const { hasRole, committeeId } = useAuth();
-  const isAdmin = hasRole("admin");
-  const isQuality = hasRole("quality");
-  const { data: myType } = useQuery({
-    enabled: !!committeeId,
-    queryKey: ["my-committee-type", committeeId],
-    queryFn: async () => {
-      const { data } = await supabase.from("committees").select("type").eq("id", committeeId!).maybeSingle();
-      return data?.type ?? null;
-    },
-  });
-  if (isAdmin || isQuality) return COMMITTEES;
-  if (myType) return COMMITTEES.filter((c) => c.type === myType);
-  return [];
 }
