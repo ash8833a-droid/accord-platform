@@ -270,6 +270,75 @@ export type Database = {
         }
         Relationships: []
       }
+      membership_requests: {
+        Row: {
+          assigned_committee_id: string | null
+          assigned_role: Database["public"]["Enums"]["app_role"] | null
+          created_at: string
+          family_branch: string | null
+          full_name: string
+          id: string
+          notes: string | null
+          phone: string
+          requested_committee_id: string | null
+          review_notes: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          assigned_committee_id?: string | null
+          assigned_role?: Database["public"]["Enums"]["app_role"] | null
+          created_at?: string
+          family_branch?: string | null
+          full_name: string
+          id?: string
+          notes?: string | null
+          phone: string
+          requested_committee_id?: string | null
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          assigned_committee_id?: string | null
+          assigned_role?: Database["public"]["Enums"]["app_role"] | null
+          created_at?: string
+          family_branch?: string | null
+          full_name?: string
+          id?: string
+          notes?: string | null
+          phone?: string
+          requested_committee_id?: string | null
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "membership_requests_assigned_committee_id_fkey"
+            columns: ["assigned_committee_id"]
+            isOneToOne: false
+            referencedRelation: "committees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "membership_requests_requested_committee_id_fkey"
+            columns: ["requested_committee_id"]
+            isOneToOne: false
+            referencedRelation: "committees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payment_requests: {
         Row: {
           amount: number
@@ -629,6 +698,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_user_committee: { Args: { _user_id: string }; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -640,6 +710,7 @@ export type Database = {
         Args: { _committee_id: string; _user_id: string }
         Returns: boolean
       }
+      is_user_approved: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "committee" | "delegate" | "quality"

@@ -1,22 +1,66 @@
-import { createFileRoute, Outlet, useNavigate } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { createFileRoute, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { AppShell } from "@/components/AppShell";
 import { Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_app")({
   component: AppLayout,
 });
 
 function AppLayout() {
-  const { user, loading } = useAuth();
+  const { user, loading, approved, hasRole, committeeId } = useAuth();
   const nav = useNavigate();
+  const path = useRouterState({ select: (s) => s.location.pathname });
+  const [myCommitteeType, setMyCommitteeType] = useState<string | null>(null);
+  const [typeLoaded, setTypeLoaded] = useState(false);
+
+  const isAdmin = hasRole("admin");
+  const isQuality = hasRole("quality");
+  const restricted = !isAdmin && !isQuality;
 
   useEffect(() => {
-    if (!loading && !user) nav({ to: "/auth" });
-  }, [user, loading, nav]);
+    if (!committeeId) {
+      setMyCommitteeType(null);
+      setTypeLoaded(true);
+      return;
+    }
+    setTypeLoaded(false);
+    supabase
+      .from("committees")
+      .select("type")
+      .eq("id", committeeId)
+      .maybeSingle()
+      .then(({ data }) => {
+        setMyCommitteeType(data?.type ?? null);
+        setTypeLoaded(true);
+      });
+  }, [committeeId]);
 
-  if (loading || !user) {
+  useEffect(() => {
+    if (loading) return;
+    if (!user) {
+      nav({ to: "/auth" });
+      return;
+    }
+    if (!approved) {
+      nav({ to: "/pending" });
+      return;
+    }
+    if (!restricted || !typeLoaded) return;
+
+    // Allowed: /dashboard + their committee page only (everything else redirects)
+    const allowed: string[] = ["/dashboard"];
+    if (myCommitteeType) allowed.push(`/committee/${myCommitteeType}`);
+    const ok = allowed.some((p) => path === p || path.startsWith(p + "/"));
+    if (!ok) {
+      if (myCommitteeType) nav({ to: "/committee/$type", params: { type: myCommitteeType } });
+      else nav({ to: "/dashboard" });
+    }
+  }, [user, loading, approved, nav, path, restricted, typeLoaded, myCommitteeType]);
+
+  if (loading || !user || !approved) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -25,7 +69,7 @@ function AppLayout() {
   }
 
   return (
-    <AppShell>
+    <AppShell restrictedToCommitteeType={restricted ? myCommitteeType : null} restricted={restricted}>
       <Outlet />
     </AppShell>
   );

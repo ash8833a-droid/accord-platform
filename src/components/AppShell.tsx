@@ -20,18 +20,24 @@ import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { COMMITTEES } from "@/lib/committees";
 
-const TOP_NAV = [
+const ADMIN_TOP = [
   { to: "/dashboard", label: "لوحة التحكم", icon: LayoutDashboard },
   { to: "/admin", label: "الإدارة العليا", icon: ShieldCheck },
   { to: "/team", label: "فريق العمل", icon: Users },
 ] as const;
 
-const BOTTOM_NAV = [
+const ADMIN_BOTTOM = [
   { to: "/grooms", label: "سجل العرسان", icon: HeartHandshake },
   { to: "/reports", label: "التقارير والجودة", icon: FileBarChart },
 ] as const;
 
-export function AppShell({ children }: { children: ReactNode }) {
+interface AppShellProps {
+  children: ReactNode;
+  restricted?: boolean;
+  restrictedToCommitteeType?: string | null;
+}
+
+export function AppShell({ children, restricted = false, restrictedToCommitteeType = null }: AppShellProps) {
   const { user, signOut } = useAuth();
   const nav = useNavigate();
   const path = useRouterState({ select: (s) => s.location.pathname });
@@ -39,6 +45,13 @@ export function AppShell({ children }: { children: ReactNode }) {
   const [committeesOpen, setCommitteesOpen] = useState(
     path.startsWith("/committee"),
   );
+  const TOP_NAV = restricted
+    ? [{ to: "/dashboard", label: "لوحة التحكم", icon: LayoutDashboard } as const]
+    : ADMIN_TOP;
+  const BOTTOM_NAV = restricted ? [] : ADMIN_BOTTOM;
+  const visibleCommittees = restricted
+    ? COMMITTEES.filter((c) => c.type === restrictedToCommitteeType)
+    : COMMITTEES;
 
   const handleLogout = async () => {
     await signOut();
@@ -84,7 +97,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </button>
           {committeesOpen && (
             <div className="mt-1 mr-3 ps-2 border-s border-sidebar-border/60 space-y-0.5 animate-fade-up">
-              {COMMITTEES.map(({ type, label, icon: Icon, tone }) => {
+              {visibleCommittees.map(({ type, label, icon: Icon, tone }) => {
                 const to = `/committee/${type}`;
                 const active = path === to;
                 return (
