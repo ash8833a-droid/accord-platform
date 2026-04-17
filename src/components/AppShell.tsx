@@ -224,7 +224,7 @@ export function AppShell({ children, restricted = false, restrictedToCommitteeTy
           </div>
         </header>
 
-        <main className="flex-1 px-4 lg:px-8 py-6 lg:py-8 max-w-7xl w-full mx-auto animate-fade-up">
+        <main className="flex-1 px-4 lg:px-8 py-6 lg:py-8 max-w-7xl w-full me-auto animate-fade-up">
           {children}
         </main>
       </div>
