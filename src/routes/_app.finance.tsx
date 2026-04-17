@@ -199,7 +199,7 @@ function FinancePage() {
                             type="button"
                             size="sm"
                             variant="outline"
-                            onClick={() => openInvoice(r.invoice_url!)}
+                            onClick={() => openInvoice(r.invoice_url!, r.title)}
                             className="gap-1.5"
                           >
                             <FileText className="h-3.5 w-3.5" /> عرض الفاتورة
