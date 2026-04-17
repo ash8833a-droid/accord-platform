@@ -24,8 +24,9 @@ import {
   DialogTrigger,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { ShieldCheck, Plus, ListTodo, CalendarRange, Megaphone, Pin, Trash2, Calendar, UserCheck } from "lucide-react";
+import { ShieldCheck, Plus, ListTodo, CalendarRange, Megaphone, Pin, Trash2, Calendar, UserCheck, Users } from "lucide-react";
 import { MembersApproval } from "@/components/admin/MembersApproval";
+import { ApprovedMembers } from "@/components/admin/ApprovedMembers";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_app/admin")({
