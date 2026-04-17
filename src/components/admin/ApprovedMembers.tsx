@@ -51,10 +51,10 @@ interface Member {
 }
 
 const ROLE_LABELS: Record<Role, string> = {
-  admin: "مدير عام",
-  committee: "عضو لجنة",
-  delegate: "مندوب",
-  quality: "جودة",
+  admin: "مدير النظام",
+  committee: "رئيس اللجنة",
+  delegate: "عضو اللجنة",
+  quality: "متعاون",
 };
 
 const ROLE_TONES: Record<Role, string> = {
@@ -63,6 +63,9 @@ const ROLE_TONES: Record<Role, string> = {
   delegate: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300",
   quality: "bg-amber-500/15 text-amber-700 dark:text-amber-300",
 };
+
+// Roles selectable from the dropdown (admin is hidden to prevent accidental privilege escalation)
+const SELECTABLE_ROLES: Role[] = ["committee", "delegate", "quality"];
 
 interface Props {
   isAdmin: boolean;
@@ -246,9 +249,12 @@ export function ApprovedMembers({ isAdmin }: Props) {
                         </SelectValue>
                       </SelectTrigger>
                       <SelectContent>
-                        {(Object.keys(ROLE_LABELS) as Role[]).map((r) => (
+                        {SELECTABLE_ROLES.map((r) => (
                           <SelectItem key={r} value={r}>{ROLE_LABELS[r]}</SelectItem>
                         ))}
+                        {curRole === "admin" && (
+                          <SelectItem value="admin" disabled>{ROLE_LABELS.admin}</SelectItem>
+                        )}
                       </SelectContent>
                     </Select>
                   </TableCell>
