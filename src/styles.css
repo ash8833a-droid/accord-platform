@@ -185,6 +185,17 @@
 .animate-fade-up { animation: fade-up .5s ease-out both; }
 .animate-scale-in { animation: scale-in .35s ease-out both; }
 
+/* News-ticker marquee (RTL-aware) */
+@keyframes marquee-rtl {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0%); }
+}
+.animate-marquee {
+  animation: marquee-rtl var(--marquee-duration, 40s) linear infinite;
+  will-change: transform;
+}
+.animate-marquee:hover { animation-play-state: paused; }
+
 .text-shimmer-gold {
   background: linear-gradient(90deg, oklch(0.7 0.14 75), oklch(0.88 0.14 90), oklch(0.7 0.14 75));
   background-size: 200% 100%;

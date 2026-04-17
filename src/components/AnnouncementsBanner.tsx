@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Bell, CalendarClock, ChevronRight, ChevronLeft, X, Megaphone } from "lucide-react";
+import { CalendarClock, Megaphone, X } from "lucide-react";
 
 interface AnnouncementRow {
   id: string;
@@ -22,9 +22,8 @@ interface NormalizedItem {
   kind: "meeting" | "news";
   title: string;
   body: string;
-  createdAt: string;
   pinned: boolean;
-  meetingAt?: number; // ms epoch
+  meetingAt?: number;
   meetingInfo?: MeetingInfo;
 }
 
@@ -54,21 +53,40 @@ function useNow(intervalMs = 1000) {
   return now;
 }
 
-function Countdown({ target }: { target: number }) {
-  const now = useNow(1000);
+function formatCountdown(target: number, now: number): string {
   const diff = target - now;
-  if (diff <= 0) {
-    return <span className="font-bold text-emerald-300">بدأ الاجتماع الآن</span>;
-  }
-  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-  const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
-  const minutes = Math.floor((diff / (1000 * 60)) % 60);
+  if (diff <= 0) return "بدأ الاجتماع الآن";
+  const days = Math.floor(diff / 86400000);
+  const hours = Math.floor((diff / 3600000) % 24);
+  const minutes = Math.floor((diff / 60000) % 60);
   const seconds = Math.floor((diff / 1000) % 60);
+  const hh = hours.toString().padStart(2, "0");
+  const mm = minutes.toString().padStart(2, "0");
+  const ss = seconds.toString().padStart(2, "0");
+  return days > 0
+    ? `متبقي ${days} يوم و ${hh}:${mm}:${ss}`
+    : `متبقي ${hh}:${mm}:${ss}`;
+}
+
+function TickerItem({ item, now }: { item: NormalizedItem; now: number }) {
+  const isMeeting = item.kind === "meeting";
   return (
-    <span className="font-bold tabular-nums tracking-tight">
-      {days > 0 && <>{days} يوم </>}
-      {hours.toString().padStart(2, "0")}:{minutes.toString().padStart(2, "0")}:
-      {seconds.toString().padStart(2, "0")}
+    <span className="inline-flex items-center gap-2 mx-8">
+      <span className="inline-flex items-center justify-center h-6 w-6 rounded-full bg-white/20">
+        {isMeeting ? <CalendarClock className="h-3.5 w-3.5" /> : <Megaphone className="h-3.5 w-3.5" />}
+      </span>
+      <span className="text-[10px] uppercase tracking-wider opacity-80">
+        {isMeeting ? "اجتماع" : "إعلان"}
+      </span>
+      <span className="font-bold">{item.title}</span>
+      {isMeeting && item.meetingAt ? (
+        <span className="bg-black/20 rounded-md px-2 py-0.5 text-xs tabular-nums">
+          {formatCountdown(item.meetingAt, now)}
+        </span>
+      ) : (
+        item.body && <span className="opacity-90">— {item.body.slice(0, 140)}</span>
+      )}
+      <span className="text-white/40 mx-2">•</span>
     </span>
   );
 }
@@ -83,7 +101,8 @@ export function AnnouncementsBanner() {
       return [];
     }
   });
-  const [index, setIndex] = useState(0);
+  const [closed, setClosed] = useState(false);
+  const now = useNow(1000);
 
   const load = async () => {
     const { data } = await supabase
@@ -102,7 +121,6 @@ export function AnnouncementsBanner() {
           kind: "meeting",
           title: r.title.replace(/^\[MEETING\]\s*/, ""),
           body: r.body,
-          createdAt: r.created_at,
           pinned: r.is_pinned,
           meetingAt: meetingTimestamp(info),
           meetingInfo: info,
@@ -113,15 +131,13 @@ export function AnnouncementsBanner() {
         kind: "news",
         title: r.title,
         body: r.body,
-        createdAt: r.created_at,
         pinned: r.is_pinned,
       };
     });
-    // Hide past meetings (after end + 2h grace)
     const filtered = normalized.filter((it) => {
       if (it.kind !== "meeting") return true;
       if (!it.meetingAt) return true;
-      return it.meetingAt + 2 * 60 * 60 * 1000 > Date.now();
+      return it.meetingAt + 2 * 3600 * 1000 > Date.now();
     });
     setItems(filtered);
   };
@@ -146,18 +162,15 @@ export function AnnouncementsBanner() {
     [items, dismissed],
   );
 
-  useEffect(() => {
-    if (index >= visible.length) setIndex(0);
-  }, [visible.length, index]);
+  if (closed || visible.length === 0) return null;
 
-  if (visible.length === 0) return null;
+  // Duration scales with content count (more items = longer scroll)
+  const duration = Math.max(25, visible.length * 14);
 
-  const current = visible[index];
-  const isMeeting = current.kind === "meeting";
-
-  const dismiss = (id: string) => {
-    const next = [...dismissed, id];
+  const dismissAll = () => {
+    const next = [...dismissed, ...visible.map((v) => v.id)];
     setDismissed(next);
+    setClosed(true);
     try {
       localStorage.setItem(DISMISS_KEY, JSON.stringify(next.slice(-200)));
     } catch {
@@ -165,71 +178,46 @@ export function AnnouncementsBanner() {
     }
   };
 
-  const next = () => setIndex((i) => (i + 1) % visible.length);
-  const prev = () => setIndex((i) => (i - 1 + visible.length) % visible.length);
-
   return (
     <div
-      className={`relative overflow-hidden border-b ${
-        isMeeting
-          ? "bg-gradient-to-l from-primary via-primary to-gold text-primary-foreground"
-          : "bg-gradient-to-l from-gold/90 via-gold to-primary text-gold-foreground"
-      }`}
+      className="relative overflow-hidden border-b bg-gradient-to-l from-primary via-primary to-gold text-primary-foreground shadow-elegant"
       dir="rtl"
     >
-      <div className="px-4 lg:px-8 py-2.5 flex items-center gap-3 max-w-7xl mx-auto">
-        <div className="h-9 w-9 shrink-0 rounded-full bg-white/15 backdrop-blur flex items-center justify-center">
-          {isMeeting ? <CalendarClock className="h-5 w-5" /> : <Megaphone className="h-5 w-5" />}
-        </div>
-        <div className="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
-          <div className="flex items-center gap-2 min-w-0">
-            <span className="text-[10px] uppercase tracking-wider opacity-80 shrink-0">
-              {isMeeting ? "اجتماع" : "إعلان"}
-            </span>
-            <span className="font-bold truncate">{current.title}</span>
-          </div>
-          {isMeeting && current.meetingAt ? (
-            <div className="flex items-center gap-2 text-xs sm:text-sm bg-black/15 rounded-lg px-2.5 py-1 w-fit">
-              <span className="opacity-90">المتبقي:</span>
-              <Countdown target={current.meetingAt} />
-            </div>
-          ) : (
-            <span className="text-xs sm:text-sm opacity-90 truncate">
-              {current.body?.slice(0, 120)}
-            </span>
-          )}
+      <div className="flex items-center">
+        <div className="shrink-0 z-10 bg-gold text-gold-foreground px-4 py-2 font-bold text-xs sm:text-sm flex items-center gap-2 shadow-md">
+          <Megaphone className="h-4 w-4 animate-pulse" />
+          <span>عاجل</span>
         </div>
 
-        <div className="flex items-center gap-1 shrink-0">
-          {visible.length > 1 && (
-            <>
-              <span className="text-[10px] opacity-80 hidden sm:inline">
-                {index + 1} / {visible.length}
-              </span>
-              <button
-                onClick={prev}
-                className="h-7 w-7 rounded-md hover:bg-white/15 flex items-center justify-center transition"
-                aria-label="السابق"
-              >
-                <ChevronRight className="h-4 w-4" />
-              </button>
-              <button
-                onClick={next}
-                className="h-7 w-7 rounded-md hover:bg-white/15 flex items-center justify-center transition"
-                aria-label="التالي"
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </button>
-            </>
-          )}
-          <button
-            onClick={() => dismiss(current.id)}
-            className="h-7 w-7 rounded-md hover:bg-white/15 flex items-center justify-center transition"
-            aria-label="إغلاق"
+        <div
+          className="flex-1 overflow-hidden py-2 relative"
+          style={{ maskImage: "linear-gradient(to left, transparent, black 5%, black 95%, transparent)" }}
+        >
+          <div
+            className="flex whitespace-nowrap animate-marquee text-sm"
+            style={{ ["--marquee-duration" as string]: `${duration}s` }}
+            dir="ltr"
           >
-            <X className="h-4 w-4" />
-          </button>
+            <div className="flex" dir="rtl">
+              {visible.map((item) => (
+                <TickerItem key={`a-${item.id}`} item={item} now={now} />
+              ))}
+            </div>
+            <div className="flex" dir="rtl" aria-hidden="true">
+              {visible.map((item) => (
+                <TickerItem key={`b-${item.id}`} item={item} now={now} />
+              ))}
+            </div>
+          </div>
         </div>
+
+        <button
+          onClick={dismissAll}
+          className="shrink-0 h-8 w-8 mx-2 rounded-md hover:bg-white/15 flex items-center justify-center transition"
+          aria-label="إغلاق الشريط"
+        >
+          <X className="h-4 w-4" />
+        </button>
       </div>
     </div>
   );
