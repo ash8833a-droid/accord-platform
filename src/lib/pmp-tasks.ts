@@ -130,12 +130,4 @@ export const PMP_TEMPLATES: Record<CommitteeType, PmpTaskTemplate[]> = {
     { title: "متابعة رضا الضيوف خلال الحفل", description: "رصد ملاحظات الضيوف والتعامل الفوري مع أي شكوى.", phase: "monitoring", priority: "medium" },
     ...COMMON_CLOSING,
   ],
-  design: [
-    ...COMMON_INIT("لجنة التصميم"),
-    { title: "هوية بصرية موحدة للحفل", description: "تطوير الهوية البصرية والشعار والألوان لاستخدامها في جميع المواد.", phase: "planning", priority: "high" },
-    { title: "تصميم دعوات الحفل والبرامج المطبوعة", description: "تصميم وإخراج جميع المواد المطبوعة وتسليمها للطباعة.", phase: "executing", priority: "high" },
-    { title: "تصميم المسرح وخلفيات التصوير", description: "تصميم الديكور العام للقاعة والمسرح بما يعكس الهوية.", phase: "executing", priority: "high" },
-    { title: "متابعة جودة الطباعة والتنفيذ", description: "مراجعة المخرجات الفعلية ومطابقتها للتصاميم المعتمدة.", phase: "monitoring", priority: "medium" },
-    ...COMMON_CLOSING,
-  ],
 };
