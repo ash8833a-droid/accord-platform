@@ -21,7 +21,7 @@ import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { COMMITTEES } from "@/lib/committees";
 import { supabase } from "@/integrations/supabase/client";
-import { AnnouncementsBanner } from "./AnnouncementsBanner";
+
 
 const ADMIN_TOP = [
   { to: "/dashboard", label: "لوحة التحكم", icon: LayoutDashboard },
