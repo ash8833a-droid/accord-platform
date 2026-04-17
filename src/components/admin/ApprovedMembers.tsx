@@ -249,9 +249,12 @@ export function ApprovedMembers({ isAdmin }: Props) {
                         </SelectValue>
                       </SelectTrigger>
                       <SelectContent>
-                        {(Object.keys(ROLE_LABELS) as Role[]).map((r) => (
+                        {SELECTABLE_ROLES.map((r) => (
                           <SelectItem key={r} value={r}>{ROLE_LABELS[r]}</SelectItem>
                         ))}
+                        {curRole === "admin" && (
+                          <SelectItem value="admin" disabled>{ROLE_LABELS.admin}</SelectItem>
+                        )}
                       </SelectContent>
                     </Select>
                   </TableCell>
