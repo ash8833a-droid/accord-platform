@@ -99,6 +99,7 @@ export type Database = {
           description: string | null
           head_user_id: string | null
           id: string
+          max_members: number
           name: string
           type: Database["public"]["Enums"]["committee_type"]
           updated_at: string
@@ -110,6 +111,7 @@ export type Database = {
           description?: string | null
           head_user_id?: string | null
           id?: string
+          max_members?: number
           name: string
           type: Database["public"]["Enums"]["committee_type"]
           updated_at?: string
@@ -121,6 +123,7 @@ export type Database = {
           description?: string | null
           head_user_id?: string | null
           id?: string
+          max_members?: number
           name?: string
           type?: Database["public"]["Enums"]["committee_type"]
           updated_at?: string
@@ -467,6 +470,59 @@ export type Database = {
             columns: ["subscriber_id"]
             isOneToOne: false
             referencedRelation: "subscribers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      team_members: {
+        Row: {
+          committee_id: string
+          created_at: string
+          created_by: string | null
+          display_order: number
+          email: string | null
+          full_name: string
+          id: string
+          is_head: boolean
+          phone: string | null
+          role_title: string | null
+          specialty: string | null
+          updated_at: string
+        }
+        Insert: {
+          committee_id: string
+          created_at?: string
+          created_by?: string | null
+          display_order?: number
+          email?: string | null
+          full_name: string
+          id?: string
+          is_head?: boolean
+          phone?: string | null
+          role_title?: string | null
+          specialty?: string | null
+          updated_at?: string
+        }
+        Update: {
+          committee_id?: string
+          created_at?: string
+          created_by?: string | null
+          display_order?: number
+          email?: string | null
+          full_name?: string
+          id?: string
+          is_head?: boolean
+          phone?: string | null
+          role_title?: string | null
+          specialty?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_members_committee_id_fkey"
+            columns: ["committee_id"]
+            isOneToOne: false
+            referencedRelation: "committees"
             referencedColumns: ["id"]
           },
         ]
