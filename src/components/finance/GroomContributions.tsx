@@ -70,7 +70,8 @@ export function GroomContributions({ totalCollected, totalBudgetNeeded }: Props)
   };
 
   const updateGroomShare = async (id: string, field: "groom_contribution" | "deficit_share", v: number) => {
-    await supabase.from("grooms").update({ [field]: v }).eq("id", id);
+    const payload = field === "groom_contribution" ? { groom_contribution: v } : { deficit_share: v };
+    await supabase.from("grooms").update(payload).eq("id", id);
   };
 
   return (
