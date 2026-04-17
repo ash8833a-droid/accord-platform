@@ -15,7 +15,6 @@ import { FinanceModule } from "@/components/FinanceModule";
 import { InvitationCards } from "@/components/media/InvitationCards";
 import { TaskAttachments } from "@/components/TaskAttachments";
 import { CommitteeArchive } from "@/components/CommitteeArchive";
-import { QualityScorecard } from "@/components/quality/QualityScorecard";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth } from "@/lib/auth";
 
@@ -341,10 +340,6 @@ function CommitteePage() {
           <InvitationCards />
         </div>
       )}
-
-      {/* Quality committee — comprehensive performance scorecard */}
-      {type === "quality" && <QualityScorecard />}
-
 
       <Dialog open={prOpen} onOpenChange={setPrOpen}>
         <DialogTrigger asChild>
