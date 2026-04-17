@@ -7,11 +7,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuLabel, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Wallet, Users2, Plus, CheckCircle2, Clock, Receipt, TrendingUp, XCircle, CheckCheck, FileText, Download, FileSpreadsheet, FileType2, Printer, ShieldCheck, AlertTriangle, Lock, Eye, ScrollText } from "lucide-react";
+import { Wallet, Users2, Plus, CheckCircle2, Clock, Receipt, TrendingUp, XCircle, CheckCheck, FileText, Download, FileSpreadsheet, FileType2, Printer, ShieldCheck, TreePine, HeartHandshake, Settings2 } from "lucide-react";
 import { toast } from "sonner";
 import { StatCard } from "@/components/StatCard";
 import { committeeByType } from "@/lib/committees";
 import { exportRequestsCSV, exportRequestsXLSX, exportRequestsPDF, type ExportRequest } from "@/lib/exporters";
+import { SharesByBranch } from "@/components/finance/SharesByBranch";
+import { GroomContributions } from "@/components/finance/GroomContributions";
+import { CommitteeBudgetLimits } from "@/components/finance/CommitteeBudgetLimits";
 
 interface Delegate {
   id: string;
