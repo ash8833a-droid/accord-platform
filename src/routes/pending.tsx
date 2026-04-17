@@ -4,7 +4,7 @@ import { useAuth } from "@/lib/auth";
 import { Logo } from "@/components/Logo";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Clock, LogOut, RefreshCw } from "lucide-react";
+import { Clock, LogOut, RefreshCw, Sparkles, HeartHandshake } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/pending")({
