@@ -88,10 +88,11 @@ function AuthPage() {
           <AnimatedRings className="w-72 h-44 mx-auto" />
           <div className="text-center space-y-3">
             <h1 className="text-4xl font-black leading-tight">
-              <span className="text-shimmer-gold">منصة الزواج الجماعي</span>
+              <span className="text-shimmer-gold">منصة عمل لجنة الزواج الجماعي</span>
             </h1>
-            <p className="text-lg text-primary-foreground/80 max-w-md mx-auto leading-relaxed">
-              منصةٌ مؤسسيةٌ تجمع الجهود وتُنظّم العمل، لتُترجم النيّات الصادقة إلى إنجازٍ مُتقَن، وأثرٍ نافعٍ يبقى.
+            <p className="text-sm text-gold/80 font-semibold tracking-wide">لقبيلة الهملة من قريش</p>
+            <p className="text-lg text-primary-foreground/85 max-w-md mx-auto leading-relaxed pt-2">
+              حيث تجتمع الهِمَمُ على الإتقان، وتتكاتف الأيدي بمنهجيةٍ مؤسسيةٍ راقية، لِتُثمِرَ عملاً نوعياً يليقُ بأصالة قبيلتنا ويبقى أثره.
             </p>
           </div>
         </div>
