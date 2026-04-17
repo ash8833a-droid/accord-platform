@@ -91,12 +91,12 @@ function AuthPage() {
               <span className="text-shimmer-gold">منصة الزواج الجماعي</span>
             </h1>
             <p className="text-lg text-primary-foreground/80 max-w-md mx-auto leading-relaxed">
-              منظومة مؤسسية متكاملة لإدارة لجان البرنامج، تحصيل الاشتراكات، ومتابعة العرسان بكل شفافية.
+              منصةٌ مؤسسيةٌ تجمع الجهود وتُنظّم العمل، لتُترجم النيّات الصادقة إلى إنجازٍ مُتقَن، وأثرٍ نافعٍ يبقى.
             </p>
           </div>
         </div>
 
-        <p className="relative z-10 text-xs text-primary-foreground/60 text-center">© منصة البرنامج العائلي</p>
+        <p className="relative z-10 text-xs text-primary-foreground/60 text-center">© جميع الحقوق محفوظة</p>
       </div>
 
       <div className="flex items-center justify-center p-6 lg:p-12">
