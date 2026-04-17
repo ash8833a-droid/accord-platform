@@ -15,6 +15,8 @@ export const Route = createFileRoute("/_app/grooms")({
   component: GroomsPage,
 });
 
+type GroomStatus = "new" | "under_review" | "approved" | "rejected" | "completed";
+
 interface Groom {
   id: string;
   full_name: string;
@@ -22,7 +24,7 @@ interface Groom {
   family_branch: string;
   bride_name: string | null;
   wedding_date: string | null;
-  status: string;
+  status: GroomStatus;
   notes: string | null;
 }
 
