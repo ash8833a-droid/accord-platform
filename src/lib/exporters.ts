@@ -1,4 +1,11 @@
 import * as XLSX from "xlsx";
+import { BRAND_LOGO_DATA_URI } from "@/assets/brand-logo";
+
+export interface ReportSignature {
+  name: string;        // اسم رئيس اللجنة
+  title?: string;      // المسمى الوظيفي مثل "رئيس اللجنة المالية"
+  committee?: string;  // اسم اللجنة
+}
 
 export interface ExportRequest {
   title: string;
@@ -121,6 +128,7 @@ export function exportRequestsPDF(
   rows: ExportRequest[],
   filename: string,
   summary: FinanceSummary,
+  signature?: ReportSignature,
 ) {
   const statusBadge = (s: string) => {
     const tone: Record<string, string> = {
