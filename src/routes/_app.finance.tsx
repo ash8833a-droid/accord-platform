@@ -309,6 +309,41 @@ function FinancePage() {
           </div>
         </TabsContent>
       </Tabs>
+
+      {/* Invoice preview dialog */}
+      <Dialog open={!!invoiceUrl || invoiceLoading} onOpenChange={(o) => { if (!o) { setInvoiceUrl(null); setInvoiceLoading(false); } }}>
+        <DialogContent dir="rtl" className="max-w-5xl w-[95vw] h-[88vh] p-0 flex flex-col gap-0 overflow-hidden">
+          <DialogHeader className="px-5 py-3 border-b bg-gradient-to-l from-gold/5 to-transparent shrink-0">
+            <DialogTitle className="flex items-center gap-2 text-base">
+              <FileText className="h-4 w-4 text-gold" />
+              معاينة الفاتورة — {invoiceTitle}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="flex-1 bg-muted/30 overflow-hidden">
+            {invoiceLoading && (
+              <div className="h-full flex items-center justify-center text-sm text-muted-foreground">جاري تحميل الفاتورة...</div>
+            )}
+            {invoiceUrl && (
+              <iframe
+                src={invoiceUrl}
+                title="معاينة الفاتورة"
+                className="w-full h-full border-0"
+              />
+            )}
+          </div>
+          <div className="px-5 py-3 border-t flex items-center justify-between gap-2 shrink-0 bg-card">
+            <p className="text-[11px] text-muted-foreground">رابط مؤقت صالح لمدة 10 دقائق</p>
+            <div className="flex gap-2">
+              {invoiceUrl && (
+                <a href={invoiceUrl} target="_blank" rel="noopener noreferrer">
+                  <Button size="sm" variant="outline">فتح في تبويب جديد</Button>
+                </a>
+              )}
+              <Button size="sm" variant="ghost" onClick={() => { setInvoiceUrl(null); setInvoiceLoading(false); }}>إغلاق</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
