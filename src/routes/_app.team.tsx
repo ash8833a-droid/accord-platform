@@ -725,45 +725,50 @@ function CircularChart({
         </svg>
       )}
 
-      {/* TIER 1: Media (right in RTL) + Supreme (center) + Women (left in RTL) */}
-      <div className="relative flex items-center justify-center gap-10 lg:gap-20">
-        {media && (
-          <div ref={mediaRef}>
-            <CircleNode
-              committee={media}
-              members={members}
-              size="md"
-              tone="unified"
-            />
-          </div>
-        )}
-        <div ref={supremeRef}>
+      {/* TIER 1+2: Media (right) | Supreme (center) | Women + Tier2 stacked (left) */}
+      <div className="relative flex items-start justify-center gap-10 lg:gap-20">
+        {/* Right column (RTL right): Media */}
+        <div className="flex flex-col items-center pt-8">
+          {media && (
+            <div ref={mediaRef}>
+              <CircleNode
+                committee={media}
+                members={members}
+                size="md"
+                tone="unified"
+              />
+            </div>
+          )}
+        </div>
+
+        {/* Center: Supreme */}
+        <div ref={supremeRef} className="shrink-0">
           <SupremeNode />
         </div>
-        {women && (
-          <div ref={womenRef}>
-            <CircleNode
-              committee={women}
-              members={members}
-              size="md"
-              tone="unified"
-            />
-          </div>
-        )}
-      </div>
 
-      {/* TIER 2: 4 executive committees */}
-      <div className="relative grid grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-4 mt-20 lg:mt-24 justify-items-center">
-        {tier2.map((c, i) => (
-          <div
-            key={c.id}
-            ref={(el) => {
-              tier2Refs.current[i] = el;
-            }}
-          >
-            <CircleNode committee={c} members={members} size="md" tone="unified" />
-          </div>
-        ))}
+        {/* Left column (RTL left): Women on top, then Finance / Procurement / Quality stacked */}
+        <div className="flex flex-col items-center gap-6 lg:gap-8">
+          {women && (
+            <div ref={womenRef}>
+              <CircleNode
+                committee={women}
+                members={members}
+                size="md"
+                tone="unified"
+              />
+            </div>
+          )}
+          {tier2.map((c, i) => (
+            <div
+              key={c.id}
+              ref={(el) => {
+                tier2Refs.current[i] = el;
+              }}
+            >
+              <CircleNode committee={c} members={members} size="md" tone="unified" />
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* TIER 3: 3 operational committees */}
