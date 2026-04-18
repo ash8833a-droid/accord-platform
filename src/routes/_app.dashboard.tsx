@@ -378,3 +378,12 @@ function Dashboard() {
     </div>
   );
 }
+
+function BudgetChip({ label, value, tone }: { label: string; value: string; tone: string }) {
+  return (
+    <div className={`rounded-xl px-3 py-2 ${tone}`}>
+      <p className="text-[10px] opacity-80 leading-none mb-1">{label}</p>
+      <p className="text-xs font-extrabold leading-tight truncate" title={value}>{value}</p>
+    </div>
+  );
+}
