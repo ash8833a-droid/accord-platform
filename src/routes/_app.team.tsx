@@ -777,22 +777,22 @@ function SquareNode({
     <Link
       to="/committee/$type"
       params={{ type: committee.type }}
-      className="group relative flex flex-col items-center w-[180px] lg:w-[200px]"
+      className="group relative flex flex-col items-center w-[140px] lg:w-[156px]"
       title={`فتح صفحة ${committee.name}`}
     >
       {/* Outer square — unified gold ring */}
-      <div className="relative h-32 w-44 lg:h-36 lg:w-48 rounded-2xl bg-card ring-[3px] ring-gold/25 group-hover:ring-gold/60 shadow-soft group-hover:shadow-elegant transition-all duration-300 group-hover:-translate-y-1">
+      <div className="relative h-24 w-32 lg:h-28 lg:w-36 rounded-xl bg-card ring-2 ring-gold/25 group-hover:ring-gold/60 shadow-soft group-hover:shadow-elegant transition-all duration-300 group-hover:-translate-y-1">
         {/* Inner border */}
-        <div className="absolute inset-1.5 rounded-xl border border-gold/25 flex flex-col items-center justify-center px-3 text-center">
-          <div className="h-9 w-9 rounded-lg flex items-center justify-center mb-1.5 bg-gold/10 text-gold">
-            <Icon className="h-5 w-5" />
+        <div className="absolute inset-1 rounded-lg border border-gold/25 flex flex-col items-center justify-center px-2 text-center">
+          <div className="h-7 w-7 rounded-md flex items-center justify-center mb-1 bg-gold/10 text-gold">
+            <Icon className="h-3.5 w-3.5" />
           </div>
-          <p className="font-bold text-sm lg:text-[15px] leading-tight text-foreground group-hover:text-primary transition-colors">
+          <p className="font-bold text-[12px] lg:text-[13px] leading-tight text-foreground group-hover:text-primary transition-colors">
             {committee.name}
           </p>
           <Badge
             variant="secondary"
-            className={`mt-1.5 text-[11px] h-5 px-2 ${
+            className={`mt-1 text-[10px] h-4 px-1.5 ${
               isFull
                 ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/20"
                 : "bg-gold/10 text-gold border-gold/20"
