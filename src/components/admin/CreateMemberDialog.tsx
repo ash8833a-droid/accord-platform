@@ -87,26 +87,21 @@ export function CreateMemberDialog({ onCreated }: { onCreated?: () => void }) {
     try {
       const { data: sess } = await supabase.auth.getSession();
       const token = sess.session?.access_token;
-      const res = await fetch("/api/admin/create-member", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token ?? ""}`,
-        },
-        body: JSON.stringify({
+      if (!token) {
+        toast.error("انتهت الجلسة، يرجى إعادة تسجيل الدخول");
+        return;
+      }
+      await createMember({
+        data: {
           full_name: fullName.trim(),
           phone: phone.trim(),
           password,
           family_branch: familyBranch.trim() || null,
           role,
           committee_id: committeeId || null,
-        }),
+        },
+        headers: { Authorization: `Bearer ${token}` },
       });
-      const json = (await res.json()) as { ok?: boolean; error?: string };
-      if (!res.ok || !json.ok) {
-        toast.error(json.error || "تعذّر إنشاء الحساب");
-        return;
-      }
       toast.success("تم إنشاء الحساب بنجاح", {
         description: `الجوال: ${phone} — يمكنه تسجيل الدخول الآن`,
       });
