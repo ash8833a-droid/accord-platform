@@ -59,12 +59,13 @@ interface MemberRow {
 // Display order for the org chart (top → bottom)
 const ORG_ORDER: CommitteeType[] = [
   "finance",
-  "logistics", // المشتريات
+  "procurement",
   "quality",
   "media",
   "reception",
   "programs",
   "dinner",
+  "women",
 ];
 
 function TeamPage() {
