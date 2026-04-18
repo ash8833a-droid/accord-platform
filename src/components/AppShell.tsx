@@ -233,7 +233,7 @@ export function AppShell({ children, restricted = false, restrictedToCommitteeTy
         </main>
 
         {/* Mobile bottom navigation */}
-        <nav className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-background/95 backdrop-blur border-t border-border">
+        <nav className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-background border-t border-border shadow-[0_-2px_10px_rgba(0,0,0,0.04)]">
           <div className="grid grid-cols-5 h-16">
             {[
               { to: "/dashboard", label: "الرئيسية", icon: LayoutDashboard },
