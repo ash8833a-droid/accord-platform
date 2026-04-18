@@ -554,19 +554,26 @@ function TeamPage() {
                     </div>
                   ))}
 
-                  {Array.from({
-                    length: Math.max(0, c.max_members - list.length),
-                  }).map((_, i) => (
-                    <div
-                      key={`empty-${i}`}
-                      className="flex items-center gap-3 rounded-xl border border-dashed bg-muted/20 p-3 text-muted-foreground"
-                    >
-                      <div className="h-10 w-10 rounded-full bg-muted/40 flex items-center justify-center">
-                        <UserCircle2 className="h-5 w-5" />
+                  {roleFilter === "all" &&
+                    Array.from({
+                      length: Math.max(0, c.max_members - list.length),
+                    }).map((_, i) => (
+                      <div
+                        key={`empty-${i}`}
+                        className="flex items-center gap-3 rounded-xl border border-dashed bg-muted/20 p-3 text-muted-foreground"
+                      >
+                        <div className="h-10 w-10 rounded-full bg-muted/40 flex items-center justify-center">
+                          <UserCircle2 className="h-5 w-5" />
+                        </div>
+                        <p className="text-xs">مقعد شاغر — بانتظار الإسناد</p>
                       </div>
-                      <p className="text-xs">مقعد شاغر — بانتظار الإسناد</p>
-                    </div>
-                  ))}
+                    ))}
+
+                  {roleFilter !== "all" && list.length === 0 && (
+                    <p className="text-xs text-muted-foreground text-center py-4">
+                      لا يوجد أعضاء بهذا الدور في هذه اللجنة.
+                    </p>
+                  )}
                 </div>
               </div>
             );
