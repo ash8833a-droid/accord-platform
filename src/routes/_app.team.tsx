@@ -786,36 +786,21 @@ function SupremeNode() {
   );
 }
 
-/* ───────── Circle Node (committees) ───────── */
+/* ───────── Circle Node (committees — unified formal style) ───────── */
 function CircleNode({
   committee,
   members,
-  tone,
 }: {
   committee: CommitteeRow;
   members: MemberRow[];
   size?: "sm" | "md";
-  tone: "leadership" | "executive" | "operational";
+  tone?: "unified";
 }) {
   const meta = COMMITTEES.find((m) => m.type === committee.type);
   const Icon = meta?.icon ?? Users;
   const list = members.filter((m) => m.committee_id === committee.id);
   const head = list.find((m) => m.is_head);
   const isFull = list.length >= committee.max_members && committee.max_members > 0;
-
-  const ring =
-    tone === "leadership"
-      ? "ring-gold/40 group-hover:ring-gold/70"
-      : tone === "executive"
-      ? "ring-primary/30 group-hover:ring-primary/60"
-      : "ring-emerald-500/30 group-hover:ring-emerald-500/60";
-
-  const innerBorder =
-    tone === "leadership"
-      ? "border-gold/30"
-      : tone === "executive"
-      ? "border-primary/25"
-      : "border-emerald-500/25";
 
   return (
     <Link
@@ -825,28 +810,22 @@ function CircleNode({
       title={`فتح صفحة ${committee.name}`}
     >
       <OrnamentMark />
-      {/* Outer circle */}
-      <div
-        className={`relative h-32 w-32 lg:h-36 lg:w-36 rounded-full bg-card ring-[5px] transition-all duration-300 group-hover:-translate-y-1 ${ring} shadow-soft group-hover:shadow-elegant`}
-      >
+      {/* Outer circle — unified gold ring */}
+      <div className="relative h-32 w-32 lg:h-36 lg:w-36 rounded-full bg-card ring-[5px] ring-gold/25 group-hover:ring-gold/60 shadow-soft group-hover:shadow-elegant transition-all duration-300 group-hover:-translate-y-1">
         {/* Inner ring */}
-        <div
-          className={`absolute inset-2 rounded-full border ${innerBorder} flex flex-col items-center justify-center px-3 text-center`}
-        >
-          <div
-            className={`h-8 w-8 rounded-lg flex items-center justify-center mb-1 ${meta?.tone ?? "bg-muted"}`}
-          >
+        <div className="absolute inset-2 rounded-full border border-gold/25 flex flex-col items-center justify-center px-3 text-center">
+          <div className="h-8 w-8 rounded-lg flex items-center justify-center mb-1 bg-gold/10 text-gold">
             <Icon className="h-4 w-4" />
           </div>
-          <p className="font-bold text-[12px] lg:text-[13px] leading-tight group-hover:text-primary transition-colors">
+          <p className="font-bold text-[12px] lg:text-[13px] leading-tight text-foreground group-hover:text-primary transition-colors">
             {committee.name}
           </p>
           <Badge
             variant="secondary"
             className={`mt-1 text-[9px] h-4 px-1.5 ${
               isFull
-                ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300"
-                : "bg-amber-500/15 text-amber-700 dark:text-amber-300"
+                ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/20"
+                : "bg-gold/10 text-gold border-gold/20"
             }`}
           >
             {list.length}/{committee.max_members}
