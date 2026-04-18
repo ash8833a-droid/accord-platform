@@ -469,12 +469,12 @@ function TeamPage() {
   );
 }
 
-/* ───────── Org Chart (Hierarchical, Vertical Spine + Pyramid Base) ───────── */
+/* ───────── Org Chart (Square frames · Left vertical spine + Pyramid base) ───────── */
 
-// Vertical spine directly under the Supreme committee
-const SPINE: CommitteeType[] = ["finance", "procurement", "quality", "women"];
-// Pyramid base (operational committees)
-const BASE: CommitteeType[] = ["media", "reception", "programs", "dinner"];
+// Vertical spine on the LEFT side of the Supreme committee
+const SPINE: CommitteeType[] = ["finance", "women", "quality", "procurement"];
+// Pyramid base (operational committees) — order requested
+const BASE: CommitteeType[] = ["media", "dinner", "programs", "reception"];
 
 function OrgChart({
   committees,
