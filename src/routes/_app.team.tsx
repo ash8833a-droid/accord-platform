@@ -377,16 +377,54 @@ function TeamPage() {
 
       {/* Detailed committees */}
       <div className="space-y-5">
-        <div className="flex items-center gap-2">
-          <div className="h-1 w-10 bg-gradient-gold rounded-full" />
-          <h2 className="text-lg font-bold">أعضاء اللجان بالتفصيل</h2>
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <div className="flex items-center gap-2">
+            <div className="h-1 w-10 bg-gradient-gold rounded-full" />
+            <h2 className="text-lg font-bold">أعضاء اللجان بالتفصيل</h2>
+          </div>
+          <div className="flex items-center gap-1.5 flex-wrap">
+            {([
+              { v: "all", label: "الكل" },
+              { v: "admin", label: "مدير نظام" },
+              { v: "committee", label: "عضو لجنة" },
+              { v: "quality", label: "الجودة" },
+              { v: "delegate", label: "مندوب" },
+              { v: "team", label: "فريق العمل" },
+            ] as { v: RoleFilter; label: string }[]).map((opt) => {
+              const count =
+                opt.v === "all"
+                  ? members.length
+                  : members.filter((m) => m.role_key === opt.v).length;
+              const active = roleFilter === opt.v;
+              return (
+                <Button
+                  key={opt.v}
+                  size="sm"
+                  variant={active ? "default" : "outline"}
+                  onClick={() => setRoleFilter(opt.v)}
+                  className="h-8 gap-1.5"
+                >
+                  {opt.label}
+                  <Badge
+                    variant="secondary"
+                    className={`text-[10px] h-4 px-1.5 ${active ? "bg-primary-foreground/20 text-primary-foreground" : ""}`}
+                  >
+                    {count}
+                  </Badge>
+                </Button>
+              );
+            })}
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           {sortedCommittees.map((c) => {
             const meta = COMMITTEES.find((m) => m.type === c.type);
             const Icon = meta?.icon ?? Users;
-            const list = members.filter((m) => m.committee_id === c.id);
+            const allList = members.filter((m) => m.committee_id === c.id);
+            const list = roleFilter === "all"
+              ? allList
+              : allList.filter((m) => m.role_key === roleFilter);
             const filledPct = c.max_members
               ? (list.length / c.max_members) * 100
               : 0;
