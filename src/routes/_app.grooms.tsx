@@ -107,7 +107,7 @@ function GroomsPage() {
 
       toast.success("تم تسجيل العريس بنجاح");
       setForm({
-        full_name: "", phone: "", family_branch: "", bride_name: "", notes: "",
+        full_name: "", phone: "", family_branch: "", notes: "",
         request_type: "none", request_details: "",
         external_participation: false, external_participation_details: "",
         vip_guests: "",
