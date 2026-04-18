@@ -618,29 +618,23 @@ function HierarchyChart({
 
     if (!supreme) return setLines(ls);
 
-    // Tier 2 (spine row): drop from Supreme bottom → horizontal bus → drop to each spine node top
+    // Tier 2 (spine row): Supreme is centered with 2 committees on each side.
+    // One single horizontal line passes through Supreme center connecting all 4 spine nodes.
     if (spineCenters.length) {
-      const busY =
-        (supreme.bottom + Math.min(...spineCenters.map((c) => c.top))) / 2;
-      ls.push({ x1: supreme.cx, y1: supreme.bottom, x2: supreme.cx, y2: busY });
+      const busY = (supreme.top + supreme.bottom) / 2;
       const xs = spineCenters.map((c) => c.cx);
-      ls.push({ x1: Math.min(...xs, supreme.cx), y1: busY, x2: Math.max(...xs, supreme.cx), y2: busY });
-      spineCenters.forEach((c) => ls.push({ x1: c.cx, y1: busY, x2: c.cx, y2: c.top }));
+      ls.push({
+        x1: Math.min(...xs),
+        y1: busY,
+        x2: Math.max(...xs),
+        y2: busY,
+      });
     }
 
-    // Tier 3 (base row): single connecting line — one vertical from center of Tier 2 row,
-    // one horizontal bus that touches the top of every Tier 3 node (no individual drops).
-    if (baseCenters.length && spineCenters.length) {
-      const tier2BottomMax = Math.max(...spineCenters.map((c) => c.bottom));
-      const baseTopMin = Math.min(...baseCenters.map((c) => c.top));
-      const busY = baseTopMin; // bus sits exactly at the top edge of base nodes
-      const midX =
-        (Math.min(...spineCenters.map((c) => c.cx)) +
-          Math.max(...spineCenters.map((c) => c.cx))) /
-        2;
-      // single vertical connector from Tier 2 row center down to the bus
-      ls.push({ x1: midX, y1: tier2BottomMax, x2: midX, y2: busY });
-      // single horizontal bus spanning all base nodes
+    // Tier 3 (base row): single vertical drop from Supreme + one horizontal bus across base nodes.
+    if (baseCenters.length) {
+      const busY = Math.min(...baseCenters.map((c) => c.top));
+      ls.push({ x1: supreme.cx, y1: supreme.bottom, x2: supreme.cx, y2: busY });
       const baseXs = baseCenters.map((c) => c.cx);
       ls.push({
         x1: Math.min(...baseXs),
@@ -689,16 +683,12 @@ function HierarchyChart({
         </svg>
       )}
 
-      {/* Three rows: Supreme on top → Tier 2 (supervisory) → Tier 3 (operational) */}
+      {/* Two rows: Tier 2 (Supreme centered with 2 committees on each side) → Tier 3 */}
       <div className="relative flex flex-col items-center">
-        {/* Supreme */}
-        <div ref={supremeRef}>
-          <SupremeNode />
-        </div>
-
-        {/* Tier 2 — supervisory committees */}
-        <div className="mt-14 lg:mt-16 grid grid-cols-2 sm:grid-cols-4 gap-6 lg:gap-8 w-full justify-items-center">
-          {spine.map((c, i) => (
+        {/* Tier 2 row — left 2 + Supreme + right 2 */}
+        <div className="flex items-center justify-center gap-5 lg:gap-8 flex-wrap">
+          {/* Right side (RTL ⇒ visually on the right): first 2 committees */}
+          {spine.slice(0, 2).map((c, i) => (
             <div
               key={c.id}
               ref={(el) => {
@@ -708,10 +698,27 @@ function HierarchyChart({
               <SquareNode committee={c} members={members} />
             </div>
           ))}
+
+          {/* Supreme in the middle */}
+          <div ref={supremeRef} className="mx-2">
+            <SupremeNode />
+          </div>
+
+          {/* Left side: last 2 committees */}
+          {spine.slice(2, 4).map((c, i) => (
+            <div
+              key={c.id}
+              ref={(el) => {
+                spineRefs.current[i + 2] = el;
+              }}
+            >
+              <SquareNode committee={c} members={members} />
+            </div>
+          ))}
         </div>
 
         {/* Tier 3 — operational committees */}
-        <div className="mt-20 lg:mt-24 grid grid-cols-2 sm:grid-cols-4 gap-6 lg:gap-8 w-full justify-items-center">
+        <div className="mt-16 lg:mt-20 grid grid-cols-2 sm:grid-cols-4 gap-4 lg:gap-6 w-full justify-items-center">
           {base.map((c, i) => (
             <div
               key={c.id}
@@ -736,14 +743,14 @@ function SupremeNode() {
       className="group relative block"
       title="اللجنة العليا"
     >
-      <div className="relative h-44 w-56 lg:h-48 lg:w-64 rounded-2xl bg-gradient-to-br from-gold/90 via-gold to-amber-500/90 shadow-gold flex items-center justify-center ring-[6px] ring-gold/20 group-hover:scale-[1.03] transition-transform duration-300">
-        <div className="absolute inset-2 rounded-xl border border-white/50" />
-        <div className="text-center text-gold-foreground px-4">
-          <Crown className="h-7 w-7 mx-auto mb-2 opacity-95" />
-          <p className="font-bold text-lg lg:text-xl leading-tight">
+      <div className="relative h-32 w-40 lg:h-36 lg:w-44 rounded-2xl bg-gradient-to-br from-gold/90 via-gold to-amber-500/90 shadow-gold flex items-center justify-center ring-[5px] ring-gold/20 group-hover:scale-[1.03] transition-transform duration-300">
+        <div className="absolute inset-1.5 rounded-xl border border-white/50" />
+        <div className="text-center text-gold-foreground px-3">
+          <Crown className="h-5 w-5 mx-auto mb-1.5 opacity-95" />
+          <p className="font-bold text-[15px] lg:text-base leading-tight">
             اللجنة العليا
           </p>
-          <p className="text-[11px] lg:text-xs mt-1.5 opacity-85 tracking-wider">
+          <p className="text-[10px] mt-1 opacity-85 tracking-wider">
             الإشراف العام
           </p>
         </div>
@@ -770,22 +777,22 @@ function SquareNode({
     <Link
       to="/committee/$type"
       params={{ type: committee.type }}
-      className="group relative flex flex-col items-center w-[180px] lg:w-[200px]"
+      className="group relative flex flex-col items-center w-[140px] lg:w-[156px]"
       title={`فتح صفحة ${committee.name}`}
     >
       {/* Outer square — unified gold ring */}
-      <div className="relative h-32 w-44 lg:h-36 lg:w-48 rounded-2xl bg-card ring-[3px] ring-gold/25 group-hover:ring-gold/60 shadow-soft group-hover:shadow-elegant transition-all duration-300 group-hover:-translate-y-1">
+      <div className="relative h-24 w-32 lg:h-28 lg:w-36 rounded-xl bg-card ring-2 ring-gold/25 group-hover:ring-gold/60 shadow-soft group-hover:shadow-elegant transition-all duration-300 group-hover:-translate-y-1">
         {/* Inner border */}
-        <div className="absolute inset-1.5 rounded-xl border border-gold/25 flex flex-col items-center justify-center px-3 text-center">
-          <div className="h-9 w-9 rounded-lg flex items-center justify-center mb-1.5 bg-gold/10 text-gold">
-            <Icon className="h-5 w-5" />
+        <div className="absolute inset-1 rounded-lg border border-gold/25 flex flex-col items-center justify-center px-2 text-center">
+          <div className="h-7 w-7 rounded-md flex items-center justify-center mb-1 bg-gold/10 text-gold">
+            <Icon className="h-3.5 w-3.5" />
           </div>
-          <p className="font-bold text-sm lg:text-[15px] leading-tight text-foreground group-hover:text-primary transition-colors">
+          <p className="font-bold text-[12px] lg:text-[13px] leading-tight text-foreground group-hover:text-primary transition-colors">
             {committee.name}
           </p>
           <Badge
             variant="secondary"
-            className={`mt-1.5 text-[11px] h-5 px-2 ${
+            className={`mt-1 text-[10px] h-4 px-1.5 ${
               isFull
                 ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/20"
                 : "bg-gold/10 text-gold border-gold/20"
