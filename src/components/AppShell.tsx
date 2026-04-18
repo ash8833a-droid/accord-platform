@@ -9,18 +9,19 @@ import {
   LogOut,
   Menu,
   X,
-  Bell,
   Megaphone,
   ChevronDown,
   ShieldCheck,
   Users,
   Lightbulb,
+  Inbox,
 } from "lucide-react";
 import { Logo } from "./Logo";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { COMMITTEES } from "@/lib/committees";
 import { supabase } from "@/integrations/supabase/client";
+import { NotificationBell } from "@/components/NotificationBell";
 
 
 const ADMIN_TOP = [
