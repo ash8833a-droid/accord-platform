@@ -101,30 +101,6 @@ function ReportsPage() {
         <p className="text-muted-foreground mt-1">مركز التقارير الدورية ومؤشرات الرضا والأرشيف الموحد للجان</p>
       </div>
 
-      {/* KPI strip */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="rounded-2xl bg-gradient-hero text-primary-foreground p-5 shadow-elegant">
-          <FileBarChart className="h-7 w-7 text-gold mb-2" />
-          <p className="text-3xl font-bold">{stats.committees}</p>
-          <p className="text-xs text-primary-foreground/80">لجان نشطة</p>
-        </div>
-        <div className="rounded-2xl bg-card border p-5 shadow-soft">
-          <TrendingUp className="h-7 w-7 text-primary mb-2" />
-          <p className="text-3xl font-bold">{fmt(stats.totalBudget)}</p>
-          <p className="text-xs text-muted-foreground">إجمالي ميزانيات (ر.س)</p>
-        </div>
-        <div className="rounded-2xl bg-card border p-5 shadow-soft">
-          <TrendingUp className="h-7 w-7 text-gold mb-2" />
-          <p className="text-3xl font-bold">{fmt(stats.totalSpent)}</p>
-          <p className="text-xs text-muted-foreground">إجمالي المنصرف (ر.س)</p>
-        </div>
-        <div className="rounded-2xl bg-gradient-gold text-gold-foreground p-5 shadow-gold">
-          <Star className="h-7 w-7 mb-2 fill-current" />
-          <p className="text-3xl font-bold">{stats.satisfaction}%</p>
-          <p className="text-xs">رضا العرسان والداعمين</p>
-        </div>
-      </div>
-
       {/* Archive section */}
       <div className="rounded-2xl border bg-card shadow-soft overflow-hidden">
         <div className="px-6 py-4 border-b bg-gradient-to-l from-primary/5 to-transparent flex items-center justify-between gap-3 flex-wrap">
