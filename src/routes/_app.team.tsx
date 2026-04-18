@@ -34,6 +34,7 @@ import {
   UserCircle2,
   Download,
   ArrowLeft,
+  Sparkle,
 } from "lucide-react";
 import { toast } from "sonner";
 
