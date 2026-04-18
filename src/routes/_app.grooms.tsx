@@ -54,6 +54,19 @@ function GroomsPage() {
   const [form, setForm] = useState({ full_name: "", phone: "", family_branch: "", bride_name: "", notes: "" });
   const [detailsId, setDetailsId] = useState<string | null>(null);
 
+  const [form, setForm] = useState({
+    full_name: "", phone: "", family_branch: "", bride_name: "", notes: "",
+    request_type: "none", request_details: "",
+    external_participation: false, external_participation_details: "",
+    vip_guests: "",
+  });
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [idFile, setIdFile] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [idPreview, setIdPreview] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [detailsId, setDetailsId] = useState<string | null>(null);
+
   const load = async () => {
     const { data } = await supabase.from("grooms").select("*").order("created_at", { ascending: false });
     setGrooms((data ?? []) as Groom[]);
@@ -62,17 +75,53 @@ function GroomsPage() {
     load();
   }, []);
 
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const { error } = await supabase.from("grooms").insert(form);
-    if (error) {
-      toast.error("تعذر الحفظ", { description: error.message });
+  const onPickFile = (file: File | null, kind: "photo" | "id") => {
+    if (!file) return;
+    if (file.size > 8 * 1024 * 1024) {
+      toast.error("الحد الأقصى لحجم الملف 8 ميجابايت");
       return;
     }
-    toast.success("تم تسجيل العريس");
-    setForm({ full_name: "", phone: "", family_branch: "", bride_name: "", notes: "" });
-    setOpen(false);
-    load();
+    const url = URL.createObjectURL(file);
+    if (kind === "photo") { setPhotoFile(file); setPhotoPreview(url); }
+    else { setIdFile(file); setIdPreview(url); }
+  };
+
+  const uploadOne = async (file: File, folder: string) => {
+    const ext = file.name.split(".").pop() || "jpg";
+    const path = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+    const { error } = await sb.storage.from("grooms").upload(path, file, { upsert: false });
+    if (error) throw error;
+    return path;
+  };
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setUploading(true);
+    try {
+      let photo_url: string | null = null;
+      let national_id_url: string | null = null;
+      if (photoFile) photo_url = await uploadOne(photoFile, "photos");
+      if (idFile) national_id_url = await uploadOne(idFile, "ids");
+
+      const payload: any = { ...form, photo_url, national_id_url };
+      const { error } = await supabase.from("grooms").insert(payload);
+      if (error) throw error;
+
+      toast.success("تم تسجيل العريس بنجاح");
+      setForm({
+        full_name: "", phone: "", family_branch: "", bride_name: "", notes: "",
+        request_type: "none", request_details: "",
+        external_participation: false, external_participation_details: "",
+        vip_guests: "",
+      });
+      setPhotoFile(null); setIdFile(null); setPhotoPreview(null); setIdPreview(null);
+      setOpen(false);
+      load();
+    } catch (err: any) {
+      toast.error("تعذر الحفظ", { description: err.message });
+    } finally {
+      setUploading(false);
+    }
   };
 
   const updateStatus = async (id: string, status: GroomStatus) => {
