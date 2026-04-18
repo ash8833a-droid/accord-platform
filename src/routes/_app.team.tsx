@@ -90,8 +90,8 @@ function TeamPage() {
   });
 
   const load = async () => {
-    const [cm, mb] = await Promise.all([
-      supabase.from("committees").select("id, name, type, max_members"),
+    const [cm, mb, ur] = await Promise.all([
+      supabase.from("committees").select("id, name, type, max_members, head_user_id"),
       supabase
         .from("team_members")
         .select(
@@ -99,9 +99,73 @@ function TeamPage() {
         )
         .order("is_head", { ascending: false })
         .order("display_order"),
+      supabase.from("user_roles").select("user_id, role, committee_id").not("committee_id", "is", null),
     ]);
-    setCommittees((cm.data as CommitteeRow[]) ?? []);
-    setMembers((mb.data as MemberRow[]) ?? []);
+
+    const committeesData = (cm.data as (CommitteeRow & { head_user_id: string | null })[]) ?? [];
+    const teamMembers = (mb.data as MemberRow[]) ?? [];
+    const roleRows = (ur.data ?? []) as { user_id: string; role: string; committee_id: string }[];
+
+    // Fetch profiles for all assigned users (and any heads not yet in roles)
+    const userIds = Array.from(
+      new Set([
+        ...roleRows.map((r) => r.user_id),
+        ...committeesData.map((c) => c.head_user_id).filter((x): x is string => !!x),
+      ]),
+    );
+    let profiles: { user_id: string; full_name: string; phone: string | null }[] = [];
+    if (userIds.length) {
+      const { data: pr } = await supabase
+        .from("profiles")
+        .select("user_id, full_name, phone")
+        .in("user_id", userIds);
+      profiles = pr ?? [];
+    }
+    const profMap = new Map(profiles.map((p) => [p.user_id, p]));
+
+    const ROLE_LABEL: Record<string, string> = {
+      admin: "مدير نظام",
+      committee: "عضو لجنة",
+      quality: "الجودة",
+      delegate: "مندوب",
+    };
+
+    // Avoid duplicating users already present in team_members for the same committee (match by name)
+    const teamKeySet = new Set(
+      teamMembers.map((m) => `${m.committee_id}::${m.full_name.trim()}`),
+    );
+
+    const headByCommittee = new Map(
+      committeesData.map((c) => [c.id, c.head_user_id] as const),
+    );
+
+    const assignedMembers: MemberRow[] = [];
+    roleRows.forEach((r, idx) => {
+      const p = profMap.get(r.user_id);
+      const fullName = p?.full_name ?? "—";
+      const key = `${r.committee_id}::${fullName.trim()}`;
+      if (teamKeySet.has(key)) return;
+      teamKeySet.add(key);
+      assignedMembers.push({
+        id: `role-${r.user_id}-${r.committee_id}`,
+        committee_id: r.committee_id,
+        full_name: fullName,
+        role_title: ROLE_LABEL[r.role] ?? r.role,
+        phone: p?.phone ?? null,
+        email: null,
+        specialty: null,
+        is_head: headByCommittee.get(r.committee_id) === r.user_id,
+        display_order: 1000 + idx,
+      });
+    });
+
+    const merged = [...teamMembers, ...assignedMembers].sort((a, b) => {
+      if (a.is_head !== b.is_head) return a.is_head ? -1 : 1;
+      return a.display_order - b.display_order;
+    });
+
+    setCommittees(committeesData.map(({ head_user_id: _h, ...c }) => c));
+    setMembers(merged);
   };
 
   useEffect(() => {
