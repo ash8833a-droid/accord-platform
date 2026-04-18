@@ -86,7 +86,8 @@ export function GroomDetailsDialog({ groomId, open, onOpenChange, onSaved }: Pro
       const oldPath = data[field];
       if (oldPath) await supabase.storage.from("groom-docs").remove([oldPath]);
 
-      const { error: updErr } = await supabase.from("grooms").update({ [field]: path }).eq("id", data.id);
+      const updatePayload = kind === "photo" ? { photo_url: path } : { national_id_url: path };
+      const { error: updErr } = await supabase.from("grooms").update(updatePayload).eq("id", data.id);
       if (updErr) {
         toast.error("تعذّر حفظ الرابط", { description: updErr.message });
         return;
