@@ -26,6 +26,7 @@ import { NotificationBell } from "@/components/NotificationBell";
 
 const ADMIN_TOP = [
   { to: "/dashboard", label: "لوحة التحكم", icon: LayoutDashboard },
+  { to: "/inbox", label: "صندوق الوارد", icon: Inbox },
   { to: "/admin", label: "الإدارة العليا", icon: ShieldCheck },
   { to: "/team", label: "فريق العمل", icon: Users },
 ] as const;
