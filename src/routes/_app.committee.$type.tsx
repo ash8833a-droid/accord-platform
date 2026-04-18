@@ -286,11 +286,18 @@ function CommitteePage() {
         invoice_url = path;
       }
 
+      const recipientLabel = (() => {
+        if (prRecipient === "finance") return "اللجنة المالية";
+        const m = allMembers.find((x) => x.id === prRecipient);
+        return m ? `${m.full_name}${m.committee_name ? ` (${m.committee_name})` : ""}` : "اللجنة المالية";
+      })();
+      const finalDesc = `[إلى: ${recipientLabel}]\n${prDesc}`.trim();
+
       const { error } = await supabase.from("payment_requests").insert({
         committee_id: committee.id,
         title: prTitle,
         amount,
-        description: prDesc,
+        description: finalDesc,
         requested_by: u.user?.id,
         invoice_url,
       });
@@ -299,8 +306,8 @@ function CommitteePage() {
         setPrSubmitting(false);
         return;
       }
-      toast.success("تم رفع الطلب للجنة المالية");
-      setPrTitle(""); setPrAmount(""); setPrDesc(""); setPrFile(null); setPrOpen(false);
+      toast.success(`تم إرسال الطلب إلى ${recipientLabel}`);
+      setPrTitle(""); setPrAmount(""); setPrDesc(""); setPrFile(null); setPrRecipient("finance"); setPrOpen(false);
       load();
     } finally {
       setPrSubmitting(false);
