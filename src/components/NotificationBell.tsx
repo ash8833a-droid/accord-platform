@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "@tanstack/react-router";
-import { Bell, ListTodo, Receipt, CheckCheck, Inbox } from "lucide-react";
+import { Bell, ListTodo, Receipt, CheckCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -98,8 +97,12 @@ export function NotificationBell() {
           ) : (
             notifs.map((n) => {
               const Icon = n.type === "task_assigned" ? ListTodo : Receipt;
-              const inner = (
-                <div className={`flex items-start gap-3 p-3.5 hover:bg-muted/40 transition-colors ${n.is_read ? "" : "bg-primary/5"}`}>
+              return (
+                <button
+                  key={n.id}
+                  onClick={() => { markOne(n.id); setOpen(false); }}
+                  className={`w-full text-start flex items-start gap-3 p-3.5 hover:bg-muted/40 transition-colors ${n.is_read ? "" : "bg-primary/5"}`}
+                >
                   <span className={`h-8 w-8 rounded-lg flex items-center justify-center shrink-0 ${
                     n.type === "task_assigned" ? "bg-primary/10 text-primary" : "bg-gold/15 text-gold-foreground"
                   }`}>
@@ -111,29 +114,11 @@ export function NotificationBell() {
                     <p className="text-[10px] text-muted-foreground/70 mt-1">{new Date(n.created_at).toLocaleString("ar-SA")}</p>
                   </div>
                   {!n.is_read && <span className="h-2 w-2 rounded-full bg-primary mt-1.5 shrink-0" />}
-                </div>
-              );
-              return (
-                <Link
-                  key={n.id}
-                  to={n.link ?? "/inbox"}
-                  onClick={() => { markOne(n.id); setOpen(false); }}
-                  className="block"
-                >
-                  {inner}
-                </Link>
+                </button>
               );
             })
           )}
         </div>
-
-        <Link
-          to="/inbox"
-          onClick={() => setOpen(false)}
-          className="block border-t px-4 py-2.5 text-center text-xs font-semibold text-primary hover:bg-primary/5 transition-colors"
-        >
-          <Inbox className="h-3.5 w-3.5 inline ms-1" /> عرض كل الوارد
-        </Link>
       </PopoverContent>
     </Popover>
   );
