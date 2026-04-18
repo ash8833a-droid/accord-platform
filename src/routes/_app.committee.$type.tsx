@@ -452,6 +452,29 @@ function CommitteePage() {
 
           <form onSubmit={submitRequest} className="space-y-3 pt-2 border-b pb-5">
             <div className="space-y-2"><Label>عنوان الطلب</Label><Input value={prTitle} onChange={(e) => setPrTitle(e.target.value)} required placeholder="مثال: عهدة لشراء مستلزمات الحفل" /></div>
+            <div className="space-y-2">
+              <Label className="flex items-center gap-1.5"><Users className="h-3.5 w-3.5" /> إرسال الطلب إلى</Label>
+              <Select value={prRecipient} onValueChange={setPrRecipient}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent className="max-h-72">
+                  <SelectItem value="finance">اللجنة المالية (افتراضي)</SelectItem>
+                  {COMMITTEES.map((cm) => {
+                    const list = allMembers.filter((m) => m.committee_name === cm.label);
+                    if (list.length === 0) return null;
+                    return (
+                      <div key={cm.type}>
+                        <div className="px-2 py-1 text-[10px] font-bold text-muted-foreground bg-muted/40 mt-1">{cm.label}</div>
+                        {list.map((m) => (
+                          <SelectItem key={m.id} value={m.id}>
+                            {m.full_name}{m.role_title ? ` · ${m.role_title}` : ""}{m.is_head ? " (رئيس)" : ""}
+                          </SelectItem>
+                        ))}
+                      </div>
+                    );
+                  })}
+                </SelectContent>
+              </Select>
+            </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2"><Label>المبلغ (ر.س)</Label><Input type="number" min="1" value={prAmount} onChange={(e) => setPrAmount(e.target.value)} required dir="ltr" /></div>
               <div className="space-y-2">
