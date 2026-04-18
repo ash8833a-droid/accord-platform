@@ -112,13 +112,16 @@ export const PMP_TEMPLATES: Record<CommitteeType, PmpTaskTemplate[]> = {
     { title: "ضبط جودة الطعام والاشتراطات الصحية", description: "التأكد من سلامة الطعام والاشتراطات الصحية.", phase: "monitoring", priority: "high" },
     ...COMMON_CLOSING,
   ],
-  logistics: [
-    ...COMMON_INIT("لجنة التجهيزات"),
-    { title: "خطة التجهيزات والمشتريات (Procurement Plan)", description: "حصر جميع المعدات والمستلزمات وتحديد مصادر التوريد والميزانية.", phase: "planning", priority: "urgent" },
-    { title: "توقيع عقود الموردين والنقل", description: "اختيار الموردين والتعاقد معهم ضمن السياسات المعتمدة.", phase: "planning", priority: "high" },
-    { title: "استلام المعدات وفحصها قبل الحفل", description: "استلام جميع المعدات وفحصها والتأكد من جاهزيتها.", phase: "executing", priority: "high" },
-    { title: "تجهيز موقع الحفل لوجستياً", description: "تركيب الإضاءة والصوت والإشارات الإرشادية وتوزيع المسارات.", phase: "executing", priority: "high" },
-    { title: "متابعة العقود والتسليمات", description: "متابعة التزام الموردين بالجدول والمواصفات.", phase: "monitoring", priority: "medium" },
+  procurement: [
+    ...COMMON_INIT("لجنة المشتريات"),
+    { title: "خطة المشتريات وحصر المستلزمات (Procurement Plan)", description: "حصر شامل للمستلزمات والمواصفات والكميات وتقدير التكاليف.", phase: "planning", priority: "urgent" },
+    { title: "دراسة عروض الموردين والمفاضلة", description: "استدراج عروض من ٣ موردين على الأقل والمفاضلة من حيث السعر والجودة والمدة.", phase: "planning", priority: "high" },
+    { title: "توقيع عقود الشراء والتوريد", description: "اعتماد العقود مع الموردين وفق السياسات وضمانات التسليم.", phase: "planning", priority: "high" },
+    { title: "إصدار أوامر الشراء ومتابعة الدفع", description: "إصدار أوامر الشراء بالتنسيق مع المالية ومتابعة الدفعات.", phase: "executing", priority: "high" },
+    { title: "استلام المستلزمات وفحص المطابقة", description: "استلام المشتريات وفحص جودتها ومطابقتها للمواصفات قبل القبول.", phase: "executing", priority: "high" },
+    { title: "تسليم المستلزمات للجان المستفيدة", description: "تسليم العهد للجان (عشاء، استقبال، برامج) بمحضر تسليم رسمي.", phase: "executing", priority: "medium" },
+    { title: "متابعة التزام الموردين بالجدول والمواصفات", description: "رصد أي تأخير أو عدم مطابقة وإصدار إنذارات للموردين.", phase: "monitoring", priority: "high" },
+    { title: "تحليل الانحراف بين السعر المخطط والفعلي", description: "إعداد تقرير دوري بالفروق السعرية وضبط الموازنة.", phase: "monitoring", priority: "medium" },
     ...COMMON_CLOSING,
   ],
   reception: [
@@ -130,4 +133,19 @@ export const PMP_TEMPLATES: Record<CommitteeType, PmpTaskTemplate[]> = {
     { title: "متابعة رضا الضيوف خلال الحفل", description: "رصد ملاحظات الضيوف والتعامل الفوري مع أي شكوى.", phase: "monitoring", priority: "medium" },
     ...COMMON_CLOSING,
   ],
+  women: [
+    ...COMMON_INIT("اللجنة النسائية"),
+    { title: "خطة القسم النسائي الشاملة", description: "تحديد جميع متطلبات القسم النسائي: التجهيز، الضيافة، الزفّات، الاستقبال.", phase: "planning", priority: "urgent" },
+    { title: "حصر مشتريات القسم النسائي", description: "حصر تفصيلي لاحتياجات القسم النسائي بالتنسيق مع لجنة المشتريات.", phase: "planning", priority: "high" },
+    { title: "تخطيط ميزانية الزفّات وتكاليفها", description: "تقدير تكلفة كل زفّة (إضاءة، صوت، تنسيق) واعتماد الميزانية.", phase: "planning", priority: "high" },
+    { title: "اختيار منسقات الزفّات والتعاقد معهن", description: "اختيار منسقات الزفّات المناسبات والتعاقد معهن رسمياً.", phase: "planning", priority: "high" },
+    { title: "تجهيز قاعة النساء (ديكور، إضاءة، صوت)", description: "تركيب الديكور والإضاءة والصوت في قاعة النساء قبل الحفل.", phase: "executing", priority: "high" },
+    { title: "تنفيذ ضيافة النساء (طعام، حلويات، مشروبات)", description: "ترتيب الضيافة الكاملة للنساء وتقديمها وفق جدول البرامج.", phase: "executing", priority: "high" },
+    { title: "استقبال العرائس وكبار الضيفات", description: "استقبال خاص للعرائس وأمهاتهن وكبار الضيفات وتوجيههن.", phase: "executing", priority: "urgent" },
+    { title: "تنفيذ الزفّات حسب الجدول", description: "متابعة سير الزفّات بالتنسيق مع لجنة البرامج وضبط التوقيت.", phase: "executing", priority: "urgent" },
+    { title: "متابعة رضا الضيفات والعرائس", description: "رصد ملاحظات الحضور النسائي والاستجابة الفورية لأي طلب.", phase: "monitoring", priority: "high" },
+    { title: "ضبط الانحراف عن ميزانية القسم النسائي", description: "متابعة الصرف الفعلي مقارنة بالموازنة وإصدار تنبيهات الانحراف.", phase: "monitoring", priority: "medium" },
+    ...COMMON_CLOSING,
+  ],
 };
+
