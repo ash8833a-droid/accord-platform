@@ -1,0 +1,1 @@
+UPDATE public.committees SET max_members = 2 WHERE type = 'women';
