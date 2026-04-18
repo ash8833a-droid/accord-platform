@@ -618,25 +618,34 @@ function HierarchyChart({
 
     if (!supreme) return setLines(ls);
 
-    // Vertical spine from Supreme down through every spine node
+    // Left vertical spine: a single vertical bus on the left, with a horizontal
+    // connector from Supreme's left edge into the bus, plus horizontal stubs
+    // from the bus to each spine node's right edge.
     if (spineCenters.length) {
-      const spineX = supreme.cx;
-      // Supreme bottom → first spine top (vertical line)
-      ls.push({ x1: spineX, y1: supreme.bottom, x2: spineX, y2: spineCenters[spineCenters.length - 1].bottom });
-      // Each spine node already sits on the vertical line. Already covered.
+      const busX =
+        Math.max(...spineCenters.map((c) => c.right)) +
+        Math.max(24, (supreme.left - Math.max(...spineCenters.map((c) => c.right))) / 2);
+      const topY = Math.min(...spineCenters.map((c) => (c.top + c.bottom) / 2));
+      const bottomY = Math.max(...spineCenters.map((c) => (c.top + c.bottom) / 2));
+      // Vertical bus
+      ls.push({ x1: busX, y1: Math.min(topY, supreme.top + (supreme.bottom - supreme.top) / 2), x2: busX, y2: bottomY });
+      // Supreme left edge → bus (horizontal)
+      const supremeMidY = (supreme.top + supreme.bottom) / 2;
+      ls.push({ x1: supreme.left, y1: supremeMidY, x2: busX, y2: supremeMidY });
+      // Bus → each spine node (horizontal stub to right edge of each node)
+      spineCenters.forEach((c) => {
+        const midY = (c.top + c.bottom) / 2;
+        ls.push({ x1: busX, y1: midY, x2: c.right, y2: midY });
+      });
     }
 
-    // Last spine node → bus → base nodes
-    const lastSpine = spineCenters[spineCenters.length - 1] ?? supreme;
+    // Pyramid base: vertical drop from Supreme bottom → horizontal bus → drop to each base node top
     if (baseCenters.length) {
       const busY =
-        (lastSpine.bottom + Math.min(...baseCenters.map((c) => c.top))) / 2;
-      // drop from last spine to bus
-      ls.push({ x1: lastSpine.cx, y1: lastSpine.bottom, x2: lastSpine.cx, y2: busY });
-      // horizontal bus
+        (supreme.bottom + Math.min(...baseCenters.map((c) => c.top))) / 2;
+      ls.push({ x1: supreme.cx, y1: supreme.bottom, x2: supreme.cx, y2: busY });
       const xs = baseCenters.map((c) => c.cx);
-      ls.push({ x1: Math.min(...xs, lastSpine.cx), y1: busY, x2: Math.max(...xs, lastSpine.cx), y2: busY });
-      // drops to each base
+      ls.push({ x1: Math.min(...xs, supreme.cx), y1: busY, x2: Math.max(...xs, supreme.cx), y2: busY });
       baseCenters.forEach((c) => ls.push({ x1: c.cx, y1: busY, x2: c.cx, y2: c.top }));
     }
 
