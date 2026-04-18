@@ -846,22 +846,24 @@ function CommitteePage() {
                               <UserIcon className="h-3 w-3" /> غير معيّن
                             </span>
                           )}
-                          <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition">
-                            <button
-                              onClick={() => openEditTask(t)}
-                              className="h-6 w-6 rounded-md flex items-center justify-center hover:bg-primary/10 hover:text-primary transition"
-                              aria-label="تعديل"
-                            >
-                              <Pencil className="h-3 w-3" />
-                            </button>
-                            <button
-                              onClick={() => deleteTask(t.id)}
-                              className="h-6 w-6 rounded-md flex items-center justify-center hover:bg-destructive/10 hover:text-destructive transition"
-                              aria-label="حذف"
-                            >
-                              <Trash2 className="h-3 w-3" />
-                            </button>
-                          </div>
+                          {canManageTasks && (
+                            <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition">
+                              <button
+                                onClick={() => openEditTask(t)}
+                                className="h-6 w-6 rounded-md flex items-center justify-center hover:bg-primary/10 hover:text-primary transition"
+                                aria-label="تعديل"
+                              >
+                                <Pencil className="h-3 w-3" />
+                              </button>
+                              <button
+                                onClick={() => deleteTask(t.id)}
+                                className="h-6 w-6 rounded-md flex items-center justify-center hover:bg-destructive/10 hover:text-destructive transition"
+                                aria-label="حذف"
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </button>
+                            </div>
+                          )}
                         </div>
                       </div>
                     );
