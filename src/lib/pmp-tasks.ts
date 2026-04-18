@@ -125,7 +125,7 @@ export const PMP_TEMPLATES: Record<CommitteeType, PmpTaskTemplate[]> = {
     ...COMMON_CLOSING,
   ],
   reception: [
-    ...COMMON_INIT("لجنة الاستقبال"),
+    ...COMMON_INIT("لجنة الاستقبال والضيافة"),
     { title: "خطة استقبال الضيوف والعرسان", description: "تصميم مسار الاستقبال وتحديد نقاط التوجيه واللوحات الإرشادية.", phase: "planning", priority: "high" },
     { title: "إعداد قائمة الضيوف وتأكيد الحضور", description: "تجميع قائمة الضيوف وتأكيد حضورهم قبل الحفل.", phase: "planning", priority: "medium" },
     { title: "استقبال العرسان وكبار الضيوف", description: "استقبال خاص للعرسان وكبار الضيوف وتقديم الضيافة.", phase: "executing", priority: "urgent" },
