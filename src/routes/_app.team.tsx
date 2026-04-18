@@ -48,6 +48,7 @@ interface CommitteeRow {
   type: CommitteeType;
   max_members: number;
 }
+type RoleFilter = "all" | "admin" | "committee" | "quality" | "delegate" | "team";
 interface MemberRow {
   id: string;
   committee_id: string;
@@ -58,6 +59,7 @@ interface MemberRow {
   specialty: string | null;
   is_head: boolean;
   display_order: number;
+  role_key: Exclude<RoleFilter, "all">;
 }
 
 // Display order for the org chart (top → bottom)
