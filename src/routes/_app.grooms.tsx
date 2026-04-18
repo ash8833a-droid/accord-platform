@@ -8,9 +8,20 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { HeartHandshake, Plus, FileCheck2, FolderOpen } from "lucide-react";
+import {
+  HeartHandshake, Plus, FileCheck2, FolderOpen, User, Phone, Users, Heart,
+  StickyNote, IdCard, Camera, ClipboardList, Globe2, Crown, Upload, X, ImageIcon, FileImage,
+} from "lucide-react";
 import { toast } from "sonner";
 import { GroomDetailsDialog } from "@/components/grooms/GroomDetailsDialog";
+import { supabase as sb } from "@/integrations/supabase/client";
+
+const REQUEST_TYPES = [
+  { value: "extra_sheep", label: "زيادة في عدد الذبائح", icon: "🐑" },
+  { value: "transfer", label: "تنازل لعريس آخر", icon: "🤝" },
+  { value: "decline_extra", label: "اعتذار عن الزيادة", icon: "🙏" },
+  { value: "none", label: "لا يوجد طلبات", icon: "—" },
+];
 
 export const Route = createFileRoute("/_app/grooms")({
   component: GroomsPage,
