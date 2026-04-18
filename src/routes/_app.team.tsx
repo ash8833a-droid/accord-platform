@@ -739,7 +739,7 @@ function CircularChart({
               tier2Refs.current[i] = el;
             }}
           >
-            <CircleNode committee={c} members={members} size="md" tone="executive" />
+            <CircleNode committee={c} members={members} size="md" tone="unified" />
           </div>
         ))}
       </div>
