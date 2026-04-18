@@ -228,10 +228,13 @@ export type Database = {
           notes: string | null
           phone: string
           photo_url: string | null
+          request_details: string | null
+          request_type: string | null
           requirements_checklist: Json
           special_requests: string | null
           status: Database["public"]["Enums"]["groom_status"]
           updated_at: string
+          vip_guests: string | null
           wedding_date: string | null
         }
         Insert: {
@@ -257,10 +260,13 @@ export type Database = {
           notes?: string | null
           phone: string
           photo_url?: string | null
+          request_details?: string | null
+          request_type?: string | null
           requirements_checklist?: Json
           special_requests?: string | null
           status?: Database["public"]["Enums"]["groom_status"]
           updated_at?: string
+          vip_guests?: string | null
           wedding_date?: string | null
         }
         Update: {
@@ -286,10 +292,13 @@ export type Database = {
           notes?: string | null
           phone?: string
           photo_url?: string | null
+          request_details?: string | null
+          request_type?: string | null
           requirements_checklist?: Json
           special_requests?: string | null
           status?: Database["public"]["Enums"]["groom_status"]
           updated_at?: string
+          vip_guests?: string | null
           wedding_date?: string | null
         }
         Relationships: []
