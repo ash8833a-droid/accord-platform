@@ -57,6 +57,7 @@ function GroomsPage() {
     request_type: "none", request_details: "",
     external_participation: false, external_participation_details: "",
     vip_guests: "",
+    extra_sheep: 0, extra_cards_men: 0, extra_cards_women: 0,
   });
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [idFile, setIdFile] = useState<File | null>(null);
@@ -111,6 +112,7 @@ function GroomsPage() {
         request_type: "none", request_details: "",
         external_participation: false, external_participation_details: "",
         vip_guests: "",
+        extra_sheep: 0, extra_cards_men: 0, extra_cards_women: 0,
       });
       setPhotoFile(null); setIdFile(null); setPhotoPreview(null); setIdPreview(null);
       setOpen(false);

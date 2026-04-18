@@ -9,6 +9,7 @@ import {
   Calendar, ClipboardList, Globe2, Crown, ImageIcon, IdCard, Loader2, Eye,
 } from "lucide-react";
 import { toast } from "sonner";
+import { GroomTimeline } from "@/components/grooms/GroomTimeline";
 
 interface GroomRow {
   id: string;
@@ -285,6 +286,8 @@ export function MediaInbox() {
                   <p className="text-sm leading-relaxed whitespace-pre-line">{selected.notes}</p>
                 </Block>
               )}
+
+              <GroomTimeline groomId={selected.id} />
             </div>
           )}
           <DialogFooter className="gap-2 pt-3 border-t">
