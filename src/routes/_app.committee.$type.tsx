@@ -257,7 +257,47 @@ function CommitteePage() {
   const saveTask = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!committee) return;
-    const assigned_to = tAssignee === "none" ? null : tAssignee;
+    if (!canManageTasks) {
+      toast.error("لا تملك صلاحية إنشاء/تعديل المهام في هذه اللجنة");
+      return;
+    }
+
+    // Resolve assignee: virtual role-based ids (role::userId::committeeId) need to map to a real team_members row
+    let assigned_to: string | null = tAssignee === "none" ? null : tAssignee;
+    if (assigned_to && assigned_to.startsWith("role::")) {
+      const [, userId, committeeId] = assigned_to.split("::");
+      const target = allMembers.find((m) => m.id === assigned_to);
+      const fullName = target?.full_name ?? "";
+      // Check if a team_members row already exists for that name+committee
+      const { data: existing } = await supabase
+        .from("team_members")
+        .select("id")
+        .eq("committee_id", committeeId)
+        .eq("full_name", fullName)
+        .maybeSingle();
+      if (existing?.id) {
+        assigned_to = existing.id;
+      } else {
+        // Create a minimal team_members row so notifications & assignment chain work
+        const { data: created, error: createErr } = await supabase
+          .from("team_members")
+          .insert({
+            committee_id: committeeId,
+            full_name: fullName,
+            role_title: target?.role_title ?? "عضو لجنة",
+            is_head: false,
+          })
+          .select("id")
+          .single();
+        if (createErr || !created) {
+          toast.error("تعذّر تجهيز بيانات العضو", { description: createErr?.message });
+          return;
+        }
+        assigned_to = created.id;
+        void userId;
+      }
+    }
+
     if (editingId) {
       const { error } = await supabase.from("committee_tasks")
         .update({ title: tTitle, description: tDesc, status: tStatus, priority: tPriority, assigned_to })
