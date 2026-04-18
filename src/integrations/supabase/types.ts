@@ -852,6 +852,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_committee_head: {
+        Args: { _committee_id: string; _user_id: string }
+        Returns: boolean
+      }
       is_committee_member: {
         Args: { _committee_id: string; _user_id: string }
         Returns: boolean
