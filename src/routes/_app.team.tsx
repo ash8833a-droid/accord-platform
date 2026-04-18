@@ -735,7 +735,7 @@ function HierarchyChart({
   );
 }
 
-/* ───────── Supreme (top — square frame, filled gold-tone) ───────── */
+/* ───────── Supreme (top — compact gold rectangle) ───────── */
 function SupremeNode() {
   return (
     <Link
@@ -743,23 +743,23 @@ function SupremeNode() {
       className="group relative block"
       title="اللجنة العليا"
     >
-      <div className="relative h-32 w-40 lg:h-36 lg:w-44 rounded-2xl bg-gradient-to-br from-gold/90 via-gold to-amber-500/90 shadow-gold flex items-center justify-center ring-[5px] ring-gold/20 group-hover:scale-[1.03] transition-transform duration-300">
-        <div className="absolute inset-1.5 rounded-xl border border-white/50" />
-        <div className="text-center text-gold-foreground px-3">
-          <Crown className="h-5 w-5 mx-auto mb-1.5 opacity-95" />
-          <p className="font-bold text-[15px] lg:text-base leading-tight">
-            اللجنة العليا
-          </p>
-          <p className="text-[10px] mt-1 opacity-85 tracking-wider">
-            الإشراف العام
-          </p>
+      <div className="relative h-20 w-44 lg:h-[88px] lg:w-52 rounded-2xl bg-gradient-to-br from-gold/95 via-gold to-amber-500 shadow-gold flex items-center justify-center ring-[3px] ring-gold/25 group-hover:scale-[1.02] transition-transform duration-300">
+        <div className="absolute inset-1 rounded-xl border border-white/40" />
+        <div className="relative flex items-center gap-2.5 text-gold-foreground px-3">
+          <Crown className="h-5 w-5 shrink-0 opacity-95" />
+          <div className="text-right leading-tight">
+            <p className="font-bold text-[15px] lg:text-base">اللجنة العليا</p>
+            <p className="text-[10px] opacity-85 tracking-wider mt-0.5">
+              الإشراف العام
+            </p>
+          </div>
         </div>
       </div>
     </Link>
   );
 }
 
-/* ───────── Square Node (committees — unified formal square frame) ───────── */
+/* ───────── Committee Node (elegant rectangular pill with gold accent strip) ───────── */
 function SquareNode({
   committee,
   members,
@@ -777,39 +777,45 @@ function SquareNode({
     <Link
       to="/committee/$type"
       params={{ type: committee.type }}
-      className="group relative flex flex-col items-center w-[140px] lg:w-[156px]"
+      className="group relative flex flex-col items-center w-[150px] lg:w-[168px]"
       title={`فتح صفحة ${committee.name}`}
     >
-      {/* Outer square — unified gold ring */}
-      <div className="relative h-24 w-32 lg:h-28 lg:w-36 rounded-xl bg-card ring-2 ring-gold/25 group-hover:ring-gold/60 shadow-soft group-hover:shadow-elegant transition-all duration-300 group-hover:-translate-y-1">
-        {/* Inner border */}
-        <div className="absolute inset-1 rounded-lg border border-gold/25 flex flex-col items-center justify-center px-2 text-center">
-          <div className="h-7 w-7 rounded-md flex items-center justify-center mb-1 bg-gold/10 text-gold">
-            <Icon className="h-3.5 w-3.5" />
+      {/* Rectangular pill card — gold right-accent strip + soft border */}
+      <div className="relative h-[68px] w-full overflow-hidden rounded-xl bg-card border border-gold/30 shadow-soft group-hover:shadow-elegant group-hover:border-gold/60 group-hover:-translate-y-0.5 transition-all duration-300">
+        {/* Right gold accent strip (RTL — visually on the right) */}
+        <div className="absolute inset-y-0 right-0 w-1 bg-gradient-to-b from-gold to-amber-500" />
+        {/* Subtle gold tint */}
+        <div className="absolute inset-0 bg-gradient-to-l from-gold/5 to-transparent pointer-events-none" />
+
+        <div className="relative h-full flex items-center gap-2.5 pr-3 pl-2.5">
+          <div className="h-9 w-9 shrink-0 rounded-lg flex items-center justify-center bg-gold/10 text-gold ring-1 ring-gold/20">
+            <Icon className="h-4 w-4" />
           </div>
-          <p className="font-bold text-[12px] lg:text-[13px] leading-tight text-foreground group-hover:text-primary transition-colors">
-            {committee.name}
-          </p>
-          <Badge
-            variant="secondary"
-            className={`mt-1 text-[10px] h-4 px-1.5 ${
-              isFull
-                ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/20"
-                : "bg-gold/10 text-gold border-gold/20"
-            }`}
-          >
-            {list.length}/{committee.max_members}
-          </Badge>
+          <div className="min-w-0 flex-1 text-right">
+            <p className="font-bold text-[12.5px] leading-tight text-foreground group-hover:text-primary transition-colors truncate">
+              {committee.name}
+            </p>
+            <Badge
+              variant="secondary"
+              className={`mt-1 text-[9.5px] h-4 px-1.5 font-semibold ${
+                isFull
+                  ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/20"
+                  : "bg-gold/10 text-gold border-gold/20"
+              }`}
+            >
+              {list.length}/{committee.max_members}
+            </Badge>
+          </div>
         </div>
       </div>
 
       {/* Head label below */}
       {head && (
-        <div className="text-center mt-3">
-          <p className="text-xs text-muted-foreground flex items-center justify-center gap-1">
-            <Crown className="h-3 w-3 text-gold" /> رئيس اللجنة
+        <div className="text-center mt-2">
+          <p className="text-[10px] text-muted-foreground flex items-center justify-center gap-1">
+            <Crown className="h-2.5 w-2.5 text-gold" /> رئيس اللجنة
           </p>
-          <p className="text-[13px] font-semibold truncate max-w-[170px]">
+          <p className="text-[12px] font-semibold truncate max-w-[160px]">
             {head.full_name}
           </p>
         </div>
