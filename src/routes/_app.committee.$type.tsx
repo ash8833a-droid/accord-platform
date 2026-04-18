@@ -54,6 +54,21 @@ const PRIORITY_TONE: Record<Task["priority"], string> = {
   urgent: "bg-destructive/15 text-destructive",
 };
 
+const PHASE_TONE: Record<string, string> = {
+  "البدء": "bg-violet-500/15 text-violet-700 dark:text-violet-300 border-violet-500/30",
+  "التخطيط": "bg-sky-500/15 text-sky-700 dark:text-sky-300 border-sky-500/30",
+  "التنفيذ": "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30",
+  "المراقبة والضبط": "bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30",
+  "الإغلاق": "bg-rose-500/15 text-rose-700 dark:text-rose-300 border-rose-500/30",
+};
+
+/** Extract phase prefix like "[التخطيط]" from task title */
+function splitPhase(title: string): { phase: string | null; clean: string } {
+  const m = title.match(/^\s*\[([^\]]+)\]\s*(.*)$/);
+  if (m) return { phase: m[1].trim(), clean: m[2].trim() };
+  return { phase: null, clean: title };
+}
+
 interface PaymentRequest {
   id: string;
   title: string;
