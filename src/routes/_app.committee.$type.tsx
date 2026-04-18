@@ -42,6 +42,8 @@ interface TeamMember {
   full_name: string;
   role_title: string | null;
   is_head: boolean;
+  committee_id?: string;
+  committee_name?: string;
 }
 
 const PRIORITY_LABELS: Record<Task["priority"], string> = {
