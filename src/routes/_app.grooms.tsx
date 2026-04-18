@@ -179,6 +179,15 @@ function GroomsPage() {
           </table>
         </div>
       </div>
+
+      {detailsId && (
+        <GroomDetailsDialog
+          groomId={detailsId}
+          open={!!detailsId}
+          onOpenChange={(o) => !o && setDetailsId(null)}
+          onSaved={load}
+        />
+      )}
     </div>
   );
 }
