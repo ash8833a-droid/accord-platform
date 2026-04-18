@@ -107,6 +107,7 @@ function CommitteePage() {
   const { user } = useAuth();
   const [profileName, setProfileName] = useState<string | null>(null);
   const [members, setMembers] = useState<TeamMember[]>([]);
+  const [allMembers, setAllMembers] = useState<TeamMember[]>([]);
   const [showMine, setShowMine] = useState(false);
 
   const [taskOpen, setTaskOpen] = useState(false);
@@ -122,6 +123,7 @@ function CommitteePage() {
   const [prAmount, setPrAmount] = useState("");
   const [prDesc, setPrDesc] = useState("");
   const [prFile, setPrFile] = useState<File | null>(null);
+  const [prRecipient, setPrRecipient] = useState<string>("finance");
   const [prSubmitting, setPrSubmitting] = useState(false);
 
   const load = async () => {
