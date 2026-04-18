@@ -316,31 +316,52 @@ function CommitteePage() {
     <div className="space-y-6">
       <Header meta={meta} />
 
-      {/* Committee header */}
-      <div className="rounded-2xl border bg-gradient-card p-6 shadow-soft">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5">
-          <div className="flex items-start gap-4">
-            <div className={`h-14 w-14 rounded-2xl flex items-center justify-center ${meta.tone}`}>
-              <Icon className="h-7 w-7" />
+      {/* Budget icon button → opens dialog */}
+      <Dialog>
+        <DialogTrigger asChild>
+          <button
+            type="button"
+            className="group inline-flex items-center gap-2.5 rounded-2xl border bg-card hover:bg-primary/5 hover:border-primary/40 px-4 py-3 shadow-sm hover:shadow-md transition-all"
+            aria-label="ميزانية اللجنة"
+          >
+            <span className="h-10 w-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center group-hover:bg-primary group-hover:text-primary-foreground transition">
+              <Wallet className="h-5 w-5" />
+            </span>
+            <span className="text-start">
+              <span className="block text-sm font-bold leading-tight">ميزانية اللجنة</span>
+              <span className="block text-[11px] text-muted-foreground mt-0.5">
+                {fmt(Number(committee.budget_spent))} / {fmt(Number(committee.budget_allocated))} ر.س · {pct.toFixed(0)}%
+              </span>
+            </span>
+          </button>
+        </DialogTrigger>
+        <DialogContent className="max-w-2xl p-0 overflow-hidden">
+          <DialogHeader className="px-6 py-4 border-b bg-gradient-to-l from-primary/5 to-transparent">
+            <DialogTitle className="flex items-center gap-2 text-base">
+              <span className={`h-9 w-9 rounded-xl flex items-center justify-center ${meta.tone}`}>
+                <Icon className="h-5 w-5" />
+              </span>
+              <div>
+                <p className="font-bold">{committee.name}</p>
+                <p className="text-[11px] text-muted-foreground font-normal">{committee.description ?? meta.description}</p>
+              </div>
+            </DialogTitle>
+          </DialogHeader>
+          <div className="p-6 space-y-5">
+            <div className="grid grid-cols-3 gap-3">
+              <Stat label="مخصص" value={`${fmt(Number(committee.budget_allocated))} ر.س`} tone="bg-primary/10 text-primary" />
+              <Stat label="منصرف" value={`${fmt(Number(committee.budget_spent))} ر.س`} tone="bg-gold/15 text-gold-foreground" />
+              <Stat label="المتبقي" value={`${fmt(remaining)} ر.س`} tone="bg-emerald-500/10 text-emerald-700" />
             </div>
             <div>
-              <h2 className="text-2xl font-bold">{committee.name}</h2>
-              <p className="text-sm text-muted-foreground mt-1">{committee.description ?? meta.description}</p>
+              <div className="h-2 rounded-full bg-muted overflow-hidden">
+                <div className="h-full bg-gradient-gold transition-all" style={{ width: `${pct}%` }} />
+              </div>
+              <p className="text-xs text-muted-foreground mt-2">نسبة الصرف من الميزانية: {pct.toFixed(0)}%</p>
             </div>
           </div>
-          <div className="grid grid-cols-3 gap-3 lg:min-w-[420px]">
-            <Stat label="مخصص" value={`${fmt(Number(committee.budget_allocated))} ر.س`} tone="bg-primary/10 text-primary" />
-            <Stat label="منصرف" value={`${fmt(Number(committee.budget_spent))} ر.س`} tone="bg-gold/15 text-gold-foreground" />
-            <Stat label="المتبقي" value={`${fmt(remaining)} ر.س`} tone="bg-emerald-500/10 text-emerald-700" />
-          </div>
-        </div>
-        <div className="mt-5">
-          <div className="h-2 rounded-full bg-muted overflow-hidden">
-            <div className="h-full bg-gradient-gold transition-all" style={{ width: `${pct}%` }} />
-          </div>
-          <p className="text-xs text-muted-foreground mt-2">نسبة الصرف من الميزانية: {pct.toFixed(0)}%</p>
-        </div>
-      </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Strategic goals card */}
       {meta.goals && meta.goals.length > 0 && (
