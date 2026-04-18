@@ -105,10 +105,10 @@ function TeamPage() {
     ]);
 
     const committeesData = (cm.data as (CommitteeRow & { head_user_id: string | null })[]) ?? [];
-    const teamMembers = (mb.data as MemberRow[]) ?? [];
+    const teamMembersRaw = (mb.data ?? []) as Omit<MemberRow, "role_key">[];
+    const teamMembers: MemberRow[] = teamMembersRaw.map((m) => ({ ...m, role_key: "team" }));
     const roleRows = (ur.data ?? []) as { user_id: string; role: string; committee_id: string }[];
 
-    // Fetch profiles for all assigned users (and any heads not yet in roles)
     const userIds = Array.from(
       new Set([
         ...roleRows.map((r) => r.user_id),
@@ -132,7 +132,6 @@ function TeamPage() {
       delegate: "مندوب",
     };
 
-    // Avoid duplicating users already present in team_members for the same committee (match by name)
     const teamKeySet = new Set(
       teamMembers.map((m) => `${m.committee_id}::${m.full_name.trim()}`),
     );
@@ -148,6 +147,9 @@ function TeamPage() {
       const key = `${r.committee_id}::${fullName.trim()}`;
       if (teamKeySet.has(key)) return;
       teamKeySet.add(key);
+      const roleKey = (["admin", "committee", "quality", "delegate"].includes(r.role)
+        ? r.role
+        : "committee") as Exclude<RoleFilter, "all" | "team">;
       assignedMembers.push({
         id: `role-${r.user_id}-${r.committee_id}`,
         committee_id: r.committee_id,
@@ -158,6 +160,7 @@ function TeamPage() {
         specialty: null,
         is_head: headByCommittee.get(r.committee_id) === r.user_id,
         display_order: 1000 + idx,
+        role_key: roleKey,
       });
     });
 
