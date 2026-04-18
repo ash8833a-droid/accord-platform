@@ -705,8 +705,8 @@ function CircularChart({
               y1={l.y1}
               x2={l.x2}
               y2={l.y2}
-              stroke="oklch(0.78 0.14 85 / 0.55)"
-              strokeWidth={1.25}
+              stroke="oklch(0.38 0.05 110)"
+              strokeWidth={1.5}
               strokeLinecap="round"
             />
           ))}
@@ -833,7 +833,7 @@ function CircleNode({
       </div>
 
       {/* Connector stub down */}
-      <div className="h-3 w-px bg-gold/40" />
+      <div className="h-3 w-px" style={{ background: "oklch(0.38 0.05 110)" }} />
 
       {/* Head label below */}
       {head && (
