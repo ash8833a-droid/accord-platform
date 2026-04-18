@@ -34,7 +34,7 @@ import {
   UserCircle2,
   Download,
   ArrowLeft,
-  Sparkle,
+  
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -769,7 +769,6 @@ function SupremeNode() {
       className="group relative block"
       title="اللجنة العليا"
     >
-      <OrnamentMark />
       <div className="relative h-36 w-36 lg:h-44 lg:w-44 rounded-full bg-gradient-to-br from-gold via-amber-400 to-amber-600 shadow-gold flex items-center justify-center ring-[6px] ring-gold/15 group-hover:scale-105 transition-transform duration-300">
         <div className="absolute inset-2 rounded-full border border-white/40" />
         <div className="text-center text-gold-foreground px-2">
@@ -809,7 +808,7 @@ function CircleNode({
       className="group relative flex flex-col items-center w-[160px] lg:w-[180px]"
       title={`فتح صفحة ${committee.name}`}
     >
-      <OrnamentMark />
+      
       {/* Outer circle — unified gold ring */}
       <div className="relative h-32 w-32 lg:h-36 lg:w-36 rounded-full bg-card ring-[5px] ring-gold/25 group-hover:ring-gold/60 shadow-soft group-hover:shadow-elegant transition-all duration-300 group-hover:-translate-y-1">
         {/* Inner ring */}
@@ -854,19 +853,6 @@ function CircleNode({
         )}
       </div>
     </Link>
-  );
-}
-
-/* ───────── Decorative ornament mark (top-right of each circle) ───────── */
-function OrnamentMark() {
-  return (
-    <div className="absolute -top-1 -right-1 z-10 pointer-events-none">
-      <div className="relative">
-        <div className="h-7 w-7 rounded-md bg-gold/15 border border-gold/30 flex items-center justify-center">
-          <Sparkle className="h-3.5 w-3.5 text-gold" />
-        </div>
-      </div>
-    </div>
   );
 }
 
