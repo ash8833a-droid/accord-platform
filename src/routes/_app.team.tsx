@@ -618,34 +618,32 @@ function HierarchyChart({
 
     if (!supreme) return setLines(ls);
 
-    // Left vertical spine: a single vertical bus on the left, with a horizontal
-    // connector from Supreme's left edge into the bus, plus horizontal stubs
-    // from the bus to each spine node's right edge.
+    // Tier 2 (spine row): drop from Supreme bottom → horizontal bus → drop to each spine node top
     if (spineCenters.length) {
-      const busX =
-        Math.max(...spineCenters.map((c) => c.right)) +
-        Math.max(24, (supreme.left - Math.max(...spineCenters.map((c) => c.right))) / 2);
-      const topY = Math.min(...spineCenters.map((c) => (c.top + c.bottom) / 2));
-      const bottomY = Math.max(...spineCenters.map((c) => (c.top + c.bottom) / 2));
-      // Vertical bus
-      ls.push({ x1: busX, y1: Math.min(topY, supreme.top + (supreme.bottom - supreme.top) / 2), x2: busX, y2: bottomY });
-      // Supreme left edge → bus (horizontal)
-      const supremeMidY = (supreme.top + supreme.bottom) / 2;
-      ls.push({ x1: supreme.left, y1: supremeMidY, x2: busX, y2: supremeMidY });
-      // Bus → each spine node (horizontal stub to right edge of each node)
-      spineCenters.forEach((c) => {
-        const midY = (c.top + c.bottom) / 2;
-        ls.push({ x1: busX, y1: midY, x2: c.right, y2: midY });
-      });
+      const busY =
+        (supreme.bottom + Math.min(...spineCenters.map((c) => c.top))) / 2;
+      ls.push({ x1: supreme.cx, y1: supreme.bottom, x2: supreme.cx, y2: busY });
+      const xs = spineCenters.map((c) => c.cx);
+      ls.push({ x1: Math.min(...xs, supreme.cx), y1: busY, x2: Math.max(...xs, supreme.cx), y2: busY });
+      spineCenters.forEach((c) => ls.push({ x1: c.cx, y1: busY, x2: c.cx, y2: c.top }));
     }
 
-    // Pyramid base: vertical drop from Supreme bottom → horizontal bus → drop to each base node top
-    if (baseCenters.length) {
+    // Tier 3 (base row): each Tier 2 node drops directly to its corresponding base node
+    // Use a shared horizontal bus between Tier 2 bottoms and Tier 3 tops.
+    if (baseCenters.length && spineCenters.length) {
       const busY =
-        (supreme.bottom + Math.min(...baseCenters.map((c) => c.top))) / 2;
-      ls.push({ x1: supreme.cx, y1: supreme.bottom, x2: supreme.cx, y2: busY });
-      const xs = baseCenters.map((c) => c.cx);
-      ls.push({ x1: Math.min(...xs, supreme.cx), y1: busY, x2: Math.max(...xs, supreme.cx), y2: busY });
+        (Math.max(...spineCenters.map((c) => c.bottom)) +
+          Math.min(...baseCenters.map((c) => c.top))) /
+        2;
+      // drop from each spine node to bus
+      spineCenters.forEach((c) => ls.push({ x1: c.cx, y1: c.bottom, x2: c.cx, y2: busY }));
+      // horizontal bus spanning both rows
+      const allXs = [
+        ...spineCenters.map((c) => c.cx),
+        ...baseCenters.map((c) => c.cx),
+      ];
+      ls.push({ x1: Math.min(...allXs), y1: busY, x2: Math.max(...allXs), y2: busY });
+      // drop from bus to each base node
       baseCenters.forEach((c) => ls.push({ x1: c.cx, y1: busY, x2: c.cx, y2: c.top }));
     }
 
