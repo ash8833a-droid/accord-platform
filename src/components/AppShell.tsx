@@ -14,7 +14,6 @@ import {
   ShieldCheck,
   Users,
   Lightbulb,
-  Inbox,
 } from "lucide-react";
 import { Logo } from "./Logo";
 import { useAuth } from "@/lib/auth";
@@ -26,7 +25,6 @@ import { NotificationBell } from "@/components/NotificationBell";
 
 const ADMIN_TOP = [
   { to: "/dashboard", label: "لوحة التحكم", icon: LayoutDashboard },
-  { to: "/inbox", label: "صندوق الوارد", icon: Inbox },
   { to: "/admin", label: "الإدارة العليا", icon: ShieldCheck },
   { to: "/team", label: "فريق العمل", icon: Users },
 ] as const;
@@ -38,7 +36,6 @@ const ADMIN_BOTTOM = [
 ] as const;
 
 const RESTRICTED_EXTRA = [
-  { to: "/inbox", label: "صندوق الوارد", icon: Inbox },
   { to: "/ideas", label: "بنك الأفكار", icon: Lightbulb },
 ] as const;
 
@@ -240,8 +237,8 @@ export function AppShell({ children, restricted = false, restrictedToCommitteeTy
           <div className="grid grid-cols-5 h-16">
             {[
               { to: "/dashboard", label: "الرئيسية", icon: LayoutDashboard },
-              { to: "/inbox", label: "الوارد", icon: Inbox },
               { to: "/ideas", label: "الأفكار", icon: Lightbulb },
+              { to: "/grooms", label: "العرسان", icon: HeartHandshake },
               { to: "/team", label: "الفريق", icon: Users },
               { to: "__menu", label: "القائمة", icon: Menu },
             ].map((item) => {
