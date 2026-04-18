@@ -24,9 +24,10 @@ import {
   DialogTrigger,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { ShieldCheck, Plus, ListTodo, CalendarRange, Megaphone, Pin, Trash2, Calendar, UserCheck, Users } from "lucide-react";
+import { ShieldCheck, Plus, ListTodo, CalendarRange, Megaphone, Pin, Trash2, Calendar, UserCheck, Users, Crown } from "lucide-react";
 import { MembersApproval } from "@/components/admin/MembersApproval";
 import { ApprovedMembers } from "@/components/admin/ApprovedMembers";
+import { CommitteeHeads } from "@/components/admin/CommitteeHeads";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_app/admin")({
@@ -64,12 +65,15 @@ function AdminCenter() {
       )}
 
       <Tabs defaultValue="members" className="w-full">
-        <TabsList className="grid w-full grid-cols-5 max-w-3xl ms-auto">
+        <TabsList className="grid w-full grid-cols-6 max-w-4xl ms-auto">
           <TabsTrigger value="members" className="gap-2">
             <UserCheck className="h-4 w-4" /> طلبات الانضمام
           </TabsTrigger>
           <TabsTrigger value="approved" className="gap-2">
             <Users className="h-4 w-4" /> الأعضاء
+          </TabsTrigger>
+          <TabsTrigger value="heads" className="gap-2">
+            <Crown className="h-4 w-4" /> رؤساء اللجان
           </TabsTrigger>
           <TabsTrigger value="tasks" className="gap-2">
             <ListTodo className="h-4 w-4" /> المهام
@@ -87,6 +91,9 @@ function AdminCenter() {
         </TabsContent>
         <TabsContent value="approved" className="mt-6">
           <ApprovedMembers isAdmin={isAdmin} />
+        </TabsContent>
+        <TabsContent value="heads" className="mt-6">
+          <CommitteeHeads isAdmin={isAdmin} />
         </TabsContent>
         <TabsContent value="tasks" className="mt-6">
           <TasksManager />
