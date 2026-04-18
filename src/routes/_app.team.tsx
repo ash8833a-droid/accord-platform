@@ -65,11 +65,11 @@ const ORG_ORDER: CommitteeType[] = [
   "finance",
   "procurement",
   "quality",
+  "women",
   "media",
   "reception",
   "programs",
   "dinner",
-  "women",
 ];
 
 function TeamPage() {
