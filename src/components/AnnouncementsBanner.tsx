@@ -177,9 +177,6 @@ function MobileSlider({
       dir="rtl"
     >
       <div className="flex items-center gap-2 px-3 py-2.5">
-        <div className="shrink-0 rounded-md bg-gold px-2 py-1 text-[10px] font-bold text-gold-foreground">
-          عاجل
-        </div>
         <div className="min-w-0 flex-1 relative h-9 overflow-hidden">
           <div
             className="absolute inset-0 flex flex-col transition-transform duration-500 ease-out"
