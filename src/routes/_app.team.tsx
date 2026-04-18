@@ -471,8 +471,8 @@ function TeamPage() {
 
 /* ───────── Org Chart (Circular Hierarchical, Reference-Style) ───────── */
 
-const TIER_2: CommitteeType[] = ["finance", "procurement", "quality", "media"];
-const TIER_3: CommitteeType[] = ["reception", "programs", "dinner"];
+const TIER_2: CommitteeType[] = ["finance", "procurement", "quality"];
+const TIER_3: CommitteeType[] = ["media", "reception", "programs", "dinner"];
 
 function OrgChart({
   committees,
