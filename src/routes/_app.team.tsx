@@ -469,12 +469,12 @@ function TeamPage() {
   );
 }
 
-/* ───────── Org Chart (Hierarchical, Vertical Spine + Pyramid Base) ───────── */
+/* ───────── Org Chart (Square frames · Left vertical spine + Pyramid base) ───────── */
 
-// Vertical spine directly under the Supreme committee
-const SPINE: CommitteeType[] = ["finance", "procurement", "quality", "women"];
-// Pyramid base (operational committees)
-const BASE: CommitteeType[] = ["media", "reception", "programs", "dinner"];
+// Vertical spine on the LEFT side of the Supreme committee
+const SPINE: CommitteeType[] = ["finance", "women", "quality", "procurement"];
+// Pyramid base (operational committees) — order requested
+const BASE: CommitteeType[] = ["media", "dinner", "programs", "reception"];
 
 function OrgChart({
   committees,
@@ -618,25 +618,34 @@ function HierarchyChart({
 
     if (!supreme) return setLines(ls);
 
-    // Vertical spine from Supreme down through every spine node
+    // Left vertical spine: a single vertical bus on the left, with a horizontal
+    // connector from Supreme's left edge into the bus, plus horizontal stubs
+    // from the bus to each spine node's right edge.
     if (spineCenters.length) {
-      const spineX = supreme.cx;
-      // Supreme bottom → first spine top (vertical line)
-      ls.push({ x1: spineX, y1: supreme.bottom, x2: spineX, y2: spineCenters[spineCenters.length - 1].bottom });
-      // Each spine node already sits on the vertical line. Already covered.
+      const busX =
+        Math.max(...spineCenters.map((c) => c.right)) +
+        Math.max(24, (supreme.left - Math.max(...spineCenters.map((c) => c.right))) / 2);
+      const topY = Math.min(...spineCenters.map((c) => (c.top + c.bottom) / 2));
+      const bottomY = Math.max(...spineCenters.map((c) => (c.top + c.bottom) / 2));
+      // Vertical bus
+      ls.push({ x1: busX, y1: Math.min(topY, supreme.top + (supreme.bottom - supreme.top) / 2), x2: busX, y2: bottomY });
+      // Supreme left edge → bus (horizontal)
+      const supremeMidY = (supreme.top + supreme.bottom) / 2;
+      ls.push({ x1: supreme.left, y1: supremeMidY, x2: busX, y2: supremeMidY });
+      // Bus → each spine node (horizontal stub to right edge of each node)
+      spineCenters.forEach((c) => {
+        const midY = (c.top + c.bottom) / 2;
+        ls.push({ x1: busX, y1: midY, x2: c.right, y2: midY });
+      });
     }
 
-    // Last spine node → bus → base nodes
-    const lastSpine = spineCenters[spineCenters.length - 1] ?? supreme;
+    // Pyramid base: vertical drop from Supreme bottom → horizontal bus → drop to each base node top
     if (baseCenters.length) {
       const busY =
-        (lastSpine.bottom + Math.min(...baseCenters.map((c) => c.top))) / 2;
-      // drop from last spine to bus
-      ls.push({ x1: lastSpine.cx, y1: lastSpine.bottom, x2: lastSpine.cx, y2: busY });
-      // horizontal bus
+        (supreme.bottom + Math.min(...baseCenters.map((c) => c.top))) / 2;
+      ls.push({ x1: supreme.cx, y1: supreme.bottom, x2: supreme.cx, y2: busY });
       const xs = baseCenters.map((c) => c.cx);
-      ls.push({ x1: Math.min(...xs, lastSpine.cx), y1: busY, x2: Math.max(...xs, lastSpine.cx), y2: busY });
-      // drops to each base
+      ls.push({ x1: Math.min(...xs, supreme.cx), y1: busY, x2: Math.max(...xs, supreme.cx), y2: busY });
       baseCenters.forEach((c) => ls.push({ x1: c.cx, y1: busY, x2: c.cx, y2: c.top }));
     }
 
@@ -679,45 +688,47 @@ function HierarchyChart({
         </svg>
       )}
 
-      {/* Supreme — top */}
-      <div className="relative flex justify-center">
-        <div ref={supremeRef}>
-          <SupremeNode />
+      {/* Two-column grid: left vertical spine | right (Supreme on top, Base pyramid below) */}
+      <div className="relative grid grid-cols-[auto_1fr] gap-x-12 lg:gap-x-20 items-start">
+        {/* LEFT — vertical spine */}
+        <div className="flex flex-col items-end gap-6 lg:gap-8 pt-4">
+          {spine.map((c, i) => (
+            <div
+              key={c.id}
+              ref={(el) => {
+                spineRefs.current[i] = el;
+              }}
+            >
+              <SquareNode committee={c} members={members} />
+            </div>
+          ))}
         </div>
-      </div>
 
-      {/* Vertical spine: Finance → Procurement → Quality → Women */}
-      <div className="relative mt-12 lg:mt-14 flex flex-col items-center gap-8 lg:gap-10">
-        {spine.map((c, i) => (
-          <div
-            key={c.id}
-            ref={(el) => {
-              spineRefs.current[i] = el;
-            }}
-          >
-            <CircleNode committee={c} members={members} size="md" tone="unified" />
+        {/* RIGHT — Supreme on top, base pyramid below */}
+        <div className="flex flex-col items-center">
+          <div ref={supremeRef}>
+            <SupremeNode />
           </div>
-        ))}
-      </div>
 
-      {/* Pyramid base: Media, Reception, Programs, Dinner */}
-      <div className="relative mt-16 lg:mt-20 grid grid-cols-2 sm:grid-cols-4 gap-6 lg:gap-8 max-w-5xl mx-auto justify-items-center">
-        {base.map((c, i) => (
-          <div
-            key={c.id}
-            ref={(el) => {
-              baseRefs.current[i] = el;
-            }}
-          >
-            <CircleNode committee={c} members={members} size="md" tone="unified" />
+          <div className="mt-16 lg:mt-20 grid grid-cols-2 sm:grid-cols-4 gap-6 lg:gap-8 w-full justify-items-center">
+            {base.map((c, i) => (
+              <div
+                key={c.id}
+                ref={(el) => {
+                  baseRefs.current[i] = el;
+                }}
+              >
+                <SquareNode committee={c} members={members} />
+              </div>
+            ))}
           </div>
-        ))}
+        </div>
       </div>
     </div>
   );
 }
 
-/* ───────── Supreme (top circle, filled gold-tone) ───────── */
+/* ───────── Supreme (top — square frame, filled gold-tone) ───────── */
 function SupremeNode() {
   return (
     <Link
@@ -725,11 +736,11 @@ function SupremeNode() {
       className="group relative block"
       title="اللجنة العليا"
     >
-      <div className="relative h-40 w-40 lg:h-48 lg:w-48 rounded-full bg-gradient-to-br from-gold/90 via-gold to-amber-500/90 shadow-gold flex items-center justify-center ring-[6px] ring-gold/20 group-hover:scale-105 transition-transform duration-300">
-        <div className="absolute inset-2 rounded-full border border-white/50" />
-        <div className="text-center text-gold-foreground px-3">
-          <Crown className="h-6 w-6 mx-auto mb-1.5 opacity-95" />
-          <p className="font-bold text-base lg:text-lg leading-tight">
+      <div className="relative h-44 w-56 lg:h-48 lg:w-64 rounded-2xl bg-gradient-to-br from-gold/90 via-gold to-amber-500/90 shadow-gold flex items-center justify-center ring-[6px] ring-gold/20 group-hover:scale-[1.03] transition-transform duration-300">
+        <div className="absolute inset-2 rounded-xl border border-white/50" />
+        <div className="text-center text-gold-foreground px-4">
+          <Crown className="h-7 w-7 mx-auto mb-2 opacity-95" />
+          <p className="font-bold text-lg lg:text-xl leading-tight">
             اللجنة العليا
           </p>
           <p className="text-[11px] lg:text-xs mt-1.5 opacity-85 tracking-wider">
@@ -741,15 +752,13 @@ function SupremeNode() {
   );
 }
 
-/* ───────── Circle Node (committees — unified formal style) ───────── */
-function CircleNode({
+/* ───────── Square Node (committees — unified formal square frame) ───────── */
+function SquareNode({
   committee,
   members,
 }: {
   committee: CommitteeRow;
   members: MemberRow[];
-  size?: "sm" | "md";
-  tone?: "unified";
 }) {
   const meta = COMMITTEES.find((m) => m.type === committee.type);
   const Icon = meta?.icon ?? Users;
@@ -764,11 +773,10 @@ function CircleNode({
       className="group relative flex flex-col items-center w-[180px] lg:w-[200px]"
       title={`فتح صفحة ${committee.name}`}
     >
-      
-      {/* Outer circle — unified gold ring */}
-      <div className="relative h-36 w-36 lg:h-40 lg:w-40 rounded-full bg-card ring-[5px] ring-gold/25 group-hover:ring-gold/60 shadow-soft group-hover:shadow-elegant transition-all duration-300 group-hover:-translate-y-1">
-        {/* Inner ring */}
-        <div className="absolute inset-2 rounded-full border border-gold/25 flex flex-col items-center justify-center px-3 text-center">
+      {/* Outer square — unified gold ring */}
+      <div className="relative h-32 w-44 lg:h-36 lg:w-48 rounded-2xl bg-card ring-[3px] ring-gold/25 group-hover:ring-gold/60 shadow-soft group-hover:shadow-elegant transition-all duration-300 group-hover:-translate-y-1">
+        {/* Inner border */}
+        <div className="absolute inset-1.5 rounded-xl border border-gold/25 flex flex-col items-center justify-center px-3 text-center">
           <div className="h-9 w-9 rounded-lg flex items-center justify-center mb-1.5 bg-gold/10 text-gold">
             <Icon className="h-5 w-5" />
           </div>
@@ -788,12 +796,9 @@ function CircleNode({
         </div>
       </div>
 
-      {/* Connector stub down */}
-      <div className="h-3 w-px" style={{ background: "oklch(0.38 0.05 110)" }} />
-
       {/* Head label below */}
       {head && (
-        <div className="text-center">
+        <div className="text-center mt-3">
           <p className="text-xs text-muted-foreground flex items-center justify-center gap-1">
             <Crown className="h-3 w-3 text-gold" /> رئيس اللجنة
           </p>
