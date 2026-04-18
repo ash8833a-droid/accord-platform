@@ -53,7 +53,7 @@ function GroomsPage() {
   const [open, setOpen] = useState(false);
 
   const [form, setForm] = useState({
-    full_name: "", phone: "", family_branch: "", bride_name: "", notes: "",
+    full_name: "", phone: "", family_branch: "", notes: "",
     request_type: "none", request_details: "",
     external_participation: false, external_participation_details: "",
     vip_guests: "",
@@ -107,7 +107,7 @@ function GroomsPage() {
 
       toast.success("تم تسجيل العريس بنجاح");
       setForm({
-        full_name: "", phone: "", family_branch: "", bride_name: "", notes: "",
+        full_name: "", phone: "", family_branch: "", notes: "",
         request_type: "none", request_details: "",
         external_participation: false, external_participation_details: "",
         vip_guests: "",
@@ -154,17 +154,21 @@ function GroomsPage() {
             <form onSubmit={submit} className="space-y-5 pt-3">
               <Section title="البيانات الأساسية" icon={User} tone="primary">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <Field label="الاسم الكامل *" icon={User}>
-                    <Input value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} required />
+                  <Field label="الاسم الرباعي *" icon={User}>
+                    <Input
+                      value={form.full_name}
+                      onChange={(e) => setForm({ ...form, full_name: e.target.value })}
+                      required
+                      placeholder="الاسم الأول واسم الأب والجد واسم العائلة"
+                      pattern="^\s*\S+(\s+\S+){3,}\s*$"
+                      title="الرجاء كتابة الاسم الرباعي (أربعة مقاطع على الأقل)"
+                    />
                   </Field>
                   <Field label="رقم الجوال *" icon={Phone}>
                     <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} required dir="ltr" />
                   </Field>
                   <Field label="الفرع العائلي *" icon={Users}>
                     <Input value={form.family_branch} onChange={(e) => setForm({ ...form, family_branch: e.target.value })} required />
-                  </Field>
-                  <Field label="اسم العروس" icon={Heart}>
-                    <Input value={form.bride_name} onChange={(e) => setForm({ ...form, bride_name: e.target.value })} />
                   </Field>
                 </div>
               </Section>
