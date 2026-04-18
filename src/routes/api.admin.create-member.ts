@@ -17,11 +17,20 @@ export const Route = createFileRoute("/api/admin/create-member")({
     handlers: {
       POST: async ({ request }) => {
         try {
-          const SUPABASE_URL = process.env.SUPABASE_URL as string;
+          const SUPABASE_URL =
+            (process.env.SUPABASE_URL as string) ||
+            (process.env.VITE_SUPABASE_URL as string);
           const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY as string;
-          const ANON_KEY = process.env.SUPABASE_PUBLISHABLE_KEY as string;
-          if (!SUPABASE_URL || !SERVICE_KEY) {
-            return Response.json({ error: "إعدادات الخادم غير مكتملة" }, { status: 500 });
+          const ANON_KEY =
+            (process.env.SUPABASE_PUBLISHABLE_KEY as string) ||
+            (process.env.VITE_SUPABASE_PUBLISHABLE_KEY as string);
+          if (!SUPABASE_URL || !SERVICE_KEY || !ANON_KEY) {
+            return Response.json(
+              {
+                error: `إعدادات الخادم غير مكتملة (URL:${!!SUPABASE_URL}, SERVICE:${!!SERVICE_KEY}, ANON:${!!ANON_KEY})`,
+              },
+              { status: 500 },
+            );
           }
 
           // Verify caller is admin
