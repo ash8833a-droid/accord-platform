@@ -146,15 +146,117 @@ function GroomsPage() {
               <Plus className="h-4 w-4 ms-1" /> تسجيل عريس
             </Button>
           </DialogTrigger>
-          <DialogContent dir="rtl">
-            <DialogHeader><DialogTitle>تسجيل عريس جديد</DialogTitle></DialogHeader>
-            <form onSubmit={submit} className="space-y-3 pt-2">
-              <div className="space-y-2"><Label>الاسم الكامل</Label><Input value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} required /></div>
-              <div className="space-y-2"><Label>الجوال</Label><Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} required dir="ltr" /></div>
-              <div className="space-y-2"><Label>الفرع العائلي</Label><Input value={form.family_branch} onChange={(e) => setForm({ ...form, family_branch: e.target.value })} required /></div>
-              <div className="space-y-2"><Label>اسم العروس (اختياري)</Label><Input value={form.bride_name} onChange={(e) => setForm({ ...form, bride_name: e.target.value })} /></div>
-              <div className="space-y-2"><Label>ملاحظات</Label><Textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} /></div>
-              <Button type="submit" className="w-full bg-gradient-hero text-primary-foreground">حفظ</Button>
+          <DialogContent dir="rtl" className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="text-xl">تسجيل عريس جديد</DialogTitle>
+              <p className="text-xs text-muted-foreground mt-1">الحقول المميزة بـ * إلزامية</p>
+            </DialogHeader>
+            <form onSubmit={submit} className="space-y-5 pt-3">
+              <Section title="البيانات الأساسية" icon={User} tone="primary">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <Field label="الاسم الكامل *" icon={User}>
+                    <Input value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} required />
+                  </Field>
+                  <Field label="رقم الجوال *" icon={Phone}>
+                    <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} required dir="ltr" />
+                  </Field>
+                  <Field label="الفرع العائلي *" icon={Users}>
+                    <Input value={form.family_branch} onChange={(e) => setForm({ ...form, family_branch: e.target.value })} required />
+                  </Field>
+                  <Field label="اسم العروس" icon={Heart}>
+                    <Input value={form.bride_name} onChange={(e) => setForm({ ...form, bride_name: e.target.value })} />
+                  </Field>
+                </div>
+              </Section>
+
+              <Section title="المستندات والصور" icon={FileImage} tone="emerald">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <FileUploader
+                    label="صورة شخصية للعريس"
+                    icon={Camera}
+                    accept="image/*"
+                    preview={photoPreview}
+                    onChange={(f) => onPickFile(f, "photo")}
+                    onClear={() => { setPhotoFile(null); setPhotoPreview(null); }}
+                    hint="JPG / PNG — حتى 8 ميجابايت"
+                  />
+                  <FileUploader
+                    label="صورة الهوية الوطنية"
+                    icon={IdCard}
+                    accept="image/*"
+                    preview={idPreview}
+                    onChange={(f) => onPickFile(f, "id")}
+                    onClear={() => { setIdFile(null); setIdPreview(null); }}
+                    hint="صورة واضحة للوجهين"
+                  />
+                </div>
+              </Section>
+
+              <Section title="طلبات العريس" icon={ClipboardList} tone="amber">
+                <Field label="نوع الطلب" icon={ClipboardList}>
+                  <Select value={form.request_type} onValueChange={(v) => setForm({ ...form, request_type: v })}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {REQUEST_TYPES.map((r) => (
+                        <SelectItem key={r.value} value={r.value}>
+                          <span className="ms-1">{r.icon}</span> {r.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </Field>
+                {form.request_type !== "none" && (
+                  <Field label="تفاصيل الطلب">
+                    <Textarea
+                      value={form.request_details}
+                      onChange={(e) => setForm({ ...form, request_details: e.target.value })}
+                      placeholder="اذكر التفاصيل (العدد، اسم العريس المستفيد من التنازل، إلخ...)"
+                      rows={2}
+                    />
+                  </Field>
+                )}
+              </Section>
+
+              <Section title="مشاركات خارجية" icon={Globe2} tone="sky">
+                <label className="flex items-center gap-2 p-3 rounded-lg border bg-muted/30 cursor-pointer hover:bg-muted/50">
+                  <input
+                    type="checkbox"
+                    checked={form.external_participation}
+                    onChange={(e) => setForm({ ...form, external_participation: e.target.checked })}
+                    className="h-4 w-4 accent-primary"
+                  />
+                  <span className="text-sm font-medium">يوجد مشاركات خارجية مقدمة للعريس</span>
+                </label>
+                {form.external_participation && (
+                  <Field label="تفاصيل المشاركات الخارجية">
+                    <Textarea
+                      value={form.external_participation_details}
+                      onChange={(e) => setForm({ ...form, external_participation_details: e.target.value })}
+                      placeholder="مثال: مشاركة من جمعية كذا بمبلغ كذا..."
+                      rows={2}
+                    />
+                  </Field>
+                )}
+              </Section>
+
+              <Section title="ضيوف الشخصيات الاعتبارية" icon={Crown} tone="gold">
+                <Field label="أسماء وألقاب الضيوف (سعادة، شيخ، معالي، ...)" icon={Crown}>
+                  <Textarea
+                    value={form.vip_guests}
+                    onChange={(e) => setForm({ ...form, vip_guests: e.target.value })}
+                    placeholder="مثال: سعادة الأستاذ ... — الشيخ ... — معالي الدكتور ..."
+                    rows={2}
+                  />
+                </Field>
+              </Section>
+
+              <Section title="ملاحظات إضافية" icon={StickyNote} tone="muted">
+                <Textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} rows={2} />
+              </Section>
+
+              <Button type="submit" disabled={uploading} className="w-full bg-gradient-hero text-primary-foreground h-11">
+                {uploading ? "جارٍ الحفظ..." : "حفظ بيانات العريس"}
+              </Button>
             </form>
           </DialogContent>
         </Dialog>
