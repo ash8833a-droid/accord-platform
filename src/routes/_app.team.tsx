@@ -471,9 +471,9 @@ function TeamPage() {
 
 /* ───────── Org Chart (Square frames · Left vertical spine + Pyramid base) ───────── */
 
-// Vertical spine on the LEFT side of the Supreme committee
-const SPINE: CommitteeType[] = ["finance", "women", "quality", "procurement"];
-// Pyramid base (operational committees) — order requested
+// Tier 2 — supervisory committees displayed in a horizontal row directly under Supreme
+const SPINE: CommitteeType[] = ["quality", "finance", "procurement", "women"];
+// Tier 3 — operational committees displayed in a horizontal row at the bottom
 const BASE: CommitteeType[] = ["media", "dinner", "programs", "reception"];
 
 function OrgChart({
