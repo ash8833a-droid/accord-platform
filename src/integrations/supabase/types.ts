@@ -809,6 +809,8 @@ export type Database = {
         | "logistics"
         | "reception"
         | "design"
+        | "procurement"
+        | "women"
       groom_status:
         | "new"
         | "under_review"
@@ -962,6 +964,8 @@ export const Constants = {
         "logistics",
         "reception",
         "design",
+        "procurement",
+        "women",
       ],
       groom_status: [
         "new",
