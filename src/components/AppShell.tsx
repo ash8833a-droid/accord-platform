@@ -99,9 +99,9 @@ export function AppShell({ children, restricted = false, restrictedToCommitteeTy
   };
 
   const linkClass = (active: boolean) =>
-    `group flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all ${
+    `group flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-colors ${
       active
-        ? "bg-gradient-gold text-gold-foreground shadow-gold"
+        ? "bg-gradient-gold text-gold-foreground"
         : "hover:bg-sidebar-accent text-sidebar-foreground/80 hover:text-sidebar-foreground"
     }`;
 
@@ -128,7 +128,6 @@ export function AppShell({ children, restricted = false, restrictedToCommitteeTy
           );
         })}
 
-        {/* Committees collapsible */}
         <div>
           <button
             type="button"
@@ -142,7 +141,7 @@ export function AppShell({ children, restricted = false, restrictedToCommitteeTy
             />
           </button>
           {committeesOpen && (
-            <div className="mt-1 mr-3 ps-2 border-s border-sidebar-border/60 space-y-0.5 animate-fade-up">
+            <div className="mt-1 mr-3 ps-2 border-s border-sidebar-border/60 space-y-0.5">
               {visibleCommittees.map(({ type, label, icon: Icon, tone }) => {
                 const to = `/committee/${type}`;
                 const active = path === to;
@@ -152,7 +151,7 @@ export function AppShell({ children, restricted = false, restrictedToCommitteeTy
                     to="/committee/$type"
                     params={{ type }}
                     onClick={() => setOpen(false)}
-                    className={`flex items-center gap-3 rounded-lg px-3 py-2 text-xs font-medium transition-all ${
+                    className={`flex items-center gap-3 rounded-lg px-3 py-2 text-xs font-medium transition-colors ${
                       active
                         ? "bg-sidebar-accent text-sidebar-foreground"
                         : "text-sidebar-foreground/70 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground"
@@ -211,12 +210,12 @@ export function AppShell({ children, restricted = false, restrictedToCommitteeTy
       {open && (
         <div className="lg:hidden fixed inset-0 z-50 flex">
           <div className="absolute inset-0 bg-black/50" onClick={() => setOpen(false)} />
-          <aside className="relative w-72 ms-auto h-full animate-fade-up">{SidebarInner}</aside>
+          <aside className="relative w-72 ms-auto h-full">{SidebarInner}</aside>
         </div>
       )}
 
       <div className="flex-1 flex flex-col min-w-0">
-        <header className="sticky top-0 z-30 glass border-b">
+        <header className="sticky top-0 z-30 bg-background border-b">
           <div className="flex items-center justify-between px-4 lg:px-8 h-16">
             <button
               className="lg:hidden p-2 rounded-lg hover:bg-accent"
@@ -235,11 +234,10 @@ export function AppShell({ children, restricted = false, restrictedToCommitteeTy
           </div>
         </header>
 
-        <main className="flex-1 px-4 lg:px-8 py-6 lg:py-8 pb-24 lg:pb-8 max-w-7xl w-full me-auto animate-fade-up">
+        <main className="flex-1 px-4 lg:px-8 py-6 lg:py-8 pb-24 lg:pb-8 max-w-7xl w-full me-auto">
           {children}
         </main>
 
-        {/* Mobile bottom navigation */}
         <nav className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-background border-t border-border shadow-[0_-2px_10px_rgba(0,0,0,0.04)]">
           <div className="grid grid-cols-5 h-16">
             {[
