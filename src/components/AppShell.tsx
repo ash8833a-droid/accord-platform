@@ -38,6 +38,7 @@ const ADMIN_BOTTOM = [
 ] as const;
 
 const RESTRICTED_EXTRA = [
+  { to: "/inbox", label: "صندوق الوارد", icon: Inbox },
   { to: "/ideas", label: "بنك الأفكار", icon: Lightbulb },
 ] as const;
 
