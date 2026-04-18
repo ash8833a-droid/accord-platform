@@ -223,7 +223,28 @@ function GroomsPage() {
                 )}
               </Section>
 
+              <Section title="ذبائح وكروت إضافية" icon={ClipboardList} tone="emerald">
+                <p className="text-[11px] text-muted-foreground">العدد الإضافي فوق المخصّص الأساسي للعريس.</p>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <Field label="عدد الذبائح الزيادة">
+                    <Input type="number" min={0} dir="ltr" value={form.extra_sheep}
+                      onChange={(e) => setForm({ ...form, extra_sheep: Math.max(0, Number(e.target.value) || 0) })} />
+                  </Field>
+                  <Field label="عدد كروت الرجال الإضافية">
+                    <Input type="number" min={0} dir="ltr" value={form.extra_cards_men}
+                      onChange={(e) => setForm({ ...form, extra_cards_men: Math.max(0, Number(e.target.value) || 0) })} />
+                  </Field>
+                  <Field label="عدد كروت النساء الإضافية">
+                    <Input type="number" min={0} dir="ltr" value={form.extra_cards_women}
+                      onChange={(e) => setForm({ ...form, extra_cards_women: Math.max(0, Number(e.target.value) || 0) })} />
+                  </Field>
+                </div>
+              </Section>
+
               <Section title="مشاركات خارجية" icon={Globe2} tone="sky">
+                <p className="text-[11px] text-muted-foreground">
+                  المقصود بها: <strong>القصائد، الشيلات، الكلمات الترحيبية</strong> أو ما شابهها مما يُقدَّم للعريس في الحفل.
+                </p>
                 <label className="flex items-center gap-2 p-3 rounded-lg border bg-muted/30 cursor-pointer hover:bg-muted/50">
                   <input
                     type="checkbox"
@@ -231,15 +252,15 @@ function GroomsPage() {
                     onChange={(e) => setForm({ ...form, external_participation: e.target.checked })}
                     className="h-4 w-4 accent-primary"
                   />
-                  <span className="text-sm font-medium">يوجد مشاركات خارجية مقدمة للعريس</span>
+                  <span className="text-sm font-medium">يوجد قصائد / شيلات / كلمات مقدّمة للعريس</span>
                 </label>
                 {form.external_participation && (
-                  <Field label="تفاصيل المشاركات الخارجية">
+                  <Field label="تفاصيل المشاركات (نوعها · اسم المُلقي · المدة التقريبية)">
                     <Textarea
                       value={form.external_participation_details}
                       onChange={(e) => setForm({ ...form, external_participation_details: e.target.value })}
-                      placeholder="مثال: مشاركة من جمعية كذا بمبلغ كذا..."
-                      rows={2}
+                      placeholder="مثال: قصيدة من الشاعر فلان (٣ دقائق) — شيلة من المنشد فلان (٥ دقائق) — كلمة ترحيبية من ..."
+                      rows={3}
                     />
                   </Field>
                 )}
