@@ -468,7 +468,7 @@ function TeamPage() {
   );
 }
 
-/* ───────── Org Chart (Hierarchical Pyramid) ───────── */
+/* ───────── Org Chart (Circular Hierarchical, Reference-Style) ───────── */
 
 const TIER_2: CommitteeType[] = ["finance", "procurement", "quality", "media"];
 const TIER_3: CommitteeType[] = ["reception", "programs", "dinner"];
@@ -517,65 +517,57 @@ function OrgChart({
   return (
     <div
       ref={exportRef}
-      className="relative rounded-3xl border bg-gradient-to-br from-card via-card to-muted/30 p-6 lg:p-10 shadow-elegant overflow-hidden"
+      className="relative rounded-3xl border bg-card shadow-soft overflow-hidden"
     >
-      {/* Decorative background */}
-      <div className="absolute -top-24 -right-24 w-72 h-72 bg-gold/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute -bottom-24 -left-24 w-72 h-72 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
+      {/* Subtle calligraphy-style background */}
       <div
-        className="absolute inset-0 opacity-[0.03] pointer-events-none"
+        className="absolute inset-0 pointer-events-none opacity-[0.04]"
         style={{
           backgroundImage:
-            "radial-gradient(currentColor 1px, transparent 1px)",
-          backgroundSize: "20px 20px",
+            "radial-gradient(circle at 80% 30%, currentColor 0px, transparent 1.5px), radial-gradient(circle at 20% 70%, currentColor 0px, transparent 1.5px)",
+          backgroundSize: "60px 60px, 80px 80px",
         }}
       />
+      <div className="absolute -top-32 -left-20 w-96 h-96 rounded-full bg-gold/5 blur-3xl pointer-events-none" />
 
-      <div className="relative flex items-center justify-between mb-8 flex-wrap gap-3">
-        <div className="flex items-center gap-2">
-          <div className="h-1 w-10 bg-gradient-gold rounded-full" />
-          <h2 className="text-lg lg:text-xl font-bold">الهيكل التنظيمي الهرمي</h2>
-        </div>
-        <div className="flex items-center gap-3 flex-wrap">
-          <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
-            <span className="flex items-center gap-1.5">
-              <span className="h-2 w-2 rounded-full bg-gold" /> القيادة العليا
-            </span>
-            <span className="flex items-center gap-1.5">
-              <span className="h-2 w-2 rounded-full bg-primary" /> اللجان التنفيذية
-            </span>
-            <span className="flex items-center gap-1.5">
-              <span className="h-2 w-2 rounded-full bg-emerald-500" /> اللجان التشغيلية
-            </span>
+      {/* Header bar — title right, action left */}
+      <div className="relative flex items-center justify-between gap-4 px-6 lg:px-10 pt-7 pb-4 flex-wrap">
+        <div className="flex items-stretch gap-3">
+          <div className="w-1.5 rounded-full bg-gradient-to-b from-gold to-primary" />
+          <div>
+            <p className="text-[10px] tracking-[0.3em] text-muted-foreground uppercase">
+              Organization
+            </p>
+            <h2 className="text-2xl lg:text-3xl font-bold leading-tight">
+              الهيكل التنظيمي
+            </h2>
           </div>
-          <Button
-            data-export-hide="true"
-            onClick={handleExport}
-            disabled={exporting}
-            size="sm"
-            className="gap-2 bg-gradient-gold text-gold-foreground hover:opacity-90 shadow-gold"
-          >
-            <Download className="h-4 w-4" />
-            {exporting ? "جارِ التصدير..." : "تصدير PNG"}
-          </Button>
         </div>
+        <Button
+          data-export-hide="true"
+          onClick={handleExport}
+          disabled={exporting}
+          size="sm"
+          className="gap-2 bg-gradient-gold text-gold-foreground hover:opacity-90 shadow-gold"
+        >
+          <Download className="h-4 w-4" />
+          {exporting ? "جارِ التصدير..." : "تصدير PNG"}
+        </Button>
       </div>
 
-      {/* Connector + nodes layer */}
-      <ChartCanvas
+      <div className="h-px bg-gradient-to-l from-transparent via-gold/30 to-transparent" />
+
+      <CircularChart
         women={women}
         tier2={tier2}
         tier3={tier3}
         members={members}
       />
 
-      {/* Footer ribbon */}
-      <div className="relative mt-10 flex items-center justify-center">
-        <div className="h-px flex-1 bg-gradient-to-l from-transparent via-border to-transparent" />
-        <p className="px-4 text-[11px] text-muted-foreground tracking-wider">
-          منصة لجنة الزواج الجماعي · قبيلة الهملة من قريش
-        </p>
-        <div className="h-px flex-1 bg-gradient-to-r from-transparent via-border to-transparent" />
+      <div className="relative px-6 lg:px-10 pb-6 flex items-center justify-center gap-2 text-[10px] text-muted-foreground tracking-wider">
+        <span className="h-px w-12 bg-border" />
+        منصة لجنة الزواج الجماعي · قبيلة الهملة من قريش
+        <span className="h-px w-12 bg-border" />
       </div>
     </div>
   );
@@ -586,10 +578,9 @@ interface ConnectorLine {
   y1: number;
   x2: number;
   y2: number;
-  dashed?: boolean;
 }
 
-function ChartCanvas({
+function CircularChart({
   women,
   tier2,
   tier3,
@@ -614,66 +605,72 @@ function ChartCanvas({
     const rb = root.getBoundingClientRect();
     setSize({ w: rb.width, h: rb.height });
 
-    const center = (el: HTMLElement | null, edge: "top" | "bottom") => {
+    const edge = (
+      el: HTMLElement | null,
+      side: "top" | "bottom" | "left" | "right",
+    ) => {
       if (!el) return null;
       const r = el.getBoundingClientRect();
-      return {
-        x: r.left - rb.left + r.width / 2,
-        y: (edge === "top" ? r.top : r.bottom) - rb.top,
-      };
+      const cx = r.left - rb.left + r.width / 2;
+      const cy = r.top - rb.top + r.height / 2;
+      switch (side) {
+        case "top":
+          return { x: cx, y: r.top - rb.top };
+        case "bottom":
+          return { x: cx, y: r.bottom - rb.top };
+        case "left":
+          return { x: r.left - rb.left, y: cy };
+        case "right":
+          return { x: r.right - rb.left, y: cy };
+      }
     };
 
-    const supremeBottom = center(supremeRef.current, "bottom");
-    const tier2Tops = tier2Refs.current.map((el) => center(el, "top"));
-    const tier2Bottoms = tier2Refs.current.map((el) => center(el, "bottom"));
-    const tier3Tops = tier3Refs.current.map((el) => center(el, "top"));
-
     const ls: ConnectorLine[] = [];
+    const supremeBottom = edge(supremeRef.current, "bottom");
+    const tier2Tops = tier2Refs.current.map((el) => edge(el, "top")).filter(Boolean) as { x: number; y: number }[];
+    const tier2Bottoms = tier2Refs.current.map((el) => edge(el, "bottom")).filter(Boolean) as { x: number; y: number }[];
+    const tier3Tops = tier3Refs.current.map((el) => edge(el, "top")).filter(Boolean) as { x: number; y: number }[];
 
-    if (supremeBottom && tier2Tops.length) {
-      // Hub point between supreme and tier2
-      const validTops = tier2Tops.filter(Boolean) as { x: number; y: number }[];
-      if (validTops.length) {
-        const hubY = (supremeBottom.y + Math.min(...validTops.map((p) => p.y))) / 2;
-        // Vertical from supreme to hub
-        ls.push({ x1: supremeBottom.x, y1: supremeBottom.y, x2: supremeBottom.x, y2: hubY, dashed: true });
-        // Horizontal hub bus
-        const xs = validTops.map((p) => p.x);
-        ls.push({ x1: Math.min(...xs), y1: hubY, x2: Math.max(...xs), y2: hubY });
-        // Drops to each tier2 card
-        validTops.forEach((p) => {
-          ls.push({ x1: p.x, y1: hubY, x2: p.x, y2: p.y });
-        });
-      }
-    }
-
-    // Tier2 -> Tier3
-    const validBottoms = tier2Bottoms.filter(Boolean) as { x: number; y: number }[];
-    const validT3 = tier3Tops.filter(Boolean) as { x: number; y: number }[];
-    if (validBottoms.length && validT3.length) {
-      const busY = (Math.max(...validBottoms.map((p) => p.y)) + Math.min(...validT3.map((p) => p.y))) / 2;
-      // Center vertical from tier2 average center down
-      const avgX = (Math.min(...validBottoms.map((p) => p.x)) + Math.max(...validBottoms.map((p) => p.x))) / 2;
-      ls.push({ x1: avgX, y1: Math.max(...validBottoms.map((p) => p.y)), x2: avgX, y2: busY, dashed: true });
-      // Horizontal bus across tier3
-      const xs3 = validT3.map((p) => p.x);
-      ls.push({ x1: Math.min(...xs3), y1: busY, x2: Math.max(...xs3), y2: busY });
-      validT3.forEach((p) => {
-        ls.push({ x1: p.x, y1: busY, x2: p.x, y2: p.y });
-      });
-    }
-
-    // Supreme -> Women (horizontal sibling link)
+    // Supreme → Women: short horizontal sibling link
     if (women && womenRef.current && supremeRef.current) {
       const sR = supremeRef.current.getBoundingClientRect();
       const wR = womenRef.current.getBoundingClientRect();
       const y = ((sR.top + sR.bottom) / 2 + (wR.top + wR.bottom) / 2) / 2 - rb.top;
-      // Determine edges (RTL: women may be on either side)
-      const sCenterX = sR.left - rb.left + sR.width / 2;
-      const wCenterX = wR.left - rb.left + wR.width / 2;
-      const fromX = sCenterX < wCenterX ? sR.right - rb.left : sR.left - rb.left;
-      const toX = sCenterX < wCenterX ? wR.left - rb.left : wR.right - rb.left;
+      const sCx = sR.left - rb.left + sR.width / 2;
+      const wCx = wR.left - rb.left + wR.width / 2;
+      const fromX = sCx < wCx ? sR.right - rb.left : sR.left - rb.left;
+      const toX = sCx < wCx ? wR.left - rb.left : wR.right - rb.left;
       ls.push({ x1: fromX, y1: y, x2: toX, y2: y });
+    }
+
+    // Supreme → Tier2: vertical drop + horizontal bus + drops
+    if (supremeBottom && tier2Tops.length) {
+      const hubY = (supremeBottom.y + Math.min(...tier2Tops.map((p) => p.y))) / 2;
+      ls.push({ x1: supremeBottom.x, y1: supremeBottom.y, x2: supremeBottom.x, y2: hubY });
+      const xs = tier2Tops.map((p) => p.x);
+      ls.push({ x1: Math.min(...xs), y1: hubY, x2: Math.max(...xs), y2: hubY });
+      tier2Tops.forEach((p) => ls.push({ x1: p.x, y1: hubY, x2: p.x, y2: p.y }));
+    }
+
+    // Tier2 → Tier3
+    if (tier2Bottoms.length && tier3Tops.length) {
+      const busY =
+        (Math.max(...tier2Bottoms.map((p) => p.y)) +
+          Math.min(...tier3Tops.map((p) => p.y))) /
+        2;
+      const avgX =
+        (Math.min(...tier2Bottoms.map((p) => p.x)) +
+          Math.max(...tier2Bottoms.map((p) => p.x))) /
+        2;
+      ls.push({
+        x1: avgX,
+        y1: Math.max(...tier2Bottoms.map((p) => p.y)),
+        x2: avgX,
+        y2: busY,
+      });
+      const xs3 = tier3Tops.map((p) => p.x);
+      ls.push({ x1: Math.min(...xs3), y1: busY, x2: Math.max(...xs3), y2: busY });
+      tier3Tops.forEach((p) => ls.push({ x1: p.x, y1: busY, x2: p.x, y2: p.y }));
     }
 
     setLines(ls);
@@ -692,27 +689,14 @@ function ChartCanvas({
   }, [women?.id, tier2.length, tier3.length]);
 
   return (
-    <div ref={containerRef} className="relative">
-      {/* SVG connectors */}
+    <div ref={containerRef} className="relative px-6 lg:px-10 py-12 lg:py-16">
+      {/* Connectors */}
       {size.w > 0 && (
         <svg
           width={size.w}
           height={size.h}
           className="absolute inset-0 pointer-events-none"
         >
-          <defs>
-            <linearGradient id="orgLineGrad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="oklch(0.78 0.14 85)" stopOpacity="0.85" />
-              <stop offset="100%" stopColor="oklch(0.78 0.14 85)" stopOpacity="0.35" />
-            </linearGradient>
-            <filter id="orgGlow">
-              <feGaussianBlur stdDeviation="1.5" result="blur" />
-              <feMerge>
-                <feMergeNode in="blur" />
-                <feMergeNode in="SourceGraphic" />
-              </feMerge>
-            </filter>
-          </defs>
           {lines.map((l, i) => (
             <line
               key={i}
@@ -720,70 +704,33 @@ function ChartCanvas({
               y1={l.y1}
               x2={l.x2}
               y2={l.y2}
-              stroke="url(#orgLineGrad)"
-              strokeWidth={2}
+              stroke="oklch(0.78 0.14 85 / 0.55)"
+              strokeWidth={1.25}
               strokeLinecap="round"
-              strokeDasharray={l.dashed ? "5 5" : undefined}
-              filter="url(#orgGlow)"
             />
           ))}
-          {/* Junction dots */}
-          {lines
-            .filter((l) => l.x1 !== l.x2 && l.y1 === l.y2)
-            .flatMap((l, i) => [
-              <circle
-                key={`a-${i}`}
-                cx={l.x1}
-                cy={l.y1}
-                r={3}
-                fill="oklch(0.78 0.14 85)"
-              />,
-              <circle
-                key={`b-${i}`}
-                cx={l.x2}
-                cy={l.y2}
-                r={3}
-                fill="oklch(0.78 0.14 85)"
-              />,
-            ])}
         </svg>
       )}
 
-      {/* TIER 1 — Supreme + Women side-by-side */}
-      <div className="relative flex items-stretch justify-center gap-6 lg:gap-12 flex-wrap">
-        {/* Supreme */}
-        <div ref={supremeRef} className="relative group">
-          <div className="absolute -inset-2 bg-gradient-gold blur-2xl opacity-40 rounded-3xl group-hover:opacity-60 transition-opacity" />
-          <div className="relative rounded-2xl bg-gradient-hero text-primary-foreground px-6 lg:px-10 py-5 shadow-elegant text-center min-w-[240px] lg:min-w-[300px] border border-gold/30">
-            <div className="absolute -top-3 left-1/2 -translate-x-1/2 h-7 w-7 rounded-full bg-gold flex items-center justify-center shadow-gold">
-              <Crown className="h-4 w-4 text-gold-foreground" />
-            </div>
-            <p className="text-[10px] tracking-widest text-gold/90 uppercase mt-1">
-              Supreme Committee
-            </p>
-            <p className="font-bold text-xl text-shimmer-gold mt-0.5">
-              اللجنة العليا
-            </p>
-            <p className="text-[11px] text-primary-foreground/80 mt-1.5 leading-relaxed">
-              الإشراف العام · القرارات الاستراتيجية · الاعتمادات
-            </p>
-          </div>
-        </div>
-
+      {/* TIER 1: Supreme (center) + Women (right side, RTL = visually beside) */}
+      <div className="relative flex items-center justify-center gap-10 lg:gap-20">
         {women && (
           <div ref={womenRef}>
-            <PyramidNode
+            <CircleNode
               committee={women}
               members={members}
-              variant="leadership"
-              tagline="القسم النسائي"
+              size="md"
+              tone="leadership"
             />
           </div>
         )}
+        <div ref={supremeRef}>
+          <SupremeNode />
+        </div>
       </div>
 
-      {/* TIER 2 — 4 executive committees */}
-      <div className="relative grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-6 mt-16">
+      {/* TIER 2: 4 executive committees */}
+      <div className="relative grid grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-4 mt-20 lg:mt-24 justify-items-center">
         {tier2.map((c, i) => (
           <div
             key={c.id}
@@ -791,13 +738,13 @@ function ChartCanvas({
               tier2Refs.current[i] = el;
             }}
           >
-            <PyramidNode committee={c} members={members} variant="executive" />
+            <CircleNode committee={c} members={members} size="md" tone="executive" />
           </div>
         ))}
       </div>
 
-      {/* TIER 3 — 3 operational committees */}
-      <div className="relative grid grid-cols-1 sm:grid-cols-3 gap-3 lg:gap-6 mt-16 max-w-4xl mx-auto">
+      {/* TIER 3: 3 operational committees */}
+      <div className="relative grid grid-cols-1 sm:grid-cols-3 gap-6 lg:gap-8 mt-20 lg:mt-24 max-w-4xl mx-auto justify-items-center">
         {tier3.map((c, i) => (
           <div
             key={c.id}
@@ -805,7 +752,7 @@ function ChartCanvas({
               tier3Refs.current[i] = el;
             }}
           >
-            <PyramidNode committee={c} members={members} variant="operational" />
+            <CircleNode committee={c} members={members} size="md" tone="operational" />
           </div>
         ))}
       </div>
@@ -813,17 +760,41 @@ function ChartCanvas({
   );
 }
 
+/* ───────── Supreme (top circle, filled gold-tone) ───────── */
+function SupremeNode() {
+  return (
+    <Link
+      to="/admin"
+      className="group relative block"
+      title="اللجنة العليا"
+    >
+      <OrnamentMark />
+      <div className="relative h-36 w-36 lg:h-44 lg:w-44 rounded-full bg-gradient-to-br from-gold via-amber-400 to-amber-600 shadow-gold flex items-center justify-center ring-[6px] ring-gold/15 group-hover:scale-105 transition-transform duration-300">
+        <div className="absolute inset-2 rounded-full border border-white/40" />
+        <div className="text-center text-gold-foreground px-2">
+          <Crown className="h-5 w-5 mx-auto mb-1 opacity-90" />
+          <p className="font-bold text-sm lg:text-base leading-tight">
+            اللجنة العليا
+          </p>
+          <p className="text-[9px] mt-1 opacity-80 tracking-wider">
+            الإشراف العام
+          </p>
+        </div>
+      </div>
+    </Link>
+  );
+}
 
-function PyramidNode({
+/* ───────── Circle Node (committees) ───────── */
+function CircleNode({
   committee,
   members,
-  variant,
-  tagline,
+  tone,
 }: {
   committee: CommitteeRow;
   members: MemberRow[];
-  variant: "leadership" | "executive" | "operational";
-  tagline?: string;
+  size?: "sm" | "md";
+  tone: "leadership" | "executive" | "operational";
 }) {
   const meta = COMMITTEES.find((m) => m.type === committee.type);
   const Icon = meta?.icon ?? Users;
@@ -831,96 +802,91 @@ function PyramidNode({
   const head = list.find((m) => m.is_head);
   const isFull = list.length >= committee.max_members && committee.max_members > 0;
 
-  const styles = {
-    leadership: {
-      wrap: "bg-gradient-to-br from-fuchsia-500/10 via-card to-card border-fuchsia-400/30 hover:border-fuchsia-400/60 min-w-[220px] lg:min-w-[260px]",
-      accent: "bg-fuchsia-500",
-      ring: "ring-fuchsia-400/40",
-    },
-    executive: {
-      wrap: "bg-gradient-to-br from-primary/5 via-card to-card border-primary/20 hover:border-primary/50",
-      accent: "bg-primary",
-      ring: "ring-primary/30",
-    },
-    operational: {
-      wrap: "bg-gradient-to-br from-emerald-500/5 via-card to-card border-emerald-500/20 hover:border-emerald-500/50",
-      accent: "bg-emerald-500",
-      ring: "ring-emerald-500/30",
-    },
-  }[variant];
+  const ring =
+    tone === "leadership"
+      ? "ring-gold/40 group-hover:ring-gold/70"
+      : tone === "executive"
+      ? "ring-primary/30 group-hover:ring-primary/60"
+      : "ring-emerald-500/30 group-hover:ring-emerald-500/60";
+
+  const innerBorder =
+    tone === "leadership"
+      ? "border-gold/30"
+      : tone === "executive"
+      ? "border-primary/25"
+      : "border-emerald-500/25";
 
   return (
     <Link
       to="/committee/$type"
       params={{ type: committee.type }}
-      className={`group relative block rounded-2xl border-2 p-4 shadow-soft hover:shadow-elegant hover:-translate-y-1 transition-all duration-300 ${styles.wrap}`}
+      className="group relative flex flex-col items-center w-[160px] lg:w-[180px]"
       title={`فتح صفحة ${committee.name}`}
     >
-      {/* Top accent bar */}
-      <div className={`absolute top-0 left-4 right-4 h-0.5 rounded-b ${styles.accent} opacity-60`} />
-
-      {/* Hover arrow */}
+      <OrnamentMark />
+      {/* Outer circle */}
       <div
-        data-export-hide="true"
-        className="absolute top-3 left-3 opacity-0 group-hover:opacity-100 transition-opacity"
+        className={`relative h-32 w-32 lg:h-36 lg:w-36 rounded-full bg-card ring-[5px] transition-all duration-300 group-hover:-translate-y-1 ${ring} shadow-soft group-hover:shadow-elegant`}
       >
-        <div className={`h-6 w-6 rounded-full ${styles.accent} text-white flex items-center justify-center`}>
-          <ArrowLeft className="h-3.5 w-3.5" />
-        </div>
-      </div>
-
-      <div className="flex items-start gap-3">
+        {/* Inner ring */}
         <div
-          className={`h-12 w-12 rounded-xl flex items-center justify-center shrink-0 ring-2 ${styles.ring} ${meta?.tone ?? "bg-muted"}`}
+          className={`absolute inset-2 rounded-full border ${innerBorder} flex flex-col items-center justify-center px-3 text-center`}
         >
-          <Icon className="h-6 w-6" />
-        </div>
-        <div className="min-w-0 flex-1">
-          {tagline && (
-            <p className="text-[9px] tracking-widest text-muted-foreground uppercase">
-              {tagline}
-            </p>
-          )}
-          <p className="font-bold text-sm leading-tight group-hover:text-primary transition-colors">
+          <div
+            className={`h-8 w-8 rounded-lg flex items-center justify-center mb-1 ${meta?.tone ?? "bg-muted"}`}
+          >
+            <Icon className="h-4 w-4" />
+          </div>
+          <p className="font-bold text-[12px] lg:text-[13px] leading-tight group-hover:text-primary transition-colors">
             {committee.name}
           </p>
-          <div className="flex items-center gap-1.5 mt-1.5">
-            <Badge
-              variant="secondary"
-              className={`text-[10px] h-4 px-1.5 ${
-                isFull
-                  ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300"
-                  : "bg-amber-500/15 text-amber-700 dark:text-amber-300"
-              }`}
-            >
-              <Users className="h-2.5 w-2.5 ml-0.5" />
-              {list.length}/{committee.max_members}
-            </Badge>
-          </div>
+          <Badge
+            variant="secondary"
+            className={`mt-1 text-[9px] h-4 px-1.5 ${
+              isFull
+                ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300"
+                : "bg-amber-500/15 text-amber-700 dark:text-amber-300"
+            }`}
+          >
+            {list.length}/{committee.max_members}
+          </Badge>
         </div>
       </div>
 
-      <div className="mt-3 pt-3 border-t border-dashed">
+      {/* Connector stub down */}
+      <div className="h-3 w-px bg-gold/40" />
+
+      {/* Head label below */}
+      <div className="text-center min-h-[34px]">
         {head ? (
-          <div className="flex items-center gap-2">
-            <div className="h-7 w-7 rounded-full bg-gradient-gold text-gold-foreground flex items-center justify-center text-[11px] font-bold shrink-0">
-              {head.full_name.charAt(0)}
-            </div>
-            <div className="min-w-0">
-              <p className="text-[10px] text-muted-foreground flex items-center gap-1">
-                <Crown className="h-2.5 w-2.5 text-gold" /> رئيس اللجنة
-              </p>
-              <p className="text-[11px] font-semibold truncate">
-                {head.full_name}
-              </p>
-            </div>
-          </div>
+          <>
+            <p className="text-[10px] text-muted-foreground flex items-center justify-center gap-1">
+              <Crown className="h-2.5 w-2.5 text-gold" /> رئيس اللجنة
+            </p>
+            <p className="text-[11px] font-semibold truncate max-w-[150px]">
+              {head.full_name}
+            </p>
+          </>
         ) : (
-          <p className="text-[10px] text-muted-foreground/70 text-center py-1">
-            بانتظار تعيين رئيس اللجنة
+          <p className="text-[10px] text-muted-foreground/60 mt-1">
+            بانتظار التعيين
           </p>
         )}
       </div>
     </Link>
   );
 }
+
+/* ───────── Decorative ornament mark (top-right of each circle) ───────── */
+function OrnamentMark() {
+  return (
+    <div className="absolute -top-1 -right-1 z-10 pointer-events-none">
+      <div className="relative">
+        <div className="h-7 w-7 rounded-md bg-gold/15 border border-gold/30 flex items-center justify-center">
+          <Sparkle className="h-3.5 w-3.5 text-gold" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
