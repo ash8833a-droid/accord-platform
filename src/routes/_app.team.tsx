@@ -711,7 +711,7 @@ function HierarchyChart({
         </div>
 
         {/* Tier 3 — operational committees */}
-        <div className="mt-14 lg:mt-16 grid grid-cols-2 sm:grid-cols-4 gap-6 lg:gap-8 w-full justify-items-center">
+        <div className="mt-20 lg:mt-24 grid grid-cols-2 sm:grid-cols-4 gap-6 lg:gap-8 w-full justify-items-center">
           {base.map((c, i) => (
             <div
               key={c.id}
