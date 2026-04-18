@@ -1,0 +1,1 @@
+UPDATE public.committees SET name = 'لجنة الاستقبال والضيافة' WHERE type = 'reception';
