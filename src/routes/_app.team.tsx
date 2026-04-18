@@ -730,8 +730,18 @@ function CircularChart({
         </svg>
       )}
 
-      {/* TIER 1: Supreme (right in RTL) + Women (left in RTL) */}
+      {/* TIER 1: Media (right in RTL) + Supreme (center) + Women (left in RTL) */}
       <div className="relative flex items-center justify-center gap-10 lg:gap-20">
+        {media && (
+          <div ref={mediaRef}>
+            <CircleNode
+              committee={media}
+              members={members}
+              size="md"
+              tone="unified"
+            />
+          </div>
+        )}
         <div ref={supremeRef}>
           <SupremeNode />
         </div>
