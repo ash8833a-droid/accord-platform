@@ -8,8 +8,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { HeartHandshake, Plus, FileCheck2 } from "lucide-react";
+import { HeartHandshake, Plus, FileCheck2, FolderOpen } from "lucide-react";
 import { toast } from "sonner";
+import { GroomDetailsDialog } from "@/components/grooms/GroomDetailsDialog";
 
 export const Route = createFileRoute("/_app/grooms")({
   component: GroomsPage,
@@ -40,6 +41,7 @@ function GroomsPage() {
   const [grooms, setGrooms] = useState<Groom[]>([]);
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({ full_name: "", phone: "", family_branch: "", bride_name: "", notes: "" });
+  const [detailsId, setDetailsId] = useState<string | null>(null);
 
   const load = async () => {
     const { data } = await supabase.from("grooms").select("*").order("created_at", { ascending: false });
@@ -128,6 +130,7 @@ function GroomsPage() {
                 <th className="px-4 py-3 font-medium">الجوال</th>
                 <th className="px-4 py-3 font-medium">العروس</th>
                 <th className="px-4 py-3 font-medium">الحالة</th>
+                <th className="px-4 py-3 font-medium">المستندات والطلبات</th>
                 <th className="px-4 py-3 font-medium">إجراء</th>
               </tr>
             </thead>
@@ -142,6 +145,21 @@ function GroomsPage() {
                     <td className="px-4 py-3">{g.bride_name ?? "—"}</td>
                     <td className="px-4 py-3"><Badge className={b.cls}>{b.label}</Badge></td>
                     <td className="px-4 py-3">
+                      {(g.status === "approved" || g.status === "completed") ? (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-8 gap-1.5 border-primary/40 text-primary hover:bg-primary/10"
+                          onClick={() => setDetailsId(g.id)}
+                        >
+                          <FolderOpen className="h-3.5 w-3.5" />
+                          المستندات والطلبات
+                        </Button>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">يُتاح بعد الاعتماد</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3">
                       <Select value={g.status} onValueChange={(v) => updateStatus(g.id, v as GroomStatus)}>
                         <SelectTrigger className="h-8 w-36 text-xs"><SelectValue /></SelectTrigger>
                         <SelectContent>
@@ -155,12 +173,21 @@ function GroomsPage() {
                 );
               })}
               {grooms.length === 0 && (
-                <tr><td colSpan={6} className="text-center py-12 text-muted-foreground">لم يُسجّل أي عريس بعد.</td></tr>
+                <tr><td colSpan={7} className="text-center py-12 text-muted-foreground">لم يُسجّل أي عريس بعد.</td></tr>
               )}
             </tbody>
           </table>
         </div>
       </div>
+
+      {detailsId && (
+        <GroomDetailsDialog
+          groomId={detailsId}
+          open={!!detailsId}
+          onOpenChange={(o) => !o && setDetailsId(null)}
+          onSaved={load}
+        />
+      )}
     </div>
   );
 }
