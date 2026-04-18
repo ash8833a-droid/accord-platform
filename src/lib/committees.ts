@@ -112,7 +112,7 @@ export const COMMITTEES: CommitteeMeta[] = [
   },
   {
     type: "reception",
-    label: "لجنة الاستقبال",
+    label: "لجنة الاستقبال والضيافة",
     icon: HeartHandshake,
     tone: "bg-pink-500/15 text-pink-600",
     description: "استقبال الضيوف والعرسان",
