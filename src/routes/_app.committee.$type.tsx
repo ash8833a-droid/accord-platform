@@ -42,6 +42,8 @@ interface TeamMember {
   full_name: string;
   role_title: string | null;
   is_head: boolean;
+  committee_id?: string;
+  committee_name?: string;
 }
 
 const PRIORITY_LABELS: Record<Task["priority"], string> = {
@@ -105,6 +107,7 @@ function CommitteePage() {
   const { user } = useAuth();
   const [profileName, setProfileName] = useState<string | null>(null);
   const [members, setMembers] = useState<TeamMember[]>([]);
+  const [allMembers, setAllMembers] = useState<TeamMember[]>([]);
   const [showMine, setShowMine] = useState(false);
 
   const [taskOpen, setTaskOpen] = useState(false);
@@ -120,6 +123,7 @@ function CommitteePage() {
   const [prAmount, setPrAmount] = useState("");
   const [prDesc, setPrDesc] = useState("");
   const [prFile, setPrFile] = useState<File | null>(null);
+  const [prRecipient, setPrRecipient] = useState<string>("finance");
   const [prSubmitting, setPrSubmitting] = useState(false);
 
   const load = async () => {
@@ -133,14 +137,19 @@ function CommitteePage() {
       return;
     }
     setCommittee(c);
-    const [{ data: t }, { data: p }, { data: m }] = await Promise.all([
+    const [{ data: t }, { data: p }, { data: m }, { data: am }] = await Promise.all([
       supabase.from("committee_tasks").select("id, title, description, status, priority, assigned_to").eq("committee_id", c.id),
       supabase.from("payment_requests").select("id, title, amount, status, created_at, invoice_url").eq("committee_id", c.id).order("created_at", { ascending: false }),
       supabase.from("team_members").select("id, full_name, role_title, is_head").eq("committee_id", c.id).order("display_order"),
+      supabase.from("team_members").select("id, full_name, role_title, is_head, committee_id, committees(name)").order("display_order"),
     ]);
     setTasks((t ?? []) as Task[]);
     setRequests((p ?? []) as PaymentRequest[]);
     setMembers((m ?? []) as TeamMember[]);
+    setAllMembers(((am ?? []) as any[]).map((x) => ({
+      id: x.id, full_name: x.full_name, role_title: x.role_title, is_head: x.is_head,
+      committee_id: x.committee_id, committee_name: x.committees?.name ?? "",
+    })));
   };
 
   useEffect(() => {
@@ -160,9 +169,11 @@ function CommitteePage() {
   const Icon = meta.icon;
   const fmt = (n: number) => new Intl.NumberFormat("ar-SA").format(n);
 
-  const memberById = new Map(members.map((m) => [m.id, m]));
+  const memberById = new Map((allMembers.length ? allMembers : members).map((m) => [m.id, m]));
   const myMemberId = profileName
-    ? members.find((m) => m.full_name.trim() === profileName.trim())?.id ?? null
+    ? (allMembers.find((m) => m.full_name.trim() === profileName.trim())?.id
+        ?? members.find((m) => m.full_name.trim() === profileName.trim())?.id
+        ?? null)
     : null;
   const visibleTasks = showMine && myMemberId ? tasks.filter((t) => t.assigned_to === myMemberId) : tasks;
   const mineCount = myMemberId ? tasks.filter((t) => t.assigned_to === myMemberId).length : 0;
@@ -275,11 +286,18 @@ function CommitteePage() {
         invoice_url = path;
       }
 
+      const recipientLabel = (() => {
+        if (prRecipient === "finance") return "اللجنة المالية";
+        const m = allMembers.find((x) => x.id === prRecipient);
+        return m ? `${m.full_name}${m.committee_name ? ` (${m.committee_name})` : ""}` : "اللجنة المالية";
+      })();
+      const finalDesc = `[إلى: ${recipientLabel}]\n${prDesc}`.trim();
+
       const { error } = await supabase.from("payment_requests").insert({
         committee_id: committee.id,
         title: prTitle,
         amount,
-        description: prDesc,
+        description: finalDesc,
         requested_by: u.user?.id,
         invoice_url,
       });
@@ -288,8 +306,8 @@ function CommitteePage() {
         setPrSubmitting(false);
         return;
       }
-      toast.success("تم رفع الطلب للجنة المالية");
-      setPrTitle(""); setPrAmount(""); setPrDesc(""); setPrFile(null); setPrOpen(false);
+      toast.success(`تم إرسال الطلب إلى ${recipientLabel}`);
+      setPrTitle(""); setPrAmount(""); setPrDesc(""); setPrFile(null); setPrRecipient("finance"); setPrOpen(false);
       load();
     } finally {
       setPrSubmitting(false);
@@ -434,6 +452,29 @@ function CommitteePage() {
 
           <form onSubmit={submitRequest} className="space-y-3 pt-2 border-b pb-5">
             <div className="space-y-2"><Label>عنوان الطلب</Label><Input value={prTitle} onChange={(e) => setPrTitle(e.target.value)} required placeholder="مثال: عهدة لشراء مستلزمات الحفل" /></div>
+            <div className="space-y-2">
+              <Label className="flex items-center gap-1.5"><Users className="h-3.5 w-3.5" /> إرسال الطلب إلى</Label>
+              <Select value={prRecipient} onValueChange={setPrRecipient}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent className="max-h-72">
+                  <SelectItem value="finance">اللجنة المالية (افتراضي)</SelectItem>
+                  {COMMITTEES.map((cm) => {
+                    const list = allMembers.filter((m) => m.committee_name === cm.label);
+                    if (list.length === 0) return null;
+                    return (
+                      <div key={cm.type}>
+                        <div className="px-2 py-1 text-[10px] font-bold text-muted-foreground bg-muted/40 mt-1">{cm.label}</div>
+                        {list.map((m) => (
+                          <SelectItem key={m.id} value={m.id}>
+                            {m.full_name}{m.role_title ? ` · ${m.role_title}` : ""}{m.is_head ? " (رئيس)" : ""}
+                          </SelectItem>
+                        ))}
+                      </div>
+                    );
+                  })}
+                </SelectContent>
+              </Select>
+            </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2"><Label>المبلغ (ر.س)</Label><Input type="number" min="1" value={prAmount} onChange={(e) => setPrAmount(e.target.value)} required dir="ltr" /></div>
               <div className="space-y-2">
@@ -547,21 +588,40 @@ function CommitteePage() {
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <Label className="flex items-center gap-1.5"><Users className="h-3.5 w-3.5" /> المسؤول عن المهمة</Label>
+                    <Label className="flex items-center gap-1.5"><Users className="h-3.5 w-3.5" /> تعيين المهمة إلى</Label>
                     <Select value={tAssignee} onValueChange={setTAssignee}>
-                      <SelectTrigger><SelectValue placeholder="اختر عضواً" /></SelectTrigger>
-                      <SelectContent>
+                      <SelectTrigger><SelectValue placeholder="اختر عضواً من المنصة" /></SelectTrigger>
+                      <SelectContent className="max-h-72">
                         <SelectItem value="none">— بدون تعيين —</SelectItem>
-                        {members.map((m) => (
-                          <SelectItem key={m.id} value={m.id}>
-                            {m.full_name}{m.role_title ? ` · ${m.role_title}` : ""}{m.is_head ? " (رئيس)" : ""}
-                          </SelectItem>
-                        ))}
+                        {members.length > 0 && (
+                          <div>
+                            <div className="px-2 py-1 text-[10px] font-bold text-muted-foreground bg-primary/5 mt-1">
+                              {meta.label} (لجنتك)
+                            </div>
+                            {members.map((m) => (
+                              <SelectItem key={`own-${m.id}`} value={m.id}>
+                                {m.full_name}{m.role_title ? ` · ${m.role_title}` : ""}{m.is_head ? " (رئيس)" : ""}
+                              </SelectItem>
+                            ))}
+                          </div>
+                        )}
+                        {COMMITTEES.filter((cm) => cm.label !== meta.label).map((cm) => {
+                          const list = allMembers.filter((m) => m.committee_name === cm.label);
+                          if (list.length === 0) return null;
+                          return (
+                            <div key={cm.type}>
+                              <div className="px-2 py-1 text-[10px] font-bold text-muted-foreground bg-muted/40 mt-1">{cm.label}</div>
+                              {list.map((m) => (
+                                <SelectItem key={m.id} value={m.id}>
+                                  {m.full_name}{m.role_title ? ` · ${m.role_title}` : ""}{m.is_head ? " (رئيس)" : ""}
+                                </SelectItem>
+                              ))}
+                            </div>
+                          );
+                        })}
                       </SelectContent>
                     </Select>
-                    {members.length === 0 && (
-                      <p className="text-[11px] text-muted-foreground">لا يوجد أعضاء لهذه اللجنة. أضف أعضاء من صفحة فريق العمل.</p>
-                    )}
+                    <p className="text-[11px] text-muted-foreground">يمكنك تعيين المهمة لأي عضو في أي لجنة بالمنصة.</p>
                   </div>
                   <Button type="submit" className="w-full bg-gradient-hero text-primary-foreground">
                     {editingId ? "حفظ التعديلات" : "إضافة"}
