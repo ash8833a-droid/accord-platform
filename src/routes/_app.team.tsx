@@ -37,6 +37,7 @@ import {
   
 } from "lucide-react";
 import { toast } from "sonner";
+import { TeamDatabaseDialog, type TeamDbRow } from "@/components/TeamDatabaseDialog";
 
 export const Route = createFileRoute("/_app/team")({
   component: TeamPage,
@@ -184,6 +185,22 @@ function TeamPage() {
     );
   }, [committees]);
 
+  const dbRows: TeamDbRow[] = useMemo(() => {
+    const cMap = new Map(committees.map((c) => [c.id, c.name]));
+    return members.map((m) => ({
+      id: m.id,
+      committee_id: m.committee_id,
+      committee_name: cMap.get(m.committee_id) ?? "—",
+      full_name: m.full_name,
+      role_title: m.role_title,
+      role_key: m.role_key,
+      phone: m.phone,
+      email: m.email,
+      specialty: m.specialty,
+      is_head: m.is_head,
+    }));
+  }, [members, committees]);
+
   const create = async () => {
     if (!form.full_name || !form.committee_id) {
       toast.error("الاسم واللجنة مطلوبان");
@@ -256,14 +273,16 @@ function TeamPage() {
               </p>
             </div>
           </div>
-          {isAdmin && (
-            <Dialog open={open} onOpenChange={setOpen}>
-              <DialogTrigger asChild>
-                <Button className="gap-2 bg-gold text-gold-foreground hover:opacity-90">
-                  <Plus className="h-4 w-4" /> إضافة عضو
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-lg" dir="rtl">
+          <div className="flex items-center gap-2 flex-wrap">
+            <TeamDatabaseDialog rows={dbRows} />
+            {isAdmin && (
+              <Dialog open={open} onOpenChange={setOpen}>
+                <DialogTrigger asChild>
+                  <Button className="gap-2 bg-gold text-gold-foreground hover:opacity-90">
+                    <Plus className="h-4 w-4" /> إضافة عضو
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-lg" dir="rtl">
                 <DialogHeader>
                   <DialogTitle>إسناد عضو جديد للجنة</DialogTitle>
                 </DialogHeader>
@@ -368,7 +387,8 @@ function TeamPage() {
                 </DialogFooter>
               </DialogContent>
             </Dialog>
-          )}
+            )}
+          </div>
         </div>
       </div>
 
