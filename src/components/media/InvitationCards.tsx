@@ -88,13 +88,13 @@ export function InvitationCards() {
   return (
     <div className="space-y-5">
       {/* Equation card */}
-      <div className="rounded-2xl border-2 border-rose-500/30 bg-gradient-to-br from-rose-500/5 to-pink-500/5 p-5">
+      <div className="rounded-2xl border-2 border-primary/30 bg-gradient-to-br from-primary/5 to-primary-glow/5 p-5">
         <div className="flex items-start gap-3">
-          <Calculator className="h-6 w-6 text-rose-600 shrink-0 mt-1" />
+          <Calculator className="h-6 w-6 text-primary shrink-0 mt-1" />
           <div className="flex-1">
             <h3 className="font-bold">معادلة كروت الدعوة</h3>
             <p className="text-xs text-muted-foreground mt-1">
-              لكل عريس <span className="font-bold text-rose-700">{DEFAULT_MEN} كرت رجال</span> + <span className="font-bold text-pink-700">{DEFAULT_WOMEN} كرت نساء</span> كافتراضي.
+              لكل عريس <span className="font-bold text-primary">{DEFAULT_MEN} كرت رجال</span> + <span className="font-bold text-primary-glow">{DEFAULT_WOMEN} كرت نساء</span> كافتراضي.
               يمكن تعديل العدد لكل عريس حسب الحاجة.
             </p>
           </div>
@@ -102,8 +102,8 @@ export function InvitationCards() {
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-5">
           <KPI label="إجمالي العرسان" value={String(grooms.length)} icon={Users} tone="primary" />
-          <KPI label="كروت الرجال" value={fmt(totalMen)} icon={User} tone="rose" />
-          <KPI label="كروت النساء" value={fmt(totalWomen)} icon={User} tone="pink" />
+          <KPI label="كروت الرجال" value={fmt(totalMen)} icon={User} tone="teal" />
+          <KPI label="كروت النساء" value={fmt(totalWomen)} icon={User} tone="tealLight" />
           <KPI label="إجمالي الكروت" value={fmt(totalCards)} icon={Mail} tone="gold" />
         </div>
 
@@ -117,7 +117,7 @@ export function InvitationCards() {
             type="button"
             onClick={() => setPrOpen(true)}
             disabled={totalCards === 0}
-            className="gap-2 bg-gradient-to-r from-rose-600 to-pink-600 text-white hover:opacity-90"
+            className="gap-2 bg-gradient-to-r from-primary to-primary-glow text-primary-foreground hover:opacity-90"
           >
             <Receipt className="h-4 w-4" />
             إصدار طلب صرف لطباعة الكروت
@@ -130,7 +130,7 @@ export function InvitationCards() {
         <DialogContent dir="rtl" className="max-w-lg">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Receipt className="h-5 w-5 text-rose-600" />
+              <Receipt className="h-5 w-5 text-primary" />
               إصدار طلب صرف لطباعة كروت الدعوة
             </DialogTitle>
           </DialogHeader>
@@ -151,13 +151,13 @@ export function InvitationCards() {
               <div className="flex justify-between"><span className="text-muted-foreground">إجمالي كروت الرجال</span><span className="font-bold">{fmt(totalMen)}</span></div>
               <div className="flex justify-between"><span className="text-muted-foreground">إجمالي كروت النساء</span><span className="font-bold">{fmt(totalWomen)}</span></div>
               <div className="flex justify-between border-t pt-2"><span className="text-muted-foreground">إجمالي الكروت</span><span className="font-bold">{fmt(totalCards)} كرت</span></div>
-              <div className="flex justify-between text-base"><span className="font-semibold">المبلغ الإجمالي</span><span className="font-bold text-rose-700">{fmt(totalAmount)} ر.س</span></div>
+              <div className="flex justify-between text-base"><span className="font-semibold">المبلغ الإجمالي</span><span className="font-bold text-primary">{fmt(totalAmount)} ر.س</span></div>
               <p className="text-xs text-muted-foreground pt-2 font-mono">{fmt(totalCards)} × {fmt(price)} = {fmt(totalAmount)} ر.س</p>
             </div>
           </div>
           <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => setPrOpen(false)} disabled={submitting}>إلغاء</Button>
-            <Button onClick={submitPaymentRequest} disabled={submitting} className="bg-gradient-to-r from-rose-600 to-pink-600 text-white">
+            <Button onClick={submitPaymentRequest} disabled={submitting} className="bg-gradient-to-r from-primary to-primary-glow text-primary-foreground">
               {submitting ? <Loader2 className="h-4 w-4 ms-1 animate-spin" /> : <Receipt className="h-4 w-4 ms-1" />}
               {submitting ? "جاري الإرسال..." : "إرسال للجنة المالية"}
             </Button>
@@ -167,9 +167,9 @@ export function InvitationCards() {
 
       {/* Grooms table */}
       <div className="rounded-2xl border bg-card overflow-hidden shadow-soft">
-        <div className="px-5 py-4 border-b bg-gradient-to-l from-rose-500/5 to-transparent">
+        <div className="px-5 py-4 border-b bg-gradient-to-l from-primary/5 to-transparent">
           <h3 className="font-bold flex items-center gap-2">
-            <Mail className="h-4 w-4 text-rose-600" /> توزيع كروت الدعوة على العرسان
+            <Mail className="h-4 w-4 text-primary" /> توزيع كروت الدعوة على العرسان
           </h3>
           <p className="text-xs text-muted-foreground mt-1">عدّل العدد لكل عريس عند الحاجة وحدّد حالة الطباعة</p>
         </div>
@@ -247,7 +247,7 @@ export function InvitationCards() {
               )}
             </tbody>
             {grooms.length > 0 && (
-              <tfoot className="bg-gradient-to-l from-rose-500/10 to-pink-500/10 font-bold">
+              <tfoot className="bg-gradient-to-l from-primary/10 to-primary-glow/10 font-bold">
                 <tr>
                   <td className="px-4 py-3" colSpan={3}>الإجمالي</td>
                   <td className="px-4 py-3">{fmt(totalMen)}</td>
@@ -267,8 +267,8 @@ export function InvitationCards() {
 function KPI({ label, value, icon: Icon, tone }: { label: string; value: string; icon: any; tone: string }) {
   const map: Record<string, string> = {
     primary: "from-primary/15 to-primary/5 border-primary/30 text-primary",
-    rose: "from-rose-500/15 to-rose-500/5 border-rose-500/30 text-rose-700",
-    pink: "from-pink-500/15 to-pink-500/5 border-pink-500/30 text-pink-700",
+    teal: "from-primary/15 to-primary/5 border-primary/30 text-primary",
+    tealLight: "from-primary-glow/15 to-primary-glow/5 border-primary-glow/30 text-primary",
     gold: "from-gold/15 to-gold/5 border-gold/30 text-gold-foreground",
   };
   return (
