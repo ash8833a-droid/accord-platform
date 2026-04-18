@@ -185,6 +185,22 @@ function TeamPage() {
     );
   }, [committees]);
 
+  const dbRows: TeamDbRow[] = useMemo(() => {
+    const cMap = new Map(committees.map((c) => [c.id, c.name]));
+    return members.map((m) => ({
+      id: m.id,
+      committee_id: m.committee_id,
+      committee_name: cMap.get(m.committee_id) ?? "—",
+      full_name: m.full_name,
+      role_title: m.role_title,
+      role_key: m.role_key,
+      phone: m.phone,
+      email: m.email,
+      specialty: m.specialty,
+      is_head: m.is_head,
+    }));
+  }, [members, committees]);
+
   const create = async () => {
     if (!form.full_name || !form.committee_id) {
       toast.error("الاسم واللجنة مطلوبان");
