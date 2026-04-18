@@ -425,7 +425,7 @@ function CommitteePage() {
           <button
             type="button"
             aria-label="رفع طلب صرف أو عهدة مالية"
-            className="fixed bottom-6 left-6 z-50 group flex items-center gap-3 ps-2 pe-5 py-2 rounded-full bg-gradient-hero text-primary-foreground shadow-elegant hover:shadow-gold transition-all hover:scale-105 active:scale-95 animate-fade-up"
+            className="fixed bottom-20 lg:bottom-6 left-4 lg:left-6 z-40 group flex items-center gap-3 ps-2 pe-5 py-2 rounded-full bg-gradient-hero text-primary-foreground shadow-elegant hover:shadow-gold transition-all hover:scale-105 active:scale-95 animate-fade-up"
           >
             <span className="absolute inset-0 rounded-full bg-primary/30 animate-ping opacity-40 group-hover:opacity-0" aria-hidden="true" />
             <span className="relative h-11 w-11 rounded-full bg-gold text-gold-foreground flex items-center justify-center shadow-gold shrink-0">
