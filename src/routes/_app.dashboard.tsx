@@ -264,17 +264,17 @@ function Dashboard() {
                 className="group rounded-2xl border bg-gradient-card p-5 hover:shadow-elegant hover:-translate-y-0.5 transition-all duration-300 shadow-soft"
               >
                 {/* Top row: title + 3 stat chips */}
-                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-4">
-                  <div className="flex items-start gap-3 min-w-0 lg:order-2">
+                <div className="flex flex-col gap-4 mb-4">
+                  <div className="flex items-center gap-3 min-w-0">
                     <span className={`h-12 w-12 rounded-2xl flex items-center justify-center shrink-0 ${meta?.tone ?? "bg-muted"}`}>
                       <Icon className="h-6 w-6" />
                     </span>
-                    <div className="min-w-0">
-                      <p className="font-bold text-base truncate">{c.name}</p>
-                      <p className="text-[11px] text-muted-foreground truncate">{meta?.description}</p>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-bold text-base break-words leading-tight">{c.name}</p>
+                      <p className="text-[11px] text-muted-foreground truncate mt-0.5">{meta?.description}</p>
                     </div>
                   </div>
-                  <div className="grid grid-cols-3 gap-2 lg:order-1 lg:min-w-[320px]">
+                  <div className="grid grid-cols-3 gap-2">
                     <BudgetChip label="مخصص" value={`${fmt(c.budget_allocated)} ر.س`} tone="bg-primary/10 text-primary" />
                     <BudgetChip label="منصرف" value={`${fmt(c.budget_spent)} ر.س`} tone="bg-gold/15 text-gold-foreground" />
                     <BudgetChip label="المتبقي" value={`${fmt(remaining)} ر.س`} tone="bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" />
