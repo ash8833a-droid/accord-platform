@@ -97,8 +97,27 @@ function ReportsPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold">التقارير والجودة</h1>
-        <p className="text-muted-foreground mt-1">مركز التقارير الدورية ومؤشرات الرضا والأرشيف الموحد للجان</p>
+        <h1 className="text-3xl font-bold">التقارير</h1>
+        <p className="text-muted-foreground mt-1">مركز التقارير الدورية والأرشيف الموحد للجان</p>
+      </div>
+
+      {/* KPI strip */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="rounded-2xl bg-gradient-hero text-primary-foreground p-5 shadow-elegant">
+          <FileBarChart className="h-7 w-7 text-gold mb-2" />
+          <p className="text-3xl font-bold">{stats.committees}</p>
+          <p className="text-xs text-primary-foreground/80">لجان نشطة</p>
+        </div>
+        <div className="rounded-2xl bg-card border p-5 shadow-soft">
+          <TrendingUp className="h-7 w-7 text-primary mb-2" />
+          <p className="text-3xl font-bold">{fmt(stats.totalBudget)}</p>
+          <p className="text-xs text-muted-foreground">إجمالي ميزانيات (ر.س)</p>
+        </div>
+        <div className="rounded-2xl bg-card border p-5 shadow-soft">
+          <TrendingUp className="h-7 w-7 text-gold mb-2" />
+          <p className="text-3xl font-bold">{fmt(stats.totalSpent)}</p>
+          <p className="text-xs text-muted-foreground">إجمالي المنصرف (ر.س)</p>
+        </div>
       </div>
 
       {/* Archive section */}
