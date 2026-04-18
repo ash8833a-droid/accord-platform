@@ -137,14 +137,19 @@ function CommitteePage() {
       return;
     }
     setCommittee(c);
-    const [{ data: t }, { data: p }, { data: m }] = await Promise.all([
+    const [{ data: t }, { data: p }, { data: m }, { data: am }] = await Promise.all([
       supabase.from("committee_tasks").select("id, title, description, status, priority, assigned_to").eq("committee_id", c.id),
       supabase.from("payment_requests").select("id, title, amount, status, created_at, invoice_url").eq("committee_id", c.id).order("created_at", { ascending: false }),
       supabase.from("team_members").select("id, full_name, role_title, is_head").eq("committee_id", c.id).order("display_order"),
+      supabase.from("team_members").select("id, full_name, role_title, is_head, committee_id, committees(name)").order("display_order"),
     ]);
     setTasks((t ?? []) as Task[]);
     setRequests((p ?? []) as PaymentRequest[]);
     setMembers((m ?? []) as TeamMember[]);
+    setAllMembers(((am ?? []) as any[]).map((x) => ({
+      id: x.id, full_name: x.full_name, role_title: x.role_title, is_head: x.is_head,
+      committee_id: x.committee_id, committee_name: x.committees?.name ?? "",
+    })));
   };
 
   useEffect(() => {
