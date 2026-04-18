@@ -561,6 +561,7 @@ function OrgChart({
 
       <CircularChart
         women={women}
+        media={media}
         tier2={tier2}
         tier3={tier3}
         members={members}
