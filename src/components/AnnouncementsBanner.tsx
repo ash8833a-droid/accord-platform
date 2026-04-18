@@ -264,32 +264,13 @@ export function AnnouncementsBanner() {
   };
 
   if (isMobile) {
-    const firstItem = visible[0];
     return (
-      <div className="relative overflow-hidden border-b bg-gradient-to-l from-primary via-primary to-gold text-primary-foreground" dir="rtl">
-        <div className="flex items-center gap-2 px-3 py-2.5">
-          <div className="shrink-0 rounded-md bg-gold px-2 py-1 text-[10px] font-bold text-gold-foreground">
-            عاجل
-          </div>
-          <div className="min-w-0 flex-1 text-sm leading-tight">
-            <div className="truncate font-bold">{firstItem.title}</div>
-            <div className="truncate text-[11px] text-primary-foreground/80">
-              {firstItem.kind === "meeting" && firstItem.meetingAt
-                ? formatCountdown(firstItem.meetingAt, now, true)
-                : firstItem.body.slice(0, 80)}
-            </div>
-          </div>
-          {isAdmin && (
-            <button
-              onClick={dismissAll}
-              className="shrink-0 h-8 w-8 rounded-md hover:bg-white/10 flex items-center justify-center transition-colors"
-              aria-label="إغلاق الشريط"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          )}
-        </div>
-      </div>
+      <MobileSlider
+        items={visible}
+        now={now}
+        isAdmin={isAdmin}
+        onDismiss={dismissAll}
+      />
     );
   }
 
