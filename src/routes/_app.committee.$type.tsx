@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { committeeByType, COMMITTEES } from "@/lib/committees";
 import { FinanceModule } from "@/components/FinanceModule";
 import { InvitationCards } from "@/components/media/InvitationCards";
+import { MediaInbox } from "@/components/media/MediaInbox";
 import { TaskAttachments } from "@/components/TaskAttachments";
 import { CommitteeArchive } from "@/components/CommitteeArchive";
 import { CommitteeMembersPanel } from "@/components/CommitteeMembersPanel";
