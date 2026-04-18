@@ -88,13 +88,13 @@ export function InvitationCards() {
   return (
     <div className="space-y-5">
       {/* Equation card */}
-      <div className="rounded-2xl border-2 border-rose-500/30 bg-gradient-to-br from-rose-500/5 to-pink-500/5 p-5">
+      <div className="rounded-2xl border-2 border-primary/30 bg-gradient-to-br from-primary/5 to-primary-glow/5 p-5">
         <div className="flex items-start gap-3">
-          <Calculator className="h-6 w-6 text-rose-600 shrink-0 mt-1" />
+          <Calculator className="h-6 w-6 text-primary shrink-0 mt-1" />
           <div className="flex-1">
             <h3 className="font-bold">معادلة كروت الدعوة</h3>
             <p className="text-xs text-muted-foreground mt-1">
-              لكل عريس <span className="font-bold text-rose-700">{DEFAULT_MEN} كرت رجال</span> + <span className="font-bold text-pink-700">{DEFAULT_WOMEN} كرت نساء</span> كافتراضي.
+              لكل عريس <span className="font-bold text-primary">{DEFAULT_MEN} كرت رجال</span> + <span className="font-bold text-primary-glow">{DEFAULT_WOMEN} كرت نساء</span> كافتراضي.
               يمكن تعديل العدد لكل عريس حسب الحاجة.
             </p>
           </div>
