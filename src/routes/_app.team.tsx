@@ -257,14 +257,16 @@ function TeamPage() {
               </p>
             </div>
           </div>
-          {isAdmin && (
-            <Dialog open={open} onOpenChange={setOpen}>
-              <DialogTrigger asChild>
-                <Button className="gap-2 bg-gold text-gold-foreground hover:opacity-90">
-                  <Plus className="h-4 w-4" /> إضافة عضو
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-lg" dir="rtl">
+          <div className="flex items-center gap-2 flex-wrap">
+            <TeamDatabaseDialog rows={dbRows} />
+            {isAdmin && (
+              <Dialog open={open} onOpenChange={setOpen}>
+                <DialogTrigger asChild>
+                  <Button className="gap-2 bg-gold text-gold-foreground hover:opacity-90">
+                    <Plus className="h-4 w-4" /> إضافة عضو
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-lg" dir="rtl">
                 <DialogHeader>
                   <DialogTitle>إسناد عضو جديد للجنة</DialogTitle>
                 </DialogHeader>
