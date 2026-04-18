@@ -7,10 +7,12 @@ import {
   ShoppingCart,
   HeartHandshake,
   Sparkles,
+  Crown,
   type LucideIcon,
 } from "lucide-react";
 
 export type CommitteeType =
+  | "supreme"
   | "finance"
   | "media"
   | "quality"
@@ -31,6 +33,19 @@ export interface CommitteeMeta {
 }
 
 export const COMMITTEES: CommitteeMeta[] = [
+  {
+    type: "supreme",
+    label: "اللجنة العليا",
+    icon: Crown,
+    tone: "bg-gold/15 text-gold",
+    description: "القيادة العليا والإشراف على جميع اللجان واتخاذ القرارات الاستراتيجية",
+    goals: [
+      "رسم التوجهات الاستراتيجية العامة للحفل",
+      "اعتماد الموازنات والخطط التنفيذية",
+      "متابعة أداء جميع اللجان وتذليل العقبات",
+      "اتخاذ القرارات النهائية في القضايا المصيرية",
+    ],
+  },
   {
     type: "finance",
     label: "اللجنة المالية",
