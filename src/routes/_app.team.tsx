@@ -661,31 +661,26 @@ function CircularChart({
       ls.push({ x1: fromX, y1: y, x2: toX, y2: y });
     }
 
-    // Supreme → Tier2: vertical drop + horizontal bus + drops
-    if (supremeBottom && tier2Tops.length) {
-      const hubY = (supremeBottom.y + Math.min(...tier2Tops.map((p) => p.y))) / 2;
-      ls.push({ x1: supremeBottom.x, y1: supremeBottom.y, x2: supremeBottom.x, y2: hubY });
-      const xs = tier2Tops.map((p) => p.x);
-      ls.push({ x1: Math.min(...xs), y1: hubY, x2: Math.max(...xs), y2: hubY });
-      tier2Tops.forEach((p) => ls.push({ x1: p.x, y1: hubY, x2: p.x, y2: p.y }));
+    // Supreme → Tier2 (left stack): horizontal sibling links for each
+    if (supremeRef.current && tier2Refs.current.length) {
+      const sR = supremeRef.current.getBoundingClientRect();
+      const sCx = sR.left - rb.left + sR.width / 2;
+      tier2Refs.current.forEach((el) => {
+        if (!el) return;
+        const r = el.getBoundingClientRect();
+        const cx = r.left - rb.left + r.width / 2;
+        const cy = r.top - rb.top + r.height / 2;
+        const fromX = sCx < cx ? sR.right - rb.left : sR.left - rb.left;
+        const toX = sCx < cx ? r.left - rb.left : r.right - rb.left;
+        ls.push({ x1: fromX, y1: cy, x2: toX, y2: cy });
+      });
     }
 
-    // Tier2 → Tier3
-    if (tier2Bottoms.length && tier3Tops.length) {
+    // Supreme → Tier3 (bottom): vertical drop + horizontal bus + drops
+    if (supremeBottom && tier3Tops.length) {
       const busY =
-        (Math.max(...tier2Bottoms.map((p) => p.y)) +
-          Math.min(...tier3Tops.map((p) => p.y))) /
-        2;
-      const avgX =
-        (Math.min(...tier2Bottoms.map((p) => p.x)) +
-          Math.max(...tier2Bottoms.map((p) => p.x))) /
-        2;
-      ls.push({
-        x1: avgX,
-        y1: Math.max(...tier2Bottoms.map((p) => p.y)),
-        x2: avgX,
-        y2: busY,
-      });
+        (supremeBottom.y + Math.min(...tier3Tops.map((p) => p.y))) / 2;
+      ls.push({ x1: supremeBottom.x, y1: supremeBottom.y, x2: supremeBottom.x, y2: busY });
       const xs3 = tier3Tops.map((p) => p.x);
       ls.push({ x1: Math.min(...xs3), y1: busY, x2: Math.max(...xs3), y2: busY });
       tier3Tops.forEach((p) => ls.push({ x1: p.x, y1: busY, x2: p.x, y2: p.y }));
@@ -730,45 +725,50 @@ function CircularChart({
         </svg>
       )}
 
-      {/* TIER 1: Media (right in RTL) + Supreme (center) + Women (left in RTL) */}
-      <div className="relative flex items-center justify-center gap-10 lg:gap-20">
-        {media && (
-          <div ref={mediaRef}>
-            <CircleNode
-              committee={media}
-              members={members}
-              size="md"
-              tone="unified"
-            />
-          </div>
-        )}
-        <div ref={supremeRef}>
+      {/* TIER 1+2: Media (right) | Supreme (center) | Women + Tier2 stacked (left) */}
+      <div className="relative flex items-start justify-center gap-10 lg:gap-20">
+        {/* Right column (RTL right): Media */}
+        <div className="flex flex-col items-center pt-8">
+          {media && (
+            <div ref={mediaRef}>
+              <CircleNode
+                committee={media}
+                members={members}
+                size="md"
+                tone="unified"
+              />
+            </div>
+          )}
+        </div>
+
+        {/* Center: Supreme */}
+        <div ref={supremeRef} className="shrink-0">
           <SupremeNode />
         </div>
-        {women && (
-          <div ref={womenRef}>
-            <CircleNode
-              committee={women}
-              members={members}
-              size="md"
-              tone="unified"
-            />
-          </div>
-        )}
-      </div>
 
-      {/* TIER 2: 4 executive committees */}
-      <div className="relative grid grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-4 mt-20 lg:mt-24 justify-items-center">
-        {tier2.map((c, i) => (
-          <div
-            key={c.id}
-            ref={(el) => {
-              tier2Refs.current[i] = el;
-            }}
-          >
-            <CircleNode committee={c} members={members} size="md" tone="unified" />
-          </div>
-        ))}
+        {/* Left column (RTL left): Women on top, then Finance / Procurement / Quality stacked */}
+        <div className="flex flex-col items-center gap-6 lg:gap-8">
+          {women && (
+            <div ref={womenRef}>
+              <CircleNode
+                committee={women}
+                members={members}
+                size="md"
+                tone="unified"
+              />
+            </div>
+          )}
+          {tier2.map((c, i) => (
+            <div
+              key={c.id}
+              ref={(el) => {
+                tier2Refs.current[i] = el;
+              }}
+            >
+              <CircleNode committee={c} members={members} size="md" tone="unified" />
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* TIER 3: 3 operational committees */}
