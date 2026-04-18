@@ -39,6 +39,7 @@ const ROLE_OPTIONS: { value: Role; label: string }[] = [
 ];
 
 export function CreateMemberDialog({ onCreated }: { onCreated?: () => void }) {
+  const createMember = useServerFn(adminCreateMember);
   const [open, setOpen] = useState(false);
   const [committees, setCommittees] = useState<Committee[]>([]);
   const [submitting, setSubmitting] = useState(false);
