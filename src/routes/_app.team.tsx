@@ -649,6 +649,18 @@ function CircularChart({
       ls.push({ x1: fromX, y1: y, x2: toX, y2: y });
     }
 
+    // Supreme → Media: short horizontal sibling link (mirror of women)
+    if (media && mediaRef.current && supremeRef.current) {
+      const sR = supremeRef.current.getBoundingClientRect();
+      const mR = mediaRef.current.getBoundingClientRect();
+      const y = ((sR.top + sR.bottom) / 2 + (mR.top + mR.bottom) / 2) / 2 - rb.top;
+      const sCx = sR.left - rb.left + sR.width / 2;
+      const mCx = mR.left - rb.left + mR.width / 2;
+      const fromX = sCx < mCx ? sR.right - rb.left : sR.left - rb.left;
+      const toX = sCx < mCx ? mR.left - rb.left : mR.right - rb.left;
+      ls.push({ x1: fromX, y1: y, x2: toX, y2: y });
+    }
+
     // Supreme → Tier2: vertical drop + horizontal bus + drops
     if (supremeBottom && tier2Tops.length) {
       const hubY = (supremeBottom.y + Math.min(...tier2Tops.map((p) => p.y))) / 2;
