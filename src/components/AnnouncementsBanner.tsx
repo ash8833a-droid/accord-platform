@@ -148,6 +148,84 @@ function TickerItem({ item, now, compact = false }: { item: NormalizedItem; now:
   );
 }
 
+function MobileSlider({
+  items,
+  now,
+  isAdmin,
+  onDismiss,
+}: {
+  items: NormalizedItem[];
+  now: number;
+  isAdmin: boolean;
+  onDismiss: () => void;
+}) {
+  const [index, setIndex] = useState(0);
+
+  useEffect(() => {
+    if (items.length <= 1) return;
+    const id = setInterval(() => {
+      setIndex((i) => (i + 1) % items.length);
+    }, 5000);
+    return () => clearInterval(id);
+  }, [items.length]);
+
+  const safeIndex = items.length > 0 ? index % items.length : 0;
+
+  return (
+    <div
+      className="relative overflow-hidden border-b bg-gradient-to-l from-primary via-primary to-gold text-primary-foreground"
+      dir="rtl"
+    >
+      <div className="flex items-center gap-2 px-3 py-2.5">
+        <div className="shrink-0 rounded-md bg-gold px-2 py-1 text-[10px] font-bold text-gold-foreground">
+          عاجل
+        </div>
+        <div className="min-w-0 flex-1 relative h-9 overflow-hidden">
+          <div
+            className="absolute inset-0 flex flex-col transition-transform duration-500 ease-out"
+            style={{ transform: `translateY(-${safeIndex * 100}%)` }}
+          >
+            {items.map((item) => (
+              <div
+                key={item.id}
+                className="h-9 shrink-0 text-sm leading-tight flex flex-col justify-center"
+              >
+                <div className="truncate font-bold">{item.title}</div>
+                <div className="truncate text-[11px] text-primary-foreground/80">
+                  {item.kind === "meeting" && item.meetingAt
+                    ? formatCountdown(item.meetingAt, now, true)
+                    : item.body.slice(0, 80)}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+        {items.length > 1 && (
+          <div className="shrink-0 flex flex-col gap-1">
+            {items.slice(0, 5).map((_, i) => (
+              <span
+                key={i}
+                className={`h-1 w-1 rounded-full transition-colors ${
+                  i === safeIndex % 5 ? "bg-white" : "bg-white/30"
+                }`}
+              />
+            ))}
+          </div>
+        )}
+        {isAdmin && (
+          <button
+            onClick={onDismiss}
+            className="shrink-0 h-8 w-8 rounded-md hover:bg-white/10 flex items-center justify-center transition-colors"
+            aria-label="إغلاق الشريط"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export function AnnouncementsBanner() {
   const [items, setItems] = useState<NormalizedItem[]>([]);
   const [dismissed, setDismissed] = useState<string[]>(() => {
