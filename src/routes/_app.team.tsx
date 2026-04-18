@@ -471,9 +471,9 @@ function TeamPage() {
 
 /* ───────── Org Chart (Square frames · Left vertical spine + Pyramid base) ───────── */
 
-// Vertical spine on the LEFT side of the Supreme committee
-const SPINE: CommitteeType[] = ["finance", "women", "quality", "procurement"];
-// Pyramid base (operational committees) — order requested
+// Tier 2 — supervisory committees displayed in a horizontal row directly under Supreme
+const SPINE: CommitteeType[] = ["quality", "finance", "procurement", "women"];
+// Tier 3 — operational committees displayed in a horizontal row at the bottom
 const BASE: CommitteeType[] = ["media", "dinner", "programs", "reception"];
 
 function OrgChart({
@@ -618,34 +618,32 @@ function HierarchyChart({
 
     if (!supreme) return setLines(ls);
 
-    // Left vertical spine: a single vertical bus on the left, with a horizontal
-    // connector from Supreme's left edge into the bus, plus horizontal stubs
-    // from the bus to each spine node's right edge.
+    // Tier 2 (spine row): drop from Supreme bottom → horizontal bus → drop to each spine node top
     if (spineCenters.length) {
-      const busX =
-        Math.max(...spineCenters.map((c) => c.right)) +
-        Math.max(24, (supreme.left - Math.max(...spineCenters.map((c) => c.right))) / 2);
-      const topY = Math.min(...spineCenters.map((c) => (c.top + c.bottom) / 2));
-      const bottomY = Math.max(...spineCenters.map((c) => (c.top + c.bottom) / 2));
-      // Vertical bus
-      ls.push({ x1: busX, y1: Math.min(topY, supreme.top + (supreme.bottom - supreme.top) / 2), x2: busX, y2: bottomY });
-      // Supreme left edge → bus (horizontal)
-      const supremeMidY = (supreme.top + supreme.bottom) / 2;
-      ls.push({ x1: supreme.left, y1: supremeMidY, x2: busX, y2: supremeMidY });
-      // Bus → each spine node (horizontal stub to right edge of each node)
-      spineCenters.forEach((c) => {
-        const midY = (c.top + c.bottom) / 2;
-        ls.push({ x1: busX, y1: midY, x2: c.right, y2: midY });
-      });
+      const busY =
+        (supreme.bottom + Math.min(...spineCenters.map((c) => c.top))) / 2;
+      ls.push({ x1: supreme.cx, y1: supreme.bottom, x2: supreme.cx, y2: busY });
+      const xs = spineCenters.map((c) => c.cx);
+      ls.push({ x1: Math.min(...xs, supreme.cx), y1: busY, x2: Math.max(...xs, supreme.cx), y2: busY });
+      spineCenters.forEach((c) => ls.push({ x1: c.cx, y1: busY, x2: c.cx, y2: c.top }));
     }
 
-    // Pyramid base: vertical drop from Supreme bottom → horizontal bus → drop to each base node top
-    if (baseCenters.length) {
+    // Tier 3 (base row): each Tier 2 node drops directly to its corresponding base node
+    // Use a shared horizontal bus between Tier 2 bottoms and Tier 3 tops.
+    if (baseCenters.length && spineCenters.length) {
       const busY =
-        (supreme.bottom + Math.min(...baseCenters.map((c) => c.top))) / 2;
-      ls.push({ x1: supreme.cx, y1: supreme.bottom, x2: supreme.cx, y2: busY });
-      const xs = baseCenters.map((c) => c.cx);
-      ls.push({ x1: Math.min(...xs, supreme.cx), y1: busY, x2: Math.max(...xs, supreme.cx), y2: busY });
+        (Math.max(...spineCenters.map((c) => c.bottom)) +
+          Math.min(...baseCenters.map((c) => c.top))) /
+        2;
+      // drop from each spine node to bus
+      spineCenters.forEach((c) => ls.push({ x1: c.cx, y1: c.bottom, x2: c.cx, y2: busY }));
+      // horizontal bus spanning both rows
+      const allXs = [
+        ...spineCenters.map((c) => c.cx),
+        ...baseCenters.map((c) => c.cx),
+      ];
+      ls.push({ x1: Math.min(...allXs), y1: busY, x2: Math.max(...allXs), y2: busY });
+      // drop from bus to each base node
       baseCenters.forEach((c) => ls.push({ x1: c.cx, y1: busY, x2: c.cx, y2: c.top }));
     }
 
@@ -688,10 +686,15 @@ function HierarchyChart({
         </svg>
       )}
 
-      {/* Two-column grid: left vertical spine | right (Supreme on top, Base pyramid below) */}
-      <div className="relative grid grid-cols-[auto_1fr] gap-x-12 lg:gap-x-20 items-start">
-        {/* LEFT — vertical spine */}
-        <div className="flex flex-col items-end gap-6 lg:gap-8 pt-4">
+      {/* Three rows: Supreme on top → Tier 2 (supervisory) → Tier 3 (operational) */}
+      <div className="relative flex flex-col items-center">
+        {/* Supreme */}
+        <div ref={supremeRef}>
+          <SupremeNode />
+        </div>
+
+        {/* Tier 2 — supervisory committees */}
+        <div className="mt-14 lg:mt-16 grid grid-cols-2 sm:grid-cols-4 gap-6 lg:gap-8 w-full justify-items-center">
           {spine.map((c, i) => (
             <div
               key={c.id}
@@ -704,24 +707,18 @@ function HierarchyChart({
           ))}
         </div>
 
-        {/* RIGHT — Supreme on top, base pyramid below */}
-        <div className="flex flex-col items-center">
-          <div ref={supremeRef}>
-            <SupremeNode />
-          </div>
-
-          <div className="mt-16 lg:mt-20 grid grid-cols-2 sm:grid-cols-4 gap-6 lg:gap-8 w-full justify-items-center">
-            {base.map((c, i) => (
-              <div
-                key={c.id}
-                ref={(el) => {
-                  baseRefs.current[i] = el;
-                }}
-              >
-                <SquareNode committee={c} members={members} />
-              </div>
-            ))}
-          </div>
+        {/* Tier 3 — operational committees */}
+        <div className="mt-14 lg:mt-16 grid grid-cols-2 sm:grid-cols-4 gap-6 lg:gap-8 w-full justify-items-center">
+          {base.map((c, i) => (
+            <div
+              key={c.id}
+              ref={(el) => {
+                baseRefs.current[i] = el;
+              }}
+            >
+              <SquareNode committee={c} members={members} />
+            </div>
+          ))}
         </div>
       </div>
     </div>
