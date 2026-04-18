@@ -585,11 +585,13 @@ interface ConnectorLine {
 
 function CircularChart({
   women,
+  media,
   tier2,
   tier3,
   members,
 }: {
   women: CommitteeRow | undefined;
+  media: CommitteeRow | undefined;
   tier2: CommitteeRow[];
   tier3: CommitteeRow[];
   members: MemberRow[];
@@ -597,6 +599,7 @@ function CircularChart({
   const containerRef = useRef<HTMLDivElement>(null);
   const supremeRef = useRef<HTMLDivElement>(null);
   const womenRef = useRef<HTMLDivElement>(null);
+  const mediaRef = useRef<HTMLDivElement>(null);
   const tier2Refs = useRef<(HTMLDivElement | null)[]>([]);
   const tier3Refs = useRef<(HTMLDivElement | null)[]>([]);
   const [size, setSize] = useState({ w: 0, h: 0 });
