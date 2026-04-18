@@ -850,11 +850,24 @@ function PyramidNode({
   }[variant];
 
   return (
-    <div
-      className={`relative rounded-2xl border-2 p-4 shadow-soft hover:shadow-elegant hover:-translate-y-1 transition-all duration-300 ${styles.wrap}`}
+    <Link
+      to="/committee/$type"
+      params={{ type: committee.type }}
+      className={`group relative block rounded-2xl border-2 p-4 shadow-soft hover:shadow-elegant hover:-translate-y-1 transition-all duration-300 ${styles.wrap}`}
+      title={`فتح صفحة ${committee.name}`}
     >
       {/* Top accent bar */}
       <div className={`absolute top-0 left-4 right-4 h-0.5 rounded-b ${styles.accent} opacity-60`} />
+
+      {/* Hover arrow */}
+      <div
+        data-export-hide="true"
+        className="absolute top-3 left-3 opacity-0 group-hover:opacity-100 transition-opacity"
+      >
+        <div className={`h-6 w-6 rounded-full ${styles.accent} text-white flex items-center justify-center`}>
+          <ArrowLeft className="h-3.5 w-3.5" />
+        </div>
+      </div>
 
       <div className="flex items-start gap-3">
         <div
@@ -868,7 +881,9 @@ function PyramidNode({
               {tagline}
             </p>
           )}
-          <p className="font-bold text-sm leading-tight">{committee.name}</p>
+          <p className="font-bold text-sm leading-tight group-hover:text-primary transition-colors">
+            {committee.name}
+          </p>
           <div className="flex items-center gap-1.5 mt-1.5">
             <Badge
               variant="secondary"
@@ -906,6 +921,6 @@ function PyramidNode({
           </p>
         )}
       </div>
-    </div>
+    </Link>
   );
 }
