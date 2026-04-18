@@ -37,6 +37,7 @@ import {
   
 } from "lucide-react";
 import { toast } from "sonner";
+import { TeamDatabaseDialog, type TeamDbRow } from "@/components/TeamDatabaseDialog";
 
 export const Route = createFileRoute("/_app/team")({
   component: TeamPage,
