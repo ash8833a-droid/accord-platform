@@ -65,6 +65,14 @@ const COMMON_CLOSING: PmpTaskTemplate[] = [
 ];
 
 export const PMP_TEMPLATES: Record<CommitteeType, PmpTaskTemplate[]> = {
+  supreme: [
+    ...COMMON_INIT("اللجنة العليا"),
+    { title: "اعتماد الخطة الاستراتيجية العامة", description: "إقرار الرؤية والأهداف العامة للحفل ومؤشرات النجاح.", phase: "planning", priority: "urgent" },
+    { title: "اعتماد موازنات اللجان", description: "مراجعة واعتماد موازنة كل لجنة قبل بدء التنفيذ.", phase: "planning", priority: "high" },
+    { title: "متابعة أداء اللجان دوريًا", description: "عقد اجتماعات دورية مع رؤساء اللجان لمراجعة التقدم.", phase: "monitoring", priority: "high" },
+    { title: "اتخاذ القرارات في القضايا المصيرية", description: "حسم الخلافات والقرارات التي تتجاوز صلاحيات اللجان.", phase: "executing", priority: "high" },
+    { title: "تقييم نهائي وتقرير ختامي", description: "إعداد التقرير النهائي للحفل والدروس المستفادة.", phase: "closing", priority: "medium" },
+  ],
   finance: [
     ...COMMON_INIT("اللجنة المالية"),
     { title: "إعداد الموازنة التقديرية السنوية", description: "تجميع احتياجات اللجان وإعداد موازنة معتمدة بنود وتفاصيل.", phase: "planning", priority: "urgent" },
