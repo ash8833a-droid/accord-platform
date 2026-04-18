@@ -351,3 +351,86 @@ function GroomsPage() {
     </div>
   );
 }
+
+const TONES: Record<string, string> = {
+  primary: "from-primary/10 to-primary/0 border-primary/30 text-primary",
+  emerald: "from-emerald-500/10 to-emerald-500/0 border-emerald-500/30 text-emerald-700",
+  amber: "from-amber-500/10 to-amber-500/0 border-amber-500/30 text-amber-700",
+  sky: "from-sky-500/10 to-sky-500/0 border-sky-500/30 text-sky-700",
+  gold: "from-gold/15 to-gold/0 border-gold/40 text-gold-foreground",
+  muted: "from-muted/40 to-muted/0 border-border text-foreground",
+};
+
+function Section({ title, icon: Icon, tone, children }: { title: string; icon: any; tone: string; children: React.ReactNode }) {
+  return (
+    <div className={`rounded-xl border bg-gradient-to-br p-3.5 space-y-3 ${TONES[tone]}`}>
+      <div className="flex items-center gap-2">
+        <div className="h-7 w-7 rounded-lg bg-background/70 flex items-center justify-center">
+          <Icon className="h-4 w-4" />
+        </div>
+        <h3 className="text-sm font-bold text-foreground">{title}</h3>
+      </div>
+      <div className="space-y-3">{children}</div>
+    </div>
+  );
+}
+
+function Field({ label, icon: Icon, children }: { label: string; icon?: any; children: React.ReactNode }) {
+  return (
+    <div className="space-y-1.5">
+      <Label className="text-xs flex items-center gap-1.5 text-foreground/80">
+        {Icon && <Icon className="h-3.5 w-3.5" />}
+        {label}
+      </Label>
+      {children}
+    </div>
+  );
+}
+
+function FileUploader({
+  label, icon: Icon, accept, preview, onChange, onClear, hint,
+}: {
+  label: string; icon: any; accept: string; preview: string | null;
+  onChange: (f: File | null) => void; onClear: () => void; hint?: string;
+}) {
+  const inputId = `file-${label}`;
+  return (
+    <div className="space-y-1.5">
+      <Label className="text-xs flex items-center gap-1.5 text-foreground/80">
+        <Icon className="h-3.5 w-3.5" /> {label}
+      </Label>
+      {preview ? (
+        <div className="relative group rounded-xl overflow-hidden border-2 border-emerald-500/40 bg-card aspect-[4/3]">
+          <img src={preview} alt={label} className="w-full h-full object-cover" />
+          <button
+            type="button"
+            onClick={onClear}
+            className="absolute top-2 left-2 h-7 w-7 rounded-full bg-rose-600 text-white flex items-center justify-center shadow-lg hover:bg-rose-700"
+            aria-label="حذف"
+          >
+            <X className="h-4 w-4" />
+          </button>
+          <div className="absolute bottom-2 right-2 px-2 py-0.5 rounded-md bg-emerald-600 text-white text-[10px] font-bold">✓ تم الرفع</div>
+        </div>
+      ) : (
+        <label
+          htmlFor={inputId}
+          className="flex flex-col items-center justify-center gap-2 aspect-[4/3] rounded-xl border-2 border-dashed border-border hover:border-primary/50 hover:bg-primary/5 cursor-pointer transition-colors bg-background/50"
+        >
+          <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+            <Upload className="h-5 w-5 text-primary" />
+          </div>
+          <span className="text-xs font-medium text-foreground">اضغط لاختيار ملف</span>
+          {hint && <span className="text-[10px] text-muted-foreground">{hint}</span>}
+        </label>
+      )}
+      <input
+        id={inputId}
+        type="file"
+        accept={accept}
+        className="hidden"
+        onChange={(e) => onChange(e.target.files?.[0] ?? null)}
+      />
+    </div>
+  );
+}
