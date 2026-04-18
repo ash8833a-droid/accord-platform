@@ -101,11 +101,12 @@ function CommitteePage() {
   const { type } = Route.useParams();
   const meta = committeeByType(type);
 
-  const [committee, setCommittee] = useState<{ id: string; name: string; description: string | null; budget_allocated: number; budget_spent: number } | null>(null);
+  const [committee, setCommittee] = useState<{ id: string; name: string; description: string | null; budget_allocated: number; budget_spent: number; head_user_id: string | null } | null>(null);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [requests, setRequests] = useState<PaymentRequest[]>([]);
 
-  const { user } = useAuth();
+  const { user, hasRole } = useAuth();
+  const isAdmin = hasRole("admin");
   const [profileName, setProfileName] = useState<string | null>(null);
   const [members, setMembers] = useState<TeamMember[]>([]);
   const [allMembers, setAllMembers] = useState<TeamMember[]>([]);
@@ -127,6 +128,9 @@ function CommitteePage() {
   const [prRecipient, setPrRecipient] = useState<string>("finance");
   const [prSubmitting, setPrSubmitting] = useState(false);
 
+  const isHead = !!(user && committee && committee.head_user_id === user.id);
+  const canManageTasks = isAdmin || isHead;
+
   const load = async () => {
     const { data: c } = await supabase
       .from("committees")
@@ -138,19 +142,71 @@ function CommitteePage() {
       return;
     }
     setCommittee(c);
-    const [{ data: t }, { data: p }, { data: m }, { data: am }] = await Promise.all([
+
+    const [{ data: t }, { data: p }, { data: m }, { data: am }, { data: rolesInCommittee }, { data: allRoles }] = await Promise.all([
       supabase.from("committee_tasks").select("id, title, description, status, priority, assigned_to").eq("committee_id", c.id),
       supabase.from("payment_requests").select("id, title, amount, status, created_at, invoice_url").eq("committee_id", c.id).order("created_at", { ascending: false }),
       supabase.from("team_members").select("id, full_name, role_title, is_head").eq("committee_id", c.id).order("display_order"),
       supabase.from("team_members").select("id, full_name, role_title, is_head, committee_id, committees(name)").order("display_order"),
+      supabase.from("user_roles").select("user_id, role").eq("committee_id", c.id),
+      supabase.from("user_roles").select("user_id, role, committee_id").not("committee_id", "is", null),
     ]);
+
+    const teamForCommittee = (m ?? []) as TeamMember[];
+    const allTeam = ((am ?? []) as any[]).map((x) => ({
+      id: x.id, full_name: x.full_name, role_title: x.role_title, is_head: x.is_head,
+      committee_id: x.committee_id as string, committee_name: x.committees?.name ?? "",
+    })) as TeamMember[];
+
+    // Fetch profiles for users in user_roles to merge into the members lists
+    const allRoleRows = (allRoles ?? []) as { user_id: string; role: string; committee_id: string }[];
+    const roleUserIds = Array.from(new Set(allRoleRows.map((r) => r.user_id)));
+    let profiles: { user_id: string; full_name: string }[] = [];
+    if (roleUserIds.length) {
+      const { data: pr } = await supabase
+        .from("profiles")
+        .select("user_id, full_name")
+        .in("user_id", roleUserIds);
+      profiles = pr ?? [];
+    }
+    const profMap = new Map(profiles.map((p) => [p.user_id, p.full_name]));
+    const committeeNameById = new Map(allTeam.map((tm) => [tm.committee_id, tm.committee_name] as const));
+    // Also include current committee in the map (in case it has no team_members yet)
+    committeeNameById.set(c.id, c.name);
+
+    // Build virtual TeamMember entries from user_roles, deduped against existing team_members by name+committee
+    const existingKeys = new Set(allTeam.map((tm) => `${tm.committee_id}::${tm.full_name.trim()}`));
+    const virtualFromRoles: TeamMember[] = [];
+    allRoleRows.forEach((r) => {
+      const name = profMap.get(r.user_id);
+      if (!name) return;
+      const key = `${r.committee_id}::${name.trim()}`;
+      if (existingKeys.has(key)) return;
+      existingKeys.add(key);
+      virtualFromRoles.push({
+        id: `role::${r.user_id}::${r.committee_id}`,
+        full_name: name,
+        role_title: r.role === "committee" ? "عضو لجنة" : r.role === "quality" ? "الجودة" : r.role === "admin" ? "مدير نظام" : r.role,
+        is_head: false,
+        committee_id: r.committee_id,
+        committee_name: committeeNameById.get(r.committee_id) ?? "",
+      });
+    });
+
+    // Merge into members of the current committee and global list
+    const mergedForCommittee = [
+      ...teamForCommittee,
+      ...virtualFromRoles.filter((v) => v.committee_id === c.id),
+    ];
+    const mergedAll = [...allTeam, ...virtualFromRoles];
+
     setTasks((t ?? []) as Task[]);
     setRequests((p ?? []) as PaymentRequest[]);
-    setMembers((m ?? []) as TeamMember[]);
-    setAllMembers(((am ?? []) as any[]).map((x) => ({
-      id: x.id, full_name: x.full_name, role_title: x.role_title, is_head: x.is_head,
-      committee_id: x.committee_id, committee_name: x.committees?.name ?? "",
-    })));
+    setMembers(mergedForCommittee);
+    setAllMembers(mergedAll);
+
+    // Suppress unused warning for rolesInCommittee (kept for future use)
+    void rolesInCommittee;
   };
 
   useEffect(() => {
