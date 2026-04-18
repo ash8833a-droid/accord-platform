@@ -1,4 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { toPng } from "html-to-image";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -31,6 +32,8 @@ import {
   Trash2,
   Star,
   UserCircle2,
+  Download,
+  ArrowLeft,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -482,8 +485,40 @@ function OrgChart({
   const tier2 = TIER_2.map(byType).filter(Boolean) as CommitteeRow[];
   const tier3 = TIER_3.map(byType).filter(Boolean) as CommitteeRow[];
 
+  const exportRef = useRef<HTMLDivElement>(null);
+  const [exporting, setExporting] = useState(false);
+
+  const handleExport = async () => {
+    if (!exportRef.current) return;
+    setExporting(true);
+    try {
+      const dataUrl = await toPng(exportRef.current, {
+        cacheBust: true,
+        pixelRatio: 3,
+        backgroundColor: "#ffffff",
+        filter: (node) => {
+          if (!(node instanceof HTMLElement)) return true;
+          return !node.dataset?.exportHide;
+        },
+      });
+      const link = document.createElement("a");
+      link.download = `الهيكل-التنظيمي-${new Date().toISOString().slice(0, 10)}.png`;
+      link.href = dataUrl;
+      link.click();
+      toast.success("تم تصدير الهيكل بنجاح");
+    } catch (e) {
+      toast.error("تعذّر التصدير");
+      console.error(e);
+    } finally {
+      setExporting(false);
+    }
+  };
+
   return (
-    <div className="relative rounded-3xl border bg-gradient-to-br from-card via-card to-muted/30 p-6 lg:p-10 shadow-elegant overflow-hidden">
+    <div
+      ref={exportRef}
+      className="relative rounded-3xl border bg-gradient-to-br from-card via-card to-muted/30 p-6 lg:p-10 shadow-elegant overflow-hidden"
+    >
       {/* Decorative background */}
       <div className="absolute -top-24 -right-24 w-72 h-72 bg-gold/10 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute -bottom-24 -left-24 w-72 h-72 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
@@ -501,16 +536,28 @@ function OrgChart({
           <div className="h-1 w-10 bg-gradient-gold rounded-full" />
           <h2 className="text-lg lg:text-xl font-bold">الهيكل التنظيمي الهرمي</h2>
         </div>
-        <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
-          <span className="flex items-center gap-1.5">
-            <span className="h-2 w-2 rounded-full bg-gold" /> القيادة العليا
-          </span>
-          <span className="flex items-center gap-1.5">
-            <span className="h-2 w-2 rounded-full bg-primary" /> اللجان التنفيذية
-          </span>
-          <span className="flex items-center gap-1.5">
-            <span className="h-2 w-2 rounded-full bg-emerald-500" /> اللجان التشغيلية
-          </span>
+        <div className="flex items-center gap-3 flex-wrap">
+          <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
+            <span className="flex items-center gap-1.5">
+              <span className="h-2 w-2 rounded-full bg-gold" /> القيادة العليا
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="h-2 w-2 rounded-full bg-primary" /> اللجان التنفيذية
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="h-2 w-2 rounded-full bg-emerald-500" /> اللجان التشغيلية
+            </span>
+          </div>
+          <Button
+            data-export-hide="true"
+            onClick={handleExport}
+            disabled={exporting}
+            size="sm"
+            className="gap-2 bg-gradient-gold text-gold-foreground hover:opacity-90 shadow-gold"
+          >
+            <Download className="h-4 w-4" />
+            {exporting ? "جارِ التصدير..." : "تصدير PNG"}
+          </Button>
         </div>
       </div>
 
@@ -803,11 +850,24 @@ function PyramidNode({
   }[variant];
 
   return (
-    <div
-      className={`relative rounded-2xl border-2 p-4 shadow-soft hover:shadow-elegant hover:-translate-y-1 transition-all duration-300 ${styles.wrap}`}
+    <Link
+      to="/committee/$type"
+      params={{ type: committee.type }}
+      className={`group relative block rounded-2xl border-2 p-4 shadow-soft hover:shadow-elegant hover:-translate-y-1 transition-all duration-300 ${styles.wrap}`}
+      title={`فتح صفحة ${committee.name}`}
     >
       {/* Top accent bar */}
       <div className={`absolute top-0 left-4 right-4 h-0.5 rounded-b ${styles.accent} opacity-60`} />
+
+      {/* Hover arrow */}
+      <div
+        data-export-hide="true"
+        className="absolute top-3 left-3 opacity-0 group-hover:opacity-100 transition-opacity"
+      >
+        <div className={`h-6 w-6 rounded-full ${styles.accent} text-white flex items-center justify-center`}>
+          <ArrowLeft className="h-3.5 w-3.5" />
+        </div>
+      </div>
 
       <div className="flex items-start gap-3">
         <div
@@ -821,7 +881,9 @@ function PyramidNode({
               {tagline}
             </p>
           )}
-          <p className="font-bold text-sm leading-tight">{committee.name}</p>
+          <p className="font-bold text-sm leading-tight group-hover:text-primary transition-colors">
+            {committee.name}
+          </p>
           <div className="flex items-center gap-1.5 mt-1.5">
             <Badge
               variant="secondary"
@@ -859,6 +921,6 @@ function PyramidNode({
           </p>
         )}
       </div>
-    </div>
+    </Link>
   );
 }
