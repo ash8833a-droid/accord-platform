@@ -588,21 +588,41 @@ function CommitteePage() {
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <Label className="flex items-center gap-1.5"><Users className="h-3.5 w-3.5" /> المسؤول عن المهمة</Label>
+                    <Label className="flex items-center gap-1.5"><Users className="h-3.5 w-3.5" /> تعيين المهمة إلى</Label>
                     <Select value={tAssignee} onValueChange={setTAssignee}>
-                      <SelectTrigger><SelectValue placeholder="اختر عضواً" /></SelectTrigger>
-                      <SelectContent>
+                      <SelectTrigger><SelectValue placeholder="اختر عضواً من المنصة" /></SelectTrigger>
+                      <SelectContent className="max-h-72">
                         <SelectItem value="none">— بدون تعيين —</SelectItem>
-                        {members.map((m) => (
-                          <SelectItem key={m.id} value={m.id}>
-                            {m.full_name}{m.role_title ? ` · ${m.role_title}` : ""}{m.is_head ? " (رئيس)" : ""}
-                          </SelectItem>
-                        ))}
+                        {members.length > 0 && (
+                          <div>
+                            <div className="px-2 py-1 text-[10px] font-bold text-muted-foreground bg-primary/5 mt-1">
+                              {meta.label} (لجنتك)
+                            </div>
+                            {members.map((m) => (
+                              <SelectItem key={`own-${m.id}`} value={m.id}>
+                                {m.full_name}{m.role_title ? ` · ${m.role_title}` : ""}{m.is_head ? " (رئيس)" : ""}
+                              </SelectItem>
+                            ))}
+                          </div>
+                        )}
+                        {COMMITTEES.filter((cm) => cm.label !== meta.label).map((cm) => {
+                          const list = allMembers.filter((m) => m.committee_name === cm.label);
+                          if (list.length === 0) return null;
+                          return (
+                            <div key={cm.type}>
+                              <div className="px-2 py-1 text-[10px] font-bold text-muted-foreground bg-muted/40 mt-1">{cm.label}</div>
+                              {list.map((m) => (
+                                <SelectItem key={m.id} value={m.id}>
+                                  {m.full_name}{m.role_title ? ` · ${m.role_title}` : ""}{m.is_head ? " (رئيس)" : ""}
+                                </SelectItem>
+                              ))}
+                            </div>
+                          );
+                        })}
                       </SelectContent>
                     </Select>
-                    {members.length === 0 && (
-                      <p className="text-[11px] text-muted-foreground">لا يوجد أعضاء لهذه اللجنة. أضف أعضاء من صفحة فريق العمل.</p>
-                    )}
+                    <p className="text-[11px] text-muted-foreground">يمكنك تعيين المهمة لأي عضو في أي لجنة بالمنصة.</p>
+                  </div>
                   </div>
                   <Button type="submit" className="w-full bg-gradient-hero text-primary-foreground">
                     {editingId ? "حفظ التعديلات" : "إضافة"}
