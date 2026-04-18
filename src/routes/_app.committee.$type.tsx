@@ -15,6 +15,7 @@ import { FinanceModule } from "@/components/FinanceModule";
 import { InvitationCards } from "@/components/media/InvitationCards";
 import { TaskAttachments } from "@/components/TaskAttachments";
 import { CommitteeArchive } from "@/components/CommitteeArchive";
+import { CommitteeMembersPanel } from "@/components/CommitteeMembersPanel";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth } from "@/lib/auth";
 
@@ -406,6 +407,8 @@ function CommitteePage() {
           </ul>
         </div>
       )}
+
+      <CommitteeMembersPanel committeeId={committee.id} />
 
       {type === "finance" && (
         <div className="rounded-2xl border bg-card p-5 shadow-soft">
