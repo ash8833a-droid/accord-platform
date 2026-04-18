@@ -106,7 +106,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         data: { full_name: fullName, phone, family_branch: familyBranch },
       },
     });
-    if (error) return { error: error.message };
+    if (error) {
+      const msg = error.message || "";
+      if (/already registered|already been registered|user already exists/i.test(msg)) {
+        return { error: "رقم الجوال مسجّل مسبقاً. يرجى تسجيل الدخول أو استخدام رقم آخر." };
+      }
+      if (/password/i.test(msg) && /(short|weak|6)/i.test(msg)) {
+        return { error: "كلمة المرور قصيرة جداً (6 أحرف على الأقل)." };
+      }
+      return { error: msg };
+    }
 
     // Sign in immediately (we did NOT enable email confirmation)
     const { error: signInErr } = await supabase.auth.signInWithPassword({ email, password });
@@ -114,15 +123,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const uid = data.user?.id;
     if (uid) {
-      const { error: reqErr } = await supabase.from("membership_requests").insert({
-        user_id: uid,
-        full_name: fullName,
-        phone,
-        family_branch: familyBranch,
-        requested_committee_id: requestedCommitteeId ?? null,
-        notes: notes ?? null,
-      });
-      if (reqErr) return { error: reqErr.message };
+      // Avoid duplicate request if user re-submits
+      const { data: existing } = await supabase
+        .from("membership_requests")
+        .select("id")
+        .eq("user_id", uid)
+        .maybeSingle();
+      if (!existing) {
+        const { error: reqErr } = await supabase.from("membership_requests").insert({
+          user_id: uid,
+          full_name: fullName,
+          phone,
+          family_branch: familyBranch,
+          requested_committee_id: requestedCommitteeId ?? null,
+          notes: notes ?? null,
+        });
+        if (reqErr) return { error: reqErr.message };
+      }
     }
     return {};
   };
