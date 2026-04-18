@@ -472,7 +472,7 @@ function TeamPage() {
 /* ───────── Org Chart (Circular Hierarchical, Reference-Style) ───────── */
 
 const TIER_2: CommitteeType[] = ["finance", "procurement", "quality"];
-const TIER_3: CommitteeType[] = ["media", "reception", "programs", "dinner"];
+const TIER_3: CommitteeType[] = ["reception", "programs", "dinner"];
 
 function OrgChart({
   committees,
@@ -483,6 +483,7 @@ function OrgChart({
 }) {
   const byType = (t: CommitteeType) => committees.find((c) => c.type === t);
   const women = byType("women");
+  const media = byType("media");
   const tier2 = TIER_2.map(byType).filter(Boolean) as CommitteeRow[];
   const tier3 = TIER_3.map(byType).filter(Boolean) as CommitteeRow[];
 
@@ -560,6 +561,7 @@ function OrgChart({
 
       <CircularChart
         women={women}
+        media={media}
         tier2={tier2}
         tier3={tier3}
         members={members}
@@ -583,11 +585,13 @@ interface ConnectorLine {
 
 function CircularChart({
   women,
+  media,
   tier2,
   tier3,
   members,
 }: {
   women: CommitteeRow | undefined;
+  media: CommitteeRow | undefined;
   tier2: CommitteeRow[];
   tier3: CommitteeRow[];
   members: MemberRow[];
@@ -595,6 +599,7 @@ function CircularChart({
   const containerRef = useRef<HTMLDivElement>(null);
   const supremeRef = useRef<HTMLDivElement>(null);
   const womenRef = useRef<HTMLDivElement>(null);
+  const mediaRef = useRef<HTMLDivElement>(null);
   const tier2Refs = useRef<(HTMLDivElement | null)[]>([]);
   const tier3Refs = useRef<(HTMLDivElement | null)[]>([]);
   const [size, setSize] = useState({ w: 0, h: 0 });
@@ -644,6 +649,18 @@ function CircularChart({
       ls.push({ x1: fromX, y1: y, x2: toX, y2: y });
     }
 
+    // Supreme → Media: short horizontal sibling link (mirror of women)
+    if (media && mediaRef.current && supremeRef.current) {
+      const sR = supremeRef.current.getBoundingClientRect();
+      const mR = mediaRef.current.getBoundingClientRect();
+      const y = ((sR.top + sR.bottom) / 2 + (mR.top + mR.bottom) / 2) / 2 - rb.top;
+      const sCx = sR.left - rb.left + sR.width / 2;
+      const mCx = mR.left - rb.left + mR.width / 2;
+      const fromX = sCx < mCx ? sR.right - rb.left : sR.left - rb.left;
+      const toX = sCx < mCx ? mR.left - rb.left : mR.right - rb.left;
+      ls.push({ x1: fromX, y1: y, x2: toX, y2: y });
+    }
+
     // Supreme → Tier2: vertical drop + horizontal bus + drops
     if (supremeBottom && tier2Tops.length) {
       const hubY = (supremeBottom.y + Math.min(...tier2Tops.map((p) => p.y))) / 2;
@@ -687,7 +704,7 @@ function CircularChart({
       window.removeEventListener("resize", measure);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [women?.id, tier2.length, tier3.length]);
+  }, [women?.id, media?.id, tier2.length, tier3.length]);
 
   return (
     <div ref={containerRef} className="relative px-6 lg:px-10 py-12 lg:py-16">
@@ -713,8 +730,18 @@ function CircularChart({
         </svg>
       )}
 
-      {/* TIER 1: Supreme (right in RTL) + Women (left in RTL) */}
+      {/* TIER 1: Media (right in RTL) + Supreme (center) + Women (left in RTL) */}
       <div className="relative flex items-center justify-center gap-10 lg:gap-20">
+        {media && (
+          <div ref={mediaRef}>
+            <CircleNode
+              committee={media}
+              members={members}
+              size="md"
+              tone="unified"
+            />
+          </div>
+        )}
         <div ref={supremeRef}>
           <SupremeNode />
         </div>
