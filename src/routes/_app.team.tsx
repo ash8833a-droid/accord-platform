@@ -728,7 +728,7 @@ function HierarchyChart({
   );
 }
 
-/* ───────── Supreme (top circle, filled gold-tone) ───────── */
+/* ───────── Supreme (top — square frame, filled gold-tone) ───────── */
 function SupremeNode() {
   return (
     <Link
@@ -736,11 +736,11 @@ function SupremeNode() {
       className="group relative block"
       title="اللجنة العليا"
     >
-      <div className="relative h-40 w-40 lg:h-48 lg:w-48 rounded-full bg-gradient-to-br from-gold/90 via-gold to-amber-500/90 shadow-gold flex items-center justify-center ring-[6px] ring-gold/20 group-hover:scale-105 transition-transform duration-300">
-        <div className="absolute inset-2 rounded-full border border-white/50" />
-        <div className="text-center text-gold-foreground px-3">
-          <Crown className="h-6 w-6 mx-auto mb-1.5 opacity-95" />
-          <p className="font-bold text-base lg:text-lg leading-tight">
+      <div className="relative h-44 w-56 lg:h-48 lg:w-64 rounded-2xl bg-gradient-to-br from-gold/90 via-gold to-amber-500/90 shadow-gold flex items-center justify-center ring-[6px] ring-gold/20 group-hover:scale-[1.03] transition-transform duration-300">
+        <div className="absolute inset-2 rounded-xl border border-white/50" />
+        <div className="text-center text-gold-foreground px-4">
+          <Crown className="h-7 w-7 mx-auto mb-2 opacity-95" />
+          <p className="font-bold text-lg lg:text-xl leading-tight">
             اللجنة العليا
           </p>
           <p className="text-[11px] lg:text-xs mt-1.5 opacity-85 tracking-wider">
@@ -752,15 +752,13 @@ function SupremeNode() {
   );
 }
 
-/* ───────── Circle Node (committees — unified formal style) ───────── */
-function CircleNode({
+/* ───────── Square Node (committees — unified formal square frame) ───────── */
+function SquareNode({
   committee,
   members,
 }: {
   committee: CommitteeRow;
   members: MemberRow[];
-  size?: "sm" | "md";
-  tone?: "unified";
 }) {
   const meta = COMMITTEES.find((m) => m.type === committee.type);
   const Icon = meta?.icon ?? Users;
@@ -775,11 +773,10 @@ function CircleNode({
       className="group relative flex flex-col items-center w-[180px] lg:w-[200px]"
       title={`فتح صفحة ${committee.name}`}
     >
-      
-      {/* Outer circle — unified gold ring */}
-      <div className="relative h-36 w-36 lg:h-40 lg:w-40 rounded-full bg-card ring-[5px] ring-gold/25 group-hover:ring-gold/60 shadow-soft group-hover:shadow-elegant transition-all duration-300 group-hover:-translate-y-1">
-        {/* Inner ring */}
-        <div className="absolute inset-2 rounded-full border border-gold/25 flex flex-col items-center justify-center px-3 text-center">
+      {/* Outer square — unified gold ring */}
+      <div className="relative h-32 w-44 lg:h-36 lg:w-48 rounded-2xl bg-card ring-[3px] ring-gold/25 group-hover:ring-gold/60 shadow-soft group-hover:shadow-elegant transition-all duration-300 group-hover:-translate-y-1">
+        {/* Inner border */}
+        <div className="absolute inset-1.5 rounded-xl border border-gold/25 flex flex-col items-center justify-center px-3 text-center">
           <div className="h-9 w-9 rounded-lg flex items-center justify-center mb-1.5 bg-gold/10 text-gold">
             <Icon className="h-5 w-5" />
           </div>
@@ -799,12 +796,9 @@ function CircleNode({
         </div>
       </div>
 
-      {/* Connector stub down */}
-      <div className="h-3 w-px" style={{ background: "oklch(0.38 0.05 110)" }} />
-
       {/* Head label below */}
       {head && (
-        <div className="text-center">
+        <div className="text-center mt-3">
           <p className="text-xs text-muted-foreground flex items-center justify-center gap-1">
             <Crown className="h-3 w-3 text-gold" /> رئيس اللجنة
           </p>
