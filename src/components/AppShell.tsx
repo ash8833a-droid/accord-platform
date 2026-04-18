@@ -54,6 +54,13 @@ export function AppShell({ children, restricted = false, restrictedToCommitteeTy
     path.startsWith("/committee"),
   );
   const [pendingCount, setPendingCount] = useState(0);
+  const [profileName, setProfileName] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!user) { setProfileName(null); return; }
+    supabase.from("profiles").select("full_name").eq("user_id", user.id).maybeSingle()
+      .then(({ data }) => setProfileName(data?.full_name ?? null));
+  }, [user]);
   const isAdminUser = hasRole("admin");
   const TOP_NAV = restricted
     ? [{ to: "/dashboard", label: "لوحة التحكم", icon: LayoutDashboard } as const]
@@ -176,10 +183,10 @@ export function AppShell({ children, restricted = false, restrictedToCommitteeTy
       <div className="border-t border-sidebar-border p-4 space-y-3">
         <div className="flex items-center gap-3 rounded-lg bg-sidebar-accent/50 px-3 py-2">
           <div className="h-9 w-9 rounded-full bg-gradient-gold flex items-center justify-center text-gold-foreground font-bold">
-            {user?.email?.[0]?.toUpperCase() ?? "?"}
+            {(profileName ?? user?.email ?? "?")[0]?.toUpperCase()}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-xs font-medium truncate">{user?.email}</p>
+            <p className="text-xs font-bold truncate">{profileName ?? user?.email}</p>
             <p className="text-[10px] text-sidebar-foreground/60">عضو في المنصة</p>
           </div>
         </div>
