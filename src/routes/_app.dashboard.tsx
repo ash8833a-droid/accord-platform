@@ -255,109 +255,89 @@ function Dashboard() {
             const taskPct = c.total_tasks > 0 ? (c.done_tasks / c.total_tasks) * 100 : 0;
             const overBudget = budgetPct > 90;
 
+            const remaining = c.budget_allocated - c.budget_spent;
             return (
               <Link
                 key={c.id}
                 to="/committee/$type"
                 params={{ type: c.type }}
-                className="group rounded-xl border bg-gradient-to-br from-card to-muted/30 p-4 hover:shadow-elegant hover:-translate-y-0.5 transition-all duration-300"
+                className="group rounded-2xl border bg-gradient-card p-5 hover:shadow-elegant hover:-translate-y-0.5 transition-all duration-300 shadow-soft"
               >
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <span
-                      className={`h-10 w-10 rounded-lg flex items-center justify-center shrink-0 ${meta?.tone ?? "bg-muted"}`}
-                    >
-                      <Icon className="h-5 w-5" />
+                {/* Top row: title + 3 stat chips */}
+                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-4">
+                  <div className="flex items-start gap-3 min-w-0 lg:order-2">
+                    <span className={`h-12 w-12 rounded-2xl flex items-center justify-center shrink-0 ${meta?.tone ?? "bg-muted"}`}>
+                      <Icon className="h-6 w-6" />
                     </span>
                     <div className="min-w-0">
-                      <p className="font-bold text-sm truncate">{c.name}</p>
-                      <p className="text-[10px] text-muted-foreground truncate">
-                        {meta?.description}
-                      </p>
+                      <p className="font-bold text-base truncate">{c.name}</p>
+                      <p className="text-[11px] text-muted-foreground truncate">{meta?.description}</p>
                     </div>
                   </div>
-                  {c.pending_requests > 0 && (
-                    <span className="flex items-center gap-1 text-[10px] font-bold bg-amber-500/15 text-amber-700 dark:text-amber-400 px-2 py-0.5 rounded-full">
-                      <AlertCircle className="h-3 w-3" />
-                      {c.pending_requests}
-                    </span>
-                  )}
+                  <div className="grid grid-cols-3 gap-2 lg:order-1 lg:min-w-[320px]">
+                    <BudgetChip label="مخصص" value={`${fmt(c.budget_allocated)} ر.س`} tone="bg-primary/10 text-primary" />
+                    <BudgetChip label="منصرف" value={`${fmt(c.budget_spent)} ر.س`} tone="bg-gold/15 text-gold-foreground" />
+                    <BudgetChip label="المتبقي" value={`${fmt(remaining)} ر.س`} tone="bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" />
+                  </div>
                 </div>
 
-                {/* Budget bar */}
-                <div className="space-y-1.5 mb-2.5">
-                  <div className="flex justify-between text-[11px]">
-                    <span className="text-muted-foreground">الميزانية</span>
-                    <span className={`font-semibold ${overBudget ? "text-destructive" : ""}`}>
-                      {fmt(c.budget_spent)} / {fmt(c.budget_allocated)} ر.س
-                    </span>
-                  </div>
-                  <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                {/* Progress bar */}
+                <div className="space-y-1.5 mb-3">
+                  <div className="h-2 rounded-full bg-muted overflow-hidden">
                     <div
-                      className={`h-full transition-all duration-700 ${overBudget ? "bg-destructive" : "bg-gradient-hero"}`}
+                      className={`h-full transition-all duration-700 ${overBudget ? "bg-destructive" : "bg-gradient-gold"}`}
                       style={{ width: `${Math.min(100, budgetPct)}%` }}
                     />
                   </div>
-                </div>
-
-                {/* Tasks bar */}
-                <div className="space-y-1.5 mb-2.5">
-                  <div className="flex justify-between text-[11px]">
-                    <span className="text-muted-foreground">المهام</span>
-                    <span className="font-semibold">
-                      {c.done_tasks} / {c.total_tasks}
-                    </span>
-                  </div>
-                  <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-gradient-gold transition-all duration-700"
-                      style={{ width: `${Math.min(100, taskPct)}%` }}
-                    />
+                  <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+                    <span>نسبة الصرف من الميزانية: {budgetPct.toFixed(0)}%</span>
+                    {c.pending_requests > 0 && (
+                      <span className="inline-flex items-center gap-1 text-amber-600 dark:text-amber-400 font-semibold">
+                        <AlertCircle className="h-3 w-3" />
+                        {c.pending_requests} بانتظار الاعتماد
+                      </span>
+                    )}
                   </div>
                 </div>
 
-                {/* PMP phase chips */}
-                <div className="mb-2.5">
-                  <p className="text-[10px] text-muted-foreground mb-1.5">مراحل PMP</p>
-                  <div className="grid grid-cols-5 gap-1">
+                {/* Tasks + PMP phases (compact) */}
+                <div className="flex items-center gap-3 pt-3 border-t border-border/60">
+                  <div className="flex items-center gap-1.5 text-[11px]">
+                    <ListTodo className="h-3.5 w-3.5 text-muted-foreground" />
+                    <span className="text-muted-foreground">المهام:</span>
+                    <span className="font-bold">{c.done_tasks}/{c.total_tasks}</span>
+                    <span className="text-muted-foreground">({taskPct.toFixed(0)}%)</span>
+                  </div>
+                  <div className="flex items-center gap-1 ms-auto">
                     {(Object.keys(PHASE_LABELS) as PmpPhase[]).map((ph) => {
                       const p = c.phases[ph];
                       const pct = p.total > 0 ? (p.done / p.total) * 100 : 0;
                       return (
-                        <div
+                        <span
                           key={ph}
-                          className={`rounded-md px-1 py-1 text-center ${PHASE_TONE[ph]}`}
+                          className={`h-6 px-1.5 rounded-md text-[9px] font-bold inline-flex items-center ${PHASE_TONE[ph]}`}
                           title={`${PHASE_LABELS[ph]}: ${p.done}/${p.total}`}
                         >
-                          <p className="text-[9px] font-bold leading-tight truncate">{PHASE_LABELS[ph]}</p>
-                          <p className="text-[10px] font-extrabold mt-0.5 leading-none">
-                            {p.total > 0 ? `${Math.round(pct)}%` : "—"}
-                          </p>
-                        </div>
+                          {p.total > 0 ? `${Math.round(pct)}%` : "—"}
+                        </span>
                       );
                     })}
                   </div>
                 </div>
 
                 {/* SPI / CPI footer */}
-                <div className="flex items-center justify-between pt-2 mt-2 border-t border-border/60 text-[10px]">
-                  <div className="flex items-center gap-2">
-                    <span
-                      className={`px-1.5 py-0.5 rounded font-bold ${c.spi >= 0.8 ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300" : c.spi >= 0.5 ? "bg-amber-500/15 text-amber-700 dark:text-amber-300" : "bg-destructive/15 text-destructive"}`}
-                      title="مؤشر أداء الجدول"
-                    >
+                <div className="flex items-center justify-between pt-2 mt-2 text-[10px]">
+                  <div className="flex items-center gap-1.5">
+                    <span className={`px-1.5 py-0.5 rounded font-bold ${c.spi >= 0.8 ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300" : c.spi >= 0.5 ? "bg-amber-500/15 text-amber-700 dark:text-amber-300" : "bg-destructive/15 text-destructive"}`} title="مؤشر أداء الجدول">
                       SPI {c.spi.toFixed(2)}
                     </span>
-                    <span
-                      className={`px-1.5 py-0.5 rounded font-bold ${c.cpi >= 0.3 ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300" : c.cpi >= 0.1 ? "bg-amber-500/15 text-amber-700 dark:text-amber-300" : "bg-destructive/15 text-destructive"}`}
-                      title="مؤشر أداء التكلفة"
-                    >
+                    <span className={`px-1.5 py-0.5 rounded font-bold ${c.cpi >= 0.3 ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300" : c.cpi >= 0.1 ? "bg-amber-500/15 text-amber-700 dark:text-amber-300" : "bg-destructive/15 text-destructive"}`} title="مؤشر أداء التكلفة">
                       CPI {c.cpi.toFixed(2)}
                     </span>
                   </div>
                   <span className="flex items-center gap-1 text-muted-foreground">
                     <Receipt className="h-3 w-3" />
-                    {c.paid_requests}
+                    {c.paid_requests} طلب مصروف
                   </span>
                 </div>
               </Link>
