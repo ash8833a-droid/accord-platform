@@ -686,10 +686,15 @@ function HierarchyChart({
         </svg>
       )}
 
-      {/* Two-column grid: left vertical spine | right (Supreme on top, Base pyramid below) */}
-      <div className="relative grid grid-cols-[auto_1fr] gap-x-12 lg:gap-x-20 items-start">
-        {/* LEFT — vertical spine */}
-        <div className="flex flex-col items-end gap-6 lg:gap-8 pt-4">
+      {/* Three rows: Supreme on top → Tier 2 (supervisory) → Tier 3 (operational) */}
+      <div className="relative flex flex-col items-center">
+        {/* Supreme */}
+        <div ref={supremeRef}>
+          <SupremeNode />
+        </div>
+
+        {/* Tier 2 — supervisory committees */}
+        <div className="mt-14 lg:mt-16 grid grid-cols-2 sm:grid-cols-4 gap-6 lg:gap-8 w-full justify-items-center">
           {spine.map((c, i) => (
             <div
               key={c.id}
@@ -702,24 +707,18 @@ function HierarchyChart({
           ))}
         </div>
 
-        {/* RIGHT — Supreme on top, base pyramid below */}
-        <div className="flex flex-col items-center">
-          <div ref={supremeRef}>
-            <SupremeNode />
-          </div>
-
-          <div className="mt-16 lg:mt-20 grid grid-cols-2 sm:grid-cols-4 gap-6 lg:gap-8 w-full justify-items-center">
-            {base.map((c, i) => (
-              <div
-                key={c.id}
-                ref={(el) => {
-                  baseRefs.current[i] = el;
-                }}
-              >
-                <SquareNode committee={c} members={members} />
-              </div>
-            ))}
-          </div>
+        {/* Tier 3 — operational committees */}
+        <div className="mt-14 lg:mt-16 grid grid-cols-2 sm:grid-cols-4 gap-6 lg:gap-8 w-full justify-items-center">
+          {base.map((c, i) => (
+            <div
+              key={c.id}
+              ref={(el) => {
+                baseRefs.current[i] = el;
+              }}
+            >
+              <SquareNode committee={c} members={members} />
+            </div>
+          ))}
         </div>
       </div>
     </div>
