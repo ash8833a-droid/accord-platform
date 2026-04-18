@@ -483,6 +483,7 @@ function OrgChart({
 }) {
   const byType = (t: CommitteeType) => committees.find((c) => c.type === t);
   const women = byType("women");
+  const media = byType("media");
   const tier2 = TIER_2.map(byType).filter(Boolean) as CommitteeRow[];
   const tier3 = TIER_3.map(byType).filter(Boolean) as CommitteeRow[];
 
