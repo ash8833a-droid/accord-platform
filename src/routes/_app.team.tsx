@@ -80,6 +80,7 @@ function TeamPage() {
 
   const [committees, setCommittees] = useState<CommitteeRow[]>([]);
   const [members, setMembers] = useState<MemberRow[]>([]);
+  const [roleFilter, setRoleFilter] = useState<RoleFilter>("all");
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({
     committee_id: "",
