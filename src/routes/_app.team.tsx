@@ -618,15 +618,26 @@ function HierarchyChart({
 
     if (!supreme) return setLines(ls);
 
-    // Tier 2 (spine row): Supreme is centered with 2 committees on each side.
-    // One single horizontal line passes through Supreme center connecting all 4 spine nodes.
-    if (spineCenters.length) {
+    // Tier 2 (spine row): two horizontal arms emerging from Supreme's left & right edges,
+    // each connecting to the 2 committees on that side. RTL → spine[0,1] right, spine[2,3] left.
+    if (spineCenters.length >= 4) {
       const busY = (supreme.top + supreme.bottom) / 2;
-      const xs = spineCenters.map((c) => c.cx);
+      const rightSide = [spineCenters[0], spineCenters[1]];
+      const leftSide = [spineCenters[2], spineCenters[3]];
+      // Right arm (RTL: visually on the right of Supreme)
+      const rightXs = rightSide.map((c) => c.cx);
       ls.push({
-        x1: Math.min(...xs),
+        x1: supreme.right,
         y1: busY,
-        x2: Math.max(...xs),
+        x2: Math.max(...rightXs),
+        y2: busY,
+      });
+      // Left arm
+      const leftXs = leftSide.map((c) => c.cx);
+      ls.push({
+        x1: supreme.left,
+        y1: busY,
+        x2: Math.min(...leftXs),
         y2: busY,
       });
     }
