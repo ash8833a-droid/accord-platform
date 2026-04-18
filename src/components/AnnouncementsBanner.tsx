@@ -171,34 +171,28 @@ function MobileSlider({
 
   const safeIndex = items.length > 0 ? index % items.length : 0;
 
+  const currentItem = items[safeIndex];
+
   return (
     <div
       className="relative overflow-hidden border-b bg-gradient-to-l from-primary via-primary to-gold text-primary-foreground"
       dir="rtl"
     >
-      <div className="flex items-center gap-2 px-3 py-2.5">
-        <div className="min-w-0 flex-1 relative h-9 overflow-hidden">
-          <div
-            className="absolute inset-0 flex flex-col transition-transform duration-500 ease-out"
-            style={{ transform: `translateY(-${safeIndex * 100}%)` }}
-          >
-            {items.map((item) => (
-              <div
-                key={item.id}
-                className="h-9 shrink-0 text-sm leading-tight flex flex-col justify-center"
-              >
-                <div className="truncate font-bold">{item.title}</div>
-                <div className="truncate text-[11px] text-primary-foreground/80">
-                  {item.kind === "meeting" && item.meetingAt
-                    ? formatCountdown(item.meetingAt, now, true)
-                    : item.body.slice(0, 80)}
-                </div>
-              </div>
-            ))}
+      <div className="flex items-start gap-2 px-3 py-2.5">
+        <div className="min-w-0 flex-1">
+          <div key={currentItem?.id ?? safeIndex} className="animate-fade-up">
+            <div className="text-sm font-bold leading-5 whitespace-normal break-words">
+              {currentItem?.title}
+            </div>
+            <div className="mt-0.5 text-[11px] leading-4 text-primary-foreground/85 whitespace-normal break-words">
+              {currentItem?.kind === "meeting" && currentItem.meetingAt
+                ? formatCountdown(currentItem.meetingAt, now, true)
+                : currentItem?.body}
+            </div>
           </div>
         </div>
         {items.length > 1 && (
-          <div className="shrink-0 flex flex-col gap-1">
+          <div className="shrink-0 flex flex-col gap-1 pt-1">
             {items.slice(0, 5).map((_, i) => (
               <span
                 key={i}
