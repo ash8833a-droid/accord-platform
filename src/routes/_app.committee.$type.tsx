@@ -623,7 +623,6 @@ function CommitteePage() {
                     </Select>
                     <p className="text-[11px] text-muted-foreground">يمكنك تعيين المهمة لأي عضو في أي لجنة بالمنصة.</p>
                   </div>
-                  </div>
                   <Button type="submit" className="w-full bg-gradient-hero text-primary-foreground">
                     {editingId ? "حفظ التعديلات" : "إضافة"}
                   </Button>
