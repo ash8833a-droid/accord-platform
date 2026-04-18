@@ -522,42 +522,6 @@ function OrgChart({
         members={members}
       />
 
-          {/* Women — beside supreme */}
-          {women && (
-            <PyramidNode
-              committee={women}
-              members={members}
-              variant="leadership"
-              tagline="القسم النسائي"
-            />
-          )}
-        </div>
-
-        {/* TIER 2 — 4 executive committees */}
-        <div className="relative grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4 mt-12">
-          {tier2.map((c) => (
-            <PyramidNode
-              key={c.id}
-              committee={c}
-              members={members}
-              variant="executive"
-            />
-          ))}
-        </div>
-
-        {/* TIER 3 — 3 operational committees */}
-        <div className="relative grid grid-cols-1 sm:grid-cols-3 gap-3 lg:gap-4 mt-12 max-w-4xl mx-auto">
-          {tier3.map((c) => (
-            <PyramidNode
-              key={c.id}
-              committee={c}
-              members={members}
-              variant="operational"
-            />
-          ))}
-        </div>
-      </div>
-
       {/* Footer ribbon */}
       <div className="relative mt-10 flex items-center justify-center">
         <div className="h-px flex-1 bg-gradient-to-l from-transparent via-border to-transparent" />
@@ -569,6 +533,239 @@ function OrgChart({
     </div>
   );
 }
+
+interface ConnectorLine {
+  x1: number;
+  y1: number;
+  x2: number;
+  y2: number;
+  dashed?: boolean;
+}
+
+function ChartCanvas({
+  women,
+  tier2,
+  tier3,
+  members,
+}: {
+  women: CommitteeRow | undefined;
+  tier2: CommitteeRow[];
+  tier3: CommitteeRow[];
+  members: MemberRow[];
+}) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const supremeRef = useRef<HTMLDivElement>(null);
+  const womenRef = useRef<HTMLDivElement>(null);
+  const tier2Refs = useRef<(HTMLDivElement | null)[]>([]);
+  const tier3Refs = useRef<(HTMLDivElement | null)[]>([]);
+  const [size, setSize] = useState({ w: 0, h: 0 });
+  const [lines, setLines] = useState<ConnectorLine[]>([]);
+
+  const measure = () => {
+    const root = containerRef.current;
+    if (!root) return;
+    const rb = root.getBoundingClientRect();
+    setSize({ w: rb.width, h: rb.height });
+
+    const center = (el: HTMLElement | null, edge: "top" | "bottom") => {
+      if (!el) return null;
+      const r = el.getBoundingClientRect();
+      return {
+        x: r.left - rb.left + r.width / 2,
+        y: (edge === "top" ? r.top : r.bottom) - rb.top,
+      };
+    };
+
+    const supremeBottom = center(supremeRef.current, "bottom");
+    const tier2Tops = tier2Refs.current.map((el) => center(el, "top"));
+    const tier2Bottoms = tier2Refs.current.map((el) => center(el, "bottom"));
+    const tier3Tops = tier3Refs.current.map((el) => center(el, "top"));
+
+    const ls: ConnectorLine[] = [];
+
+    if (supremeBottom && tier2Tops.length) {
+      // Hub point between supreme and tier2
+      const validTops = tier2Tops.filter(Boolean) as { x: number; y: number }[];
+      if (validTops.length) {
+        const hubY = (supremeBottom.y + Math.min(...validTops.map((p) => p.y))) / 2;
+        // Vertical from supreme to hub
+        ls.push({ x1: supremeBottom.x, y1: supremeBottom.y, x2: supremeBottom.x, y2: hubY, dashed: true });
+        // Horizontal hub bus
+        const xs = validTops.map((p) => p.x);
+        ls.push({ x1: Math.min(...xs), y1: hubY, x2: Math.max(...xs), y2: hubY });
+        // Drops to each tier2 card
+        validTops.forEach((p) => {
+          ls.push({ x1: p.x, y1: hubY, x2: p.x, y2: p.y });
+        });
+      }
+    }
+
+    // Tier2 -> Tier3
+    const validBottoms = tier2Bottoms.filter(Boolean) as { x: number; y: number }[];
+    const validT3 = tier3Tops.filter(Boolean) as { x: number; y: number }[];
+    if (validBottoms.length && validT3.length) {
+      const busY = (Math.max(...validBottoms.map((p) => p.y)) + Math.min(...validT3.map((p) => p.y))) / 2;
+      // Center vertical from tier2 average center down
+      const avgX = (Math.min(...validBottoms.map((p) => p.x)) + Math.max(...validBottoms.map((p) => p.x))) / 2;
+      ls.push({ x1: avgX, y1: Math.max(...validBottoms.map((p) => p.y)), x2: avgX, y2: busY, dashed: true });
+      // Horizontal bus across tier3
+      const xs3 = validT3.map((p) => p.x);
+      ls.push({ x1: Math.min(...xs3), y1: busY, x2: Math.max(...xs3), y2: busY });
+      validT3.forEach((p) => {
+        ls.push({ x1: p.x, y1: busY, x2: p.x, y2: p.y });
+      });
+    }
+
+    // Supreme -> Women (horizontal sibling link)
+    if (women && womenRef.current && supremeRef.current) {
+      const sR = supremeRef.current.getBoundingClientRect();
+      const wR = womenRef.current.getBoundingClientRect();
+      const y = ((sR.top + sR.bottom) / 2 + (wR.top + wR.bottom) / 2) / 2 - rb.top;
+      // Determine edges (RTL: women may be on either side)
+      const sCenterX = sR.left - rb.left + sR.width / 2;
+      const wCenterX = wR.left - rb.left + wR.width / 2;
+      const fromX = sCenterX < wCenterX ? sR.right - rb.left : sR.left - rb.left;
+      const toX = sCenterX < wCenterX ? wR.left - rb.left : wR.right - rb.left;
+      ls.push({ x1: fromX, y1: y, x2: toX, y2: y });
+    }
+
+    setLines(ls);
+  };
+
+  useLayoutEffect(() => {
+    measure();
+    const ro = new ResizeObserver(() => measure());
+    if (containerRef.current) ro.observe(containerRef.current);
+    window.addEventListener("resize", measure);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", measure);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [women?.id, tier2.length, tier3.length]);
+
+  return (
+    <div ref={containerRef} className="relative">
+      {/* SVG connectors */}
+      {size.w > 0 && (
+        <svg
+          width={size.w}
+          height={size.h}
+          className="absolute inset-0 pointer-events-none"
+        >
+          <defs>
+            <linearGradient id="orgLineGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="oklch(0.78 0.14 85)" stopOpacity="0.85" />
+              <stop offset="100%" stopColor="oklch(0.78 0.14 85)" stopOpacity="0.35" />
+            </linearGradient>
+            <filter id="orgGlow">
+              <feGaussianBlur stdDeviation="1.5" result="blur" />
+              <feMerge>
+                <feMergeNode in="blur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+          </defs>
+          {lines.map((l, i) => (
+            <line
+              key={i}
+              x1={l.x1}
+              y1={l.y1}
+              x2={l.x2}
+              y2={l.y2}
+              stroke="url(#orgLineGrad)"
+              strokeWidth={2}
+              strokeLinecap="round"
+              strokeDasharray={l.dashed ? "5 5" : undefined}
+              filter="url(#orgGlow)"
+            />
+          ))}
+          {/* Junction dots */}
+          {lines
+            .filter((l) => l.x1 !== l.x2 && l.y1 === l.y2)
+            .flatMap((l, i) => [
+              <circle
+                key={`a-${i}`}
+                cx={l.x1}
+                cy={l.y1}
+                r={3}
+                fill="oklch(0.78 0.14 85)"
+              />,
+              <circle
+                key={`b-${i}`}
+                cx={l.x2}
+                cy={l.y2}
+                r={3}
+                fill="oklch(0.78 0.14 85)"
+              />,
+            ])}
+        </svg>
+      )}
+
+      {/* TIER 1 — Supreme + Women side-by-side */}
+      <div className="relative flex items-stretch justify-center gap-6 lg:gap-12 flex-wrap">
+        {/* Supreme */}
+        <div ref={supremeRef} className="relative group">
+          <div className="absolute -inset-2 bg-gradient-gold blur-2xl opacity-40 rounded-3xl group-hover:opacity-60 transition-opacity" />
+          <div className="relative rounded-2xl bg-gradient-hero text-primary-foreground px-6 lg:px-10 py-5 shadow-elegant text-center min-w-[240px] lg:min-w-[300px] border border-gold/30">
+            <div className="absolute -top-3 left-1/2 -translate-x-1/2 h-7 w-7 rounded-full bg-gold flex items-center justify-center shadow-gold">
+              <Crown className="h-4 w-4 text-gold-foreground" />
+            </div>
+            <p className="text-[10px] tracking-widest text-gold/90 uppercase mt-1">
+              Supreme Committee
+            </p>
+            <p className="font-bold text-xl text-shimmer-gold mt-0.5">
+              اللجنة العليا
+            </p>
+            <p className="text-[11px] text-primary-foreground/80 mt-1.5 leading-relaxed">
+              الإشراف العام · القرارات الاستراتيجية · الاعتمادات
+            </p>
+          </div>
+        </div>
+
+        {women && (
+          <div ref={womenRef}>
+            <PyramidNode
+              committee={women}
+              members={members}
+              variant="leadership"
+              tagline="القسم النسائي"
+            />
+          </div>
+        )}
+      </div>
+
+      {/* TIER 2 — 4 executive committees */}
+      <div className="relative grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-6 mt-16">
+        {tier2.map((c, i) => (
+          <div
+            key={c.id}
+            ref={(el) => {
+              tier2Refs.current[i] = el;
+            }}
+          >
+            <PyramidNode committee={c} members={members} variant="executive" />
+          </div>
+        ))}
+      </div>
+
+      {/* TIER 3 — 3 operational committees */}
+      <div className="relative grid grid-cols-1 sm:grid-cols-3 gap-3 lg:gap-6 mt-16 max-w-4xl mx-auto">
+        {tier3.map((c, i) => (
+          <div
+            key={c.id}
+            ref={(el) => {
+              tier3Refs.current[i] = el;
+            }}
+          >
+            <PyramidNode committee={c} members={members} variant="operational" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 
 function PyramidNode({
   committee,
