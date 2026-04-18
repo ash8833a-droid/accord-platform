@@ -108,7 +108,8 @@ export function GroomDetailsDialog({ groomId, open, onOpenChange, onSaved }: Pro
     const path = data[field];
     if (!path) return;
     await supabase.storage.from("groom-docs").remove([path]);
-    await supabase.from("grooms").update({ [field]: null }).eq("id", data.id);
+    const clearPayload = kind === "photo" ? { photo_url: null } : { national_id_url: null };
+    await supabase.from("grooms").update(clearPayload).eq("id", data.id);
     setData({ ...data, [field]: null } as GroomDetails);
     if (kind === "photo") setPhotoPreview(null); else setIdPreview(null);
     toast.success("تم حذف الملف");
