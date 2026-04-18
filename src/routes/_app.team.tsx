@@ -769,14 +769,14 @@ function SupremeNode() {
       className="group relative block"
       title="اللجنة العليا"
     >
-      <div className="relative h-36 w-36 lg:h-44 lg:w-44 rounded-full bg-gradient-to-br from-gold via-amber-400 to-amber-600 shadow-gold flex items-center justify-center ring-[6px] ring-gold/15 group-hover:scale-105 transition-transform duration-300">
-        <div className="absolute inset-2 rounded-full border border-white/40" />
-        <div className="text-center text-gold-foreground px-2">
-          <Crown className="h-5 w-5 mx-auto mb-1 opacity-90" />
-          <p className="font-bold text-sm lg:text-base leading-tight">
+      <div className="relative h-40 w-40 lg:h-48 lg:w-48 rounded-full bg-gradient-to-br from-gold/90 via-gold to-amber-500/90 shadow-gold flex items-center justify-center ring-[6px] ring-gold/20 group-hover:scale-105 transition-transform duration-300">
+        <div className="absolute inset-2 rounded-full border border-white/50" />
+        <div className="text-center text-gold-foreground px-3">
+          <Crown className="h-6 w-6 mx-auto mb-1.5 opacity-95" />
+          <p className="font-bold text-base lg:text-lg leading-tight">
             اللجنة العليا
           </p>
-          <p className="text-[9px] mt-1 opacity-80 tracking-wider">
+          <p className="text-[11px] lg:text-xs mt-1.5 opacity-85 tracking-wider">
             الإشراف العام
           </p>
         </div>
@@ -805,23 +805,23 @@ function CircleNode({
     <Link
       to="/committee/$type"
       params={{ type: committee.type }}
-      className="group relative flex flex-col items-center w-[160px] lg:w-[180px]"
+      className="group relative flex flex-col items-center w-[180px] lg:w-[200px]"
       title={`فتح صفحة ${committee.name}`}
     >
       
       {/* Outer circle — unified gold ring */}
-      <div className="relative h-32 w-32 lg:h-36 lg:w-36 rounded-full bg-card ring-[5px] ring-gold/25 group-hover:ring-gold/60 shadow-soft group-hover:shadow-elegant transition-all duration-300 group-hover:-translate-y-1">
+      <div className="relative h-36 w-36 lg:h-40 lg:w-40 rounded-full bg-card ring-[5px] ring-gold/25 group-hover:ring-gold/60 shadow-soft group-hover:shadow-elegant transition-all duration-300 group-hover:-translate-y-1">
         {/* Inner ring */}
         <div className="absolute inset-2 rounded-full border border-gold/25 flex flex-col items-center justify-center px-3 text-center">
-          <div className="h-8 w-8 rounded-lg flex items-center justify-center mb-1 bg-gold/10 text-gold">
-            <Icon className="h-4 w-4" />
+          <div className="h-9 w-9 rounded-lg flex items-center justify-center mb-1.5 bg-gold/10 text-gold">
+            <Icon className="h-5 w-5" />
           </div>
-          <p className="font-bold text-[12px] lg:text-[13px] leading-tight text-foreground group-hover:text-primary transition-colors">
+          <p className="font-bold text-sm lg:text-[15px] leading-tight text-foreground group-hover:text-primary transition-colors">
             {committee.name}
           </p>
           <Badge
             variant="secondary"
-            className={`mt-1 text-[9px] h-4 px-1.5 ${
+            className={`mt-1.5 text-[11px] h-5 px-2 ${
               isFull
                 ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/20"
                 : "bg-gold/10 text-gold border-gold/20"
@@ -836,18 +836,18 @@ function CircleNode({
       <div className="h-3 w-px bg-gold/40" />
 
       {/* Head label below */}
-      <div className="text-center min-h-[34px]">
+      <div className="text-center min-h-[38px]">
         {head ? (
           <>
-            <p className="text-[10px] text-muted-foreground flex items-center justify-center gap-1">
-              <Crown className="h-2.5 w-2.5 text-gold" /> رئيس اللجنة
+            <p className="text-xs text-muted-foreground flex items-center justify-center gap-1">
+              <Crown className="h-3 w-3 text-gold" /> رئيس اللجنة
             </p>
-            <p className="text-[11px] font-semibold truncate max-w-[150px]">
+            <p className="text-[13px] font-semibold truncate max-w-[170px]">
               {head.full_name}
             </p>
           </>
         ) : (
-          <p className="text-[10px] text-muted-foreground/60 mt-1">
+          <p className="text-xs text-muted-foreground/70 mt-1">
             بانتظار التعيين
           </p>
         )}
