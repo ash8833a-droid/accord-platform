@@ -872,6 +872,7 @@ export type Database = {
         | "design"
         | "procurement"
         | "women"
+        | "supreme"
       groom_status:
         | "new"
         | "under_review"
@@ -1027,6 +1028,7 @@ export const Constants = {
         "design",
         "procurement",
         "women",
+        "supreme",
       ],
       groom_status: [
         "new",

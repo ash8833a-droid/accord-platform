@@ -1,0 +1,1 @@
+ALTER TYPE public.committee_type ADD VALUE IF NOT EXISTS 'supreme';
