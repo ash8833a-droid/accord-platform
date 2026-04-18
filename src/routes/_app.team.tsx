@@ -618,29 +618,23 @@ function HierarchyChart({
 
     if (!supreme) return setLines(ls);
 
-    // Tier 2 (spine row): drop from Supreme bottom → horizontal bus → drop to each spine node top
+    // Tier 2 (spine row): Supreme is centered with 2 committees on each side.
+    // One single horizontal line passes through Supreme center connecting all 4 spine nodes.
     if (spineCenters.length) {
-      const busY =
-        (supreme.bottom + Math.min(...spineCenters.map((c) => c.top))) / 2;
-      ls.push({ x1: supreme.cx, y1: supreme.bottom, x2: supreme.cx, y2: busY });
+      const busY = (supreme.top + supreme.bottom) / 2;
       const xs = spineCenters.map((c) => c.cx);
-      ls.push({ x1: Math.min(...xs, supreme.cx), y1: busY, x2: Math.max(...xs, supreme.cx), y2: busY });
-      spineCenters.forEach((c) => ls.push({ x1: c.cx, y1: busY, x2: c.cx, y2: c.top }));
+      ls.push({
+        x1: Math.min(...xs),
+        y1: busY,
+        x2: Math.max(...xs),
+        y2: busY,
+      });
     }
 
-    // Tier 3 (base row): single connecting line — one vertical from center of Tier 2 row,
-    // one horizontal bus that touches the top of every Tier 3 node (no individual drops).
-    if (baseCenters.length && spineCenters.length) {
-      const tier2BottomMax = Math.max(...spineCenters.map((c) => c.bottom));
-      const baseTopMin = Math.min(...baseCenters.map((c) => c.top));
-      const busY = baseTopMin; // bus sits exactly at the top edge of base nodes
-      const midX =
-        (Math.min(...spineCenters.map((c) => c.cx)) +
-          Math.max(...spineCenters.map((c) => c.cx))) /
-        2;
-      // single vertical connector from Tier 2 row center down to the bus
-      ls.push({ x1: midX, y1: tier2BottomMax, x2: midX, y2: busY });
-      // single horizontal bus spanning all base nodes
+    // Tier 3 (base row): single vertical drop from Supreme + one horizontal bus across base nodes.
+    if (baseCenters.length) {
+      const busY = Math.min(...baseCenters.map((c) => c.top));
+      ls.push({ x1: supreme.cx, y1: supreme.bottom, x2: supreme.cx, y2: busY });
       const baseXs = baseCenters.map((c) => c.cx);
       ls.push({
         x1: Math.min(...baseXs),
