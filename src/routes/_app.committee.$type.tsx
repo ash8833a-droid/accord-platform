@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { committeeByType, COMMITTEES } from "@/lib/committees";
 import { FinanceModule } from "@/components/FinanceModule";
 import { InvitationCards } from "@/components/media/InvitationCards";
+import { MediaInbox } from "@/components/media/MediaInbox";
 import { TaskAttachments } from "@/components/TaskAttachments";
 import { CommitteeArchive } from "@/components/CommitteeArchive";
 import { CommitteeMembersPanel } from "@/components/CommitteeMembersPanel";
@@ -512,11 +513,14 @@ function CommitteePage() {
         </div>
       )}
 
-      {/* Media committee gets invitation cards distribution */}
+      {/* Media committee gets inbox + invitation cards distribution */}
       {type === "media" && (
-        <div className="rounded-2xl border bg-card p-5 shadow-soft">
-          <InvitationCards />
-        </div>
+        <>
+          <MediaInbox />
+          <div className="rounded-2xl border bg-card p-5 shadow-soft">
+            <InvitationCards />
+          </div>
+        </>
       )}
 
       <Dialog open={prOpen} onOpenChange={setPrOpen}>
