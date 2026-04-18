@@ -637,9 +637,21 @@ function CommitteePage() {
       {/* Tasks Kanban */}
       <section>
         <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
-          <h3 className="font-bold flex items-center gap-2">
-            <ListTodo className="h-5 w-5 text-primary" /> لوحة المهام
-          </h3>
+          <div className="flex items-center gap-2 flex-wrap">
+            <h3 className="font-bold flex items-center gap-2">
+              <ListTodo className="h-5 w-5 text-primary" /> لوحة المهام
+            </h3>
+            {isHead && (
+              <Badge className="bg-gold/15 text-gold-foreground border border-gold/40 text-[10px] gap-1">
+                👑 أنت رئيس هذه اللجنة
+              </Badge>
+            )}
+            {!canManageTasks && (
+              <Badge variant="outline" className="text-[10px] text-muted-foreground">
+                للعرض والتنفيذ فقط — الإسناد من رئيس اللجنة
+              </Badge>
+            )}
+          </div>
           <div className="flex items-center gap-2">
             {myMemberId && (
               <Button
@@ -653,9 +665,11 @@ function CommitteePage() {
               </Button>
             )}
             <Dialog open={taskOpen} onOpenChange={(o) => { setTaskOpen(o); if (!o) resetTaskForm(); }}>
-              <Button size="sm" onClick={openNewTask} className="bg-gradient-gold text-gold-foreground shadow-gold">
-                <Plus className="h-4 w-4 ms-1" /> مهمة جديدة
-              </Button>
+              {canManageTasks && (
+                <Button size="sm" onClick={openNewTask} className="bg-gradient-gold text-gold-foreground shadow-gold">
+                  <Plus className="h-4 w-4 ms-1" /> مهمة جديدة
+                </Button>
+              )}
               <DialogContent dir="rtl">
                 <DialogHeader><DialogTitle>{editingId ? "تعديل المهمة" : "إضافة مهمة"}</DialogTitle></DialogHeader>
                 <form onSubmit={saveTask} className="space-y-3 pt-2">
