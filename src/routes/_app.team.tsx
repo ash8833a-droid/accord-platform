@@ -704,7 +704,7 @@ function CircularChart({
       window.removeEventListener("resize", measure);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [women?.id, tier2.length, tier3.length]);
+  }, [women?.id, media?.id, tier2.length, tier3.length]);
 
   return (
     <div ref={containerRef} className="relative px-6 lg:px-10 py-12 lg:py-16">
