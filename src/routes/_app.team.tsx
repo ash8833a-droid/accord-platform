@@ -683,16 +683,12 @@ function HierarchyChart({
         </svg>
       )}
 
-      {/* Three rows: Supreme on top → Tier 2 (supervisory) → Tier 3 (operational) */}
+      {/* Two rows: Tier 2 (Supreme centered with 2 committees on each side) → Tier 3 */}
       <div className="relative flex flex-col items-center">
-        {/* Supreme */}
-        <div ref={supremeRef}>
-          <SupremeNode />
-        </div>
-
-        {/* Tier 2 — supervisory committees */}
-        <div className="mt-14 lg:mt-16 grid grid-cols-2 sm:grid-cols-4 gap-6 lg:gap-8 w-full justify-items-center">
-          {spine.map((c, i) => (
+        {/* Tier 2 row — left 2 + Supreme + right 2 */}
+        <div className="flex items-center justify-center gap-5 lg:gap-8 flex-wrap">
+          {/* Right side (RTL ⇒ visually on the right): first 2 committees */}
+          {spine.slice(0, 2).map((c, i) => (
             <div
               key={c.id}
               ref={(el) => {
@@ -702,10 +698,27 @@ function HierarchyChart({
               <SquareNode committee={c} members={members} />
             </div>
           ))}
+
+          {/* Supreme in the middle */}
+          <div ref={supremeRef} className="mx-2">
+            <SupremeNode />
+          </div>
+
+          {/* Left side: last 2 committees */}
+          {spine.slice(2, 4).map((c, i) => (
+            <div
+              key={c.id}
+              ref={(el) => {
+                spineRefs.current[i + 2] = el;
+              }}
+            >
+              <SquareNode committee={c} members={members} />
+            </div>
+          ))}
         </div>
 
         {/* Tier 3 — operational committees */}
-        <div className="mt-20 lg:mt-24 grid grid-cols-2 sm:grid-cols-4 gap-6 lg:gap-8 w-full justify-items-center">
+        <div className="mt-16 lg:mt-20 grid grid-cols-2 sm:grid-cols-4 gap-4 lg:gap-6 w-full justify-items-center">
           {base.map((c, i) => (
             <div
               key={c.id}
