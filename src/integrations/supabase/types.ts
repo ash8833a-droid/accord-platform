@@ -214,14 +214,22 @@ export type Database = {
           created_at: string
           created_by: string | null
           deficit_share: number
+          external_participation: boolean
+          external_participation_details: string | null
+          extra_cards_men: number
+          extra_cards_women: number
+          extra_sheep: number
           family_branch: string
           full_name: string
           groom_contribution: number
           id: string
           national_id: string | null
+          national_id_url: string | null
           notes: string | null
           phone: string
+          photo_url: string | null
           requirements_checklist: Json
+          special_requests: string | null
           status: Database["public"]["Enums"]["groom_status"]
           updated_at: string
           wedding_date: string | null
@@ -235,14 +243,22 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           deficit_share?: number
+          external_participation?: boolean
+          external_participation_details?: string | null
+          extra_cards_men?: number
+          extra_cards_women?: number
+          extra_sheep?: number
           family_branch: string
           full_name: string
           groom_contribution?: number
           id?: string
           national_id?: string | null
+          national_id_url?: string | null
           notes?: string | null
           phone: string
+          photo_url?: string | null
           requirements_checklist?: Json
+          special_requests?: string | null
           status?: Database["public"]["Enums"]["groom_status"]
           updated_at?: string
           wedding_date?: string | null
@@ -256,14 +272,22 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           deficit_share?: number
+          external_participation?: boolean
+          external_participation_details?: string | null
+          extra_cards_men?: number
+          extra_cards_women?: number
+          extra_sheep?: number
           family_branch?: string
           full_name?: string
           groom_contribution?: number
           id?: string
           national_id?: string | null
+          national_id_url?: string | null
           notes?: string | null
           phone?: string
+          photo_url?: string | null
           requirements_checklist?: Json
+          special_requests?: string | null
           status?: Database["public"]["Enums"]["groom_status"]
           updated_at?: string
           wedding_date?: string | null
