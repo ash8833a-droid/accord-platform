@@ -469,10 +469,12 @@ function TeamPage() {
   );
 }
 
-/* ───────── Org Chart (Circular Hierarchical, Reference-Style) ───────── */
+/* ───────── Org Chart (Hierarchical, Vertical Spine + Pyramid Base) ───────── */
 
-const TIER_2: CommitteeType[] = ["finance", "procurement", "quality"];
-const TIER_3: CommitteeType[] = ["reception", "programs", "dinner"];
+// Vertical spine directly under the Supreme committee
+const SPINE: CommitteeType[] = ["finance", "procurement", "quality", "women"];
+// Pyramid base (operational committees)
+const BASE: CommitteeType[] = ["media", "reception", "programs", "dinner"];
 
 function OrgChart({
   committees,
@@ -482,10 +484,8 @@ function OrgChart({
   members: MemberRow[];
 }) {
   const byType = (t: CommitteeType) => committees.find((c) => c.type === t);
-  const women = byType("women");
-  const media = byType("media");
-  const tier2 = TIER_2.map(byType).filter(Boolean) as CommitteeRow[];
-  const tier3 = TIER_3.map(byType).filter(Boolean) as CommitteeRow[];
+  const spine = SPINE.map(byType).filter(Boolean) as CommitteeRow[];
+  const base = BASE.map(byType).filter(Boolean) as CommitteeRow[];
 
   const exportRef = useRef<HTMLDivElement>(null);
   const [exporting, setExporting] = useState(false);
@@ -532,7 +532,7 @@ function OrgChart({
       />
       <div className="absolute -top-32 -left-20 w-96 h-96 rounded-full bg-gold/5 blur-3xl pointer-events-none" />
 
-      {/* Header bar — title right, action left */}
+      {/* Header bar */}
       <div className="relative flex items-center justify-between gap-4 px-6 lg:px-10 pt-7 pb-4 flex-wrap">
         <div className="flex items-stretch gap-3">
           <div className="w-1.5 rounded-full bg-gradient-to-b from-gold to-primary" />
@@ -559,13 +559,7 @@ function OrgChart({
 
       <div className="h-px bg-gradient-to-l from-transparent via-gold/30 to-transparent" />
 
-      <CircularChart
-        women={women}
-        media={media}
-        tier2={tier2}
-        tier3={tier3}
-        members={members}
-      />
+      <HierarchyChart spine={spine} base={base} members={members} />
 
       <div className="relative px-6 lg:px-10 pb-6 flex items-center justify-center gap-2 text-[10px] text-muted-foreground tracking-wider">
         <span className="h-px w-12 bg-border" />
@@ -583,25 +577,19 @@ interface ConnectorLine {
   y2: number;
 }
 
-function CircularChart({
-  women,
-  media,
-  tier2,
-  tier3,
+function HierarchyChart({
+  spine,
+  base,
   members,
 }: {
-  women: CommitteeRow | undefined;
-  media: CommitteeRow | undefined;
-  tier2: CommitteeRow[];
-  tier3: CommitteeRow[];
+  spine: CommitteeRow[];
+  base: CommitteeRow[];
   members: MemberRow[];
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const supremeRef = useRef<HTMLDivElement>(null);
-  const womenRef = useRef<HTMLDivElement>(null);
-  const mediaRef = useRef<HTMLDivElement>(null);
-  const tier2Refs = useRef<(HTMLDivElement | null)[]>([]);
-  const tier3Refs = useRef<(HTMLDivElement | null)[]>([]);
+  const spineRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const baseRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [size, setSize] = useState({ w: 0, h: 0 });
   const [lines, setLines] = useState<ConnectorLine[]>([]);
 
@@ -611,79 +599,45 @@ function CircularChart({
     const rb = root.getBoundingClientRect();
     setSize({ w: rb.width, h: rb.height });
 
-    const edge = (
-      el: HTMLElement | null,
-      side: "top" | "bottom" | "left" | "right",
-    ) => {
+    const center = (el: HTMLElement | null) => {
       if (!el) return null;
       const r = el.getBoundingClientRect();
-      const cx = r.left - rb.left + r.width / 2;
-      const cy = r.top - rb.top + r.height / 2;
-      switch (side) {
-        case "top":
-          return { x: cx, y: r.top - rb.top };
-        case "bottom":
-          return { x: cx, y: r.bottom - rb.top };
-        case "left":
-          return { x: r.left - rb.left, y: cy };
-        case "right":
-          return { x: r.right - rb.left, y: cy };
-      }
+      return {
+        cx: r.left - rb.left + r.width / 2,
+        top: r.top - rb.top,
+        bottom: r.bottom - rb.top,
+        left: r.left - rb.left,
+        right: r.right - rb.left,
+      };
     };
 
     const ls: ConnectorLine[] = [];
-    const supremeBottom = edge(supremeRef.current, "bottom");
-    const tier2Tops = tier2Refs.current.map((el) => edge(el, "top")).filter(Boolean) as { x: number; y: number }[];
-    const tier2Bottoms = tier2Refs.current.map((el) => edge(el, "bottom")).filter(Boolean) as { x: number; y: number }[];
-    const tier3Tops = tier3Refs.current.map((el) => edge(el, "top")).filter(Boolean) as { x: number; y: number }[];
+    const supreme = center(supremeRef.current);
+    const spineCenters = spineRefs.current.map((el) => center(el)).filter(Boolean) as NonNullable<ReturnType<typeof center>>[];
+    const baseCenters = baseRefs.current.map((el) => center(el)).filter(Boolean) as NonNullable<ReturnType<typeof center>>[];
 
-    // Supreme → Women: short horizontal sibling link
-    if (women && womenRef.current && supremeRef.current) {
-      const sR = supremeRef.current.getBoundingClientRect();
-      const wR = womenRef.current.getBoundingClientRect();
-      const y = ((sR.top + sR.bottom) / 2 + (wR.top + wR.bottom) / 2) / 2 - rb.top;
-      const sCx = sR.left - rb.left + sR.width / 2;
-      const wCx = wR.left - rb.left + wR.width / 2;
-      const fromX = sCx < wCx ? sR.right - rb.left : sR.left - rb.left;
-      const toX = sCx < wCx ? wR.left - rb.left : wR.right - rb.left;
-      ls.push({ x1: fromX, y1: y, x2: toX, y2: y });
+    if (!supreme) return setLines(ls);
+
+    // Vertical spine from Supreme down through every spine node
+    if (spineCenters.length) {
+      const spineX = supreme.cx;
+      // Supreme bottom → first spine top (vertical line)
+      ls.push({ x1: spineX, y1: supreme.bottom, x2: spineX, y2: spineCenters[spineCenters.length - 1].bottom });
+      // Each spine node already sits on the vertical line. Already covered.
     }
 
-    // Supreme → Media: short horizontal sibling link (mirror of women)
-    if (media && mediaRef.current && supremeRef.current) {
-      const sR = supremeRef.current.getBoundingClientRect();
-      const mR = mediaRef.current.getBoundingClientRect();
-      const y = ((sR.top + sR.bottom) / 2 + (mR.top + mR.bottom) / 2) / 2 - rb.top;
-      const sCx = sR.left - rb.left + sR.width / 2;
-      const mCx = mR.left - rb.left + mR.width / 2;
-      const fromX = sCx < mCx ? sR.right - rb.left : sR.left - rb.left;
-      const toX = sCx < mCx ? mR.left - rb.left : mR.right - rb.left;
-      ls.push({ x1: fromX, y1: y, x2: toX, y2: y });
-    }
-
-    // Supreme → Tier2 (left stack): horizontal sibling links for each
-    if (supremeRef.current && tier2Refs.current.length) {
-      const sR = supremeRef.current.getBoundingClientRect();
-      const sCx = sR.left - rb.left + sR.width / 2;
-      tier2Refs.current.forEach((el) => {
-        if (!el) return;
-        const r = el.getBoundingClientRect();
-        const cx = r.left - rb.left + r.width / 2;
-        const cy = r.top - rb.top + r.height / 2;
-        const fromX = sCx < cx ? sR.right - rb.left : sR.left - rb.left;
-        const toX = sCx < cx ? r.left - rb.left : r.right - rb.left;
-        ls.push({ x1: fromX, y1: cy, x2: toX, y2: cy });
-      });
-    }
-
-    // Supreme → Tier3 (bottom): vertical drop + horizontal bus + drops
-    if (supremeBottom && tier3Tops.length) {
+    // Last spine node → bus → base nodes
+    const lastSpine = spineCenters[spineCenters.length - 1] ?? supreme;
+    if (baseCenters.length) {
       const busY =
-        (supremeBottom.y + Math.min(...tier3Tops.map((p) => p.y))) / 2;
-      ls.push({ x1: supremeBottom.x, y1: supremeBottom.y, x2: supremeBottom.x, y2: busY });
-      const xs3 = tier3Tops.map((p) => p.x);
-      ls.push({ x1: Math.min(...xs3), y1: busY, x2: Math.max(...xs3), y2: busY });
-      tier3Tops.forEach((p) => ls.push({ x1: p.x, y1: busY, x2: p.x, y2: p.y }));
+        (lastSpine.bottom + Math.min(...baseCenters.map((c) => c.top))) / 2;
+      // drop from last spine to bus
+      ls.push({ x1: lastSpine.cx, y1: lastSpine.bottom, x2: lastSpine.cx, y2: busY });
+      // horizontal bus
+      const xs = baseCenters.map((c) => c.cx);
+      ls.push({ x1: Math.min(...xs, lastSpine.cx), y1: busY, x2: Math.max(...xs, lastSpine.cx), y2: busY });
+      // drops to each base
+      baseCenters.forEach((c) => ls.push({ x1: c.cx, y1: busY, x2: c.cx, y2: c.top }));
     }
 
     setLines(ls);
@@ -699,7 +653,7 @@ function CircularChart({
       window.removeEventListener("resize", measure);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [women?.id, media?.id, tier2.length, tier3.length]);
+  }, [spine.length, base.length]);
 
   return (
     <div ref={containerRef} className="relative px-6 lg:px-10 py-12 lg:py-16">
@@ -725,59 +679,34 @@ function CircularChart({
         </svg>
       )}
 
-      {/* TIER 1+2: Media (right) | Supreme (center) | Women + Tier2 stacked (left) */}
-      <div className="relative flex items-start justify-center gap-10 lg:gap-20">
-        {/* Right column (RTL right): Media */}
-        <div className="flex flex-col items-center pt-8">
-          {media && (
-            <div ref={mediaRef}>
-              <CircleNode
-                committee={media}
-                members={members}
-                size="md"
-                tone="unified"
-              />
-            </div>
-          )}
-        </div>
-
-        {/* Center: Supreme */}
-        <div ref={supremeRef} className="shrink-0">
+      {/* Supreme — top */}
+      <div className="relative flex justify-center">
+        <div ref={supremeRef}>
           <SupremeNode />
-        </div>
-
-        {/* Left column (RTL left): Women on top, then Finance / Procurement / Quality stacked */}
-        <div className="flex flex-col items-center gap-6 lg:gap-8">
-          {women && (
-            <div ref={womenRef}>
-              <CircleNode
-                committee={women}
-                members={members}
-                size="md"
-                tone="unified"
-              />
-            </div>
-          )}
-          {tier2.map((c, i) => (
-            <div
-              key={c.id}
-              ref={(el) => {
-                tier2Refs.current[i] = el;
-              }}
-            >
-              <CircleNode committee={c} members={members} size="md" tone="unified" />
-            </div>
-          ))}
         </div>
       </div>
 
-      {/* TIER 3: 3 operational committees */}
-      <div className="relative grid grid-cols-1 sm:grid-cols-3 gap-6 lg:gap-8 mt-20 lg:mt-24 max-w-4xl mx-auto justify-items-center">
-        {tier3.map((c, i) => (
+      {/* Vertical spine: Finance → Procurement → Quality → Women */}
+      <div className="relative mt-12 lg:mt-14 flex flex-col items-center gap-8 lg:gap-10">
+        {spine.map((c, i) => (
           <div
             key={c.id}
             ref={(el) => {
-              tier3Refs.current[i] = el;
+              spineRefs.current[i] = el;
+            }}
+          >
+            <CircleNode committee={c} members={members} size="md" tone="unified" />
+          </div>
+        ))}
+      </div>
+
+      {/* Pyramid base: Media, Reception, Programs, Dinner */}
+      <div className="relative mt-16 lg:mt-20 grid grid-cols-2 sm:grid-cols-4 gap-6 lg:gap-8 max-w-5xl mx-auto justify-items-center">
+        {base.map((c, i) => (
+          <div
+            key={c.id}
+            ref={(el) => {
+              baseRefs.current[i] = el;
             }}
           >
             <CircleNode committee={c} members={members} size="md" tone="unified" />
