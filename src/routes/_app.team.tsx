@@ -32,6 +32,8 @@ import {
   Trash2,
   Star,
   UserCircle2,
+  Download,
+  ArrowLeft,
 } from "lucide-react";
 import { toast } from "sonner";
 
