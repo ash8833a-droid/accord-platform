@@ -465,7 +465,10 @@ function TeamPage() {
   );
 }
 
-/* ───────── Org Chart ───────── */
+/* ───────── Org Chart (Hierarchical Pyramid) ───────── */
+
+const TIER_2: CommitteeType[] = ["finance", "procurement", "quality", "media"];
+const TIER_3: CommitteeType[] = ["reception", "programs", "dinner"];
 
 function OrgChart({
   committees,
@@ -474,86 +477,232 @@ function OrgChart({
   committees: CommitteeRow[];
   members: MemberRow[];
 }) {
+  const byType = (t: CommitteeType) => committees.find((c) => c.type === t);
+  const women = byType("women");
+  const tier2 = TIER_2.map(byType).filter(Boolean) as CommitteeRow[];
+  const tier3 = TIER_3.map(byType).filter(Boolean) as CommitteeRow[];
+
   return (
-    <div className="rounded-2xl border bg-card p-6 shadow-soft">
-      <div className="flex items-center gap-2 mb-6">
-        <div className="h-1 w-10 bg-gradient-hero rounded-full" />
-        <h2 className="text-lg font-bold">الهيكل التنظيمي</h2>
+    <div className="relative rounded-3xl border bg-gradient-to-br from-card via-card to-muted/30 p-6 lg:p-10 shadow-elegant overflow-hidden">
+      {/* Decorative background */}
+      <div className="absolute -top-24 -right-24 w-72 h-72 bg-gold/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute -bottom-24 -left-24 w-72 h-72 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
+      <div
+        className="absolute inset-0 opacity-[0.03] pointer-events-none"
+        style={{
+          backgroundImage:
+            "radial-gradient(currentColor 1px, transparent 1px)",
+          backgroundSize: "20px 20px",
+        }}
+      />
+
+      <div className="relative flex items-center justify-between mb-8 flex-wrap gap-3">
+        <div className="flex items-center gap-2">
+          <div className="h-1 w-10 bg-gradient-gold rounded-full" />
+          <h2 className="text-lg lg:text-xl font-bold">الهيكل التنظيمي الهرمي</h2>
+        </div>
+        <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
+          <span className="flex items-center gap-1.5">
+            <span className="h-2 w-2 rounded-full bg-gold" /> القيادة العليا
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="h-2 w-2 rounded-full bg-primary" /> اللجان التنفيذية
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="h-2 w-2 rounded-full bg-emerald-500" /> اللجان التشغيلية
+          </span>
+        </div>
       </div>
 
-      {/* Top: Supreme Committee */}
-      <div className="flex flex-col items-center">
-        <div className="relative">
-          <div className="absolute inset-0 bg-gradient-gold blur-xl opacity-30 rounded-2xl" />
-          <div className="relative rounded-2xl bg-gradient-hero text-primary-foreground px-8 py-5 shadow-elegant text-center min-w-[260px]">
-            <Crown className="h-6 w-6 text-gold mx-auto mb-1" />
-            <p className="text-[11px] text-primary-foreground/70">
-              قمة الهيكل التنظيمي
+      {/* SVG connectors layer */}
+      <div className="relative">
+        <svg
+          className="absolute inset-0 w-full h-full pointer-events-none hidden md:block"
+          preserveAspectRatio="none"
+          viewBox="0 0 1000 600"
+        >
+          <defs>
+            <linearGradient id="lineGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="oklch(0.78 0.14 85)" stopOpacity="0.7" />
+              <stop offset="100%" stopColor="oklch(0.78 0.14 85)" stopOpacity="0.15" />
+            </linearGradient>
+          </defs>
+          {/* Vertical line from supreme to tier2 hub */}
+          <line x1="500" y1="120" x2="500" y2="240" stroke="url(#lineGrad)" strokeWidth="2" strokeDasharray="4 4" />
+          {/* Horizontal bus tier 2 */}
+          <line x1="125" y1="240" x2="875" y2="240" stroke="url(#lineGrad)" strokeWidth="2" />
+          {/* Drops to tier 2 cards */}
+          {[125, 375, 625, 875].map((x, i) => (
+            <line key={i} x1={x} y1="240" x2={x} y2="290" stroke="url(#lineGrad)" strokeWidth="2" />
+          ))}
+          {/* Vertical to tier 3 */}
+          <line x1="500" y1="400" x2="500" y2="460" stroke="url(#lineGrad)" strokeWidth="2" strokeDasharray="4 4" />
+          <line x1="200" y1="460" x2="800" y2="460" stroke="url(#lineGrad)" strokeWidth="2" />
+          {[200, 500, 800].map((x, i) => (
+            <line key={i} x1={x} y1="460" x2={x} y2="510" stroke="url(#lineGrad)" strokeWidth="2" />
+          ))}
+        </svg>
+
+        {/* TIER 1 — Supreme + Women side-by-side */}
+        <div className="relative flex items-stretch justify-center gap-4 lg:gap-6 flex-wrap">
+          {/* Supreme */}
+          <div className="relative group">
+            <div className="absolute -inset-2 bg-gradient-gold blur-2xl opacity-40 rounded-3xl group-hover:opacity-60 transition-opacity" />
+            <div className="relative rounded-2xl bg-gradient-hero text-primary-foreground px-6 lg:px-10 py-5 shadow-elegant text-center min-w-[240px] lg:min-w-[300px] border border-gold/30">
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2 h-7 w-7 rounded-full bg-gold flex items-center justify-center shadow-gold">
+                <Crown className="h-4 w-4 text-gold-foreground" />
+              </div>
+              <p className="text-[10px] tracking-widest text-gold/90 uppercase mt-1">
+                Supreme Committee
+              </p>
+              <p className="font-bold text-xl text-shimmer-gold mt-0.5">
+                اللجنة العليا
+              </p>
+              <p className="text-[11px] text-primary-foreground/80 mt-1.5 leading-relaxed">
+                الإشراف العام · القرارات الاستراتيجية · الاعتمادات
+              </p>
+            </div>
+          </div>
+
+          {/* Women — beside supreme */}
+          {women && (
+            <PyramidNode
+              committee={women}
+              members={members}
+              variant="leadership"
+              tagline="القسم النسائي"
+            />
+          )}
+        </div>
+
+        {/* TIER 2 — 4 executive committees */}
+        <div className="relative grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4 mt-12">
+          {tier2.map((c) => (
+            <PyramidNode
+              key={c.id}
+              committee={c}
+              members={members}
+              variant="executive"
+            />
+          ))}
+        </div>
+
+        {/* TIER 3 — 3 operational committees */}
+        <div className="relative grid grid-cols-1 sm:grid-cols-3 gap-3 lg:gap-4 mt-12 max-w-4xl mx-auto">
+          {tier3.map((c) => (
+            <PyramidNode
+              key={c.id}
+              committee={c}
+              members={members}
+              variant="operational"
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* Footer ribbon */}
+      <div className="relative mt-10 flex items-center justify-center">
+        <div className="h-px flex-1 bg-gradient-to-l from-transparent via-border to-transparent" />
+        <p className="px-4 text-[11px] text-muted-foreground tracking-wider">
+          منصة لجنة الزواج الجماعي · قبيلة الهملة من قريش
+        </p>
+        <div className="h-px flex-1 bg-gradient-to-r from-transparent via-border to-transparent" />
+      </div>
+    </div>
+  );
+}
+
+function PyramidNode({
+  committee,
+  members,
+  variant,
+  tagline,
+}: {
+  committee: CommitteeRow;
+  members: MemberRow[];
+  variant: "leadership" | "executive" | "operational";
+  tagline?: string;
+}) {
+  const meta = COMMITTEES.find((m) => m.type === committee.type);
+  const Icon = meta?.icon ?? Users;
+  const list = members.filter((m) => m.committee_id === committee.id);
+  const head = list.find((m) => m.is_head);
+  const isFull = list.length >= committee.max_members && committee.max_members > 0;
+
+  const styles = {
+    leadership: {
+      wrap: "bg-gradient-to-br from-fuchsia-500/10 via-card to-card border-fuchsia-400/30 hover:border-fuchsia-400/60 min-w-[220px] lg:min-w-[260px]",
+      accent: "bg-fuchsia-500",
+      ring: "ring-fuchsia-400/40",
+    },
+    executive: {
+      wrap: "bg-gradient-to-br from-primary/5 via-card to-card border-primary/20 hover:border-primary/50",
+      accent: "bg-primary",
+      ring: "ring-primary/30",
+    },
+    operational: {
+      wrap: "bg-gradient-to-br from-emerald-500/5 via-card to-card border-emerald-500/20 hover:border-emerald-500/50",
+      accent: "bg-emerald-500",
+      ring: "ring-emerald-500/30",
+    },
+  }[variant];
+
+  return (
+    <div
+      className={`relative rounded-2xl border-2 p-4 shadow-soft hover:shadow-elegant hover:-translate-y-1 transition-all duration-300 ${styles.wrap}`}
+    >
+      {/* Top accent bar */}
+      <div className={`absolute top-0 left-4 right-4 h-0.5 rounded-b ${styles.accent} opacity-60`} />
+
+      <div className="flex items-start gap-3">
+        <div
+          className={`h-12 w-12 rounded-xl flex items-center justify-center shrink-0 ring-2 ${styles.ring} ${meta?.tone ?? "bg-muted"}`}
+        >
+          <Icon className="h-6 w-6" />
+        </div>
+        <div className="min-w-0 flex-1">
+          {tagline && (
+            <p className="text-[9px] tracking-widest text-muted-foreground uppercase">
+              {tagline}
             </p>
-            <p className="font-bold text-lg text-shimmer-gold">اللجنة العليا</p>
-            <p className="text-[11px] text-primary-foreground/80 mt-1">
-              الإشراف العام والقرارات الاستراتيجية
-            </p>
+          )}
+          <p className="font-bold text-sm leading-tight">{committee.name}</p>
+          <div className="flex items-center gap-1.5 mt-1.5">
+            <Badge
+              variant="secondary"
+              className={`text-[10px] h-4 px-1.5 ${
+                isFull
+                  ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300"
+                  : "bg-amber-500/15 text-amber-700 dark:text-amber-300"
+              }`}
+            >
+              <Users className="h-2.5 w-2.5 ml-0.5" />
+              {list.length}/{committee.max_members}
+            </Badge>
           </div>
         </div>
+      </div>
 
-        {/* Connector */}
-        <div className="w-px h-8 bg-border" />
-        <div className="h-px w-full max-w-5xl bg-border relative">
-          <div className="absolute left-1/2 -top-1 h-2 w-2 rounded-full bg-gold -translate-x-1/2" />
-        </div>
-
-        {/* Committees row */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3 w-full mt-4">
-          {committees.map((c) => {
-            const meta = COMMITTEES.find((m) => m.type === c.type);
-            const Icon = meta?.icon ?? Users;
-            const list = members.filter((m) => m.committee_id === c.id);
-            const head = list.find((m) => m.is_head);
-            const isFull = list.length >= c.max_members && c.max_members > 0;
-            return (
-              <div
-                key={c.id}
-                className="relative flex flex-col items-center"
-              >
-                {/* Vertical connector */}
-                <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-px h-4 bg-border" />
-                <div className="w-full rounded-xl border bg-gradient-to-br from-background to-muted/40 p-3 hover:shadow-elegant hover:-translate-y-0.5 transition-all">
-                  <div
-                    className={`h-10 w-10 rounded-lg flex items-center justify-center mx-auto mb-2 ${meta?.tone ?? "bg-muted"}`}
-                  >
-                    <Icon className="h-5 w-5" />
-                  </div>
-                  <p className="font-bold text-xs text-center leading-tight mb-1.5 min-h-8">
-                    {c.name}
-                  </p>
-                  <div className="flex items-center justify-center gap-1 mb-1">
-                    <Badge
-                      variant="secondary"
-                      className={`text-[10px] h-4 px-1.5 ${
-                        isFull
-                          ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300"
-                          : "bg-amber-500/15 text-amber-700 dark:text-amber-300"
-                      }`}
-                    >
-                      {list.length}/{c.max_members}
-                    </Badge>
-                  </div>
-                  {head ? (
-                    <p className="text-[10px] text-center text-muted-foreground truncate flex items-center justify-center gap-1">
-                      <Crown className="h-2.5 w-2.5 text-gold" />
-                      {head.full_name}
-                    </p>
-                  ) : (
-                    <p className="text-[10px] text-center text-muted-foreground/60">
-                      بلا رئيس
-                    </p>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
+      <div className="mt-3 pt-3 border-t border-dashed">
+        {head ? (
+          <div className="flex items-center gap-2">
+            <div className="h-7 w-7 rounded-full bg-gradient-gold text-gold-foreground flex items-center justify-center text-[11px] font-bold shrink-0">
+              {head.full_name.charAt(0)}
+            </div>
+            <div className="min-w-0">
+              <p className="text-[10px] text-muted-foreground flex items-center gap-1">
+                <Crown className="h-2.5 w-2.5 text-gold" /> رئيس اللجنة
+              </p>
+              <p className="text-[11px] font-semibold truncate">
+                {head.full_name}
+              </p>
+            </div>
+          </div>
+        ) : (
+          <p className="text-[10px] text-muted-foreground/70 text-center py-1">
+            بانتظار تعيين رئيس اللجنة
+          </p>
+        )}
       </div>
     </div>
   );
