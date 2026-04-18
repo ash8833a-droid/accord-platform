@@ -28,6 +28,7 @@ import { ShieldCheck, Plus, ListTodo, CalendarRange, Megaphone, Pin, Trash2, Cal
 import { MembersApproval } from "@/components/admin/MembersApproval";
 import { ApprovedMembers } from "@/components/admin/ApprovedMembers";
 import { CommitteeHeads } from "@/components/admin/CommitteeHeads";
+import { CreateMemberDialog } from "@/components/admin/CreateMemberDialog";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_app/admin")({
@@ -57,6 +58,12 @@ function AdminCenter() {
           </div>
         </div>
       </div>
+
+      {isAdmin && (
+        <div className="flex justify-end">
+          <CreateMemberDialog />
+        </div>
+      )}
 
       {!isAdmin && (
         <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-800 dark:text-amber-300">
