@@ -54,6 +54,21 @@ const PRIORITY_TONE: Record<Task["priority"], string> = {
   urgent: "bg-destructive/15 text-destructive",
 };
 
+const PHASE_TONE: Record<string, string> = {
+  "البدء": "bg-violet-500/15 text-violet-700 dark:text-violet-300 border-violet-500/30",
+  "التخطيط": "bg-sky-500/15 text-sky-700 dark:text-sky-300 border-sky-500/30",
+  "التنفيذ": "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30",
+  "المراقبة والضبط": "bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30",
+  "الإغلاق": "bg-rose-500/15 text-rose-700 dark:text-rose-300 border-rose-500/30",
+};
+
+/** Extract phase prefix like "[التخطيط]" from task title */
+function splitPhase(title: string): { phase: string | null; clean: string } {
+  const m = title.match(/^\s*\[([^\]]+)\]\s*(.*)$/);
+  if (m) return { phase: m[1].trim(), clean: m[2].trim() };
+  return { phase: null, clean: title };
+}
+
 interface PaymentRequest {
   id: string;
   title: string;
@@ -583,14 +598,28 @@ function CommitteePage() {
                           aria-hidden
                         />
 
-                        {/* Header: title + priority badge */}
-                        <div className="flex items-start gap-2 mb-2 ps-2">
-                          <GripVertical className="h-3.5 w-3.5 text-muted-foreground/40 mt-0.5 shrink-0 group-hover:text-muted-foreground transition" />
-                          <h5 className="font-semibold text-sm leading-snug flex-1 line-clamp-2">{t.title}</h5>
-                          <Badge variant="secondary" className={`${PRIORITY_TONE[t.priority]} text-[10px] font-medium shrink-0 px-1.5 py-0 h-5 rounded-md`}>
-                            {PRIORITY_LABELS[t.priority]}
-                          </Badge>
-                        </div>
+                        {/* Header: phase + priority on top, title below */}
+                        {(() => {
+                          const { phase, clean } = splitPhase(t.title);
+                          return (
+                            <div className="ps-2 mb-2">
+                              <div className="flex items-center gap-1.5 mb-1.5 flex-wrap">
+                                {phase && (
+                                  <Badge variant="outline" className={`${PHASE_TONE[phase] ?? "bg-muted text-muted-foreground"} text-[10px] font-semibold px-1.5 py-0 h-5 rounded-md border`}>
+                                    {phase}
+                                  </Badge>
+                                )}
+                                <Badge variant="secondary" className={`${PRIORITY_TONE[t.priority]} text-[10px] font-medium px-1.5 py-0 h-5 rounded-md ms-auto`}>
+                                  {PRIORITY_LABELS[t.priority]}
+                                </Badge>
+                              </div>
+                              <div className="flex items-start gap-2">
+                                <GripVertical className="h-3.5 w-3.5 text-muted-foreground/40 mt-0.5 shrink-0 group-hover:text-muted-foreground transition" />
+                                <h5 className="font-semibold text-sm leading-snug flex-1 line-clamp-2">{clean}</h5>
+                              </div>
+                            </div>
+                          );
+                        })()}
 
                         {/* Description */}
                         {t.description && (
