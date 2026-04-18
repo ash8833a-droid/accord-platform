@@ -41,6 +41,7 @@ function GroomsPage() {
   const [grooms, setGrooms] = useState<Groom[]>([]);
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({ full_name: "", phone: "", family_branch: "", bride_name: "", notes: "" });
+  const [detailsId, setDetailsId] = useState<string | null>(null);
 
   const load = async () => {
     const { data } = await supabase.from("grooms").select("*").order("created_at", { ascending: false });
