@@ -514,55 +514,13 @@ function OrgChart({
         </div>
       </div>
 
-      {/* SVG connectors layer */}
-      <div className="relative">
-        <svg
-          className="absolute inset-0 w-full h-full pointer-events-none hidden md:block"
-          preserveAspectRatio="none"
-          viewBox="0 0 1000 600"
-        >
-          <defs>
-            <linearGradient id="lineGrad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="oklch(0.78 0.14 85)" stopOpacity="0.7" />
-              <stop offset="100%" stopColor="oklch(0.78 0.14 85)" stopOpacity="0.15" />
-            </linearGradient>
-          </defs>
-          {/* Vertical line from supreme to tier2 hub */}
-          <line x1="500" y1="120" x2="500" y2="240" stroke="url(#lineGrad)" strokeWidth="2" strokeDasharray="4 4" />
-          {/* Horizontal bus tier 2 */}
-          <line x1="125" y1="240" x2="875" y2="240" stroke="url(#lineGrad)" strokeWidth="2" />
-          {/* Drops to tier 2 cards */}
-          {[125, 375, 625, 875].map((x, i) => (
-            <line key={i} x1={x} y1="240" x2={x} y2="290" stroke="url(#lineGrad)" strokeWidth="2" />
-          ))}
-          {/* Vertical to tier 3 */}
-          <line x1="500" y1="400" x2="500" y2="460" stroke="url(#lineGrad)" strokeWidth="2" strokeDasharray="4 4" />
-          <line x1="200" y1="460" x2="800" y2="460" stroke="url(#lineGrad)" strokeWidth="2" />
-          {[200, 500, 800].map((x, i) => (
-            <line key={i} x1={x} y1="460" x2={x} y2="510" stroke="url(#lineGrad)" strokeWidth="2" />
-          ))}
-        </svg>
-
-        {/* TIER 1 — Supreme + Women side-by-side */}
-        <div className="relative flex items-stretch justify-center gap-4 lg:gap-6 flex-wrap">
-          {/* Supreme */}
-          <div className="relative group">
-            <div className="absolute -inset-2 bg-gradient-gold blur-2xl opacity-40 rounded-3xl group-hover:opacity-60 transition-opacity" />
-            <div className="relative rounded-2xl bg-gradient-hero text-primary-foreground px-6 lg:px-10 py-5 shadow-elegant text-center min-w-[240px] lg:min-w-[300px] border border-gold/30">
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2 h-7 w-7 rounded-full bg-gold flex items-center justify-center shadow-gold">
-                <Crown className="h-4 w-4 text-gold-foreground" />
-              </div>
-              <p className="text-[10px] tracking-widest text-gold/90 uppercase mt-1">
-                Supreme Committee
-              </p>
-              <p className="font-bold text-xl text-shimmer-gold mt-0.5">
-                اللجنة العليا
-              </p>
-              <p className="text-[11px] text-primary-foreground/80 mt-1.5 leading-relaxed">
-                الإشراف العام · القرارات الاستراتيجية · الاعتمادات
-              </p>
-            </div>
-          </div>
+      {/* Connector + nodes layer */}
+      <ChartCanvas
+        women={women}
+        tier2={tier2}
+        tier3={tier3}
+        members={members}
+      />
 
           {/* Women — beside supreme */}
           {women && (
