@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
 import { Bell, ListTodo, Receipt, CheckCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -16,6 +17,7 @@ interface Notif {
 
 export function NotificationBell() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [notifs, setNotifs] = useState<Notif[]>([]);
   const [open, setOpen] = useState(false);
 
@@ -97,10 +99,15 @@ export function NotificationBell() {
           ) : (
             notifs.map((n) => {
               const Icon = n.type === "task_assigned" ? ListTodo : Receipt;
+              const target = n.link && n.link.startsWith("/committee/") ? n.link : null;
               return (
                 <button
                   key={n.id}
-                  onClick={() => { markOne(n.id); setOpen(false); }}
+                  onClick={() => {
+                    markOne(n.id);
+                    setOpen(false);
+                    if (target) navigate({ to: target });
+                  }}
                   className={`w-full text-start flex items-start gap-3 p-3.5 hover:bg-muted/40 transition-colors ${n.is_read ? "" : "bg-primary/5"}`}
                 >
                   <span className={`h-8 w-8 rounded-lg flex items-center justify-center shrink-0 ${
