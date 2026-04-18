@@ -8,8 +8,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { HeartHandshake, Plus, FileCheck2 } from "lucide-react";
+import { HeartHandshake, Plus, FileCheck2, FolderOpen } from "lucide-react";
 import { toast } from "sonner";
+import { GroomDetailsDialog } from "@/components/grooms/GroomDetailsDialog";
 
 export const Route = createFileRoute("/_app/grooms")({
   component: GroomsPage,
