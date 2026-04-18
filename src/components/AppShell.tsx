@@ -9,22 +9,24 @@ import {
   LogOut,
   Menu,
   X,
-  Bell,
   Megaphone,
   ChevronDown,
   ShieldCheck,
   Users,
   Lightbulb,
+  Inbox,
 } from "lucide-react";
 import { Logo } from "./Logo";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { COMMITTEES } from "@/lib/committees";
 import { supabase } from "@/integrations/supabase/client";
+import { NotificationBell } from "@/components/NotificationBell";
 
 
 const ADMIN_TOP = [
   { to: "/dashboard", label: "لوحة التحكم", icon: LayoutDashboard },
+  { to: "/inbox", label: "صندوق الوارد", icon: Inbox },
   { to: "/admin", label: "الإدارة العليا", icon: ShieldCheck },
   { to: "/team", label: "فريق العمل", icon: Users },
 ] as const;
@@ -36,6 +38,7 @@ const ADMIN_BOTTOM = [
 ] as const;
 
 const RESTRICTED_EXTRA = [
+  { to: "/inbox", label: "صندوق الوارد", icon: Inbox },
   { to: "/ideas", label: "بنك الأفكار", icon: Lightbulb },
 ] as const;
 
@@ -223,17 +226,57 @@ export function AppShell({ children, restricted = false, restrictedToCommitteeTy
               مرحباً بك في منصة البرنامج
             </div>
             <div className="flex items-center gap-2">
-              <button className="relative p-2 rounded-lg hover:bg-accent transition-colors">
-                <Bell className="h-5 w-5 text-muted-foreground" />
-                <span className="absolute top-1.5 right-1.5 h-2 w-2 bg-gold rounded-full animate-pulse" />
-              </button>
+              <NotificationBell />
             </div>
           </div>
         </header>
 
-        <main className="flex-1 px-4 lg:px-8 py-6 lg:py-8 max-w-7xl w-full me-auto animate-fade-up">
+        <main className="flex-1 px-4 lg:px-8 py-6 lg:py-8 pb-24 lg:pb-8 max-w-7xl w-full me-auto animate-fade-up">
           {children}
         </main>
+
+        {/* Mobile bottom navigation */}
+        <nav className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-background/95 backdrop-blur border-t border-border">
+          <div className="grid grid-cols-5 h-16">
+            {[
+              { to: "/dashboard", label: "الرئيسية", icon: LayoutDashboard },
+              { to: "/inbox", label: "الوارد", icon: Inbox },
+              { to: "/ideas", label: "الأفكار", icon: Lightbulb },
+              { to: "/team", label: "الفريق", icon: Users },
+              { to: "__menu", label: "القائمة", icon: Menu },
+            ].map((item) => {
+              const isMenu = item.to === "__menu";
+              const active = !isMenu && (path === item.to || path.startsWith(item.to + "/"));
+              const Icon = item.icon;
+              const inner = (
+                <>
+                  <Icon className={`h-5 w-5 ${active ? "text-primary" : "text-muted-foreground"}`} />
+                  <span className={`text-[10px] mt-0.5 ${active ? "text-primary font-bold" : "text-muted-foreground"}`}>{item.label}</span>
+                </>
+              );
+              if (isMenu) {
+                return (
+                  <button
+                    key="menu"
+                    onClick={() => setOpen(true)}
+                    className="flex flex-col items-center justify-center gap-0"
+                  >
+                    {inner}
+                  </button>
+                );
+              }
+              return (
+                <Link
+                  key={item.to}
+                  to={item.to}
+                  className="flex flex-col items-center justify-center gap-0"
+                >
+                  {inner}
+                </Link>
+              );
+            })}
+          </div>
+        </nav>
       </div>
     </div>
   );
