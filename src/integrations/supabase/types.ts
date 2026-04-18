@@ -169,6 +169,50 @@ export type Database = {
         }
         Relationships: []
       }
+      groom_audit_log: {
+        Row: {
+          actor_name: string | null
+          actor_user_id: string | null
+          created_at: string
+          event_type: string
+          from_status: string | null
+          groom_id: string
+          id: string
+          note: string | null
+          to_status: string | null
+        }
+        Insert: {
+          actor_name?: string | null
+          actor_user_id?: string | null
+          created_at?: string
+          event_type: string
+          from_status?: string | null
+          groom_id: string
+          id?: string
+          note?: string | null
+          to_status?: string | null
+        }
+        Update: {
+          actor_name?: string | null
+          actor_user_id?: string | null
+          created_at?: string
+          event_type?: string
+          from_status?: string | null
+          groom_id?: string
+          id?: string
+          note?: string | null
+          to_status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "groom_audit_log_groom_id_fkey"
+            columns: ["groom_id"]
+            isOneToOne: false
+            referencedRelation: "grooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       groom_documents: {
         Row: {
           created_at: string
