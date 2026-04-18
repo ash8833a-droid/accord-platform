@@ -688,39 +688,41 @@ function HierarchyChart({
         </svg>
       )}
 
-      {/* Supreme — top */}
-      <div className="relative flex justify-center">
-        <div ref={supremeRef}>
-          <SupremeNode />
+      {/* Two-column grid: left vertical spine | right (Supreme on top, Base pyramid below) */}
+      <div className="relative grid grid-cols-[auto_1fr] gap-x-12 lg:gap-x-20 items-start">
+        {/* LEFT — vertical spine */}
+        <div className="flex flex-col items-end gap-6 lg:gap-8 pt-4">
+          {spine.map((c, i) => (
+            <div
+              key={c.id}
+              ref={(el) => {
+                spineRefs.current[i] = el;
+              }}
+            >
+              <SquareNode committee={c} members={members} />
+            </div>
+          ))}
         </div>
-      </div>
 
-      {/* Vertical spine: Finance → Procurement → Quality → Women */}
-      <div className="relative mt-12 lg:mt-14 flex flex-col items-center gap-8 lg:gap-10">
-        {spine.map((c, i) => (
-          <div
-            key={c.id}
-            ref={(el) => {
-              spineRefs.current[i] = el;
-            }}
-          >
-            <CircleNode committee={c} members={members} size="md" tone="unified" />
+        {/* RIGHT — Supreme on top, base pyramid below */}
+        <div className="flex flex-col items-center">
+          <div ref={supremeRef}>
+            <SupremeNode />
           </div>
-        ))}
-      </div>
 
-      {/* Pyramid base: Media, Reception, Programs, Dinner */}
-      <div className="relative mt-16 lg:mt-20 grid grid-cols-2 sm:grid-cols-4 gap-6 lg:gap-8 max-w-5xl mx-auto justify-items-center">
-        {base.map((c, i) => (
-          <div
-            key={c.id}
-            ref={(el) => {
-              baseRefs.current[i] = el;
-            }}
-          >
-            <CircleNode committee={c} members={members} size="md" tone="unified" />
+          <div className="mt-16 lg:mt-20 grid grid-cols-2 sm:grid-cols-4 gap-6 lg:gap-8 w-full justify-items-center">
+            {base.map((c, i) => (
+              <div
+                key={c.id}
+                ref={(el) => {
+                  baseRefs.current[i] = el;
+                }}
+              >
+                <SquareNode committee={c} members={members} />
+              </div>
+            ))}
           </div>
-        ))}
+        </div>
       </div>
     </div>
   );
