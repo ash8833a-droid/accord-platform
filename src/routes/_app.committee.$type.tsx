@@ -101,11 +101,12 @@ function CommitteePage() {
   const { type } = Route.useParams();
   const meta = committeeByType(type);
 
-  const [committee, setCommittee] = useState<{ id: string; name: string; description: string | null; budget_allocated: number; budget_spent: number } | null>(null);
+  const [committee, setCommittee] = useState<{ id: string; name: string; description: string | null; budget_allocated: number; budget_spent: number; head_user_id: string | null } | null>(null);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [requests, setRequests] = useState<PaymentRequest[]>([]);
 
-  const { user } = useAuth();
+  const { user, hasRole } = useAuth();
+  const isAdmin = hasRole("admin");
   const [profileName, setProfileName] = useState<string | null>(null);
   const [members, setMembers] = useState<TeamMember[]>([]);
   const [allMembers, setAllMembers] = useState<TeamMember[]>([]);
@@ -127,6 +128,9 @@ function CommitteePage() {
   const [prRecipient, setPrRecipient] = useState<string>("finance");
   const [prSubmitting, setPrSubmitting] = useState(false);
 
+  const isHead = !!(user && committee && committee.head_user_id === user.id);
+  const canManageTasks = isAdmin || isHead;
+
   const load = async () => {
     const { data: c } = await supabase
       .from("committees")
@@ -138,19 +142,71 @@ function CommitteePage() {
       return;
     }
     setCommittee(c);
-    const [{ data: t }, { data: p }, { data: m }, { data: am }] = await Promise.all([
+
+    const [{ data: t }, { data: p }, { data: m }, { data: am }, { data: rolesInCommittee }, { data: allRoles }] = await Promise.all([
       supabase.from("committee_tasks").select("id, title, description, status, priority, assigned_to").eq("committee_id", c.id),
       supabase.from("payment_requests").select("id, title, amount, status, created_at, invoice_url").eq("committee_id", c.id).order("created_at", { ascending: false }),
       supabase.from("team_members").select("id, full_name, role_title, is_head").eq("committee_id", c.id).order("display_order"),
       supabase.from("team_members").select("id, full_name, role_title, is_head, committee_id, committees(name)").order("display_order"),
+      supabase.from("user_roles").select("user_id, role").eq("committee_id", c.id),
+      supabase.from("user_roles").select("user_id, role, committee_id").not("committee_id", "is", null),
     ]);
+
+    const teamForCommittee = (m ?? []) as TeamMember[];
+    const allTeam = ((am ?? []) as any[]).map((x) => ({
+      id: x.id, full_name: x.full_name, role_title: x.role_title, is_head: x.is_head,
+      committee_id: x.committee_id as string, committee_name: x.committees?.name ?? "",
+    })) as TeamMember[];
+
+    // Fetch profiles for users in user_roles to merge into the members lists
+    const allRoleRows = (allRoles ?? []) as { user_id: string; role: string; committee_id: string }[];
+    const roleUserIds = Array.from(new Set(allRoleRows.map((r) => r.user_id)));
+    let profiles: { user_id: string; full_name: string }[] = [];
+    if (roleUserIds.length) {
+      const { data: pr } = await supabase
+        .from("profiles")
+        .select("user_id, full_name")
+        .in("user_id", roleUserIds);
+      profiles = pr ?? [];
+    }
+    const profMap = new Map(profiles.map((p) => [p.user_id, p.full_name]));
+    const committeeNameById = new Map(allTeam.map((tm) => [tm.committee_id, tm.committee_name] as const));
+    // Also include current committee in the map (in case it has no team_members yet)
+    committeeNameById.set(c.id, c.name);
+
+    // Build virtual TeamMember entries from user_roles, deduped against existing team_members by name+committee
+    const existingKeys = new Set(allTeam.map((tm) => `${tm.committee_id}::${tm.full_name.trim()}`));
+    const virtualFromRoles: TeamMember[] = [];
+    allRoleRows.forEach((r) => {
+      const name = profMap.get(r.user_id);
+      if (!name) return;
+      const key = `${r.committee_id}::${name.trim()}`;
+      if (existingKeys.has(key)) return;
+      existingKeys.add(key);
+      virtualFromRoles.push({
+        id: `role::${r.user_id}::${r.committee_id}`,
+        full_name: name,
+        role_title: r.role === "committee" ? "عضو لجنة" : r.role === "quality" ? "الجودة" : r.role === "admin" ? "مدير نظام" : r.role,
+        is_head: false,
+        committee_id: r.committee_id,
+        committee_name: committeeNameById.get(r.committee_id) ?? "",
+      });
+    });
+
+    // Merge into members of the current committee and global list
+    const mergedForCommittee = [
+      ...teamForCommittee,
+      ...virtualFromRoles.filter((v) => v.committee_id === c.id),
+    ];
+    const mergedAll = [...allTeam, ...virtualFromRoles];
+
     setTasks((t ?? []) as Task[]);
     setRequests((p ?? []) as PaymentRequest[]);
-    setMembers((m ?? []) as TeamMember[]);
-    setAllMembers(((am ?? []) as any[]).map((x) => ({
-      id: x.id, full_name: x.full_name, role_title: x.role_title, is_head: x.is_head,
-      committee_id: x.committee_id, committee_name: x.committees?.name ?? "",
-    })));
+    setMembers(mergedForCommittee);
+    setAllMembers(mergedAll);
+
+    // Suppress unused warning for rolesInCommittee (kept for future use)
+    void rolesInCommittee;
   };
 
   useEffect(() => {
@@ -201,7 +257,47 @@ function CommitteePage() {
   const saveTask = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!committee) return;
-    const assigned_to = tAssignee === "none" ? null : tAssignee;
+    if (!canManageTasks) {
+      toast.error("لا تملك صلاحية إنشاء/تعديل المهام في هذه اللجنة");
+      return;
+    }
+
+    // Resolve assignee: virtual role-based ids (role::userId::committeeId) need to map to a real team_members row
+    let assigned_to: string | null = tAssignee === "none" ? null : tAssignee;
+    if (assigned_to && assigned_to.startsWith("role::")) {
+      const [, userId, committeeId] = assigned_to.split("::");
+      const target = allMembers.find((m) => m.id === assigned_to);
+      const fullName = target?.full_name ?? "";
+      // Check if a team_members row already exists for that name+committee
+      const { data: existing } = await supabase
+        .from("team_members")
+        .select("id")
+        .eq("committee_id", committeeId)
+        .eq("full_name", fullName)
+        .maybeSingle();
+      if (existing?.id) {
+        assigned_to = existing.id;
+      } else {
+        // Create a minimal team_members row so notifications & assignment chain work
+        const { data: created, error: createErr } = await supabase
+          .from("team_members")
+          .insert({
+            committee_id: committeeId,
+            full_name: fullName,
+            role_title: target?.role_title ?? "عضو لجنة",
+            is_head: false,
+          })
+          .select("id")
+          .single();
+        if (createErr || !created) {
+          toast.error("تعذّر تجهيز بيانات العضو", { description: createErr?.message });
+          return;
+        }
+        assigned_to = created.id;
+        void userId;
+      }
+    }
+
     if (editingId) {
       const { error } = await supabase.from("committee_tasks")
         .update({ title: tTitle, description: tDesc, status: tStatus, priority: tPriority, assigned_to })
@@ -541,9 +637,21 @@ function CommitteePage() {
       {/* Tasks Kanban */}
       <section>
         <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
-          <h3 className="font-bold flex items-center gap-2">
-            <ListTodo className="h-5 w-5 text-primary" /> لوحة المهام
-          </h3>
+          <div className="flex items-center gap-2 flex-wrap">
+            <h3 className="font-bold flex items-center gap-2">
+              <ListTodo className="h-5 w-5 text-primary" /> لوحة المهام
+            </h3>
+            {isHead && (
+              <Badge className="bg-gold/15 text-gold-foreground border border-gold/40 text-[10px] gap-1">
+                👑 أنت رئيس هذه اللجنة
+              </Badge>
+            )}
+            {!canManageTasks && (
+              <Badge variant="outline" className="text-[10px] text-muted-foreground">
+                للعرض والتنفيذ فقط — الإسناد من رئيس اللجنة
+              </Badge>
+            )}
+          </div>
           <div className="flex items-center gap-2">
             {myMemberId && (
               <Button
@@ -557,9 +665,11 @@ function CommitteePage() {
               </Button>
             )}
             <Dialog open={taskOpen} onOpenChange={(o) => { setTaskOpen(o); if (!o) resetTaskForm(); }}>
-              <Button size="sm" onClick={openNewTask} className="bg-gradient-gold text-gold-foreground shadow-gold">
-                <Plus className="h-4 w-4 ms-1" /> مهمة جديدة
-              </Button>
+              {canManageTasks && (
+                <Button size="sm" onClick={openNewTask} className="bg-gradient-gold text-gold-foreground shadow-gold">
+                  <Plus className="h-4 w-4 ms-1" /> مهمة جديدة
+                </Button>
+              )}
               <DialogContent dir="rtl">
                 <DialogHeader><DialogTitle>{editingId ? "تعديل المهمة" : "إضافة مهمة"}</DialogTitle></DialogHeader>
                 <form onSubmit={saveTask} className="space-y-3 pt-2">
@@ -736,22 +846,24 @@ function CommitteePage() {
                               <UserIcon className="h-3 w-3" /> غير معيّن
                             </span>
                           )}
-                          <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition">
-                            <button
-                              onClick={() => openEditTask(t)}
-                              className="h-6 w-6 rounded-md flex items-center justify-center hover:bg-primary/10 hover:text-primary transition"
-                              aria-label="تعديل"
-                            >
-                              <Pencil className="h-3 w-3" />
-                            </button>
-                            <button
-                              onClick={() => deleteTask(t.id)}
-                              className="h-6 w-6 rounded-md flex items-center justify-center hover:bg-destructive/10 hover:text-destructive transition"
-                              aria-label="حذف"
-                            >
-                              <Trash2 className="h-3 w-3" />
-                            </button>
-                          </div>
+                          {canManageTasks && (
+                            <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition">
+                              <button
+                                onClick={() => openEditTask(t)}
+                                className="h-6 w-6 rounded-md flex items-center justify-center hover:bg-primary/10 hover:text-primary transition"
+                                aria-label="تعديل"
+                              >
+                                <Pencil className="h-3 w-3" />
+                              </button>
+                              <button
+                                onClick={() => deleteTask(t.id)}
+                                className="h-6 w-6 rounded-md flex items-center justify-center hover:bg-destructive/10 hover:text-destructive transition"
+                                aria-label="حذف"
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </button>
+                            </div>
+                          )}
                         </div>
                       </div>
                     );
