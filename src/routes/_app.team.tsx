@@ -788,22 +788,22 @@ function SquareNode({
     <Link
       to="/committee/$type"
       params={{ type: committee.type }}
-      className="group relative flex flex-col items-center w-[150px] lg:w-[168px]"
+      className="group relative flex flex-col items-center w-[160px] lg:w-[180px]"
       title={`فتح صفحة ${committee.name}`}
     >
       {/* Rectangular pill card — gold right-accent strip + soft border */}
-      <div className="relative h-[68px] w-full overflow-hidden rounded-xl bg-card border border-gold/30 shadow-soft group-hover:shadow-elegant group-hover:border-gold/60 group-hover:-translate-y-0.5 transition-all duration-300">
+      <div className="relative min-h-[72px] w-full overflow-hidden rounded-xl bg-card border border-gold/30 shadow-soft group-hover:shadow-elegant group-hover:border-gold/60 group-hover:-translate-y-0.5 transition-all duration-300">
         {/* Right gold accent strip (RTL — visually on the right) */}
         <div className="absolute inset-y-0 right-0 w-1 bg-gradient-to-b from-gold to-amber-500" />
         {/* Subtle gold tint */}
         <div className="absolute inset-0 bg-gradient-to-l from-gold/5 to-transparent pointer-events-none" />
 
-        <div className="relative h-full flex items-center gap-2.5 pr-3 pl-2.5">
+        <div className="relative flex items-center gap-2.5 pr-3 pl-2.5 py-2">
           <div className="h-9 w-9 shrink-0 rounded-lg flex items-center justify-center bg-gold/10 text-gold ring-1 ring-gold/20">
             <Icon className="h-4 w-4" />
           </div>
           <div className="min-w-0 flex-1 text-right">
-            <p className="font-bold text-[12.5px] leading-tight text-foreground group-hover:text-primary transition-colors truncate">
+            <p className="font-bold text-[12.5px] leading-snug text-foreground group-hover:text-primary transition-colors break-words">
               {committee.name}
             </p>
             <Badge
