@@ -836,22 +836,16 @@ function CircleNode({
       <div className="h-3 w-px bg-gold/40" />
 
       {/* Head label below */}
-      <div className="text-center min-h-[38px]">
-        {head ? (
-          <>
-            <p className="text-xs text-muted-foreground flex items-center justify-center gap-1">
-              <Crown className="h-3 w-3 text-gold" /> رئيس اللجنة
-            </p>
-            <p className="text-[13px] font-semibold truncate max-w-[170px]">
-              {head.full_name}
-            </p>
-          </>
-        ) : (
-          <p className="text-xs text-muted-foreground/70 mt-1">
-            بانتظار التعيين
+      {head && (
+        <div className="text-center">
+          <p className="text-xs text-muted-foreground flex items-center justify-center gap-1">
+            <Crown className="h-3 w-3 text-gold" /> رئيس اللجنة
           </p>
-        )}
-      </div>
+          <p className="text-[13px] font-semibold truncate max-w-[170px]">
+            {head.full_name}
+          </p>
+        </div>
+      )}
     </Link>
   );
 }
