@@ -569,26 +569,43 @@ function CommitteePage() {
                         draggable
                         onDragStart={(e) => onDragStart(e, t.id)}
                         onDragEnd={onDragEnd}
-                        className={`group rounded-lg bg-card p-3 shadow-soft border hover:border-primary/40 transition cursor-grab active:cursor-grabbing ${
+                        className={`group relative rounded-xl bg-card p-3.5 shadow-sm border border-border/60 hover:border-primary/40 hover:shadow-md transition-all cursor-grab active:cursor-grabbing ${
                           dragId === t.id ? "opacity-40 scale-95" : ""
                         } ${isMine ? "ring-1 ring-primary/40" : ""}`}
                       >
-                        <div className="flex items-start gap-2 mb-1.5">
-                          <GripVertical className="h-3.5 w-3.5 text-muted-foreground/60 mt-0.5 shrink-0" />
-                          <p className="font-medium text-sm flex-1">{t.title}</p>
-                          <Badge variant="secondary" className={`${PRIORITY_TONE[t.priority]} text-[10px] shrink-0`}>
+                        {/* Priority accent bar */}
+                        <span
+                          className={`absolute top-0 bottom-0 start-0 w-1 rounded-s-xl ${
+                            t.priority === "urgent" ? "bg-rose-500" :
+                            t.priority === "high" ? "bg-amber-500" :
+                            t.priority === "medium" ? "bg-sky-500" : "bg-muted-foreground/30"
+                          }`}
+                          aria-hidden
+                        />
+
+                        {/* Header: title + priority badge */}
+                        <div className="flex items-start gap-2 mb-2 ps-2">
+                          <GripVertical className="h-3.5 w-3.5 text-muted-foreground/40 mt-0.5 shrink-0 group-hover:text-muted-foreground transition" />
+                          <h5 className="font-semibold text-sm leading-snug flex-1 line-clamp-2">{t.title}</h5>
+                          <Badge variant="secondary" className={`${PRIORITY_TONE[t.priority]} text-[10px] font-medium shrink-0 px-1.5 py-0 h-5 rounded-md`}>
                             {PRIORITY_LABELS[t.priority]}
                           </Badge>
                         </div>
+
+                        {/* Description */}
                         {t.description && (
-                          <p className="text-[11px] text-muted-foreground line-clamp-2 mb-2 ps-5">{t.description}</p>
+                          <p className="text-[11.5px] leading-relaxed text-muted-foreground line-clamp-2 mb-2.5 ps-7">
+                            {t.description}
+                          </p>
                         )}
 
-                        <div className="ps-5 mb-2">
+                        {/* Attachments */}
+                        <div className="ps-7 mb-2.5">
                           <TaskAttachments taskId={t.id} committeeId={committee.id} compact />
                         </div>
 
-                        <div className="flex items-center justify-between gap-2 pt-1 border-t border-border/50">
+                        {/* Footer: assignee + actions */}
+                        <div className="flex items-center justify-between gap-2 pt-2.5 border-t border-dashed border-border/60 ps-2">
                           {assignee ? (
                             <div className="flex items-center gap-1.5 min-w-0" title={assignee.full_name}>
                               <Avatar className="h-6 w-6 border border-primary/20">
@@ -596,27 +613,27 @@ function CommitteePage() {
                                   {initials(assignee.full_name)}
                                 </AvatarFallback>
                               </Avatar>
-                              <span className="text-[11px] text-muted-foreground truncate">
+                              <span className="text-[11px] text-muted-foreground truncate font-medium">
                                 {assignee.full_name.split(" ").slice(0, 2).join(" ")}
                               </span>
-                              {isMine && <Badge variant="secondary" className="bg-primary/10 text-primary text-[9px] px-1.5 h-4">أنت</Badge>}
+                              {isMine && <Badge variant="secondary" className="bg-primary/10 text-primary text-[9px] px-1.5 h-4 rounded-md">أنت</Badge>}
                             </div>
                           ) : (
-                            <span className="text-[10px] text-muted-foreground/70 inline-flex items-center gap-1">
+                            <span className="text-[10.5px] text-muted-foreground/60 inline-flex items-center gap-1">
                               <UserIcon className="h-3 w-3" /> غير معيّن
                             </span>
                           )}
-                          <div className="flex items-center gap-0.5 opacity-60 group-hover:opacity-100 transition">
+                          <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition">
                             <button
                               onClick={() => openEditTask(t)}
-                              className="h-6 w-6 rounded flex items-center justify-center hover:bg-primary/10 hover:text-primary transition"
+                              className="h-6 w-6 rounded-md flex items-center justify-center hover:bg-primary/10 hover:text-primary transition"
                               aria-label="تعديل"
                             >
                               <Pencil className="h-3 w-3" />
                             </button>
                             <button
                               onClick={() => deleteTask(t.id)}
-                              className="h-6 w-6 rounded flex items-center justify-center hover:bg-destructive/10 hover:text-destructive transition"
+                              className="h-6 w-6 rounded-md flex items-center justify-center hover:bg-destructive/10 hover:text-destructive transition"
                               aria-label="حذف"
                             >
                               <Trash2 className="h-3 w-3" />
