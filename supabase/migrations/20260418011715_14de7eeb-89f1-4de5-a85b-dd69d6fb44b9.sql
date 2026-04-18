@@ -1,0 +1,1 @@
+UPDATE public.profiles SET full_name = 'عبدالملك بن سالم', updated_at = now() WHERE user_id = '94682c6b-b3ee-45fe-a2d9-dc537a75707e';
