@@ -628,23 +628,26 @@ function HierarchyChart({
       spineCenters.forEach((c) => ls.push({ x1: c.cx, y1: busY, x2: c.cx, y2: c.top }));
     }
 
-    // Tier 3 (base row): each Tier 2 node drops directly to its corresponding base node
-    // Use a shared horizontal bus between Tier 2 bottoms and Tier 3 tops.
+    // Tier 3 (base row): single connecting line — one vertical from center of Tier 2 row,
+    // one horizontal bus that touches the top of every Tier 3 node (no individual drops).
     if (baseCenters.length && spineCenters.length) {
-      const busY =
-        (Math.max(...spineCenters.map((c) => c.bottom)) +
-          Math.min(...baseCenters.map((c) => c.top))) /
+      const tier2BottomMax = Math.max(...spineCenters.map((c) => c.bottom));
+      const baseTopMin = Math.min(...baseCenters.map((c) => c.top));
+      const busY = baseTopMin; // bus sits exactly at the top edge of base nodes
+      const midX =
+        (Math.min(...spineCenters.map((c) => c.cx)) +
+          Math.max(...spineCenters.map((c) => c.cx))) /
         2;
-      // drop from each spine node to bus
-      spineCenters.forEach((c) => ls.push({ x1: c.cx, y1: c.bottom, x2: c.cx, y2: busY }));
-      // horizontal bus spanning both rows
-      const allXs = [
-        ...spineCenters.map((c) => c.cx),
-        ...baseCenters.map((c) => c.cx),
-      ];
-      ls.push({ x1: Math.min(...allXs), y1: busY, x2: Math.max(...allXs), y2: busY });
-      // drop from bus to each base node
-      baseCenters.forEach((c) => ls.push({ x1: c.cx, y1: busY, x2: c.cx, y2: c.top }));
+      // single vertical connector from Tier 2 row center down to the bus
+      ls.push({ x1: midX, y1: tier2BottomMax, x2: midX, y2: busY });
+      // single horizontal bus spanning all base nodes
+      const baseXs = baseCenters.map((c) => c.cx);
+      ls.push({
+        x1: Math.min(...baseXs),
+        y1: busY,
+        x2: Math.max(...baseXs),
+        y2: busY,
+      });
     }
 
     setLines(ls);
