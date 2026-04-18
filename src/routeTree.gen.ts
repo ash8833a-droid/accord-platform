@@ -21,7 +21,6 @@ import { Route as AppGroomsRouteImport } from './routes/_app.grooms'
 import { Route as AppFinanceRouteImport } from './routes/_app.finance'
 import { Route as AppDashboardRouteImport } from './routes/_app.dashboard'
 import { Route as AppAdminRouteImport } from './routes/_app.admin'
-import { Route as ApiAdminCreateMemberRouteImport } from './routes/api.admin.create-member'
 import { Route as AppCommitteeTypeRouteImport } from './routes/_app.committee.$type'
 
 const PendingRoute = PendingRouteImport.update({
@@ -83,11 +82,6 @@ const AppAdminRoute = AppAdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => AppRoute,
 } as any)
-const ApiAdminCreateMemberRoute = ApiAdminCreateMemberRouteImport.update({
-  id: '/api/admin/create-member',
-  path: '/api/admin/create-member',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AppCommitteeTypeRoute = AppCommitteeTypeRouteImport.update({
   id: '/committee/$type',
   path: '/committee/$type',
@@ -107,7 +101,6 @@ export interface FileRoutesByFullPath {
   '/reports': typeof AppReportsRoute
   '/team': typeof AppTeamRoute
   '/committee/$type': typeof AppCommitteeTypeRoute
-  '/api/admin/create-member': typeof ApiAdminCreateMemberRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -122,7 +115,6 @@ export interface FileRoutesByTo {
   '/reports': typeof AppReportsRoute
   '/team': typeof AppTeamRoute
   '/committee/$type': typeof AppCommitteeTypeRoute
-  '/api/admin/create-member': typeof ApiAdminCreateMemberRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -139,7 +131,6 @@ export interface FileRoutesById {
   '/_app/reports': typeof AppReportsRoute
   '/_app/team': typeof AppTeamRoute
   '/_app/committee/$type': typeof AppCommitteeTypeRoute
-  '/api/admin/create-member': typeof ApiAdminCreateMemberRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -156,7 +147,6 @@ export interface FileRouteTypes {
     | '/reports'
     | '/team'
     | '/committee/$type'
-    | '/api/admin/create-member'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -171,7 +161,6 @@ export interface FileRouteTypes {
     | '/reports'
     | '/team'
     | '/committee/$type'
-    | '/api/admin/create-member'
   id:
     | '__root__'
     | '/'
@@ -187,7 +176,6 @@ export interface FileRouteTypes {
     | '/_app/reports'
     | '/_app/team'
     | '/_app/committee/$type'
-    | '/api/admin/create-member'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -195,7 +183,6 @@ export interface RootRouteChildren {
   AppRoute: typeof AppRouteWithChildren
   AuthRoute: typeof AuthRoute
   PendingRoute: typeof PendingRoute
-  ApiAdminCreateMemberRoute: typeof ApiAdminCreateMemberRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -284,13 +271,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAdminRouteImport
       parentRoute: typeof AppRoute
     }
-    '/api/admin/create-member': {
-      id: '/api/admin/create-member'
-      path: '/api/admin/create-member'
-      fullPath: '/api/admin/create-member'
-      preLoaderRoute: typeof ApiAdminCreateMemberRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/_app/committee/$type': {
       id: '/_app/committee/$type'
       path: '/committee/$type'
@@ -332,7 +312,6 @@ const rootRouteChildren: RootRouteChildren = {
   AppRoute: AppRouteWithChildren,
   AuthRoute: AuthRoute,
   PendingRoute: PendingRoute,
-  ApiAdminCreateMemberRoute: ApiAdminCreateMemberRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
