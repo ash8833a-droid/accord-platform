@@ -9,6 +9,7 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Upload, Image as ImageIcon, IdCard, Loader2, Save, ExternalLink, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { GroomTimeline } from "./GroomTimeline";
 
 interface Props {
   groomId: string;
@@ -233,6 +234,8 @@ export function GroomDetailsDialog({ groomId, open, onOpenChange, onSaved }: Pro
                 />
               </div>
             </div>
+
+            <GroomTimeline groomId={groomId} />
           </div>
         )}
 
