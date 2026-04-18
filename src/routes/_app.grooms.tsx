@@ -130,6 +130,7 @@ function GroomsPage() {
                 <th className="px-4 py-3 font-medium">الجوال</th>
                 <th className="px-4 py-3 font-medium">العروس</th>
                 <th className="px-4 py-3 font-medium">الحالة</th>
+                <th className="px-4 py-3 font-medium">المستندات والطلبات</th>
                 <th className="px-4 py-3 font-medium">إجراء</th>
               </tr>
             </thead>
