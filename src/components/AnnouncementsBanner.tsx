@@ -85,7 +85,27 @@ function useNow(intervalMs = 1000) {
   return now;
 }
 
-function formatCountdown(target: number, now: number): string {
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(max-width: 767px)");
+    const handleChange = () => setIsMobile(mediaQuery.matches);
+    handleChange();
+
+    if (typeof mediaQuery.addEventListener === "function") {
+      mediaQuery.addEventListener("change", handleChange);
+      return () => mediaQuery.removeEventListener("change", handleChange);
+    }
+
+    mediaQuery.addListener(handleChange);
+    return () => mediaQuery.removeListener(handleChange);
+  }, []);
+
+  return isMobile;
+}
+
+function formatCountdown(target: number, now: number, compact = false): string {
   const diff = target - now;
   if (diff <= 0) return "بدأ الاجتماع الآن";
   const days = Math.floor(diff / 86400000);
@@ -95,12 +115,17 @@ function formatCountdown(target: number, now: number): string {
   const hh = hours.toString().padStart(2, "0");
   const mm = minutes.toString().padStart(2, "0");
   const ss = seconds.toString().padStart(2, "0");
+
+  if (compact) {
+    return days > 0 ? `متبقي ${days} يوم` : `متبقي ${hh}:${mm}`;
+  }
+
   return days > 0
     ? `متبقي ${days} يوم و ${hh}:${mm}:${ss}`
     : `متبقي ${hh}:${mm}:${ss}`;
 }
 
-function TickerItem({ item, now }: { item: NormalizedItem; now: number }) {
+function TickerItem({ item, now, compact = false }: { item: NormalizedItem; now: number; compact?: boolean }) {
   const isMeeting = item.kind === "meeting";
   return (
     <span className="inline-flex items-center gap-2 mx-8">
@@ -113,10 +138,10 @@ function TickerItem({ item, now }: { item: NormalizedItem; now: number }) {
       <span className="font-bold">{item.title}</span>
       {isMeeting && item.meetingAt ? (
         <span className="bg-black/20 rounded-md px-2 py-0.5 text-xs tabular-nums">
-          {formatCountdown(item.meetingAt, now)}
+          {formatCountdown(item.meetingAt, now, compact)}
         </span>
       ) : (
-        item.body && <span className="opacity-90">— {item.body.slice(0, 140)}</span>
+        item.body && <span className="opacity-90">— {item.body.slice(0, compact ? 70 : 140)}</span>
       )}
       <span className="text-white/40 mx-2">•</span>
     </span>
@@ -136,7 +161,8 @@ export function AnnouncementsBanner() {
   const [closed, setClosed] = useState(false);
   const { hasRole } = useAuth();
   const isAdmin = hasRole("admin");
-  const now = useNow(1000);
+  const isMobile = useIsMobile();
+  const now = useNow(isMobile ? 60000 : 1000);
   const knownIdsRef = useRef<Set<string> | null>(null);
   const userInteractedRef = useRef(false);
 
@@ -190,7 +216,6 @@ export function AnnouncementsBanner() {
       return it.meetingAt + 2 * 3600 * 1000 > Date.now();
     });
 
-    // Detect newly arrived items (skip first load) and chime
     const currentIds = new Set(filtered.map((it) => it.id));
     if (knownIdsRef.current !== null) {
       const hasNew = filtered.some((it) => !knownIdsRef.current!.has(it.id));
@@ -225,7 +250,6 @@ export function AnnouncementsBanner() {
 
   if (closed || visible.length === 0) return null;
 
-  // Scroll speed — lower duration = faster
   const duration = Math.max(25, visible.length * 11);
 
   const dismissAll = () => {
@@ -239,14 +263,44 @@ export function AnnouncementsBanner() {
     }
   };
 
+  if (isMobile) {
+    const firstItem = visible[0];
+    return (
+      <div className="relative overflow-hidden border-b bg-gradient-to-l from-primary via-primary to-gold text-primary-foreground" dir="rtl">
+        <div className="flex items-center gap-2 px-3 py-2.5">
+          <div className="shrink-0 rounded-md bg-gold px-2 py-1 text-[10px] font-bold text-gold-foreground">
+            عاجل
+          </div>
+          <div className="min-w-0 flex-1 text-sm leading-tight">
+            <div className="truncate font-bold">{firstItem.title}</div>
+            <div className="truncate text-[11px] text-primary-foreground/80">
+              {firstItem.kind === "meeting" && firstItem.meetingAt
+                ? formatCountdown(firstItem.meetingAt, now, true)
+                : firstItem.body.slice(0, 80)}
+            </div>
+          </div>
+          {isAdmin && (
+            <button
+              onClick={dismissAll}
+              className="shrink-0 h-8 w-8 rounded-md hover:bg-white/10 flex items-center justify-center transition-colors"
+              aria-label="إغلاق الشريط"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
-      className="relative overflow-hidden border-b bg-gradient-to-l from-primary via-primary to-gold text-primary-foreground shadow-elegant"
+      className="relative overflow-hidden border-b bg-gradient-to-l from-primary via-primary to-gold text-primary-foreground shadow-soft"
       dir="rtl"
     >
       <div className="flex items-center">
-        <div className="shrink-0 z-10 bg-gold text-gold-foreground px-4 py-2 font-bold text-xs sm:text-sm flex items-center gap-2 shadow-md">
-          <Megaphone className="h-4 w-4 animate-pulse" />
+        <div className="shrink-0 z-10 bg-gold text-gold-foreground px-4 py-2 font-bold text-xs sm:text-sm flex items-center gap-2 shadow-sm">
+          <Megaphone className="h-4 w-4" />
           <span>عاجل</span>
         </div>
 
@@ -275,7 +329,7 @@ export function AnnouncementsBanner() {
         {isAdmin && (
           <button
             onClick={dismissAll}
-            className="shrink-0 h-8 w-8 mx-2 rounded-md hover:bg-white/15 flex items-center justify-center transition"
+            className="shrink-0 h-8 w-8 mx-2 rounded-md hover:bg-white/15 flex items-center justify-center transition-colors"
             aria-label="إغلاق الشريط"
           >
             <X className="h-4 w-4" />

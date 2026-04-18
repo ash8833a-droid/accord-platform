@@ -45,7 +45,7 @@ export const Route = createRootRoute({
   shellComponent: RootShell,
   component: () => (
     <AuthProvider>
-      <div className="sticky top-0 z-50">
+      <div className="z-50 md:sticky md:top-0">
         <AnnouncementsBanner />
       </div>
       <Outlet />
