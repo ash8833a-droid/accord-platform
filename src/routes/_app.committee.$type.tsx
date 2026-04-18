@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Plus, ListTodo, Receipt, Wallet, ArrowLeft, FileText, Upload, Loader2, Pencil, Trash2, GripVertical, User as UserIcon, Users } from "lucide-react";
+import { Plus, ListTodo, Receipt, Wallet, ArrowLeft, FileText, Upload, Loader2, Pencil, Trash2, GripVertical, User as UserIcon, Users, Target, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { committeeByType, COMMITTEES } from "@/lib/committees";
 import { FinanceModule } from "@/components/FinanceModule";
@@ -327,7 +327,32 @@ function CommitteePage() {
         </div>
       </div>
 
-      {/* Finance committee gets the full finance module embedded here */}
+      {/* Strategic goals card */}
+      {meta.goals && meta.goals.length > 0 && (
+        <div className="rounded-2xl border bg-card p-6 shadow-soft">
+          <div className="flex items-center gap-2 mb-4">
+            <span className={`h-9 w-9 rounded-lg flex items-center justify-center ${meta.tone}`}>
+              <Target className="h-5 w-5" />
+            </span>
+            <div>
+              <h3 className="font-bold text-base">أهداف اللجنة الاستراتيجية</h3>
+              <p className="text-xs text-muted-foreground">المخرجات الرئيسية المتوقعة من اللجنة</p>
+            </div>
+          </div>
+          <ul className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {meta.goals.map((g, i) => (
+              <li
+                key={i}
+                className="flex items-start gap-2.5 rounded-xl border bg-gradient-to-br from-card to-muted/30 px-4 py-3"
+              >
+                <CheckCircle2 className="h-4 w-4 mt-0.5 text-emerald-600 shrink-0" />
+                <span className="text-sm leading-relaxed">{g}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       {type === "finance" && (
         <div className="rounded-2xl border bg-card p-5 shadow-soft">
           <FinanceModule />
