@@ -743,14 +743,14 @@ function SupremeNode() {
       className="group relative block"
       title="اللجنة العليا"
     >
-      <div className="relative h-44 w-56 lg:h-48 lg:w-64 rounded-2xl bg-gradient-to-br from-gold/90 via-gold to-amber-500/90 shadow-gold flex items-center justify-center ring-[6px] ring-gold/20 group-hover:scale-[1.03] transition-transform duration-300">
-        <div className="absolute inset-2 rounded-xl border border-white/50" />
-        <div className="text-center text-gold-foreground px-4">
-          <Crown className="h-7 w-7 mx-auto mb-2 opacity-95" />
-          <p className="font-bold text-lg lg:text-xl leading-tight">
+      <div className="relative h-32 w-40 lg:h-36 lg:w-44 rounded-2xl bg-gradient-to-br from-gold/90 via-gold to-amber-500/90 shadow-gold flex items-center justify-center ring-[5px] ring-gold/20 group-hover:scale-[1.03] transition-transform duration-300">
+        <div className="absolute inset-1.5 rounded-xl border border-white/50" />
+        <div className="text-center text-gold-foreground px-3">
+          <Crown className="h-5 w-5 mx-auto mb-1.5 opacity-95" />
+          <p className="font-bold text-[15px] lg:text-base leading-tight">
             اللجنة العليا
           </p>
-          <p className="text-[11px] lg:text-xs mt-1.5 opacity-85 tracking-wider">
+          <p className="text-[10px] mt-1 opacity-85 tracking-wider">
             الإشراف العام
           </p>
         </div>
