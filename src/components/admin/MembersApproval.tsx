@@ -31,9 +31,9 @@ interface Committee { id: string; name: string; type: string }
 type AppRole = "admin" | "committee" | "delegate" | "quality";
 
 const ROLES: { value: AppRole; label: string }[] = [
-  { value: "committee", label: "عضو لجنة" },
-  { value: "quality", label: "ضابط جودة" },
-  { value: "delegate", label: "مندوب" },
+  { value: "committee", label: "رئيس لجنة" },
+  { value: "quality", label: "عضو" },
+  { value: "delegate", label: "متعاون" },
   { value: "admin", label: "مدير نظام" },
 ];
 
