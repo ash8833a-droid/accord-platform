@@ -48,6 +48,7 @@ interface CommitteeRow {
   type: CommitteeType;
   max_members: number;
 }
+type RoleFilter = "all" | "admin" | "committee" | "quality" | "delegate" | "team";
 interface MemberRow {
   id: string;
   committee_id: string;
@@ -58,6 +59,7 @@ interface MemberRow {
   specialty: string | null;
   is_head: boolean;
   display_order: number;
+  role_key: Exclude<RoleFilter, "all">;
 }
 
 // Display order for the org chart (top → bottom)
@@ -78,6 +80,7 @@ function TeamPage() {
 
   const [committees, setCommittees] = useState<CommitteeRow[]>([]);
   const [members, setMembers] = useState<MemberRow[]>([]);
+  const [roleFilter, setRoleFilter] = useState<RoleFilter>("all");
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({
     committee_id: "",
@@ -103,10 +106,10 @@ function TeamPage() {
     ]);
 
     const committeesData = (cm.data as (CommitteeRow & { head_user_id: string | null })[]) ?? [];
-    const teamMembers = (mb.data as MemberRow[]) ?? [];
+    const teamMembersRaw = (mb.data ?? []) as Omit<MemberRow, "role_key">[];
+    const teamMembers: MemberRow[] = teamMembersRaw.map((m) => ({ ...m, role_key: "team" }));
     const roleRows = (ur.data ?? []) as { user_id: string; role: string; committee_id: string }[];
 
-    // Fetch profiles for all assigned users (and any heads not yet in roles)
     const userIds = Array.from(
       new Set([
         ...roleRows.map((r) => r.user_id),
@@ -130,7 +133,6 @@ function TeamPage() {
       delegate: "مندوب",
     };
 
-    // Avoid duplicating users already present in team_members for the same committee (match by name)
     const teamKeySet = new Set(
       teamMembers.map((m) => `${m.committee_id}::${m.full_name.trim()}`),
     );
@@ -146,6 +148,9 @@ function TeamPage() {
       const key = `${r.committee_id}::${fullName.trim()}`;
       if (teamKeySet.has(key)) return;
       teamKeySet.add(key);
+      const roleKey = (["admin", "committee", "quality", "delegate"].includes(r.role)
+        ? r.role
+        : "committee") as Exclude<RoleFilter, "all" | "team">;
       assignedMembers.push({
         id: `role-${r.user_id}-${r.committee_id}`,
         committee_id: r.committee_id,
@@ -156,6 +161,7 @@ function TeamPage() {
         specialty: null,
         is_head: headByCommittee.get(r.committee_id) === r.user_id,
         display_order: 1000 + idx,
+        role_key: roleKey,
       });
     });
 
@@ -371,16 +377,54 @@ function TeamPage() {
 
       {/* Detailed committees */}
       <div className="space-y-5">
-        <div className="flex items-center gap-2">
-          <div className="h-1 w-10 bg-gradient-gold rounded-full" />
-          <h2 className="text-lg font-bold">أعضاء اللجان بالتفصيل</h2>
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <div className="flex items-center gap-2">
+            <div className="h-1 w-10 bg-gradient-gold rounded-full" />
+            <h2 className="text-lg font-bold">أعضاء اللجان بالتفصيل</h2>
+          </div>
+          <div className="flex items-center gap-1.5 flex-wrap">
+            {([
+              { v: "all", label: "الكل" },
+              { v: "admin", label: "مدير نظام" },
+              { v: "committee", label: "عضو لجنة" },
+              { v: "quality", label: "الجودة" },
+              { v: "delegate", label: "مندوب" },
+              { v: "team", label: "فريق العمل" },
+            ] as { v: RoleFilter; label: string }[]).map((opt) => {
+              const count =
+                opt.v === "all"
+                  ? members.length
+                  : members.filter((m) => m.role_key === opt.v).length;
+              const active = roleFilter === opt.v;
+              return (
+                <Button
+                  key={opt.v}
+                  size="sm"
+                  variant={active ? "default" : "outline"}
+                  onClick={() => setRoleFilter(opt.v)}
+                  className="h-8 gap-1.5"
+                >
+                  {opt.label}
+                  <Badge
+                    variant="secondary"
+                    className={`text-[10px] h-4 px-1.5 ${active ? "bg-primary-foreground/20 text-primary-foreground" : ""}`}
+                  >
+                    {count}
+                  </Badge>
+                </Button>
+              );
+            })}
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           {sortedCommittees.map((c) => {
             const meta = COMMITTEES.find((m) => m.type === c.type);
             const Icon = meta?.icon ?? Users;
-            const list = members.filter((m) => m.committee_id === c.id);
+            const allList = members.filter((m) => m.committee_id === c.id);
+            const list = roleFilter === "all"
+              ? allList
+              : allList.filter((m) => m.role_key === roleFilter);
             const filledPct = c.max_members
               ? (list.length / c.max_members) * 100
               : 0;
@@ -510,19 +554,26 @@ function TeamPage() {
                     </div>
                   ))}
 
-                  {Array.from({
-                    length: Math.max(0, c.max_members - list.length),
-                  }).map((_, i) => (
-                    <div
-                      key={`empty-${i}`}
-                      className="flex items-center gap-3 rounded-xl border border-dashed bg-muted/20 p-3 text-muted-foreground"
-                    >
-                      <div className="h-10 w-10 rounded-full bg-muted/40 flex items-center justify-center">
-                        <UserCircle2 className="h-5 w-5" />
+                  {roleFilter === "all" &&
+                    Array.from({
+                      length: Math.max(0, c.max_members - list.length),
+                    }).map((_, i) => (
+                      <div
+                        key={`empty-${i}`}
+                        className="flex items-center gap-3 rounded-xl border border-dashed bg-muted/20 p-3 text-muted-foreground"
+                      >
+                        <div className="h-10 w-10 rounded-full bg-muted/40 flex items-center justify-center">
+                          <UserCircle2 className="h-5 w-5" />
+                        </div>
+                        <p className="text-xs">مقعد شاغر — بانتظار الإسناد</p>
                       </div>
-                      <p className="text-xs">مقعد شاغر — بانتظار الإسناد</p>
-                    </div>
-                  ))}
+                    ))}
+
+                  {roleFilter !== "all" && list.length === 0 && (
+                    <p className="text-xs text-muted-foreground text-center py-4">
+                      لا يوجد أعضاء بهذا الدور في هذه اللجنة.
+                    </p>
+                  )}
                 </div>
               </div>
             );
