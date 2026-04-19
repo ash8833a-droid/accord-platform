@@ -52,7 +52,7 @@ const CONFIGS: Partial<Record<CommitteeType, FollowupConfig>> = {
         </div>
         <div className="flex items-center gap-3 text-xs text-muted-foreground">
           <span className="inline-flex items-center gap-1"><Calendar className="h-3 w-3" />{fmtDate(g.wedding_date)}</span>
-          <span className="inline-flex items-center gap-1"><Phone className="h-3 w-3" dir="ltr" />{g.phone}</span>
+          <span className="inline-flex items-center gap-1"><Phone className="h-3 w-3" />{g.phone}</span>
         </div>
       </div>
     ),
