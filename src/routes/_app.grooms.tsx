@@ -129,7 +129,7 @@ function GroomsPage() {
       if (photoFile) photo_url = await uploadOne(photoFile, "photos");
       if (idFile) national_id_url = await uploadOne(idFile, "ids");
 
-      const payload: any = { ...form, wedding_date: form.wedding_date || null };
+      const payload: any = { ...form, wedding_date: form.wedding_date || null, family_branch: form.family_branch?.trim() || "—" };
       if (photo_url) payload.photo_url = photo_url;
       if (national_id_url) payload.national_id_url = national_id_url;
 
@@ -227,9 +227,6 @@ function GroomsPage() {
                   </Field>
                   <Field label="رقم الجوال *" icon={Phone}>
                     <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} required dir="ltr" />
-                  </Field>
-                  <Field label="الفرع العائلي *">
-                    <Input value={form.family_branch} onChange={(e) => setForm({ ...form, family_branch: e.target.value })} required />
                   </Field>
                   <Field label="تاريخ الزفاف">
                     <Input
