@@ -239,7 +239,7 @@ export function MediaInbox() {
               <div className="grid grid-cols-2 gap-3">
                 <Info icon={Phone} label="الجوال" value={selected.phone} dir="ltr" />
                 <Info icon={UsersIcon} label="الفرع العائلي" value={selected.family_branch} />
-                <Info icon={Heart} label="العروس" value={selected.bride_name ?? "—"} />
+                <Info label="العروس" value={selected.bride_name ?? "—"} />
                 <Info icon={Calendar} label="تاريخ الزفاف" value={selected.wedding_date ? new Date(selected.wedding_date).toLocaleDateString("ar-SA") : "—"} />
               </div>
 
@@ -343,10 +343,12 @@ export function MediaInbox() {
   );
 }
 
-function Info({ icon: Icon, label, value, dir }: { icon: any; label: string; value: string; dir?: string }) {
+function Info({ icon: Icon, label, value, dir }: { icon?: any; label: string; value: string; dir?: string }) {
   return (
     <div className="rounded-lg border bg-muted/30 p-3">
-      <p className="text-[10px] text-muted-foreground flex items-center gap-1 mb-1"><Icon className="h-3 w-3" /> {label}</p>
+      <p className="text-[10px] text-muted-foreground flex items-center gap-1 mb-1">
+        {Icon && <Icon className="h-3 w-3" />} {label}
+      </p>
       <p className="text-sm font-medium" dir={dir}>{value}</p>
     </div>
   );

@@ -54,6 +54,7 @@ function GroomsPage() {
 
   const [form, setForm] = useState({
     full_name: "", phone: "", family_branch: "", notes: "",
+    wedding_date: "",
     request_type: "none", request_details: "",
     external_participation: false, external_participation_details: "",
     vip_guests: "",
@@ -102,13 +103,14 @@ function GroomsPage() {
       if (photoFile) photo_url = await uploadOne(photoFile, "photos");
       if (idFile) national_id_url = await uploadOne(idFile, "ids");
 
-      const payload: any = { ...form, photo_url, national_id_url };
+      const payload: any = { ...form, wedding_date: form.wedding_date || null, photo_url, national_id_url };
       const { error } = await supabase.from("grooms").insert(payload);
       if (error) throw error;
 
       toast.success("تم تسجيل العريس بنجاح");
       setForm({
         full_name: "", phone: "", family_branch: "", notes: "",
+        wedding_date: "",
         request_type: "none", request_details: "",
         external_participation: false, external_participation_details: "",
         vip_guests: "",
@@ -171,6 +173,14 @@ function GroomsPage() {
                   </Field>
                   <Field label="الفرع العائلي *" icon={Users}>
                     <Input value={form.family_branch} onChange={(e) => setForm({ ...form, family_branch: e.target.value })} required />
+                  </Field>
+                  <Field label="تاريخ الزفاف">
+                    <Input
+                      type="date"
+                      dir="ltr"
+                      value={form.wedding_date}
+                      onChange={(e) => setForm({ ...form, wedding_date: e.target.value })}
+                    />
                   </Field>
                 </div>
               </Section>
