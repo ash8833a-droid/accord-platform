@@ -17,6 +17,7 @@ import { MediaInbox } from "@/components/media/MediaInbox";
 import { TaskAttachments } from "@/components/TaskAttachments";
 import { CommitteeArchive } from "@/components/CommitteeArchive";
 import { CommitteeMembersPanel } from "@/components/CommitteeMembersPanel";
+import { GroomFollowups } from "@/components/committee/GroomFollowups";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth } from "@/lib/auth";
 
@@ -506,6 +507,8 @@ function CommitteePage() {
       )}
 
       <CommitteeMembersPanel committeeId={committee.id} />
+
+      <GroomFollowups committeeType={type as any} />
 
       {type === "finance" && (
         <div className="rounded-2xl border bg-card p-5 shadow-soft">
