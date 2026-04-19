@@ -209,7 +209,7 @@ function GroomsPage() {
           </DialogTrigger>
           <DialogContent dir="rtl" className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle className="text-xl">تسجيل عريس جديد</DialogTitle>
+              <DialogTitle className="text-xl">{editId ? "تعديل بيانات العريس" : "تسجيل عريس جديد"}</DialogTitle>
               <p className="text-xs text-muted-foreground mt-1">الحقول المميزة بـ * إلزامية</p>
             </DialogHeader>
             <form onSubmit={submit} className="space-y-5 pt-3">
