@@ -174,6 +174,14 @@ function GroomsPage() {
                   <Field label="الفرع العائلي *" icon={Users}>
                     <Input value={form.family_branch} onChange={(e) => setForm({ ...form, family_branch: e.target.value })} required />
                   </Field>
+                  <Field label="تاريخ الزفاف">
+                    <Input
+                      type="date"
+                      dir="ltr"
+                      value={form.wedding_date}
+                      onChange={(e) => setForm({ ...form, wedding_date: e.target.value })}
+                    />
+                  </Field>
                 </div>
               </Section>
 
