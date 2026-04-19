@@ -68,8 +68,19 @@ function GroomsPage() {
   const [detailsId, setDetailsId] = useState<string | null>(null);
 
   const load = async () => {
-    const { data } = await supabase.from("grooms").select("*").order("created_at", { ascending: false });
-    setGrooms((data ?? []) as Groom[]);
+    const { data } = await supabase.from("grooms").select("*");
+    const list = (data ?? []) as Groom[];
+    const today = new Date().toISOString().slice(0, 10);
+    list.sort((a, b) => {
+      const ax = a.wedding_date && a.wedding_date >= today ? 0 : 1;
+      const bx = b.wedding_date && b.wedding_date >= today ? 0 : 1;
+      if (ax !== bx) return ax - bx;
+      if (a.wedding_date && b.wedding_date) return a.wedding_date.localeCompare(b.wedding_date);
+      if (a.wedding_date) return -1;
+      if (b.wedding_date) return 1;
+      return 0;
+    });
+    setGrooms(list);
   };
   useEffect(() => {
     load();
@@ -171,7 +182,7 @@ function GroomsPage() {
                   <Field label="رقم الجوال *" icon={Phone}>
                     <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} required dir="ltr" />
                   </Field>
-                  <Field label="الفرع العائلي *" icon={Users}>
+                  <Field label="الفرع العائلي *">
                     <Input value={form.family_branch} onChange={(e) => setForm({ ...form, family_branch: e.target.value })} required />
                   </Field>
                   <Field label="تاريخ الزفاف">
@@ -326,6 +337,7 @@ function GroomsPage() {
                 <th className="px-4 py-3 font-medium">الفرع</th>
                 <th className="px-4 py-3 font-medium">الجوال</th>
                 <th className="px-4 py-3 font-medium">العروس</th>
+                <th className="px-4 py-3 font-medium">تاريخ الزفاف</th>
                 <th className="px-4 py-3 font-medium">الحالة</th>
                 <th className="px-4 py-3 font-medium">المستندات والطلبات</th>
                 <th className="px-4 py-3 font-medium">إجراء</th>
@@ -334,12 +346,21 @@ function GroomsPage() {
             <tbody>
               {grooms.map((g) => {
                 const b = STATUS_BADGE[g.status] ?? STATUS_BADGE.new;
+                const today = new Date().toISOString().slice(0, 10);
+                const upcoming = g.wedding_date && g.wedding_date >= today;
                 return (
                   <tr key={g.id} className="border-t hover:bg-muted/20">
                     <td className="px-4 py-3 font-medium">{g.full_name}</td>
                     <td className="px-4 py-3">{g.family_branch}</td>
                     <td className="px-4 py-3 text-muted-foreground" dir="ltr">{g.phone}</td>
                     <td className="px-4 py-3">{g.bride_name ?? "—"}</td>
+                    <td className="px-4 py-3" dir="ltr">
+                      {g.wedding_date ? (
+                        <span className={upcoming ? "text-primary font-medium" : "text-muted-foreground"}>
+                          {new Date(g.wedding_date).toLocaleDateString("ar-SA-u-ca-gregory", { year: "numeric", month: "short", day: "numeric" })}
+                        </span>
+                      ) : "—"}
+                    </td>
                     <td className="px-4 py-3"><Badge className={b.cls}>{b.label}</Badge></td>
                     <td className="px-4 py-3">
                       {(g.status === "approved" || g.status === "completed") ? (
@@ -370,7 +391,7 @@ function GroomsPage() {
                 );
               })}
               {grooms.length === 0 && (
-                <tr><td colSpan={7} className="text-center py-12 text-muted-foreground">لم يُسجّل أي عريس بعد.</td></tr>
+                <tr><td colSpan={8} className="text-center py-12 text-muted-foreground">لم يُسجّل أي عريس بعد.</td></tr>
               )}
             </tbody>
           </table>
