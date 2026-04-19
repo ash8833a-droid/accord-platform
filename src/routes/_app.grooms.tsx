@@ -171,7 +171,7 @@ function GroomsPage() {
                   <Field label="رقم الجوال *" icon={Phone}>
                     <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} required dir="ltr" />
                   </Field>
-                  <Field label="الفرع العائلي *" icon={Users}>
+                  <Field label="الفرع العائلي *">
                     <Input value={form.family_branch} onChange={(e) => setForm({ ...form, family_branch: e.target.value })} required />
                   </Field>
                   <Field label="تاريخ الزفاف">
