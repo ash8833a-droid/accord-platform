@@ -67,6 +67,7 @@ function GroomsPage() {
   const [idPreview, setIdPreview] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [detailsId, setDetailsId] = useState<string | null>(null);
+  const [editId, setEditId] = useState<string | null>(null);
 
   const load = async () => {
     const { data } = await supabase.from("grooms").select("*");
