@@ -5,8 +5,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Mail, Users, User, Printer, CheckCircle2, Clock, Calculator, Receipt, Loader2 } from "lucide-react";
+import { Mail, Users, User, Printer, CheckCircle2, Clock, Calculator, Receipt, Loader2, Download, Sparkles } from "lucide-react";
 import { toast } from "sonner";
+import invitationMen from "@/assets/invitation-men.jpg";
+import invitationWomen from "@/assets/invitation-women.jpg";
 
 const DEFAULT_MEN = 50;
 const DEFAULT_WOMEN = 30;
@@ -87,6 +89,40 @@ export function InvitationCards() {
 
   return (
     <div className="space-y-5">
+      {/* Official invitation designs */}
+      <div className="rounded-2xl border-2 border-gold/30 bg-gradient-to-br from-gold/5 via-background to-primary/5 p-5">
+        <div className="flex items-center gap-2 mb-4">
+          <Sparkles className="h-5 w-5 text-gold" />
+          <h3 className="font-bold">التصميم الرسمي لكروت الدعوة</h3>
+          <span className="text-xs text-muted-foreground">— يُعتمد كنموذج للطباعة</span>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          {[
+            { src: invitationMen, label: "كرت دعوة الرجال", sub: "تصميم كلاسيكي فاخر بلون الزمرّد والذهب", file: "invitation-men.jpg", tone: "from-emerald-900/10 to-gold/10 border-emerald-700/30" },
+            { src: invitationWomen, label: "كرت دعوة النساء", sub: "تصميم راقٍ بلون العاج والذهب الوردي", file: "invitation-women.jpg", tone: "from-rose-200/20 to-amber-100/20 border-rose-300/40" },
+          ].map((c) => (
+            <div key={c.file} className={`group relative rounded-xl border-2 bg-gradient-to-br ${c.tone} overflow-hidden transition-all hover:shadow-elegant`}>
+              <div className="aspect-[2/3] overflow-hidden bg-muted/20">
+                <img src={c.src} alt={c.label} loading="lazy" width={848} height={1264} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+              </div>
+              <div className="p-4 bg-card/95 backdrop-blur border-t">
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <p className="font-bold text-sm">{c.label}</p>
+                    <p className="text-[11px] text-muted-foreground mt-0.5">{c.sub}</p>
+                  </div>
+                  <a href={c.src} download={c.file} className="shrink-0">
+                    <Button size="sm" variant="outline" className="gap-1 h-8">
+                      <Download className="h-3.5 w-3.5" /> تحميل
+                    </Button>
+                  </a>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* Equation card */}
       <div className="rounded-2xl border-2 border-primary/30 bg-gradient-to-br from-primary/5 to-primary-glow/5 p-5">
         <div className="flex items-start gap-3">
