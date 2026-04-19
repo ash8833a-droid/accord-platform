@@ -59,7 +59,7 @@ export function MediaInbox() {
 
   const signedUrl = async (path: string | null) => {
     if (!path) return null;
-    const { data } = await supabase.storage.from("grooms").createSignedUrl(path, 3600);
+    const { data } = await supabase.storage.from("groom-docs").createSignedUrl(path, 3600);
     return data?.signedUrl ?? null;
   };
 
