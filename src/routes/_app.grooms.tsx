@@ -107,6 +107,19 @@ function GroomsPage() {
     return path;
   };
 
+  const resetForm = () => {
+    setForm({
+      full_name: "", phone: "", family_branch: "", notes: "",
+      wedding_date: "",
+      request_type: "none", request_details: "",
+      external_participation: false, external_participation_details: "",
+      vip_guests: "",
+      extra_sheep: 0, extra_cards_men: 0, extra_cards_women: 0,
+    });
+    setPhotoFile(null); setIdFile(null); setPhotoPreview(null); setIdPreview(null);
+    setEditId(null);
+  };
+
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setUploading(true);
@@ -116,20 +129,21 @@ function GroomsPage() {
       if (photoFile) photo_url = await uploadOne(photoFile, "photos");
       if (idFile) national_id_url = await uploadOne(idFile, "ids");
 
-      const payload: any = { ...form, wedding_date: form.wedding_date || null, photo_url, national_id_url };
-      const { error } = await supabase.from("grooms").insert(payload);
-      if (error) throw error;
+      const payload: any = { ...form, wedding_date: form.wedding_date || null };
+      if (photo_url) payload.photo_url = photo_url;
+      if (national_id_url) payload.national_id_url = national_id_url;
 
-      toast.success("تم تسجيل العريس بنجاح");
-      setForm({
-        full_name: "", phone: "", family_branch: "", notes: "",
-        wedding_date: "",
-        request_type: "none", request_details: "",
-        external_participation: false, external_participation_details: "",
-        vip_guests: "",
-        extra_sheep: 0, extra_cards_men: 0, extra_cards_women: 0,
-      });
-      setPhotoFile(null); setIdFile(null); setPhotoPreview(null); setIdPreview(null);
+      if (editId) {
+        const { error } = await supabase.from("grooms").update(payload).eq("id", editId);
+        if (error) throw error;
+        toast.success("تم تحديث بيانات العريس");
+      } else {
+        const { error } = await supabase.from("grooms").insert(payload);
+        if (error) throw error;
+        toast.success("تم تسجيل العريس بنجاح");
+      }
+
+      resetForm();
       setOpen(false);
       load();
     } catch (err: any) {
@@ -137,6 +151,36 @@ function GroomsPage() {
     } finally {
       setUploading(false);
     }
+  };
+
+  const startEdit = (g: Groom) => {
+    const ge = g as any;
+    setEditId(g.id);
+    setForm({
+      full_name: g.full_name ?? "",
+      phone: g.phone ?? "",
+      family_branch: g.family_branch ?? "",
+      notes: g.notes ?? "",
+      wedding_date: g.wedding_date ?? "",
+      request_type: ge.request_type ?? "none",
+      request_details: ge.request_details ?? "",
+      external_participation: ge.external_participation ?? false,
+      external_participation_details: ge.external_participation_details ?? "",
+      vip_guests: ge.vip_guests ?? "",
+      extra_sheep: ge.extra_sheep ?? 0,
+      extra_cards_men: ge.extra_cards_men ?? 0,
+      extra_cards_women: ge.extra_cards_women ?? 0,
+    });
+    setPhotoFile(null); setIdFile(null); setPhotoPreview(null); setIdPreview(null);
+    setOpen(true);
+  };
+
+  const removeGroom = async (g: Groom) => {
+    if (!confirm(`هل تريد حذف العريس "${g.full_name}" نهائياً؟`)) return;
+    const { error } = await supabase.from("grooms").delete().eq("id", g.id);
+    if (error) { toast.error("تعذّر الحذف", { description: error.message }); return; }
+    toast.success("تم الحذف");
+    load();
   };
 
   const updateStatus = async (id: string, status: GroomStatus) => {
