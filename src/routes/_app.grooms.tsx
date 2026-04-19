@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import {
   HeartHandshake, Plus, FileCheck2, FolderOpen, User, Phone, Users, Heart,
   StickyNote, IdCard, Camera, ClipboardList, Globe2, Crown, Upload, X, ImageIcon, FileImage,
+  Pencil, Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { GroomDetailsDialog } from "@/components/grooms/GroomDetailsDialog";
@@ -66,6 +67,7 @@ function GroomsPage() {
   const [idPreview, setIdPreview] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [detailsId, setDetailsId] = useState<string | null>(null);
+  const [editId, setEditId] = useState<string | null>(null);
 
   const load = async () => {
     const { data } = await supabase.from("grooms").select("*");
@@ -105,6 +107,19 @@ function GroomsPage() {
     return path;
   };
 
+  const resetForm = () => {
+    setForm({
+      full_name: "", phone: "", family_branch: "", notes: "",
+      wedding_date: "",
+      request_type: "none", request_details: "",
+      external_participation: false, external_participation_details: "",
+      vip_guests: "",
+      extra_sheep: 0, extra_cards_men: 0, extra_cards_women: 0,
+    });
+    setPhotoFile(null); setIdFile(null); setPhotoPreview(null); setIdPreview(null);
+    setEditId(null);
+  };
+
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setUploading(true);
@@ -114,20 +129,21 @@ function GroomsPage() {
       if (photoFile) photo_url = await uploadOne(photoFile, "photos");
       if (idFile) national_id_url = await uploadOne(idFile, "ids");
 
-      const payload: any = { ...form, wedding_date: form.wedding_date || null, photo_url, national_id_url };
-      const { error } = await supabase.from("grooms").insert(payload);
-      if (error) throw error;
+      const payload: any = { ...form, wedding_date: form.wedding_date || null };
+      if (photo_url) payload.photo_url = photo_url;
+      if (national_id_url) payload.national_id_url = national_id_url;
 
-      toast.success("تم تسجيل العريس بنجاح");
-      setForm({
-        full_name: "", phone: "", family_branch: "", notes: "",
-        wedding_date: "",
-        request_type: "none", request_details: "",
-        external_participation: false, external_participation_details: "",
-        vip_guests: "",
-        extra_sheep: 0, extra_cards_men: 0, extra_cards_women: 0,
-      });
-      setPhotoFile(null); setIdFile(null); setPhotoPreview(null); setIdPreview(null);
+      if (editId) {
+        const { error } = await supabase.from("grooms").update(payload).eq("id", editId);
+        if (error) throw error;
+        toast.success("تم تحديث بيانات العريس");
+      } else {
+        const { error } = await supabase.from("grooms").insert(payload);
+        if (error) throw error;
+        toast.success("تم تسجيل العريس بنجاح");
+      }
+
+      resetForm();
       setOpen(false);
       load();
     } catch (err: any) {
@@ -135,6 +151,36 @@ function GroomsPage() {
     } finally {
       setUploading(false);
     }
+  };
+
+  const startEdit = (g: Groom) => {
+    const ge = g as any;
+    setEditId(g.id);
+    setForm({
+      full_name: g.full_name ?? "",
+      phone: g.phone ?? "",
+      family_branch: g.family_branch ?? "",
+      notes: g.notes ?? "",
+      wedding_date: g.wedding_date ?? "",
+      request_type: ge.request_type ?? "none",
+      request_details: ge.request_details ?? "",
+      external_participation: ge.external_participation ?? false,
+      external_participation_details: ge.external_participation_details ?? "",
+      vip_guests: ge.vip_guests ?? "",
+      extra_sheep: ge.extra_sheep ?? 0,
+      extra_cards_men: ge.extra_cards_men ?? 0,
+      extra_cards_women: ge.extra_cards_women ?? 0,
+    });
+    setPhotoFile(null); setIdFile(null); setPhotoPreview(null); setIdPreview(null);
+    setOpen(true);
+  };
+
+  const removeGroom = async (g: Groom) => {
+    if (!confirm(`هل تريد حذف العريس "${g.full_name}" نهائياً؟`)) return;
+    const { error } = await supabase.from("grooms").delete().eq("id", g.id);
+    if (error) { toast.error("تعذّر الحذف", { description: error.message }); return; }
+    toast.success("تم الحذف");
+    load();
   };
 
   const updateStatus = async (id: string, status: GroomStatus) => {
@@ -155,15 +201,15 @@ function GroomsPage() {
           <h1 className="text-3xl font-bold">سجل العرسان</h1>
           <p className="text-muted-foreground mt-1">قاعدة بيانات شاملة لطلبات العرسان والمستندات</p>
         </div>
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
+        <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) resetForm(); }}>
+          <DialogTrigger asChild onClick={() => resetForm()}>
             <Button className="bg-gradient-hero text-primary-foreground shadow-elegant">
               <Plus className="h-4 w-4 ms-1" /> تسجيل عريس
             </Button>
           </DialogTrigger>
           <DialogContent dir="rtl" className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle className="text-xl">تسجيل عريس جديد</DialogTitle>
+              <DialogTitle className="text-xl">{editId ? "تعديل بيانات العريس" : "تسجيل عريس جديد"}</DialogTitle>
               <p className="text-xs text-muted-foreground mt-1">الحقول المميزة بـ * إلزامية</p>
             </DialogHeader>
             <form onSubmit={submit} className="space-y-5 pt-3">
@@ -303,7 +349,7 @@ function GroomsPage() {
               </Section>
 
               <Button type="submit" disabled={uploading} className="w-full bg-gradient-hero text-primary-foreground h-11">
-                {uploading ? "جارٍ الحفظ..." : "حفظ بيانات العريس"}
+                {uploading ? "جارٍ الحفظ..." : (editId ? "تحديث بيانات العريس" : "حفظ بيانات العريس")}
               </Button>
             </form>
           </DialogContent>
@@ -378,14 +424,36 @@ function GroomsPage() {
                       )}
                     </td>
                     <td className="px-4 py-3">
-                      <Select value={g.status} onValueChange={(v) => updateStatus(g.id, v as GroomStatus)}>
-                        <SelectTrigger className="h-8 w-36 text-xs"><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          {Object.entries(STATUS_BADGE).map(([k, v]) => (
-                            <SelectItem key={k} value={k}>{v.label}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <div className="flex items-center gap-2">
+                        <Select value={g.status} onValueChange={(v) => updateStatus(g.id, v as GroomStatus)}>
+                          <SelectTrigger className="h-8 w-32 text-xs"><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            {Object.entries(STATUS_BADGE).map(([k, v]) => (
+                              <SelectItem key={k} value={k}>{v.label}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-8 w-8 text-primary hover:bg-primary/10"
+                          onClick={() => startEdit(g)}
+                          title="تعديل"
+                          aria-label="تعديل"
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-8 w-8 text-destructive hover:bg-destructive/10"
+                          onClick={() => removeGroom(g)}
+                          title="حذف"
+                          aria-label="حذف"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </td>
                   </tr>
                 );
