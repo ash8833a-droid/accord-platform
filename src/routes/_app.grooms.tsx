@@ -337,6 +337,7 @@ function GroomsPage() {
                 <th className="px-4 py-3 font-medium">الفرع</th>
                 <th className="px-4 py-3 font-medium">الجوال</th>
                 <th className="px-4 py-3 font-medium">العروس</th>
+                <th className="px-4 py-3 font-medium">تاريخ الزفاف</th>
                 <th className="px-4 py-3 font-medium">الحالة</th>
                 <th className="px-4 py-3 font-medium">المستندات والطلبات</th>
                 <th className="px-4 py-3 font-medium">إجراء</th>
@@ -345,12 +346,21 @@ function GroomsPage() {
             <tbody>
               {grooms.map((g) => {
                 const b = STATUS_BADGE[g.status] ?? STATUS_BADGE.new;
+                const today = new Date().toISOString().slice(0, 10);
+                const upcoming = g.wedding_date && g.wedding_date >= today;
                 return (
                   <tr key={g.id} className="border-t hover:bg-muted/20">
                     <td className="px-4 py-3 font-medium">{g.full_name}</td>
                     <td className="px-4 py-3">{g.family_branch}</td>
                     <td className="px-4 py-3 text-muted-foreground" dir="ltr">{g.phone}</td>
                     <td className="px-4 py-3">{g.bride_name ?? "—"}</td>
+                    <td className="px-4 py-3" dir="ltr">
+                      {g.wedding_date ? (
+                        <span className={upcoming ? "text-primary font-medium" : "text-muted-foreground"}>
+                          {new Date(g.wedding_date).toLocaleDateString("ar-SA-u-ca-gregory", { year: "numeric", month: "short", day: "numeric" })}
+                        </span>
+                      ) : "—"}
+                    </td>
                     <td className="px-4 py-3"><Badge className={b.cls}>{b.label}</Badge></td>
                     <td className="px-4 py-3">
                       {(g.status === "approved" || g.status === "completed") ? (
