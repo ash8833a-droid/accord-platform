@@ -54,6 +54,7 @@ function GroomsPage() {
 
   const [form, setForm] = useState({
     full_name: "", phone: "", family_branch: "", notes: "",
+    wedding_date: "",
     request_type: "none", request_details: "",
     external_participation: false, external_participation_details: "",
     vip_guests: "",
