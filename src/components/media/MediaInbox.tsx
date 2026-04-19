@@ -343,10 +343,12 @@ export function MediaInbox() {
   );
 }
 
-function Info({ icon: Icon, label, value, dir }: { icon: any; label: string; value: string; dir?: string }) {
+function Info({ icon: Icon, label, value, dir }: { icon?: any; label: string; value: string; dir?: string }) {
   return (
     <div className="rounded-lg border bg-muted/30 p-3">
-      <p className="text-[10px] text-muted-foreground flex items-center gap-1 mb-1"><Icon className="h-3 w-3" /> {label}</p>
+      <p className="text-[10px] text-muted-foreground flex items-center gap-1 mb-1">
+        {Icon && <Icon className="h-3 w-3" />} {label}
+      </p>
       <p className="text-sm font-medium" dir={dir}>{value}</p>
     </div>
   );
