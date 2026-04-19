@@ -68,8 +68,19 @@ function GroomsPage() {
   const [detailsId, setDetailsId] = useState<string | null>(null);
 
   const load = async () => {
-    const { data } = await supabase.from("grooms").select("*").order("created_at", { ascending: false });
-    setGrooms((data ?? []) as Groom[]);
+    const { data } = await supabase.from("grooms").select("*");
+    const list = (data ?? []) as Groom[];
+    const today = new Date().toISOString().slice(0, 10);
+    list.sort((a, b) => {
+      const ax = a.wedding_date && a.wedding_date >= today ? 0 : 1;
+      const bx = b.wedding_date && b.wedding_date >= today ? 0 : 1;
+      if (ax !== bx) return ax - bx;
+      if (a.wedding_date && b.wedding_date) return a.wedding_date.localeCompare(b.wedding_date);
+      if (a.wedding_date) return -1;
+      if (b.wedding_date) return 1;
+      return 0;
+    });
+    setGrooms(list);
   };
   useEffect(() => {
     load();
