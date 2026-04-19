@@ -349,7 +349,7 @@ function GroomsPage() {
               </Section>
 
               <Button type="submit" disabled={uploading} className="w-full bg-gradient-hero text-primary-foreground h-11">
-                {uploading ? "جارٍ الحفظ..." : "حفظ بيانات العريس"}
+                {uploading ? "جارٍ الحفظ..." : (editId ? "تحديث بيانات العريس" : "حفظ بيانات العريس")}
               </Button>
             </form>
           </DialogContent>
