@@ -129,7 +129,7 @@ function GroomsPage() {
       if (photoFile) photo_url = await uploadOne(photoFile, "photos");
       if (idFile) national_id_url = await uploadOne(idFile, "ids");
 
-      const payload: any = { ...form, wedding_date: form.wedding_date || null };
+      const payload: any = { ...form, wedding_date: form.wedding_date || null, family_branch: form.family_branch?.trim() || "—" };
       if (photo_url) payload.photo_url = photo_url;
       if (national_id_url) payload.national_id_url = national_id_url;
 
