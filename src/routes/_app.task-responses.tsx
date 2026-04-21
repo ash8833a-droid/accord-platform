@@ -412,7 +412,75 @@ function TaskResponsesPage() {
                 <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
               </div>
             ) : (
-              <div className="overflow-x-auto">
+              <>
+              {/* Mobile: cards */}
+              <div className="md:hidden divide-y">
+                {filtered.map((r, i) => {
+                  const meta = committeeByType(r.committeeType);
+                  return (
+                    <div key={r.id} className="p-3 space-y-2">
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <span className="text-[10px] font-mono text-muted-foreground">
+                            #{i + 1}
+                          </span>
+                          <Badge
+                            variant="outline"
+                            className={`${meta?.tone ?? "bg-muted"} text-[10px] font-bold border`}
+                          >
+                            {r.committeeName}
+                          </Badge>
+                        </div>
+                        <Badge
+                          className={`text-[10px] font-bold border ${
+                            r.completion_percent === 100
+                              ? "bg-emerald-500/15 text-emerald-700 border-emerald-500/40"
+                              : r.completion_percent >= 50
+                                ? "bg-sky-500/15 text-sky-700 border-sky-500/40"
+                                : "bg-amber-500/15 text-amber-700 border-amber-500/40"
+                          }`}
+                        >
+                          {r.completion_percent}%
+                        </Badge>
+                      </div>
+                      <p className="text-xs font-bold leading-snug">{r.taskTitle}</p>
+                      <Progress value={r.completion_percent} className="h-1.5" />
+                      <p className="text-[11px]">
+                        <span className="font-bold text-foreground/70">العضو: </span>
+                        {r.author_name}
+                      </p>
+                      <p className="text-[11px] bg-muted/40 rounded-md p-2">
+                        <span className="font-bold">الإجراء: </span>
+                        <span className="line-clamp-3 whitespace-pre-wrap">{r.action_taken}</span>
+                      </p>
+                      {r.outcomes && (
+                        <p className="text-[11px] text-emerald-700">
+                          <span className="font-bold">المخرجات: </span>
+                          <span className="line-clamp-2 whitespace-pre-wrap">{r.outcomes}</span>
+                        </p>
+                      )}
+                      {r.challenges && (
+                        <p className="text-[11px] text-amber-700">
+                          <span className="font-bold">التحديات: </span>
+                          <span className="line-clamp-2 whitespace-pre-wrap">{r.challenges}</span>
+                        </p>
+                      )}
+                      <div className="flex items-center justify-between text-[10px] text-muted-foreground pt-1 border-t border-border/40">
+                        <span>تنفيذ: {r.execution_date ?? "—"}</span>
+                        <span>رد: {fmtDate(r.created_at)}</span>
+                      </div>
+                    </div>
+                  );
+                })}
+                {filtered.length === 0 && (
+                  <div className="text-center py-12 text-muted-foreground text-sm">
+                    لا توجد ردود مطابقة
+                  </div>
+                )}
+              </div>
+
+              {/* Desktop: table */}
+              <div className="overflow-x-auto hidden md:block">
                 <Table>
                   <TableHeader>
                     <TableRow className="bg-gradient-to-l from-primary/10 to-primary/5 hover:bg-primary/10">
