@@ -86,10 +86,15 @@ export function HistoricalShares() {
   }, [yearRows]);
 
   const filtered = useMemo(() => {
+    const branchOrder = new Map(FAMILY_BRANCHES.map((b, i) => [b, i]));
     return yearRows
       .filter((r) => (branchFilter === "all" ? true : r.family_branch === branchFilter))
       .filter((r) => (search ? r.full_name.toLowerCase().includes(search.toLowerCase()) : true))
-      .sort((a, b) => a.family_branch.localeCompare(b.family_branch, "ar") || a.full_name.localeCompare(b.full_name, "ar"));
+      .sort((a, b) => {
+        const oa = branchOrder.get(a.family_branch) ?? 999;
+        const ob = branchOrder.get(b.family_branch) ?? 999;
+        return oa - ob || a.full_name.localeCompare(b.full_name, "ar");
+      });
   }, [yearRows, branchFilter, search]);
 
   const totals = useMemo(
