@@ -561,6 +561,7 @@ function TaskResponsesPage() {
                   </TableBody>
                 </Table>
               </div>
+              </>
             )}
           </div>
         </TabsContent>
