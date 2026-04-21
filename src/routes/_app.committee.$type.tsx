@@ -365,6 +365,37 @@ function CommitteePage() {
     if (id) moveTask(id, col);
   };
 
+  const openEditRequest = (r: PaymentRequest) => {
+    setEditingPr(r);
+    setEditPrTitle(r.title);
+    setEditPrAmount(String(r.amount));
+    setEditPrOpen(true);
+  };
+
+  const saveEditRequest = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingPr) return;
+    const amt = Number(editPrAmount);
+    if (!amt || amt <= 0) return toast.error("المبلغ غير صحيح");
+    const { error } = await supabase
+      .from("payment_requests")
+      .update({ title: editPrTitle, amount: amt })
+      .eq("id", editingPr.id);
+    if (error) return toast.error("تعذر التحديث", { description: error.message });
+    toast.success("تم تحديث الطلب");
+    setEditPrOpen(false);
+    setEditingPr(null);
+    load();
+  };
+
+  const deleteRequest = async (r: PaymentRequest) => {
+    if (!confirm(`حذف طلب الصرف "${r.title}" نهائياً؟`)) return;
+    const { error } = await supabase.from("payment_requests").delete().eq("id", r.id);
+    if (error) return toast.error("تعذر الحذف", { description: error.message });
+    toast.success("تم حذف الطلب");
+    load();
+  };
+
   const submitRequest = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!committee) return;
