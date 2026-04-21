@@ -24,11 +24,12 @@ import {
   DialogTrigger,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { ShieldCheck, Plus, ListTodo, CalendarRange, Megaphone, Pin, Trash2, Calendar, UserCheck, Users, Crown } from "lucide-react";
+import { ShieldCheck, Plus, ListTodo, CalendarRange, Megaphone, Pin, Trash2, Calendar, UserCheck, Users, Crown, Settings } from "lucide-react";
 import { MembersApproval } from "@/components/admin/MembersApproval";
 import { ApprovedMembers } from "@/components/admin/ApprovedMembers";
 import { CommitteeHeads } from "@/components/admin/CommitteeHeads";
 import { CreateMemberDialog } from "@/components/admin/CreateMemberDialog";
+import { UrgentAlertSettings } from "@/components/admin/UrgentAlertSettings";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_app/admin")({
@@ -72,7 +73,7 @@ function AdminCenter() {
       )}
 
       <Tabs defaultValue="members" className="w-full">
-        <TabsList className="grid w-full grid-cols-6 max-w-4xl ms-auto">
+        <TabsList className="grid w-full grid-cols-7 max-w-5xl ms-auto">
           <TabsTrigger value="members" className="gap-2">
             <UserCheck className="h-4 w-4" /> طلبات الانضمام
           </TabsTrigger>
@@ -90,6 +91,9 @@ function AdminCenter() {
           </TabsTrigger>
           <TabsTrigger value="news" className="gap-2">
             <Megaphone className="h-4 w-4" /> الأخبار
+          </TabsTrigger>
+          <TabsTrigger value="settings" className="gap-2">
+            <Settings className="h-4 w-4" /> الإعدادات
           </TabsTrigger>
         </TabsList>
 
@@ -110,6 +114,9 @@ function AdminCenter() {
         </TabsContent>
         <TabsContent value="news" className="mt-6">
           <NewsManager isAdmin={isAdmin} />
+        </TabsContent>
+        <TabsContent value="settings" className="mt-6">
+          <UrgentAlertSettings isAdmin={isAdmin} />
         </TabsContent>
       </Tabs>
     </div>
