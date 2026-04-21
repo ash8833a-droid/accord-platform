@@ -8,9 +8,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Plus, ListTodo, Receipt, Wallet, ArrowLeft, FileText, Upload, Loader2, Pencil, Trash2, GripVertical, User as UserIcon, Users, Target, CheckCircle2, AlertTriangle, MessageSquare } from "lucide-react";
+import { Plus, ListTodo, Receipt, Wallet, ArrowLeft, FileText, Upload, Loader2, Pencil, Trash2, GripVertical, User as UserIcon, Users, Target, CheckCircle2, AlertTriangle, MessageSquare, FileSpreadsheet, Printer, MessagesSquare } from "lucide-react";
 import { toast } from "sonner";
 import { committeeByType, COMMITTEES } from "@/lib/committees";
+import * as XLSX from "xlsx";
 import { FinanceModule } from "@/components/FinanceModule";
 import { PmpCharter } from "@/components/committee/PmpCharter";
 import { InvitationCards } from "@/components/media/InvitationCards";
@@ -111,6 +112,9 @@ function CommitteePage() {
   const [committee, setCommittee] = useState<{ id: string; name: string; description: string | null; budget_allocated: number; budget_spent: number; head_user_id: string | null } | null>(null);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [requests, setRequests] = useState<PaymentRequest[]>([]);
+  // per-task response KPIs: count + average completion %
+  const [taskKpis, setTaskKpis] = useState<Record<string, { count: number; avg: number }>>({});
+  const [committeeResponses, setCommitteeResponses] = useState<any[]>([]);
 
   const { user, hasRole } = useAuth();
   const isAdmin = hasRole("admin");
@@ -160,7 +164,7 @@ function CommitteePage() {
     }
     setCommittee(c);
 
-    const [{ data: t }, { data: p }, { data: m }, { data: am }, { data: rolesInCommittee }, { data: allRoles }] = await Promise.all([
+    const [{ data: t }, { data: p }, { data: m }, { data: am }, { data: rolesInCommittee }, { data: allRoles }, { data: rsp }] = await Promise.all([
       supabase.from("committee_tasks")
         .select("id, title, description, status, priority, assigned_to, created_at")
         .eq("committee_id", c.id)
@@ -170,7 +174,29 @@ function CommitteePage() {
       supabase.from("team_members").select("id, full_name, role_title, is_head, committee_id, committees(name)").order("display_order"),
       supabase.from("user_roles").select("user_id, role").eq("committee_id", c.id),
       supabase.from("user_roles").select("user_id, role, committee_id").not("committee_id", "is", null),
+      supabase
+        .from("task_responses" as any)
+        .select("id, task_id, author_name, action_taken, outcomes, completion_percent, challenges, recommendations, execution_date, attachments_note, created_at")
+        .eq("committee_id", c.id)
+        .order("created_at", { ascending: false }),
     ]);
+
+    // Build per-task KPIs from response rows
+    const responsesData = (rsp ?? []) as any[];
+    const kpiMap: Record<string, { count: number; sum: number }> = {};
+    responsesData.forEach((r) => {
+      const k = kpiMap[r.task_id] ?? { count: 0, sum: 0 };
+      k.count += 1;
+      k.sum += Number(r.completion_percent) || 0;
+      kpiMap[r.task_id] = k;
+    });
+    const kpis: Record<string, { count: number; avg: number }> = {};
+    Object.entries(kpiMap).forEach(([id, v]) => {
+      kpis[id] = { count: v.count, avg: Math.round(v.sum / v.count) };
+    });
+    setTaskKpis(kpis);
+    // Stash raw response rows for export (attached to closure via state below)
+    setCommitteeResponses(responsesData);
 
     const teamForCommittee = (m ?? []) as TeamMember[];
     const allTeam = ((am ?? []) as any[]).map((x) => ({
@@ -232,6 +258,28 @@ function CommitteePage() {
   useEffect(() => {
     if (meta) load();
   }, [type]);
+
+  // Refresh KPIs when responses change in realtime
+  useEffect(() => {
+    if (!committee) return;
+    const ch = supabase
+      .channel(`committee_responses_${committee.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "task_responses",
+          filter: `committee_id=eq.${committee.id}`,
+        },
+        () => load(),
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(ch);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [committee?.id]);
 
   useEffect(() => {
     if (!user) { setProfileName(null); return; }
@@ -383,6 +431,121 @@ function CommitteePage() {
     const id = e.dataTransfer.getData("text/plain") || dragId;
     setDragId(null); setDragOverCol(null);
     if (id) moveTask(id, col);
+  };
+
+  // ---------- Per-committee responses export ----------
+  const buildExportRows = () => {
+    const taskById = new Map(tasks.map((t) => [t.id, t.title]));
+    return committeeResponses.map((r) => ({
+      "اللجنة": committee?.name ?? "",
+      "المهمة": taskById.get(r.task_id) ?? "—",
+      "العضو": r.author_name,
+      "الإجراء": r.action_taken,
+      "المخرجات": r.outcomes ?? "",
+      "الإنجاز %": r.completion_percent,
+      "التحديات": r.challenges ?? "",
+      "التوصيات": r.recommendations ?? "",
+      "تاريخ التنفيذ": r.execution_date ?? "",
+      "تاريخ الرد": new Intl.DateTimeFormat("ar-SA", {
+        dateStyle: "short",
+        timeStyle: "short",
+      }).format(new Date(r.created_at)),
+    }));
+  };
+
+  const exportResponsesXLSX = () => {
+    if (committeeResponses.length === 0) {
+      toast.info("لا توجد ردود لتصديرها بعد");
+      return;
+    }
+    const rows = buildExportRows();
+    const ws = XLSX.utils.json_to_sheet(rows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "ردود اللجنة");
+    XLSX.writeFile(
+      wb,
+      `responses-${meta?.label ?? type}-${new Date().toISOString().slice(0, 10)}.xlsx`,
+    );
+  };
+
+  const escapeHtml = (s: string) =>
+    String(s ?? "").replace(/[&<>"']/g, (m) =>
+      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m] as string),
+    );
+
+  const printResponsesPDF = () => {
+    if (committeeResponses.length === 0) {
+      toast.info("لا توجد ردود للطباعة بعد");
+      return;
+    }
+    const w = window.open("", "_blank");
+    if (!w) {
+      toast.error("الرجاء السماح بفتح النوافذ المنبثقة");
+      return;
+    }
+    const rows = buildExportRows();
+    const total = rows.length;
+    const avg = Math.round(
+      rows.reduce((s, r) => s + (Number(r["الإنجاز %"]) || 0), 0) / Math.max(1, total),
+    );
+    const completed = rows.filter((r) => Number(r["الإنجاز %"]) === 100).length;
+
+    const rowsHtml = rows
+      .map(
+        (r, i) => `
+      <tr>
+        <td>${i + 1}</td>
+        <td>${escapeHtml(r["المهمة"])}</td>
+        <td>${escapeHtml(r["العضو"])}</td>
+        <td style="max-width:280px">${escapeHtml(r["الإجراء"])}</td>
+        <td style="max-width:200px">${escapeHtml(r["المخرجات"])}</td>
+        <td style="text-align:center"><span class="pct ${
+          Number(r["الإنجاز %"]) === 100 ? "ok" : Number(r["الإنجاز %"]) >= 50 ? "mid" : "low"
+        }">${r["الإنجاز %"]}%</span></td>
+        <td>${escapeHtml(r["التحديات"])}</td>
+        <td>${escapeHtml(r["التوصيات"])}</td>
+        <td>${escapeHtml(r["تاريخ التنفيذ"])}</td>
+        <td>${escapeHtml(r["تاريخ الرد"])}</td>
+      </tr>`,
+      )
+      .join("");
+    w.document.write(`<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"/>
+<title>تقرير ردود ${meta?.label ?? ""}</title>
+<style>
+  body{font-family:'Tajawal','Segoe UI',sans-serif;padding:24px;color:#1a1a1a}
+  h1{margin:0 0 4px;font-size:22px;color:#7a5a17}
+  .sub{color:#666;font-size:12px;margin-bottom:16px}
+  .meta{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+  .kpi{border:1px solid #e6d9b8;background:#fbf7ec;border-radius:10px;padding:8px 14px;font-size:12px}
+  .kpi b{display:block;font-size:18px;color:#7a5a17}
+  table{width:100%;border-collapse:collapse;font-size:11.5px}
+  th{background:linear-gradient(135deg,#c9a45e,#a8842f);color:#fff;padding:8px;text-align:right;font-weight:700}
+  td{border:1px solid #e5e5e5;padding:6px;vertical-align:top;text-align:right}
+  tr:nth-child(even) td{background:#fafafa}
+  .pct{display:inline-block;padding:2px 8px;border-radius:999px;font-weight:bold;font-size:11px}
+  .pct.ok{background:#d1fae5;color:#065f46}
+  .pct.mid{background:#dbeafe;color:#1e3a8a}
+  .pct.low{background:#fef3c7;color:#854d0e}
+  .footer{margin-top:18px;padding-top:10px;border-top:1px solid #e5e5e5;font-size:11px;color:#777;text-align:center}
+</style></head><body>
+<h1>تقرير ردود اللجان — ${escapeHtml(meta?.label ?? "")}</h1>
+<p class="sub">${escapeHtml(committee?.name ?? "")} · ${new Date().toLocaleString("ar-SA")}</p>
+<div class="meta">
+  <div class="kpi"><b>${total}</b>إجمالي الردود</div>
+  <div class="kpi"><b>${avg}%</b>متوسط الإنجاز</div>
+  <div class="kpi"><b>${completed}</b>مكتملة 100%</div>
+</div>
+<table>
+  <thead><tr>
+    <th>#</th><th>المهمة</th><th>العضو</th><th>الإجراء المتخذ</th><th>المخرجات</th>
+    <th>الإنجاز</th><th>التحديات</th><th>التوصيات</th><th>تاريخ التنفيذ</th><th>تاريخ الرد</th>
+  </tr></thead>
+  <tbody>${rowsHtml}</tbody>
+</table>
+<div class="footer">منصة لجنة الزواج — تقرير رسمي</div>
+<script>window.onload=()=>setTimeout(()=>window.print(),300)</script>
+</body></html>`);
+    w.document.close();
   };
 
   const openEditRequest = (r: PaymentRequest) => {
@@ -734,6 +897,24 @@ function CommitteePage() {
                 {showMine ? `مهامي (${mineCount})` : "مهامي"}
               </Button>
             )}
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={exportResponsesXLSX}
+              title="تصدير ردود اللجنة إلى Excel"
+              className="gap-1"
+            >
+              <FileSpreadsheet className="h-3.5 w-3.5" /> Excel
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={printResponsesPDF}
+              title="طباعة/تصدير PDF لردود اللجنة"
+              className="gap-1"
+            >
+              <Printer className="h-3.5 w-3.5" /> PDF
+            </Button>
             <Dialog open={taskOpen} onOpenChange={(o) => { setTaskOpen(o); if (!o) resetTaskForm(); }}>
               {canManageTasks && (
                 <Button size="sm" onClick={openNewTask} className="bg-gradient-gold text-gold-foreground shadow-gold">
@@ -923,6 +1104,37 @@ function CommitteePage() {
                             {t.description}
                           </p>
                         )}
+
+                        {/* Mini KPI: responses count + avg completion */}
+                        {(() => {
+                          const k = taskKpis[t.id];
+                          const count = k?.count ?? 0;
+                          const avg = k?.avg ?? 0;
+                          const tone =
+                            avg === 100
+                              ? "bg-emerald-500/10 text-emerald-700 border-emerald-500/30"
+                              : avg >= 50
+                                ? "bg-sky-500/10 text-sky-700 border-sky-500/30"
+                                : count > 0
+                                  ? "bg-amber-500/10 text-amber-700 border-amber-500/30"
+                                  : "bg-muted text-muted-foreground border-border";
+                          return (
+                            <div className="ps-7 mb-2 flex items-center gap-1.5 flex-wrap">
+                              <Badge
+                                variant="outline"
+                                className="text-[10px] h-5 rounded-md gap-1 px-1.5"
+                              >
+                                <MessagesSquare className="h-3 w-3" /> ردود: {count}
+                              </Badge>
+                              <Badge
+                                variant="outline"
+                                className={`text-[10px] h-5 rounded-md gap-1 px-1.5 ${tone}`}
+                              >
+                                <CheckCircle2 className="h-3 w-3" /> متوسط الإنجاز: {avg}%
+                              </Badge>
+                            </div>
+                          );
+                        })()}
 
                         {/* Attachments */}
                         <div className="ps-7 mb-2.5">

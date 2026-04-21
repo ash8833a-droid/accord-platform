@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
+import { TaskResponseAttachments } from "@/components/TaskResponseAttachments";
 
 interface Response {
   id: string;
@@ -295,6 +296,14 @@ export function TaskResponseForm({ taskId, committeeId }: Props) {
                           </span>
                         )}
                       </div>
+                      <TaskResponseAttachments
+                        responseId={r.id}
+                        taskId={taskId}
+                        committeeId={committeeId}
+                        ownerUserId={r.user_id}
+                        currentUserId={user?.id ?? null}
+                        canUpload={mine}
+                      />
                     </div>
                   </div>
                 </div>
