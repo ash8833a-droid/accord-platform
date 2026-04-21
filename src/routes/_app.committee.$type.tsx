@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Plus, ListTodo, Receipt, Wallet, ArrowLeft, FileText, Upload, Loader2, Pencil, Trash2, GripVertical, User as UserIcon, Users, Target, CheckCircle2 } from "lucide-react";
+import { Plus, ListTodo, Receipt, Wallet, ArrowLeft, FileText, Upload, Loader2, Pencil, Trash2, GripVertical, User as UserIcon, Users, Target, CheckCircle2, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { committeeByType, COMMITTEES } from "@/lib/committees";
 import { FinanceModule } from "@/components/FinanceModule";
@@ -833,6 +833,7 @@ function CommitteePage() {
                   {colTasks.map((t) => {
                     const assignee = t.assigned_to ? memberById.get(t.assigned_to) : undefined;
                     const isMine = !!myMemberId && t.assigned_to === myMemberId;
+                    const isFirstUrgent = tasks.length > 0 && tasks[0].id === t.id;
                     return (
                       <div
                         key={t.id}
@@ -841,8 +842,19 @@ function CommitteePage() {
                         onDragEnd={onDragEnd}
                         className={`group relative rounded-xl bg-card p-3.5 shadow-sm border border-border/60 hover:border-primary/40 hover:shadow-md transition-all cursor-grab active:cursor-grabbing ${
                           dragId === t.id ? "opacity-40 scale-95" : ""
-                        } ${isMine ? "ring-1 ring-primary/40" : ""}`}
+                        } ${isMine ? "ring-1 ring-primary/40" : ""} ${isFirstUrgent ? "ring-2 ring-destructive/60 border-destructive/50" : ""}`}
                       >
+                        {/* تنبيه عاجل لرؤساء اللجان على أول مهمة */}
+                        {isFirstUrgent && (
+                          <div className="mb-2 flex items-center gap-2 rounded-lg bg-destructive/10 border border-destructive/30 px-2.5 py-1.5">
+                            <span className="relative flex h-2.5 w-2.5 shrink-0">
+                              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-destructive opacity-75" />
+                              <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-destructive" />
+                            </span>
+                            <AlertTriangle className="h-3.5 w-3.5 text-destructive shrink-0" />
+                            <span className="text-[11px] font-bold text-destructive">عاجل — لرؤساء اللجان</span>
+                          </div>
+                        )}
                         {/* Priority accent bar */}
                         <span
                           className={`absolute top-0 bottom-0 start-0 w-1 rounded-s-xl ${
