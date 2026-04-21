@@ -618,6 +618,8 @@ function CommitteePage() {
               )}
               {requests.map((r) => {
                 const s = PR_STATUS[r.status] ?? PR_STATUS.pending;
+                const canEditThis = (isAdmin || isHead) && r.status === "pending";
+                const canDeleteThis = isAdmin || isHead;
                 return (
                   <div key={r.id} className="px-4 py-3 flex items-center justify-between gap-3 hover:bg-muted/30 transition-colors">
                     <div className="min-w-0 flex items-center gap-2">
@@ -636,6 +638,28 @@ function CommitteePage() {
                     <div className="flex items-center gap-2 shrink-0">
                       <span className="font-bold text-xs">{fmt(Number(r.amount))} ر.س</span>
                       <Badge variant="outline" className={`${s.cls} text-[10px]`}>{s.label}</Badge>
+                      {canEditThis && (
+                        <button
+                          type="button"
+                          onClick={() => openEditRequest(r)}
+                          className="h-6 w-6 rounded-md flex items-center justify-center hover:bg-primary/10 hover:text-primary transition"
+                          aria-label="تعديل الطلب"
+                          title="تعديل (متاح قبل الاعتماد)"
+                        >
+                          <Pencil className="h-3 w-3" />
+                        </button>
+                      )}
+                      {canDeleteThis && (
+                        <button
+                          type="button"
+                          onClick={() => deleteRequest(r)}
+                          className="h-6 w-6 rounded-md flex items-center justify-center hover:bg-destructive/10 hover:text-destructive transition"
+                          aria-label="حذف الطلب"
+                          title="حذف"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </button>
+                      )}
                     </div>
                   </div>
                 );
