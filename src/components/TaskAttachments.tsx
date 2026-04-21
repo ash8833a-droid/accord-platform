@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
-import { Paperclip, Upload, FileText, Image as ImageIcon, Trash2, Download, Loader2, Eye, X } from "lucide-react";
+import { Paperclip, Upload, FileText, Image as ImageIcon, Trash2, Download, Loader2, Eye } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 
