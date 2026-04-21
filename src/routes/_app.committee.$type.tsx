@@ -12,6 +12,7 @@ import { Plus, ListTodo, Receipt, Wallet, ArrowLeft, FileText, Upload, Loader2, 
 import { toast } from "sonner";
 import { committeeByType, COMMITTEES } from "@/lib/committees";
 import { FinanceModule } from "@/components/FinanceModule";
+import { PmpCharter } from "@/components/committee/PmpCharter";
 import { InvitationCards } from "@/components/media/InvitationCards";
 import { MediaInbox } from "@/components/media/MediaInbox";
 import { TaskAttachments } from "@/components/TaskAttachments";
@@ -455,6 +456,7 @@ function CommitteePage() {
     return (
       <div className="space-y-6">
         <Header meta={meta} />
+        <PmpCharter meta={meta} />
         <div className="rounded-2xl border bg-card p-10 text-center">
           <p className="text-muted-foreground">
             لم يتم تهيئة بيانات هذه اللجنة بعد. يحتاج المدير لإنشائها من قاعدة البيانات.
@@ -470,6 +472,7 @@ function CommitteePage() {
   return (
     <div className="space-y-6">
       <Header meta={meta} />
+      <PmpCharter meta={meta} />
 
       {/* Budget icon button → opens dialog */}
       <Dialog>
