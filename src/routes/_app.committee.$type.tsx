@@ -433,6 +433,121 @@ function CommitteePage() {
     if (id) moveTask(id, col);
   };
 
+  // ---------- Per-committee responses export ----------
+  const buildExportRows = () => {
+    const taskById = new Map(tasks.map((t) => [t.id, t.title]));
+    return committeeResponses.map((r) => ({
+      "اللجنة": committee?.name ?? "",
+      "المهمة": taskById.get(r.task_id) ?? "—",
+      "العضو": r.author_name,
+      "الإجراء": r.action_taken,
+      "المخرجات": r.outcomes ?? "",
+      "الإنجاز %": r.completion_percent,
+      "التحديات": r.challenges ?? "",
+      "التوصيات": r.recommendations ?? "",
+      "تاريخ التنفيذ": r.execution_date ?? "",
+      "تاريخ الرد": new Intl.DateTimeFormat("ar-SA", {
+        dateStyle: "short",
+        timeStyle: "short",
+      }).format(new Date(r.created_at)),
+    }));
+  };
+
+  const exportResponsesXLSX = () => {
+    if (committeeResponses.length === 0) {
+      toast.info("لا توجد ردود لتصديرها بعد");
+      return;
+    }
+    const rows = buildExportRows();
+    const ws = XLSX.utils.json_to_sheet(rows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "ردود اللجنة");
+    XLSX.writeFile(
+      wb,
+      `responses-${meta?.label ?? type}-${new Date().toISOString().slice(0, 10)}.xlsx`,
+    );
+  };
+
+  const escapeHtml = (s: string) =>
+    String(s ?? "").replace(/[&<>"']/g, (m) =>
+      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m] as string),
+    );
+
+  const printResponsesPDF = () => {
+    if (committeeResponses.length === 0) {
+      toast.info("لا توجد ردود للطباعة بعد");
+      return;
+    }
+    const w = window.open("", "_blank");
+    if (!w) {
+      toast.error("الرجاء السماح بفتح النوافذ المنبثقة");
+      return;
+    }
+    const rows = buildExportRows();
+    const total = rows.length;
+    const avg = Math.round(
+      rows.reduce((s, r) => s + (Number(r["الإنجاز %"]) || 0), 0) / Math.max(1, total),
+    );
+    const completed = rows.filter((r) => Number(r["الإنجاز %"]) === 100).length;
+
+    const rowsHtml = rows
+      .map(
+        (r, i) => `
+      <tr>
+        <td>${i + 1}</td>
+        <td>${escapeHtml(r["المهمة"])}</td>
+        <td>${escapeHtml(r["العضو"])}</td>
+        <td style="max-width:280px">${escapeHtml(r["الإجراء"])}</td>
+        <td style="max-width:200px">${escapeHtml(r["المخرجات"])}</td>
+        <td style="text-align:center"><span class="pct ${
+          Number(r["الإنجاز %"]) === 100 ? "ok" : Number(r["الإنجاز %"]) >= 50 ? "mid" : "low"
+        }">${r["الإنجاز %"]}%</span></td>
+        <td>${escapeHtml(r["التحديات"])}</td>
+        <td>${escapeHtml(r["التوصيات"])}</td>
+        <td>${escapeHtml(r["تاريخ التنفيذ"])}</td>
+        <td>${escapeHtml(r["تاريخ الرد"])}</td>
+      </tr>`,
+      )
+      .join("");
+    w.document.write(`<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"/>
+<title>تقرير ردود ${meta?.label ?? ""}</title>
+<style>
+  body{font-family:'Tajawal','Segoe UI',sans-serif;padding:24px;color:#1a1a1a}
+  h1{margin:0 0 4px;font-size:22px;color:#7a5a17}
+  .sub{color:#666;font-size:12px;margin-bottom:16px}
+  .meta{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+  .kpi{border:1px solid #e6d9b8;background:#fbf7ec;border-radius:10px;padding:8px 14px;font-size:12px}
+  .kpi b{display:block;font-size:18px;color:#7a5a17}
+  table{width:100%;border-collapse:collapse;font-size:11.5px}
+  th{background:linear-gradient(135deg,#c9a45e,#a8842f);color:#fff;padding:8px;text-align:right;font-weight:700}
+  td{border:1px solid #e5e5e5;padding:6px;vertical-align:top;text-align:right}
+  tr:nth-child(even) td{background:#fafafa}
+  .pct{display:inline-block;padding:2px 8px;border-radius:999px;font-weight:bold;font-size:11px}
+  .pct.ok{background:#d1fae5;color:#065f46}
+  .pct.mid{background:#dbeafe;color:#1e3a8a}
+  .pct.low{background:#fef3c7;color:#854d0e}
+  .footer{margin-top:18px;padding-top:10px;border-top:1px solid #e5e5e5;font-size:11px;color:#777;text-align:center}
+</style></head><body>
+<h1>تقرير ردود اللجان — ${escapeHtml(meta?.label ?? "")}</h1>
+<p class="sub">${escapeHtml(committee?.name ?? "")} · ${new Date().toLocaleString("ar-SA")}</p>
+<div class="meta">
+  <div class="kpi"><b>${total}</b>إجمالي الردود</div>
+  <div class="kpi"><b>${avg}%</b>متوسط الإنجاز</div>
+  <div class="kpi"><b>${completed}</b>مكتملة 100%</div>
+</div>
+<table>
+  <thead><tr>
+    <th>#</th><th>المهمة</th><th>العضو</th><th>الإجراء المتخذ</th><th>المخرجات</th>
+    <th>الإنجاز</th><th>التحديات</th><th>التوصيات</th><th>تاريخ التنفيذ</th><th>تاريخ الرد</th>
+  </tr></thead>
+  <tbody>${rowsHtml}</tbody>
+</table>
+<div class="footer">منصة لجنة الزواج — تقرير رسمي</div>
+<script>window.onload=()=>setTimeout(()=>window.print(),300)</script>
+</body></html>`);
+    w.document.close();
+  };
+
   const openEditRequest = (r: PaymentRequest) => {
     setEditingPr(r);
     setEditPrTitle(r.title);
