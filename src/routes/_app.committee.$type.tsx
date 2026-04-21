@@ -160,7 +160,10 @@ function CommitteePage() {
     setCommittee(c);
 
     const [{ data: t }, { data: p }, { data: m }, { data: am }, { data: rolesInCommittee }, { data: allRoles }] = await Promise.all([
-      supabase.from("committee_tasks").select("id, title, description, status, priority, assigned_to").eq("committee_id", c.id),
+      supabase.from("committee_tasks")
+        .select("id, title, description, status, priority, assigned_to, created_at")
+        .eq("committee_id", c.id)
+        .order("created_at", { ascending: false }),
       supabase.from("payment_requests").select("id, title, amount, status, created_at, invoice_url").eq("committee_id", c.id).order("created_at", { ascending: false }),
       supabase.from("team_members").select("id, full_name, role_title, is_head").eq("committee_id", c.id).order("display_order"),
       supabase.from("team_members").select("id, full_name, role_title, is_head, committee_id, committees(name)").order("display_order"),
