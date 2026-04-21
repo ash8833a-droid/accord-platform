@@ -838,7 +838,7 @@ function CommitteePage() {
                   {colTasks.map((t) => {
                     const assignee = t.assigned_to ? memberById.get(t.assigned_to) : undefined;
                     const isMine = !!myMemberId && t.assigned_to === myMemberId;
-                    const isFirstUrgent = tasks.length > 0 && tasks[0].id === t.id;
+                    const isFirstUrgent = urgentAlert.enabled && tasks.length > 0 && tasks[0].id === t.id;
                     return (
                       <div
                         key={t.id}
@@ -857,7 +857,7 @@ function CommitteePage() {
                               <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-destructive" />
                             </span>
                             <AlertTriangle className="h-3.5 w-3.5 text-destructive shrink-0" />
-                            <span className="text-[11px] font-bold text-destructive">عاجل</span>
+                            <span className="text-[11px] font-bold text-destructive">{urgentAlert.label || "عاجل"}</span>
                           </div>
                         )}
                         {/* Priority accent bar */}
