@@ -110,8 +110,32 @@ export function PmpCharter({ meta }: { meta: CommitteeMeta }) {
           </div>
         </div>
 
-        {/* Targets / KPIs */}
-        <div className="rounded-2xl border bg-background/70 backdrop-blur-sm p-4">
+        {/* Goals + Targets grid */}
+        <div className="grid gap-4 md:grid-cols-2">
+          {/* Goals */}
+          <div className="rounded-2xl border bg-background/70 backdrop-blur-sm p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="h-8 w-8 rounded-lg bg-emerald-500/10 text-emerald-600 flex items-center justify-center">
+                <Flag className="h-4 w-4" />
+              </span>
+              <h3 className="text-sm font-bold">الأهداف الاستراتيجية</h3>
+            </div>
+            {goals.length === 0 ? (
+              <p className="text-xs text-muted-foreground">لم تُحدَّد أهداف بعد.</p>
+            ) : (
+              <ul className="space-y-2">
+                {goals.map((g, i) => (
+                  <li key={i} className="flex items-start gap-2 text-sm leading-relaxed">
+                    <span className="mt-1 h-1.5 w-1.5 rounded-full bg-emerald-500 shrink-0" />
+                    <span>{g}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+
+          {/* Targets / KPIs */}
+          <div className="rounded-2xl border bg-background/70 backdrop-blur-sm p-4">
             <div className="flex items-center gap-2 mb-3">
               <span className="h-8 w-8 rounded-lg bg-sky-500/10 text-sky-600 flex items-center justify-center">
                 <Target className="h-4 w-4" />
@@ -130,6 +154,7 @@ export function PmpCharter({ meta }: { meta: CommitteeMeta }) {
                 ))}
               </ul>
             )}
+          </div>
         </div>
 
         {/* Idea / Mission banner */}
