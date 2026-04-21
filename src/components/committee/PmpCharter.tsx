@@ -1,4 +1,4 @@
-import { Target, Lightbulb, Flag, ListChecks, Compass } from "lucide-react";
+import { Target, Lightbulb, ListChecks, Compass } from "lucide-react";
 import type { CommitteeMeta } from "@/lib/committees";
 import { PHASE_LABELS } from "@/lib/pmp-tasks";
 
