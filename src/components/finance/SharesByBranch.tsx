@@ -182,6 +182,11 @@ export function SharesByBranch() {
           </table>
         </div>
       </div>
+
+      {/* Historical shareholders by Hijri year */}
+      <div className="pt-4 border-t-2 border-dashed">
+        <HistoricalShares />
+      </div>
     </div>
   );
 }
