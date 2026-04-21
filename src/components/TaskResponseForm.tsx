@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
+import { TaskResponseAttachments } from "@/components/TaskResponseAttachments";
 
 interface Response {
   id: string;
