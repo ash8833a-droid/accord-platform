@@ -1105,6 +1105,37 @@ function CommitteePage() {
                           </p>
                         )}
 
+                        {/* Mini KPI: responses count + avg completion */}
+                        {(() => {
+                          const k = taskKpis[t.id];
+                          const count = k?.count ?? 0;
+                          const avg = k?.avg ?? 0;
+                          const tone =
+                            avg === 100
+                              ? "bg-emerald-500/10 text-emerald-700 border-emerald-500/30"
+                              : avg >= 50
+                                ? "bg-sky-500/10 text-sky-700 border-sky-500/30"
+                                : count > 0
+                                  ? "bg-amber-500/10 text-amber-700 border-amber-500/30"
+                                  : "bg-muted text-muted-foreground border-border";
+                          return (
+                            <div className="ps-7 mb-2 flex items-center gap-1.5 flex-wrap">
+                              <Badge
+                                variant="outline"
+                                className="text-[10px] h-5 rounded-md gap-1 px-1.5"
+                              >
+                                <MessagesSquare className="h-3 w-3" /> ردود: {count}
+                              </Badge>
+                              <Badge
+                                variant="outline"
+                                className={`text-[10px] h-5 rounded-md gap-1 px-1.5 ${tone}`}
+                              >
+                                <CheckCircle2 className="h-3 w-3" /> متوسط الإنجاز: {avg}%
+                              </Badge>
+                            </div>
+                          );
+                        })()}
+
                         {/* Attachments */}
                         <div className="ps-7 mb-2.5">
                           <TaskAttachments taskId={t.id} committeeId={committee.id} compact />
