@@ -912,6 +912,67 @@ export type Database = {
           },
         ]
       }
+      task_response_attachments: {
+        Row: {
+          committee_id: string
+          created_at: string
+          file_name: string
+          file_path: string
+          file_size: number | null
+          file_type: string | null
+          id: string
+          response_id: string
+          task_id: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          committee_id: string
+          created_at?: string
+          file_name: string
+          file_path: string
+          file_size?: number | null
+          file_type?: string | null
+          id?: string
+          response_id: string
+          task_id: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          committee_id?: string
+          created_at?: string
+          file_name?: string
+          file_path?: string
+          file_size?: number | null
+          file_type?: string | null
+          id?: string
+          response_id?: string
+          task_id?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_response_attachments_committee_id_fkey"
+            columns: ["committee_id"]
+            isOneToOne: false
+            referencedRelation: "committees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "task_response_attachments_response_id_fkey"
+            columns: ["response_id"]
+            isOneToOne: false
+            referencedRelation: "task_responses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "task_response_attachments_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "committee_tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       task_responses: {
         Row: {
           action_taken: string
