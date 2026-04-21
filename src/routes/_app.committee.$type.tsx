@@ -1050,24 +1050,13 @@ function CommitteePage() {
                         draggable
                         onDragStart={(e) => onDragStart(e, t.id)}
                         onDragEnd={onDragEnd}
-                        className={`group relative rounded-xl bg-card p-3.5 shadow-sm border border-border/60 hover:border-primary/40 hover:shadow-md transition-all cursor-grab active:cursor-grabbing ${
+                        className={`group relative rounded-2xl bg-card shadow-sm border border-border/60 hover:border-primary/40 hover:shadow-lg transition-all overflow-hidden ${
                           dragId === t.id ? "opacity-40 scale-95" : ""
                         } ${isMine ? "ring-1 ring-primary/40" : ""} ${isFirstUrgent ? "ring-2 ring-destructive/60 border-destructive/50" : ""}`}
                       >
-                        {/* تنبيه عاجل لرؤساء اللجان على أول مهمة */}
-                        {isFirstUrgent && (
-                          <div className="mb-2 flex items-center gap-2 rounded-lg bg-destructive/10 border border-destructive/30 px-2.5 py-1.5">
-                            <span className="relative flex h-2.5 w-2.5 shrink-0">
-                              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-destructive opacity-75" />
-                              <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-destructive" />
-                            </span>
-                            <AlertTriangle className="h-3.5 w-3.5 text-destructive shrink-0" />
-                            <span className="text-[11px] font-bold text-destructive">{urgentAlert.label || "عاجل"}</span>
-                          </div>
-                        )}
                         {/* Priority accent bar */}
                         <span
-                          className={`absolute top-0 bottom-0 start-0 w-1 rounded-s-xl ${
+                          className={`absolute top-0 bottom-0 start-0 w-1.5 ${
                             t.priority === "urgent" ? "bg-rose-500" :
                             t.priority === "high" ? "bg-amber-500" :
                             t.priority === "medium" ? "bg-sky-500" : "bg-muted-foreground/30"
@@ -1075,83 +1064,76 @@ function CommitteePage() {
                           aria-hidden
                         />
 
-                        {/* Header: phase + priority on top, title below */}
-                        {(() => {
-                          const { phase, clean } = splitPhase(t.title);
-                          return (
-                            <div className="ps-2 mb-2">
-                              <div className="flex items-center gap-1.5 mb-1.5 flex-wrap">
-                                {phase && (
-                                  <Badge variant="outline" className={`${PHASE_TONE[phase] ?? "bg-muted text-muted-foreground"} text-[10px] font-semibold px-1.5 py-0 h-5 rounded-md border`}>
-                                    {phase}
+                        {/* === SECTION 1: Header (title + meta) === */}
+                        <div className="ps-4 pe-3.5 pt-3.5 pb-2.5 cursor-grab active:cursor-grabbing">
+                          {isFirstUrgent && (
+                            <div className="mb-2 flex items-center gap-2 rounded-lg bg-destructive/10 border border-destructive/30 px-2.5 py-1">
+                              <span className="relative flex h-2 w-2 shrink-0">
+                                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-destructive opacity-75" />
+                                <span className="relative inline-flex h-2 w-2 rounded-full bg-destructive" />
+                              </span>
+                              <AlertTriangle className="h-3 w-3 text-destructive shrink-0" />
+                              <span className="text-[10.5px] font-bold text-destructive">{urgentAlert.label || "عاجل"}</span>
+                            </div>
+                          )}
+                          {(() => {
+                            const { phase, clean } = splitPhase(t.title);
+                            const k = taskKpis[t.id];
+                            const count = k?.count ?? 0;
+                            const avg = k?.avg ?? 0;
+                            return (
+                              <>
+                                <div className="flex items-center gap-1.5 mb-2 flex-wrap">
+                                  {phase && (
+                                    <Badge variant="outline" className={`${PHASE_TONE[phase] ?? "bg-muted text-muted-foreground"} text-[10px] font-semibold px-1.5 py-0 h-5 rounded-md border`}>
+                                      {phase}
+                                    </Badge>
+                                  )}
+                                  <Badge variant="secondary" className={`${PRIORITY_TONE[t.priority]} text-[10px] font-medium px-1.5 py-0 h-5 rounded-md`}>
+                                    {PRIORITY_LABELS[t.priority]}
                                   </Badge>
+                                  {count > 0 && (
+                                    <Badge variant="outline" className="text-[10px] h-5 rounded-md gap-1 px-1.5 ms-auto bg-muted/50">
+                                      <MessagesSquare className="h-3 w-3" /> {count} • {avg}%
+                                    </Badge>
+                                  )}
+                                </div>
+                                <div className="flex items-start gap-1.5">
+                                  <GripVertical className="h-4 w-4 text-muted-foreground/40 mt-0.5 shrink-0 group-hover:text-muted-foreground transition" />
+                                  <h5 className="font-bold text-[14px] leading-snug flex-1 text-foreground">{clean}</h5>
+                                </div>
+                                {t.description && (
+                                  <p className="text-[12px] leading-relaxed text-muted-foreground mt-1.5 ps-5.5 whitespace-pre-wrap">
+                                    {t.description}
+                                  </p>
                                 )}
-                                <Badge variant="secondary" className={`${PRIORITY_TONE[t.priority]} text-[10px] font-medium px-1.5 py-0 h-5 rounded-md ms-auto`}>
-                                  {PRIORITY_LABELS[t.priority]}
-                                </Badge>
-                              </div>
-                              <div className="flex items-start gap-2">
-                                <GripVertical className="h-3.5 w-3.5 text-muted-foreground/40 mt-0.5 shrink-0 group-hover:text-muted-foreground transition" />
-                                <h5 className="font-semibold text-sm leading-snug flex-1 line-clamp-2">{clean}</h5>
-                              </div>
-                            </div>
-                          );
-                        })()}
-
-                        {/* Description */}
-                        {t.description && (
-                          <p className="text-[11.5px] leading-relaxed text-muted-foreground line-clamp-2 mb-2.5 ps-7">
-                            {t.description}
-                          </p>
-                        )}
-
-                        {/* Mini KPI: responses count + avg completion */}
-                        {(() => {
-                          const k = taskKpis[t.id];
-                          const count = k?.count ?? 0;
-                          const avg = k?.avg ?? 0;
-                          const tone =
-                            avg === 100
-                              ? "bg-emerald-500/10 text-emerald-700 border-emerald-500/30"
-                              : avg >= 50
-                                ? "bg-sky-500/10 text-sky-700 border-sky-500/30"
-                                : count > 0
-                                  ? "bg-amber-500/10 text-amber-700 border-amber-500/30"
-                                  : "bg-muted text-muted-foreground border-border";
-                          return (
-                            <div className="ps-7 mb-2 flex items-center gap-1.5 flex-wrap">
-                              <Badge
-                                variant="outline"
-                                className="text-[10px] h-5 rounded-md gap-1 px-1.5"
-                              >
-                                <MessagesSquare className="h-3 w-3" /> ردود: {count}
-                              </Badge>
-                              <Badge
-                                variant="outline"
-                                className={`text-[10px] h-5 rounded-md gap-1 px-1.5 ${tone}`}
-                              >
-                                <CheckCircle2 className="h-3 w-3" /> متوسط الإنجاز: {avg}%
-                              </Badge>
-                            </div>
-                          );
-                        })()}
-
-                        {/* Attachments */}
-                        <div className="ps-7 mb-2.5">
-                          <TaskAttachments taskId={t.id} committeeId={committee.id} compact />
+                              </>
+                            );
+                          })()}
                         </div>
 
-                        {/* Unified expand: quick response + thread + comments */}
-                        <div className="ps-7 mb-2.5">
+                        {/* === SECTION 2: Quick response (always visible — the main action) === */}
+                        <div className="px-3.5 pb-3 ps-4 border-t border-border/40 bg-muted/20 pt-3">
+                          <QuickResponseBar
+                            taskId={t.id}
+                            committeeId={committee.id}
+                            initialPercent={
+                              t.status === "completed" ? 100 : t.status === "in_progress" ? 50 : 0
+                            }
+                          />
+                        </div>
+
+                        {/* === SECTION 3: Attachments + collapsible discussion === */}
+                        <div className="px-3.5 ps-4 pb-2 space-y-2">
+                          <TaskAttachments taskId={t.id} committeeId={committee.id} compact />
                           <button
                             type="button"
                             onClick={() => toggleComments(t.id)}
-                            className="inline-flex items-center gap-1.5 text-[11px] font-bold text-primary hover:text-primary/80 transition w-full justify-between rounded-lg border border-primary/20 bg-primary/5 hover:bg-primary/10 px-2.5 py-1.5"
+                            className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-muted-foreground hover:text-primary transition w-full justify-between rounded-lg hover:bg-muted/60 px-2 py-1.5"
                             aria-expanded={expandedComments.has(t.id)}
                           >
                             <span className="inline-flex items-center gap-1.5">
-                              <MessageSquare className="h-3.5 w-3.5" />
-                              {expandedComments.has(t.id) ? "إخفاء التفاصيل" : "الرد على المهمة والتفاصيل"}
+                              <MessagesSquare className="h-3.5 w-3.5" /> نقاش الأعضاء
                             </span>
                             <ChevronDown
                               className={`h-3.5 w-3.5 transition-transform ${
@@ -1160,26 +1142,14 @@ function CommitteePage() {
                             />
                           </button>
                           {expandedComments.has(t.id) && (
-                            <div className="mt-2 rounded-lg border border-border/60 bg-background/60 p-3 space-y-3 animate-in fade-in slide-in-from-top-1 duration-200">
-                              <QuickResponseBar
-                                taskId={t.id}
-                                committeeId={committee.id}
-                                initialPercent={
-                                  t.status === "completed" ? 100 : t.status === "in_progress" ? 50 : 0
-                                }
-                              />
-                              <div className="border-t pt-3">
-                                <p className="text-[10.5px] font-bold text-muted-foreground mb-2 inline-flex items-center gap-1.5">
-                                  <MessagesSquare className="h-3 w-3" /> نقاش الأعضاء
-                                </p>
-                                <TaskComments taskId={t.id} />
-                              </div>
+                            <div className="rounded-lg border border-border/60 bg-background/70 p-2.5 animate-in fade-in slide-in-from-top-1 duration-200">
+                              <TaskComments taskId={t.id} />
                             </div>
                           )}
                         </div>
 
-                        {/* Footer: assignee + actions */}
-                        <div className="flex items-center justify-between gap-2 pt-2.5 border-t border-dashed border-border/60 ps-2">
+                        {/* === SECTION 4: Footer (assignee + actions) === */}
+                        <div className="flex items-center justify-between gap-2 px-3.5 ps-4 py-2 border-t border-border/40 bg-card">
                           {assignee ? (
                             <div className="flex items-center gap-1.5 min-w-0" title={assignee.full_name}>
                               <Avatar className="h-6 w-6 border border-primary/20">
