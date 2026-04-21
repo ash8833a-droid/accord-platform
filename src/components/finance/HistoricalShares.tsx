@@ -308,14 +308,20 @@ export function HistoricalShares() {
             <Dialog open={uploadOpen} onOpenChange={setUploadOpen}>
               <DialogTrigger asChild>
                 <Button variant="outline" size="sm" className="gap-1">
-                  <Upload className="h-4 w-4" /> رفع ملف PDF
+                  <Sparkles className="h-4 w-4" /> رفع واستخراج تلقائي
                 </Button>
               </DialogTrigger>
-              <DialogContent dir="rtl">
+              <DialogContent dir="rtl" className="max-w-md">
                 <DialogHeader>
-                  <DialogTitle>رفع ملف مساهمين سنة سابقة</DialogTitle>
+                  <DialogTitle className="flex items-center gap-2">
+                    <Sparkles className="h-5 w-5 text-primary" />
+                    استخراج تلقائي بالذكاء الاصطناعي
+                  </DialogTitle>
                 </DialogHeader>
                 <div className="space-y-4">
+                  <div className="rounded-lg bg-primary/5 border border-primary/20 p-3 text-xs text-muted-foreground">
+                    ارفع ملف PDF / صورة / Excel وسيتم استخراج الأسماء وفرزها على الفروع تلقائياً، ثم ستظهر شاشة معاينة قبل الإدراج النهائي.
+                  </div>
                   <div>
                     <Label>السنة الهجرية</Label>
                     <Select value={String(uploadYear)} onValueChange={(v) => setUploadYear(Number(v))}>
@@ -328,20 +334,32 @@ export function HistoricalShares() {
                     </Select>
                   </div>
                   <div>
-                    <Label>الملف (PDF أو Excel)</Label>
+                    <Label>المبلغ الافتراضي لكل مساهم (إذا لم يُذكر صراحة)</Label>
+                    <Select value={String(uploadAmount)} onValueChange={(v) => setUploadAmount(Number(v))}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {AMOUNT_OPTIONS.map((a) => (
+                          <SelectItem key={a} value={String(a)}>{fmt(a)} ر.س</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label>الملف (PDF / صورة / Excel)</Label>
                     <Input
                       type="file"
-                      accept=".pdf,.xlsx,.xls,.csv"
+                      accept=".pdf,.xlsx,.xls,.csv,image/*"
                       onChange={(e) => setUploadFile(e.target.files?.[0] ?? null)}
                     />
-                    <p className="text-xs text-muted-foreground mt-2">
-                      بعد الرفع، أرسل الملف لي في المحادثة وسأستخرج الأسماء وأصنفها على الفروع تلقائياً.
-                    </p>
                   </div>
                 </div>
                 <DialogFooter>
-                  <Button onClick={uploadSourceFile} disabled={!uploadFile || uploading}>
-                    {uploading ? "جارٍ الرفع..." : "رفع الملف"}
+                  <Button onClick={extractFromFile} disabled={!uploadFile || uploading} className="gap-1">
+                    {uploading ? (
+                      <>جارٍ الاستخراج...</>
+                    ) : (
+                      <><Sparkles className="h-4 w-4" /> ارفع واستخرج</>
+                    )}
                   </Button>
                 </DialogFooter>
               </DialogContent>
