@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import {
   ShieldCheck, Printer, ClipboardCheck, ChevronDown, ChevronLeft,
-  Loader2, Save, FileText, Sparkles,
+  Loader2, Save, FileText, Sparkles, Clock, AlertTriangle, CalendarClock,
 } from "lucide-react";
 import { toast } from "sonner";
 import { COMMITTEES, committeeByType, type CommitteeType } from "@/lib/committees";
@@ -51,6 +51,52 @@ const PRIORITY_LABELS: Record<TaskPriority, string> = {
 };
 
 const AUDIT_TAG_RE = /\n?\[تدقيق الجودة\]([\s\S]*?)\[\/تدقيق الجودة\]/;
+
+// ===== Time tracking (60-day soft cap from system activation date) =====
+const SYSTEM_DEADLINE_DAYS = 60;
+// Activation date: from today the user enabled the policy. Stored as a constant baseline.
+const SYSTEM_ACTIVATION = new Date(); SYSTEM_ACTIVATION.setHours(0,0,0,0);
+const SYSTEM_DEADLINE = new Date(SYSTEM_ACTIVATION);
+SYSTEM_DEADLINE.setDate(SYSTEM_DEADLINE.getDate() + SYSTEM_DEADLINE_DAYS);
+
+type TimeStatus = "ontrack" | "approaching" | "overdue" | "completed";
+
+function getTimeStatus(t: { status: TaskStatus; due_date: string | null }): TimeStatus {
+  if (t.status === "completed") return "completed";
+  const today = new Date(); today.setHours(0,0,0,0);
+  // effective deadline = min(task due_date, system deadline)
+  let effective = SYSTEM_DEADLINE;
+  if (t.due_date) {
+    const td = new Date(t.due_date);
+    if (td < effective) effective = td;
+  }
+  const diffDays = Math.ceil((effective.getTime() - today.getTime()) / 86400000);
+  if (diffDays < 0) return "overdue";
+  if (diffDays <= 14) return "approaching";
+  return "ontrack";
+}
+
+const TIME_LABELS: Record<TimeStatus, string> = {
+  ontrack: "في الوقت",
+  approaching: "قاربت المهلة",
+  overdue: "متأخرة",
+  completed: "مُنجزة",
+};
+const TIME_TONE: Record<TimeStatus, string> = {
+  ontrack: "bg-emerald-500/10 text-emerald-700 border-emerald-500/30",
+  approaching: "bg-amber-500/10 text-amber-700 border-amber-500/40",
+  overdue: "bg-rose-500/10 text-rose-700 border-rose-500/40",
+  completed: "bg-muted text-muted-foreground",
+};
+
+function daysLeft(): number {
+  const today = new Date(); today.setHours(0,0,0,0);
+  return Math.max(0, Math.ceil((SYSTEM_DEADLINE.getTime() - today.getTime()) / 86400000));
+}
+
+function fmtDate(d: Date) {
+  return d.toLocaleDateString("ar-SA", { day: "numeric", month: "long", year: "numeric" });
+}
 
 function splitAudit(desc: string | null): { body: string; audit: string } {
   if (!desc) return { body: "", audit: "" };
