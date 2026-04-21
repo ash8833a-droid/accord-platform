@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Plus, ListTodo, Receipt, Wallet, ArrowLeft, FileText, Upload, Loader2, Pencil, Trash2, GripVertical, User as UserIcon, Users, Target, CheckCircle2, AlertTriangle } from "lucide-react";
+import { Plus, ListTodo, Receipt, Wallet, ArrowLeft, FileText, Upload, Loader2, Pencil, Trash2, GripVertical, User as UserIcon, Users, Target, CheckCircle2, AlertTriangle, MessageSquare } from "lucide-react";
 import { toast } from "sonner";
 import { committeeByType, COMMITTEES } from "@/lib/committees";
 import { FinanceModule } from "@/components/FinanceModule";
@@ -16,6 +16,7 @@ import { PmpCharter } from "@/components/committee/PmpCharter";
 import { InvitationCards } from "@/components/media/InvitationCards";
 import { MediaInbox } from "@/components/media/MediaInbox";
 import { TaskAttachments } from "@/components/TaskAttachments";
+import { TaskComments } from "@/components/TaskComments";
 import { CommitteeArchive } from "@/components/CommitteeArchive";
 import { CommitteeMembersPanel } from "@/components/CommitteeMembersPanel";
 import { GroomFollowups } from "@/components/committee/GroomFollowups";
@@ -353,6 +354,15 @@ function CommitteePage() {
 
   const [dragId, setDragId] = useState<string | null>(null);
   const [dragOverCol, setDragOverCol] = useState<Task["status"] | null>(null);
+  const [expandedComments, setExpandedComments] = useState<Set<string>>(new Set());
+  const toggleComments = (id: string) => {
+    setExpandedComments((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
   const onDragStart = (e: React.DragEvent, id: string) => {
     setDragId(id);
     e.dataTransfer.effectAllowed = "move";
@@ -903,6 +913,23 @@ function CommitteePage() {
                         {/* Attachments */}
                         <div className="ps-7 mb-2.5">
                           <TaskAttachments taskId={t.id} committeeId={committee.id} compact />
+                        </div>
+
+                        {/* Comments toggle + panel */}
+                        <div className="ps-7 mb-2.5">
+                          <button
+                            type="button"
+                            onClick={() => toggleComments(t.id)}
+                            className="inline-flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground hover:text-primary transition"
+                          >
+                            <MessageSquare className="h-3.5 w-3.5" />
+                            {expandedComments.has(t.id) ? "إخفاء التعليقات" : "تعليقات الأعضاء"}
+                          </button>
+                          {expandedComments.has(t.id) && (
+                            <div className="mt-2 rounded-lg border border-border/60 bg-background/60 p-2.5">
+                              <TaskComments taskId={t.id} />
+                            </div>
+                          )}
                         </div>
 
                         {/* Footer: assignee + actions */}
