@@ -406,12 +406,26 @@ function CommitteePage() {
 
   const [dragId, setDragId] = useState<string | null>(null);
   const [dragOverCol, setDragOverCol] = useState<Task["status"] | null>(null);
-  const [expandedComments, setExpandedComments] = useState<Set<string>>(new Set());
+  const COMMENTS_STORAGE_KEY = "committee:expandedComments";
+  const [expandedComments, setExpandedComments] = useState<Set<string>>(() => {
+    if (typeof window === "undefined") return new Set();
+    try {
+      const raw = window.localStorage.getItem(COMMENTS_STORAGE_KEY);
+      return raw ? new Set(JSON.parse(raw) as string[]) : new Set();
+    } catch {
+      return new Set();
+    }
+  });
   const toggleComments = (id: string) => {
     setExpandedComments((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
       else next.add(id);
+      try {
+        window.localStorage.setItem(COMMENTS_STORAGE_KEY, JSON.stringify([...next]));
+      } catch {
+        /* ignore quota / private mode */
+      }
       return next;
     });
   };
@@ -1107,26 +1121,42 @@ function CommitteePage() {
                         {/* === SECTION 2: Attachments + collapsible discussion === */}
                         <div className="px-3.5 ps-4 pb-2 pt-1 space-y-2 border-t border-border/40">
                           <TaskAttachments taskId={t.id} committeeId={committee.id} compact />
-                          <button
-                            type="button"
-                            onClick={() => toggleComments(t.id)}
-                            className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-muted-foreground hover:text-primary transition w-full justify-between rounded-lg hover:bg-muted/60 px-2 py-1.5"
-                            aria-expanded={expandedComments.has(t.id)}
-                          >
-                            <span className="inline-flex items-center gap-1.5">
-                              <MessagesSquare className="h-3.5 w-3.5" /> نقاش الأعضاء
-                            </span>
-                            <ChevronDown
-                              className={`h-3.5 w-3.5 transition-transform ${
-                                expandedComments.has(t.id) ? "rotate-180" : ""
-                              }`}
-                            />
-                          </button>
-                          {expandedComments.has(t.id) && (
-                            <div className="rounded-lg border border-border/60 bg-background/70 p-2.5 animate-in fade-in slide-in-from-top-1 duration-200">
-                              <TaskComments taskId={t.id} />
-                            </div>
-                          )}
+                          {(() => {
+                            const isOpen = expandedComments.has(t.id);
+                            return (
+                              <>
+                                <button
+                                  type="button"
+                                  onClick={() => toggleComments(t.id)}
+                                  aria-expanded={isOpen}
+                                  aria-controls={`comments-${t.id}`}
+                                  className={`inline-flex items-center gap-1.5 text-[11.5px] font-bold transition w-full justify-between rounded-lg px-2.5 py-1.5 border ${
+                                    isOpen
+                                      ? "bg-primary/10 text-primary border-primary/30"
+                                      : "bg-muted/40 text-muted-foreground hover:bg-muted/70 hover:text-foreground border-transparent"
+                                  }`}
+                                >
+                                  <span className="inline-flex items-center gap-1.5">
+                                    <MessagesSquare className="h-3.5 w-3.5" />
+                                    {isOpen ? "إخفاء نقاش الأعضاء" : "عرض نقاش الأعضاء"}
+                                  </span>
+                                  <ChevronDown
+                                    className={`h-3.5 w-3.5 transition-transform duration-200 ${
+                                      isOpen ? "rotate-180" : ""
+                                    }`}
+                                  />
+                                </button>
+                                {isOpen && (
+                                  <div
+                                    id={`comments-${t.id}`}
+                                    className="rounded-lg border border-border/60 bg-background/70 p-2.5 animate-in fade-in slide-in-from-top-1 duration-200"
+                                  >
+                                    <TaskComments taskId={t.id} />
+                                  </div>
+                                )}
+                              </>
+                            );
+                          })()}
                         </div>
 
                         {/* === SECTION 4: Footer (assignee + actions) === */}
