@@ -131,6 +131,12 @@ function CommitteePage() {
   const [prRecipient, setPrRecipient] = useState<string>("finance");
   const [prSubmitting, setPrSubmitting] = useState(false);
 
+  // Edit/Delete payment request state
+  const [editPrOpen, setEditPrOpen] = useState(false);
+  const [editingPr, setEditingPr] = useState<PaymentRequest | null>(null);
+  const [editPrTitle, setEditPrTitle] = useState("");
+  const [editPrAmount, setEditPrAmount] = useState("");
+
   const isHead = !!(user && committee && committee.head_user_id === user.id);
   const canManageTasks = isAdmin || isHead;
 
