@@ -370,6 +370,26 @@ export function FinanceModule() {
                         </Button>
                       </div>
                     )}
+                    {canManage && (
+                      <div className="flex gap-1.5 mt-2 justify-end">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => startEditRequest(r)}
+                          className="text-xs h-7 gap-1 text-muted-foreground hover:text-primary"
+                        >
+                          <Pencil className="h-3 w-3" /> تعديل
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => removeRequest(r)}
+                          className="text-xs h-7 gap-1 text-muted-foreground hover:text-rose-600"
+                        >
+                          <Trash2 className="h-3 w-3" /> حذف
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 );
               })}
