@@ -86,7 +86,7 @@ export function HistoricalShares() {
   }, [yearRows]);
 
   const filtered = useMemo(() => {
-    const branchOrder = new Map(FAMILY_BRANCHES.map((b, i) => [b, i]));
+    const branchOrder = new Map<string, number>(FAMILY_BRANCHES.map((b, i) => [b as string, i]));
     return yearRows
       .filter((r) => (branchFilter === "all" ? true : r.family_branch === branchFilter))
       .filter((r) => (search ? r.full_name.toLowerCase().includes(search.toLowerCase()) : true))
