@@ -196,16 +196,34 @@ export function QualityAuditPanel() {
           </span>
           <div>
             <h3 className="font-bold text-base flex items-center gap-1.5">
-              لوحة تدقيق المخرجات
+              لوحة متابعة المخرجات
               <Sparkles className="h-3.5 w-3.5 text-gold" />
             </h3>
             <p className="text-[11px] text-muted-foreground">
-              متابعة مهام جميع اللجان · تسجيل ملاحظات الجودة · تحديث الحالة · طباعة تقرير لكل لجنة
+              متابعة مهام جميع اللجان · تسجيل ملاحظات الجودة · مؤشرات الالتزام الزمني · طباعة تقرير لكل لجنة
             </p>
           </div>
         </div>
         <Badge variant="outline" className="bg-sky-500/5 border-sky-500/30 text-sky-700">
           {tasks.length} مهمة · {committees.length} لجنة
+        </Badge>
+      </div>
+
+      {/* Global timeline banner */}
+      <div className="rounded-xl border-2 border-gold/30 bg-gradient-to-l from-gold/5 via-background to-sky-500/5 p-3 flex items-center justify-between gap-3 flex-wrap">
+        <div className="flex items-center gap-2.5">
+          <span className="h-9 w-9 rounded-lg bg-gold/15 text-gold-foreground flex items-center justify-center">
+            <CalendarClock className="h-4 w-4" />
+          </span>
+          <div>
+            <p className="text-xs font-bold">السقف الزمني العام: {SYSTEM_DEADLINE_DAYS} يوماً</p>
+            <p className="text-[10.5px] text-muted-foreground">
+              من {fmtDate(SYSTEM_ACTIVATION)} إلى {fmtDate(SYSTEM_DEADLINE)} · سياسة مرنة (تنبيه فقط)
+            </p>
+          </div>
+        </div>
+        <Badge className="bg-gold/15 text-gold-foreground border border-gold/40 hover:bg-gold/20">
+          <Clock className="h-3 w-3 ms-1" /> متبقي {daysLeft()} يوماً
         </Badge>
       </div>
 
