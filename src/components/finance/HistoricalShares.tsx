@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Upload, Trash2, FileText, Search, TreePine, Users2, Coins, Download, Calendar } from "lucide-react";
+import { Plus, Upload, Trash2, FileText, Search, TreePine, Users2, Coins, Download, Calendar, Sparkles, CheckCircle2, X } from "lucide-react";
 import { FAMILY_BRANCHES, AMOUNT_OPTIONS, HIJRI_YEARS } from "@/lib/family-branches";
 
 interface HRow {
@@ -52,6 +52,12 @@ export function HistoricalShares() {
   const [uploadYear, setUploadYear] = useState<number>(HIJRI_YEARS[0]);
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [uploadAmount, setUploadAmount] = useState<number>(300);
+
+  // preview state (extracted rows awaiting confirmation)
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewRows, setPreviewRows] = useState<Array<{ full_name: string; family_branch: string; amount: number; hijri_year: number }>>([]);
+  const [confirming, setConfirming] = useState(false);
 
   const load = async () => {
     setLoading(true);
