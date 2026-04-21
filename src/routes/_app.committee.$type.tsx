@@ -18,6 +18,7 @@ import { TaskAttachments } from "@/components/TaskAttachments";
 import { CommitteeArchive } from "@/components/CommitteeArchive";
 import { CommitteeMembersPanel } from "@/components/CommitteeMembersPanel";
 import { GroomFollowups } from "@/components/committee/GroomFollowups";
+import { QualityAuditPanel } from "@/components/quality/QualityAuditPanel";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth } from "@/lib/auth";
 
@@ -515,6 +516,9 @@ function CommitteePage() {
           <FinanceModule />
         </div>
       )}
+
+      {/* Quality committee: audit panel for monitoring all committees' tasks + per-committee PDF reports */}
+      {type === "quality" && <QualityAuditPanel />}
 
       {/* Media committee gets inbox + invitation cards distribution */}
       {type === "media" && (
