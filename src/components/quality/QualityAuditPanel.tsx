@@ -165,10 +165,10 @@ export function QualityAuditPanel() {
       .eq("id", auditOpen.id);
     setSaving(false);
     if (error) {
-      toast.error("تعذّر حفظ التدقيق", { description: error.message });
+      toast.error("تعذّر حفظ المتابعة", { description: error.message });
       return;
     }
-    toast.success("تم حفظ التدقيق");
+    toast.success("تم حفظ المتابعة");
     setAuditOpen(null);
     load();
   };
