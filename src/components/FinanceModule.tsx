@@ -77,12 +77,14 @@ export function FinanceModule() {
   const [totalBudgetNeeded, setTotalBudgetNeeded] = useState(0);
 
   const load = async () => {
-    const [{ data: dels }, { data: subs }, { data: prs }, { data: coms }] = await Promise.all([
+    const [{ data: dels }, { data: subs }, { data: prs }, { data: coms }, { data: financeCom }] = await Promise.all([
       supabase.from("delegates").select("*").order("created_at", { ascending: false }),
       supabase.from("subscriptions").select("delegate_id, amount, status"),
       supabase.from("payment_requests").select("*").order("created_at", { ascending: false }),
       supabase.from("committees").select("id, name, type"),
+      supabase.from("committees").select("head_user_id").eq("type", "finance").maybeSingle(),
     ]);
+    setFinanceHeadId(financeCom?.head_user_id ?? null);
 
     const enriched =
       dels?.map((d) => {
