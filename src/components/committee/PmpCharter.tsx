@@ -110,9 +110,24 @@ export function PmpCharter({ meta }: { meta: CommitteeMeta }) {
           </div>
         </div>
 
-        {/* Goals + Targets grid */}
+        {/* 2) Idea / Mission banner */}
+        <div className="rounded-2xl border bg-gradient-to-bl from-primary/5 to-transparent p-4">
+          <div className="flex items-start gap-3">
+            <span className="h-8 w-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+              <Lightbulb className="h-4 w-4" />
+            </span>
+            <div className="min-w-0">
+              <h3 className="text-sm font-bold mb-1">فكرة اللجنة ورسالتها</h3>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                {meta.description} — تعمل اللجنة ضمن منظومة الزواج الجماعي وفق منهجية إدارة المشاريع
+                الاحترافية (PMP) لضمان تسليم مخرجات عالية الجودة في الوقت والتكلفة المحددين.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* 3) Goals + 4) Targets (two-column grid, goals first) */}
         <div className="grid gap-4 md:grid-cols-2">
-          {/* Goals */}
           <div className="rounded-2xl border bg-background/70 backdrop-blur-sm p-4">
             <div className="flex items-center gap-2 mb-3">
               <span className="h-8 w-8 rounded-lg bg-emerald-500/10 text-emerald-600 flex items-center justify-center">
@@ -134,7 +149,6 @@ export function PmpCharter({ meta }: { meta: CommitteeMeta }) {
             )}
           </div>
 
-          {/* Targets / KPIs */}
           <div className="rounded-2xl border bg-background/70 backdrop-blur-sm p-4">
             <div className="flex items-center gap-2 mb-3">
               <span className="h-8 w-8 rounded-lg bg-sky-500/10 text-sky-600 flex items-center justify-center">
@@ -157,23 +171,7 @@ export function PmpCharter({ meta }: { meta: CommitteeMeta }) {
           </div>
         </div>
 
-        {/* Idea / Mission banner */}
-        <div className="rounded-2xl border bg-gradient-to-bl from-primary/5 to-transparent p-4">
-          <div className="flex items-start gap-3">
-            <span className="h-8 w-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
-              <Lightbulb className="h-4 w-4" />
-            </span>
-            <div className="min-w-0">
-              <h3 className="text-sm font-bold mb-1">فكرة اللجنة ورسالتها</h3>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                {meta.description} — تعمل اللجنة ضمن منظومة الزواج الجماعي وفق منهجية إدارة المشاريع
-                الاحترافية (PMP) لضمان تسليم مخرجات عالية الجودة في الوقت والتكلفة المحددين.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* PMP Phases lifecycle */}
+        {/* 5) PMP Phases lifecycle */}
         <div className="rounded-2xl border bg-background/70 backdrop-blur-sm p-4">
           <div className="flex items-center gap-2 mb-3">
             <span className="h-8 w-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
