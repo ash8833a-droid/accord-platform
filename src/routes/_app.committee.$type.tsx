@@ -114,6 +114,7 @@ function CommitteePage() {
   const [requests, setRequests] = useState<PaymentRequest[]>([]);
   // per-task response KPIs: count + average completion %
   const [taskKpis, setTaskKpis] = useState<Record<string, { count: number; avg: number }>>({});
+  const [committeeResponses, setCommitteeResponses] = useState<any[]>([]);
 
   const { user, hasRole } = useAuth();
   const isAdmin = hasRole("admin");
