@@ -112,6 +112,10 @@ function CommitteePage() {
 
   const { user, hasRole } = useAuth();
   const isAdmin = hasRole("admin");
+  const { value: urgentAlert } = useAppSetting<{ enabled: boolean; label: string }>(
+    "urgent_alert",
+    { enabled: true, label: "عاجل" },
+  );
   const [profileName, setProfileName] = useState<string | null>(null);
   const [members, setMembers] = useState<TeamMember[]>([]);
   const [allMembers, setAllMembers] = useState<TeamMember[]>([]);
