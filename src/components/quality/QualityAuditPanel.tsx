@@ -410,12 +410,21 @@ function buildReportHTML(c: CommitteeRow, tasks: RawTask[]): string {
   const today = new Date().toLocaleDateString("ar-SA", { year: "numeric", month: "long", day: "numeric" });
   const fmt = (n: number) => new Intl.NumberFormat("ar-SA").format(n);
   const remaining = Number(c.budget_allocated) - Number(c.budget_spent);
+  const overdue = tasks.filter((t) => getTimeStatus(t) === "overdue").length;
+  const approaching = tasks.filter((t) => getTimeStatus(t) === "approaching").length;
+  const onTime = tasks.filter((t) => {
+    const ts = getTimeStatus(t);
+    return ts === "ontrack" || ts === "completed";
+  }).length;
+  const compliancePct = total > 0 ? Math.round((onTime / total) * 100) : 100;
 
   const rows = tasks.map((t, i) => {
     const { phase, clean } = splitPhase(t.title);
     const { body, audit } = splitAudit(t.description);
     const statusLabel = STATUS_LABELS[t.status];
     const statusCls = t.status === "completed" ? "ok" : t.status === "in_progress" ? "wip" : "todo";
+    const ts = getTimeStatus(t);
+    const tCls = ts === "overdue" ? "tdue" : ts === "approaching" ? "tnear" : ts === "completed" ? "tdone" : "tok";
     return `
       <tr>
         <td class="num">${i + 1}</td>
@@ -426,9 +435,10 @@ function buildReportHTML(c: CommitteeRow, tasks: RawTask[]): string {
         </td>
         <td><span class="pri pri-${t.priority}">${PRIORITY_LABELS[t.priority]}</span></td>
         <td><span class="status ${statusCls}">${statusLabel}</span></td>
+        <td><span class="tstat ${tCls}">${TIME_LABELS[ts]}</span></td>
         <td class="audit-cell">${
           audit
-            ? `<div class="audit"><strong>ملاحظة التدقيق:</strong><br/>${escapeHtml(audit)}</div>`
+            ? `<div class="audit"><strong>ملاحظة المتابعة:</strong><br/>${escapeHtml(audit)}</div>`
             : `<span class="muted">— لم يُسجَّل بعد —</span>`
         }</td>
       </tr>
