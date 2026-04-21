@@ -259,6 +259,28 @@ function CommitteePage() {
     if (meta) load();
   }, [type]);
 
+  // Refresh KPIs when responses change in realtime
+  useEffect(() => {
+    if (!committee) return;
+    const ch = supabase
+      .channel(`committee_responses_${committee.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "task_responses",
+          filter: `committee_id=eq.${committee.id}`,
+        },
+        () => load(),
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(ch);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [committee?.id]);
+
   useEffect(() => {
     if (!user) { setProfileName(null); return; }
     supabase.from("profiles").select("full_name").eq("user_id", user.id).maybeSingle()
