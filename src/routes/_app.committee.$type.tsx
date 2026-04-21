@@ -17,6 +17,7 @@ import { InvitationCards } from "@/components/media/InvitationCards";
 import { MediaInbox } from "@/components/media/MediaInbox";
 import { TaskAttachments } from "@/components/TaskAttachments";
 import { TaskComments } from "@/components/TaskComments";
+import { TaskResponseForm } from "@/components/TaskResponseForm";
 import { CommitteeArchive } from "@/components/CommitteeArchive";
 import { CommitteeMembersPanel } from "@/components/CommitteeMembersPanel";
 import { GroomFollowups } from "@/components/committee/GroomFollowups";
@@ -943,6 +944,11 @@ function CommitteePage() {
                               <TaskComments taskId={t.id} />
                             </div>
                           )}
+                        </div>
+
+                        {/* Official response form (standardized fields) */}
+                        <div className="ps-7 mb-2.5">
+                          <TaskResponseForm taskId={t.id} committeeId={committee.id} />
                         </div>
 
                         {/* Footer: assignee + actions */}

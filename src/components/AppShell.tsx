@@ -14,6 +14,7 @@ import {
   ShieldCheck,
   Users,
   Lightbulb,
+  ClipboardCheck,
 } from "lucide-react";
 import { Logo } from "./Logo";
 import { useAuth } from "@/lib/auth";
@@ -27,6 +28,7 @@ const ADMIN_TOP = [
   { to: "/dashboard", label: "لوحة التحكم", icon: LayoutDashboard },
   { to: "/admin", label: "الإدارة العليا", icon: ShieldCheck },
   { to: "/team", label: "فريق العمل", icon: Users },
+  { to: "/task-responses", label: "ردود اللجان", icon: ClipboardCheck },
 ] as const;
 
 const ADMIN_BOTTOM = [
