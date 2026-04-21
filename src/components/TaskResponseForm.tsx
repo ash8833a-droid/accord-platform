@@ -296,16 +296,16 @@ export function TaskResponseForm({ taskId, committeeId }: Props) {
                           </span>
                         )}
                       </div>
+                      <TaskResponseAttachments
+                        responseId={r.id}
+                        taskId={taskId}
+                        committeeId={committeeId}
+                        ownerUserId={r.user_id}
+                        currentUserId={user?.id ?? null}
+                        canUpload={mine}
+                      />
                     </div>
                   </div>
-                  <TaskResponseAttachments
-                    responseId={r.id}
-                    taskId={taskId}
-                    committeeId={committeeId}
-                    ownerUserId={r.user_id}
-                    currentUserId={user?.id ?? null}
-                    canUpload={mine}
-                  />
                 </div>
               </li>
             );
