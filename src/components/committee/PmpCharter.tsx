@@ -1,4 +1,4 @@
-import { Target, Lightbulb, ListChecks, Compass } from "lucide-react";
+import { Target, Lightbulb, Flag, ListChecks, Compass } from "lucide-react";
 import type { CommitteeMeta } from "@/lib/committees";
 import { PHASE_LABELS } from "@/lib/pmp-tasks";
 
@@ -77,6 +77,7 @@ const PHASE_TONE: Record<string, string> = {
 export function PmpCharter({ meta }: { meta: CommitteeMeta }) {
   const Icon = meta.icon;
   const targets = COMMITTEE_TARGETS[meta.type] ?? [];
+  const goals = meta.goals ?? [];
   const phases: Array<keyof typeof PHASE_LABELS> = [
     "initiating",
     "planning",
