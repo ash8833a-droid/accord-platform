@@ -468,34 +468,6 @@ export function TaskResponseForm({ taskId, committeeId }: Props) {
                     {action.length}/2000 — هذا الحقل مطلوب
                   </p>
                 </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="space-y-1.5">
-                    <Label className="text-[11px] font-bold">نسبة الإنجاز</Label>
-                    <div className="flex items-center gap-2">
-                      <Input
-                        type="number"
-                        min={0}
-                        max={100}
-                        value={percent}
-                        onChange={(e) => setPercent(Number(e.target.value))}
-                        className="h-8 text-xs w-16"
-                        dir="ltr"
-                      />
-                      <Progress value={percent} className="h-2 flex-1" />
-                      <span className="text-[10.5px] font-bold w-8 text-end">{percent}%</span>
-                    </div>
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-[11px] font-bold">تاريخ التنفيذ</Label>
-                    <Input
-                      type="date"
-                      value={executionDate}
-                      onChange={(e) => setExecutionDate(e.target.value)}
-                      className="h-8 text-xs"
-                      dir="ltr"
-                    />
-                  </div>
-                </div>
               </>
             )}
 
