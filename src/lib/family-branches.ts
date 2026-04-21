@@ -10,8 +10,8 @@ export const FAMILY_BRANCHES = [
   "آل رداد",
   "عتيق وأبناؤه",
   "آل سالم",
-  "آل عبدالرحمن عبدالرزاق وأبناؤه",
-  "أبناء سليم بن عبدالله",
+  "آل عبدالرحمن",
+  "عبدالرازق وأبناؤه",
 ] as const;
 
 export type FamilyBranch = (typeof FAMILY_BRANCHES)[number];
