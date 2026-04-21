@@ -19,7 +19,6 @@ import { CommitteeArchive } from "@/components/CommitteeArchive";
 import { CommitteeMembersPanel } from "@/components/CommitteeMembersPanel";
 import { GroomFollowups } from "@/components/committee/GroomFollowups";
 import { QualityAuditPanel } from "@/components/quality/QualityAuditPanel";
-import { PmpCharter } from "@/components/committee/PmpCharter";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth } from "@/lib/auth";
 
@@ -471,9 +470,6 @@ function CommitteePage() {
   return (
     <div className="space-y-6">
       <Header meta={meta} />
-
-      {/* PMP Charter: committee idea, goals, targets, and lifecycle */}
-      <PmpCharter meta={meta} />
 
       {/* Budget icon button → opens dialog */}
       <Dialog>
