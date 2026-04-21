@@ -404,19 +404,21 @@ export function FinanceModule() {
                 <h3 className="font-bold">جدول المناديب</h3>
                 <p className="text-xs text-muted-foreground mt-1">المناديب المسؤولون عن تحصيل الاشتراكات (300 ر.س)</p>
               </div>
-              <Dialog open={open} onOpenChange={setOpen}>
+              <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) resetDelegateForm(); }}>
                 <DialogTrigger asChild>
                   <Button size="sm" className="bg-gradient-hero text-primary-foreground">
                     <Plus className="h-4 w-4 ms-1" /> إضافة مندوب
                   </Button>
                 </DialogTrigger>
                 <DialogContent dir="rtl">
-                  <DialogHeader><DialogTitle>مندوب جديد</DialogTitle></DialogHeader>
+                  <DialogHeader><DialogTitle>{editingDelegateId ? "تعديل بيانات مندوب" : "مندوب جديد"}</DialogTitle></DialogHeader>
                   <form onSubmit={addDelegate} className="space-y-3 pt-2">
                     <div className="space-y-2"><Label>الاسم</Label><Input value={name} onChange={(e) => setName(e.target.value)} required /></div>
                     <div className="space-y-2"><Label>الجوال</Label><Input value={phone} onChange={(e) => setPhone(e.target.value)} required dir="ltr" /></div>
                     <div className="space-y-2"><Label>الفرع العائلي</Label><Input value={branch} onChange={(e) => setBranch(e.target.value)} required /></div>
-                    <Button type="submit" className="w-full bg-gradient-hero text-primary-foreground">حفظ</Button>
+                    <Button type="submit" className="w-full bg-gradient-hero text-primary-foreground">
+                      {editingDelegateId ? "حفظ التعديلات" : "حفظ"}
+                    </Button>
                   </form>
                 </DialogContent>
               </Dialog>
@@ -431,6 +433,7 @@ export function FinanceModule() {
                     <th className="px-4 py-3 font-medium">الاشتراكات</th>
                     <th className="px-4 py-3 font-medium">المحصّل</th>
                     <th className="px-4 py-3 font-medium">الحالة</th>
+                    {canManage && <th className="px-4 py-3 font-medium">إجراءات</th>}
                   </tr>
                 </thead>
                 <tbody>
@@ -448,10 +451,36 @@ export function FinanceModule() {
                           <Badge variant="outline" className="gap-1"><Clock className="h-3 w-3" />بانتظار التحصيل</Badge>
                         )}
                       </td>
+                      {canManage && (
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-1">
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => startEditDelegate(d)}
+                              className="h-7 w-7 p-0 hover:bg-primary/10 hover:text-primary"
+                              aria-label="تعديل"
+                              title="تعديل"
+                            >
+                              <Pencil className="h-3.5 w-3.5" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => removeDelegate(d)}
+                              className="h-7 w-7 p-0 hover:bg-rose-500/10 hover:text-rose-600"
+                              aria-label="حذف"
+                              title="حذف"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
+                        </td>
+                      )}
                     </tr>
                   ))}
                   {delegates.length === 0 && (
-                    <tr><td colSpan={6} className="text-center py-12 text-muted-foreground">لا يوجد مناديب بعد. أضف أول مندوب لتبدأ المتابعة.</td></tr>
+                    <tr><td colSpan={canManage ? 7 : 6} className="text-center py-12 text-muted-foreground">لا يوجد مناديب بعد. أضف أول مندوب لتبدأ المتابعة.</td></tr>
                   )}
                 </tbody>
               </table>
