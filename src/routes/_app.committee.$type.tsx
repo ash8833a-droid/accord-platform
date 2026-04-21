@@ -519,30 +519,6 @@ function CommitteePage() {
       </Dialog>
 
       {/* Strategic goals card */}
-      {meta.goals && meta.goals.length > 0 && (
-        <div className="rounded-2xl border bg-card p-6 shadow-soft">
-          <div className="flex items-center gap-2 mb-4">
-            <span className={`h-9 w-9 rounded-lg flex items-center justify-center ${meta.tone}`}>
-              <Target className="h-5 w-5" />
-            </span>
-            <div>
-              <h3 className="font-bold text-base">أهداف اللجنة الاستراتيجية</h3>
-              <p className="text-xs text-muted-foreground">المخرجات الرئيسية المتوقعة من اللجنة</p>
-            </div>
-          </div>
-          <ul className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {meta.goals.map((g, i) => (
-              <li
-                key={i}
-                className="flex items-start gap-2.5 rounded-xl border bg-gradient-to-br from-card to-muted/30 px-4 py-3"
-              >
-                <CheckCircle2 className="h-4 w-4 mt-0.5 text-emerald-600 shrink-0" />
-                <span className="text-sm leading-relaxed">{g}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
 
       <CommitteeMembersPanel committeeId={committee.id} />
 
