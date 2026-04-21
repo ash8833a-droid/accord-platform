@@ -49,12 +49,26 @@ const PR_STATUS: Record<string, { label: string; cls: string }> = {
 };
 
 export function FinanceModule() {
+  const { user, hasRole } = useAuth();
+  const isAdmin = hasRole("admin");
+  const [financeHeadId, setFinanceHeadId] = useState<string | null>(null);
+  const isFinanceHead = !!user && financeHeadId === user.id;
+  const canManage = isAdmin || isFinanceHead;
+
   const [delegates, setDelegates] = useState<Delegate[]>([]);
   const [requests, setRequests] = useState<PaymentRequest[]>([]);
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [branch, setBranch] = useState("");
+  const [editingDelegateId, setEditingDelegateId] = useState<string | null>(null);
+
+  // Payment request edit dialog
+  const [editPrOpen, setEditPrOpen] = useState(false);
+  const [editPr, setEditPr] = useState<PaymentRequest | null>(null);
+  const [editPrTitle, setEditPrTitle] = useState("");
+  const [editPrAmount, setEditPrAmount] = useState("");
+  const [editPrDesc, setEditPrDesc] = useState("");
 
   const [invoiceUrl, setInvoiceUrl] = useState<string | null>(null);
   const [invoicePath, setInvoicePath] = useState<string | null>(null);
