@@ -603,6 +603,81 @@ export function HistoricalShares() {
           </TabsContent>
         ))}
       </Tabs>
+
+      {/* Preview Dialog — معاينة قبل التأكيد */}
+      <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
+        <DialogContent dir="rtl" className="max-w-4xl max-h-[85vh] flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-primary" />
+              معاينة الأسماء المستخرجة ({previewRows.length})
+            </DialogTitle>
+          </DialogHeader>
+          <div className="flex-1 overflow-auto rounded-lg border">
+            {/* Branch summary chips */}
+            <div className="p-3 border-b bg-muted/30 flex flex-wrap gap-2">
+              {FAMILY_BRANCHES.map((b) => {
+                const c = previewRows.filter((r) => r.family_branch === b).length;
+                if (c === 0) return null;
+                return (
+                  <Badge key={b} variant="outline" className="bg-primary/5">
+                    <TreePine className="h-3 w-3 ml-1" /> {b}: {c}
+                  </Badge>
+                );
+              })}
+            </div>
+            <table className="w-full text-sm">
+              <thead className="bg-muted/40 sticky top-0">
+                <tr className="text-right">
+                  <th className="px-3 py-2 font-medium">#</th>
+                  <th className="px-3 py-2 font-medium">الاسم</th>
+                  <th className="px-3 py-2 font-medium">الفرع</th>
+                  <th className="px-3 py-2 font-medium">المبلغ</th>
+                  <th className="px-3 py-2"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {previewRows
+                  .map((r, idx) => ({ r, idx }))
+                  .sort((a, b) => {
+                    const oa = FAMILY_BRANCHES.indexOf(a.r.family_branch as never);
+                    const ob = FAMILY_BRANCHES.indexOf(b.r.family_branch as never);
+                    return oa - ob;
+                  })
+                  .map(({ r, idx }, i) => (
+                    <tr key={idx} className="border-t hover:bg-muted/20">
+                      <td className="px-3 py-1.5 text-muted-foreground">{i + 1}</td>
+                      <td className="px-3 py-1.5">{r.full_name}</td>
+                      <td className="px-3 py-1.5">
+                        <Select value={r.family_branch} onValueChange={(v) => updatePreviewBranch(idx, v)}>
+                          <SelectTrigger className="h-7 text-xs w-44"><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            {FAMILY_BRANCHES.map((b) => (
+                              <SelectItem key={b} value={b}>{b}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </td>
+                      <td className="px-3 py-1.5 font-semibold text-xs">{fmt(r.amount)} ر.س</td>
+                      <td className="px-3 py-1.5">
+                        <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-destructive" onClick={() => removePreviewRow(idx)}>
+                          <X className="h-3.5 w-3.5" />
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+              </tbody>
+            </table>
+          </div>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setPreviewOpen(false)}>إلغاء</Button>
+            <Button onClick={confirmInsert} disabled={confirming || previewRows.length === 0} className="gap-1">
+              <CheckCircle2 className="h-4 w-4" />
+              {confirming ? "جارٍ الإدراج..." : `تأكيد إدراج ${previewRows.length} مساهم`}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
