@@ -456,6 +456,7 @@ function CommitteePage() {
     return (
       <div className="space-y-6">
         <Header meta={meta} />
+        <PmpCharter meta={meta} />
         <div className="rounded-2xl border bg-card p-10 text-center">
           <p className="text-muted-foreground">
             لم يتم تهيئة بيانات هذه اللجنة بعد. يحتاج المدير لإنشائها من قاعدة البيانات.
@@ -471,6 +472,7 @@ function CommitteePage() {
   return (
     <div className="space-y-6">
       <Header meta={meta} />
+      <PmpCharter meta={meta} />
 
       {/* Budget icon button → opens dialog */}
       <Dialog>
