@@ -897,6 +897,24 @@ function CommitteePage() {
                 {showMine ? `مهامي (${mineCount})` : "مهامي"}
               </Button>
             )}
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={exportResponsesXLSX}
+              title="تصدير ردود اللجنة إلى Excel"
+              className="gap-1"
+            >
+              <FileSpreadsheet className="h-3.5 w-3.5" /> Excel
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={printResponsesPDF}
+              title="طباعة/تصدير PDF لردود اللجنة"
+              className="gap-1"
+            >
+              <Printer className="h-3.5 w-3.5" /> PDF
+            </Button>
             <Dialog open={taskOpen} onOpenChange={(o) => { setTaskOpen(o); if (!o) resetTaskForm(); }}>
               {canManageTasks && (
                 <Button size="sm" onClick={openNewTask} className="bg-gradient-gold text-gold-foreground shadow-gold">
