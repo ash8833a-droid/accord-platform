@@ -829,7 +829,17 @@ function CommitteePage() {
         </p>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {(["todo", "in_progress", "completed"] as const).map((col) => {
-            const colTasks = visibleTasks.filter((t) => t.status === col);
+            const priorityRank: Record<string, number> = { urgent: 0, high: 1, medium: 2, low: 3 };
+            const colTasks = visibleTasks
+              .filter((t) => t.status === col)
+              .slice()
+              .sort((a, b) => {
+                const pr = (priorityRank[a.priority] ?? 9) - (priorityRank[b.priority] ?? 9);
+                if (pr !== 0) return pr;
+                const ad = (a as any).created_at ? new Date((a as any).created_at).getTime() : 0;
+                const bd = (b as any).created_at ? new Date((b as any).created_at).getTime() : 0;
+                return bd - ad;
+              });
             const isOver = dragOverCol === col;
             return (
               <div
