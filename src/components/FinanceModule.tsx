@@ -15,6 +15,9 @@ import { exportRequestsCSV, exportRequestsXLSX, exportRequestsPDF, type ExportRe
 import { SharesByBranch } from "@/components/finance/SharesByBranch";
 import { GroomContributions } from "@/components/finance/GroomContributions";
 import { CommitteeBudgetLimits } from "@/components/finance/CommitteeBudgetLimits";
+import { Pencil, Trash2 } from "lucide-react";
+import { useAuth } from "@/lib/auth";
+import { Textarea } from "@/components/ui/textarea";
 
 interface Delegate {
   id: string;
