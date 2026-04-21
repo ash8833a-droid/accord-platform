@@ -1157,11 +1157,6 @@ function CommitteePage() {
                           )}
                         </div>
 
-                        {/* Official response form (standardized fields) */}
-                        <div className="ps-7 mb-2.5">
-                          <TaskResponseForm taskId={t.id} committeeId={committee.id} />
-                        </div>
-
                         {/* Footer: assignee + actions */}
                         <div className="flex items-center justify-between gap-2 pt-2.5 border-t border-dashed border-border/60 ps-2">
                           {assignee ? (
