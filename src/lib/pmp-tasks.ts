@@ -123,6 +123,7 @@ export const PMP_TEMPLATES: Record<CommitteeType, PmpTaskTemplate[]> = {
   procurement: [
     ...COMMON_INIT("لجنة المشتريات"),
     { title: "خطة المشتريات وحصر المستلزمات (Procurement Plan)", description: "حصر شامل للمستلزمات والمواصفات والكميات وتقدير التكاليف.", phase: "planning", priority: "urgent" },
+    { title: "حصر طلبات اللجان المستفيدة (عشاء/ضيافة/استقبال/نسائية)", description: "تجميع وتصنيف احتياجات كل من: لجنة العشاء، الضيافة، الاستقبال، واللجنة النسائية في جداول منفصلة لكل لجنة، مع المواصفات والكميات وتاريخ الحاجة، واعتمادها من رؤساء اللجان قبل البدء بالشراء.", phase: "planning", priority: "high" },
     { title: "دراسة عروض الموردين والمفاضلة", description: "استدراج عروض من ٣ موردين على الأقل والمفاضلة من حيث السعر والجودة والمدة.", phase: "planning", priority: "high" },
     { title: "توقيع عقود الشراء والتوريد", description: "اعتماد العقود مع الموردين وفق السياسات وضمانات التسليم.", phase: "planning", priority: "high" },
     { title: "إصدار أوامر الشراء ومتابعة الدفع", description: "إصدار أوامر الشراء بالتنسيق مع المالية ومتابعة الدفعات.", phase: "executing", priority: "high" },
