@@ -104,6 +104,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "committee_tasks_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "team_members"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "committee_tasks_committee_id_fkey"
             columns: ["committee_id"]
             isOneToOne: false
