@@ -98,6 +98,7 @@ function TaskResponsesPage() {
 
   const [search, setSearch] = useState("");
   const [activeTab, setActiveTab] = useState<string>("all");
+  const [progressFilter, setProgressFilter] = useState<"all" | "done" | "mid" | "low">("all");
 
   // Authorization check: admin, quality, or supreme committee member
   useEffect(() => {
@@ -191,6 +192,10 @@ function TaskResponsesPage() {
     const q = search.trim().toLowerCase();
     return joined.filter((r) => {
       if (activeTab !== "all" && r.committeeType !== activeTab) return false;
+      if (progressFilter === "done" && r.completion_percent !== 100) return false;
+      if (progressFilter === "mid" && (r.completion_percent < 50 || r.completion_percent === 100))
+        return false;
+      if (progressFilter === "low" && r.completion_percent >= 50) return false;
       if (!q) return true;
       return (
         r.taskTitle.toLowerCase().includes(q) ||
@@ -200,7 +205,7 @@ function TaskResponsesPage() {
         (r.outcomes ?? "").toLowerCase().includes(q)
       );
     });
-  }, [joined, search, activeTab]);
+  }, [joined, search, activeTab, progressFilter]);
 
   const stats = useMemo(() => {
     const total = filtered.length;
