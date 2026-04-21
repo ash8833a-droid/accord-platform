@@ -511,6 +511,11 @@ function buildReportHTML(c: CommitteeRow, tasks: RawTask[]): string {
   .status.ok { background: #dff5e6; color: #157a3c; }
   .status.wip { background: #e3f2ff; color: #1860a8; }
   .status.todo { background: #f1f1f1; color: #666; }
+  .tstat { display: inline-block; font-size: 10px; padding: 2px 8px; border-radius: 999px; font-weight: 700; }
+  .tstat.tok { background: #dff5e6; color: #157a3c; }
+  .tstat.tnear { background: #fff5d6; color: #8a6500; }
+  .tstat.tdue { background: #ffe4e6; color: #b91c2b; }
+  .tstat.tdone { background: #f1f1f1; color: #666; }
   .audit-cell { width: 28%; }
   .audit { background: #f4faff; border: 1px dashed #6aa6d6; border-radius: 8px; padding: 6px 8px; font-size: 10.5px; color: #1f3a4d; }
   .muted { color: #aaa; font-size: 10.5px; }
