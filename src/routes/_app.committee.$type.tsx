@@ -915,6 +915,23 @@ function CommitteePage() {
                           <TaskAttachments taskId={t.id} committeeId={committee.id} compact />
                         </div>
 
+                        {/* Comments toggle + panel */}
+                        <div className="ps-7 mb-2.5">
+                          <button
+                            type="button"
+                            onClick={() => toggleComments(t.id)}
+                            className="inline-flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground hover:text-primary transition"
+                          >
+                            <MessageSquare className="h-3.5 w-3.5" />
+                            {expandedComments.has(t.id) ? "إخفاء التعليقات" : "تعليقات الأعضاء"}
+                          </button>
+                          {expandedComments.has(t.id) && (
+                            <div className="mt-2 rounded-lg border border-border/60 bg-background/60 p-2.5">
+                              <TaskComments taskId={t.id} />
+                            </div>
+                          )}
+                        </div>
+
                         {/* Footer: assignee + actions */}
                         <div className="flex items-center justify-between gap-2 pt-2.5 border-t border-dashed border-border/60 ps-2">
                           {assignee ? (
