@@ -27,7 +27,8 @@ interface HRow {
 const fmt = (n: number) => new Intl.NumberFormat("ar-SA").format(n);
 
 export function HistoricalShares() {
-  const { isAdmin } = useAuth();
+  const { hasRole } = useAuth();
+  const isAdmin = hasRole("admin");
   const [rows, setRows] = useState<HRow[]>([]);
   const [activeYear, setActiveYear] = useState<number>(HIJRI_YEARS[0]);
   const [branchFilter, setBranchFilter] = useState<string>("all");
