@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Upload, Trash2, FileText, Search, TreePine, Users2, Coins, Download, Calendar } from "lucide-react";
+import { Plus, Upload, Trash2, FileText, Search, TreePine, Users2, Coins, Download, Calendar, Sparkles, CheckCircle2, X } from "lucide-react";
 import { FAMILY_BRANCHES, AMOUNT_OPTIONS, HIJRI_YEARS } from "@/lib/family-branches";
 
 interface HRow {
@@ -52,6 +52,12 @@ export function HistoricalShares() {
   const [uploadYear, setUploadYear] = useState<number>(HIJRI_YEARS[0]);
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [uploadAmount, setUploadAmount] = useState<number>(300);
+
+  // preview state (extracted rows awaiting confirmation)
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewRows, setPreviewRows] = useState<Array<{ full_name: string; family_branch: string; amount: number; hijri_year: number }>>([]);
+  const [confirming, setConfirming] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -178,23 +184,93 @@ export function HistoricalShares() {
     load();
   };
 
-  const uploadSourceFile = async () => {
+  const fileToBase64 = (file: File): Promise<string> =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = reader.result as string;
+        const base64 = result.split(",")[1] ?? "";
+        resolve(base64);
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+
+  const extractFromFile = async () => {
     if (!uploadFile) return;
     setUploading(true);
-    const ext = uploadFile.name.split(".").pop() || "pdf";
-    const path = `${uploadYear}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-    const { error } = await supabase.storage.from("historical-shares").upload(path, uploadFile, {
-      cacheControl: "3600",
-      upsert: false,
-    });
-    setUploading(false);
+    try {
+      // 1) رفع للأرشيف
+      const ext = uploadFile.name.split(".").pop() || "pdf";
+      const path = `${uploadYear}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+      await supabase.storage.from("historical-shares").upload(path, uploadFile, {
+        cacheControl: "3600",
+        upsert: false,
+      });
+
+      // 2) تحويل لـ base64 + استدعاء edge function
+      const fileBase64 = await fileToBase64(uploadFile);
+      const mimeType = uploadFile.type || (ext === "pdf" ? "application/pdf" : "application/octet-stream");
+
+      toast.info("جارٍ استخراج الأسماء بالذكاء الاصطناعي... قد يستغرق 30-60 ثانية");
+
+      const { data, error } = await supabase.functions.invoke("extract-shareholders", {
+        body: { fileBase64, mimeType, hijriYear: uploadYear, defaultAmount: uploadAmount },
+      });
+
+      if (error) {
+        toast.error("فشل الاستخراج: " + error.message);
+        return;
+      }
+      if (data?.error) {
+        toast.error(data.error);
+        return;
+      }
+      const rows = (data?.rows ?? []) as Array<{ full_name: string; family_branch: string; amount: number; hijri_year: number }>;
+      if (rows.length === 0) {
+        toast.warning("لم يتم العثور على أسماء في الملف");
+        return;
+      }
+
+      setPreviewRows(rows);
+      setUploadOpen(false);
+      setPreviewOpen(true);
+      toast.success(`تم استخراج ${rows.length} اسم — راجعهم ثم اضغط تأكيد الإدراج`);
+    } catch (e) {
+      toast.error("خطأ غير متوقع: " + (e as Error).message);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const confirmInsert = async () => {
+    if (previewRows.length === 0) return;
+    setConfirming(true);
+    const payload = previewRows.map((r) => ({
+      full_name: r.full_name,
+      family_branch: r.family_branch,
+      hijri_year: r.hijri_year,
+      amount: r.amount,
+    }));
+    const { error } = await supabase.from("historical_shareholders").insert(payload);
+    setConfirming(false);
     if (error) {
-      toast.error("تعذّر رفع الملف");
+      toast.error("تعذّر الإدراج: " + error.message);
       return;
     }
-    toast.success(`تم رفع الملف لسنة ${uploadYear}هـ — أرسله الآن لي في المحادثة لاستخراج الأسماء تلقائياً`);
-    setUploadOpen(false);
+    toast.success(`تم إدراج ${payload.length} مساهم بنجاح`);
+    setPreviewOpen(false);
+    setPreviewRows([]);
     setUploadFile(null);
+    load();
+  };
+
+  const removePreviewRow = (idx: number) => {
+    setPreviewRows((prev) => prev.filter((_, i) => i !== idx));
+  };
+
+  const updatePreviewBranch = (idx: number, branch: string) => {
+    setPreviewRows((prev) => prev.map((r, i) => (i === idx ? { ...r, family_branch: branch } : r)));
   };
 
   const downloadCSV = () => {
@@ -232,14 +308,20 @@ export function HistoricalShares() {
             <Dialog open={uploadOpen} onOpenChange={setUploadOpen}>
               <DialogTrigger asChild>
                 <Button variant="outline" size="sm" className="gap-1">
-                  <Upload className="h-4 w-4" /> رفع ملف PDF
+                  <Sparkles className="h-4 w-4" /> رفع واستخراج تلقائي
                 </Button>
               </DialogTrigger>
-              <DialogContent dir="rtl">
+              <DialogContent dir="rtl" className="max-w-md">
                 <DialogHeader>
-                  <DialogTitle>رفع ملف مساهمين سنة سابقة</DialogTitle>
+                  <DialogTitle className="flex items-center gap-2">
+                    <Sparkles className="h-5 w-5 text-primary" />
+                    استخراج تلقائي بالذكاء الاصطناعي
+                  </DialogTitle>
                 </DialogHeader>
                 <div className="space-y-4">
+                  <div className="rounded-lg bg-primary/5 border border-primary/20 p-3 text-xs text-muted-foreground">
+                    ارفع ملف PDF / صورة / Excel وسيتم استخراج الأسماء وفرزها على الفروع تلقائياً، ثم ستظهر شاشة معاينة قبل الإدراج النهائي.
+                  </div>
                   <div>
                     <Label>السنة الهجرية</Label>
                     <Select value={String(uploadYear)} onValueChange={(v) => setUploadYear(Number(v))}>
@@ -252,20 +334,32 @@ export function HistoricalShares() {
                     </Select>
                   </div>
                   <div>
-                    <Label>الملف (PDF أو Excel)</Label>
+                    <Label>المبلغ الافتراضي لكل مساهم (إذا لم يُذكر صراحة)</Label>
+                    <Select value={String(uploadAmount)} onValueChange={(v) => setUploadAmount(Number(v))}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {AMOUNT_OPTIONS.map((a) => (
+                          <SelectItem key={a} value={String(a)}>{fmt(a)} ر.س</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label>الملف (PDF / صورة / Excel)</Label>
                     <Input
                       type="file"
-                      accept=".pdf,.xlsx,.xls,.csv"
+                      accept=".pdf,.xlsx,.xls,.csv,image/*"
                       onChange={(e) => setUploadFile(e.target.files?.[0] ?? null)}
                     />
-                    <p className="text-xs text-muted-foreground mt-2">
-                      بعد الرفع، أرسل الملف لي في المحادثة وسأستخرج الأسماء وأصنفها على الفروع تلقائياً.
-                    </p>
                   </div>
                 </div>
                 <DialogFooter>
-                  <Button onClick={uploadSourceFile} disabled={!uploadFile || uploading}>
-                    {uploading ? "جارٍ الرفع..." : "رفع الملف"}
+                  <Button onClick={extractFromFile} disabled={!uploadFile || uploading} className="gap-1">
+                    {uploading ? (
+                      <>جارٍ الاستخراج...</>
+                    ) : (
+                      <><Sparkles className="h-4 w-4" /> ارفع واستخرج</>
+                    )}
                   </Button>
                 </DialogFooter>
               </DialogContent>
@@ -509,6 +603,81 @@ export function HistoricalShares() {
           </TabsContent>
         ))}
       </Tabs>
+
+      {/* Preview Dialog — معاينة قبل التأكيد */}
+      <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
+        <DialogContent dir="rtl" className="max-w-4xl max-h-[85vh] flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-primary" />
+              معاينة الأسماء المستخرجة ({previewRows.length})
+            </DialogTitle>
+          </DialogHeader>
+          <div className="flex-1 overflow-auto rounded-lg border">
+            {/* Branch summary chips */}
+            <div className="p-3 border-b bg-muted/30 flex flex-wrap gap-2">
+              {FAMILY_BRANCHES.map((b) => {
+                const c = previewRows.filter((r) => r.family_branch === b).length;
+                if (c === 0) return null;
+                return (
+                  <Badge key={b} variant="outline" className="bg-primary/5">
+                    <TreePine className="h-3 w-3 ml-1" /> {b}: {c}
+                  </Badge>
+                );
+              })}
+            </div>
+            <table className="w-full text-sm">
+              <thead className="bg-muted/40 sticky top-0">
+                <tr className="text-right">
+                  <th className="px-3 py-2 font-medium">#</th>
+                  <th className="px-3 py-2 font-medium">الاسم</th>
+                  <th className="px-3 py-2 font-medium">الفرع</th>
+                  <th className="px-3 py-2 font-medium">المبلغ</th>
+                  <th className="px-3 py-2"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {previewRows
+                  .map((r, idx) => ({ r, idx }))
+                  .sort((a, b) => {
+                    const oa = FAMILY_BRANCHES.indexOf(a.r.family_branch as never);
+                    const ob = FAMILY_BRANCHES.indexOf(b.r.family_branch as never);
+                    return oa - ob;
+                  })
+                  .map(({ r, idx }, i) => (
+                    <tr key={idx} className="border-t hover:bg-muted/20">
+                      <td className="px-3 py-1.5 text-muted-foreground">{i + 1}</td>
+                      <td className="px-3 py-1.5">{r.full_name}</td>
+                      <td className="px-3 py-1.5">
+                        <Select value={r.family_branch} onValueChange={(v) => updatePreviewBranch(idx, v)}>
+                          <SelectTrigger className="h-7 text-xs w-44"><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            {FAMILY_BRANCHES.map((b) => (
+                              <SelectItem key={b} value={b}>{b}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </td>
+                      <td className="px-3 py-1.5 font-semibold text-xs">{fmt(r.amount)} ر.س</td>
+                      <td className="px-3 py-1.5">
+                        <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-destructive" onClick={() => removePreviewRow(idx)}>
+                          <X className="h-3.5 w-3.5" />
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+              </tbody>
+            </table>
+          </div>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setPreviewOpen(false)}>إلغاء</Button>
+            <Button onClick={confirmInsert} disabled={confirming || previewRows.length === 0} className="gap-1">
+              <CheckCircle2 className="h-4 w-4" />
+              {confirming ? "جارٍ الإدراج..." : `تأكيد إدراج ${previewRows.length} مساهم`}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
