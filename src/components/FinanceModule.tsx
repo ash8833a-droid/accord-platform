@@ -15,6 +15,9 @@ import { exportRequestsCSV, exportRequestsXLSX, exportRequestsPDF, type ExportRe
 import { SharesByBranch } from "@/components/finance/SharesByBranch";
 import { GroomContributions } from "@/components/finance/GroomContributions";
 import { CommitteeBudgetLimits } from "@/components/finance/CommitteeBudgetLimits";
+import { Pencil, Trash2 } from "lucide-react";
+import { useAuth } from "@/lib/auth";
+import { Textarea } from "@/components/ui/textarea";
 
 interface Delegate {
   id: string;
@@ -46,12 +49,26 @@ const PR_STATUS: Record<string, { label: string; cls: string }> = {
 };
 
 export function FinanceModule() {
+  const { user, hasRole } = useAuth();
+  const isAdmin = hasRole("admin");
+  const [financeHeadId, setFinanceHeadId] = useState<string | null>(null);
+  const isFinanceHead = !!user && financeHeadId === user.id;
+  const canManage = isAdmin || isFinanceHead;
+
   const [delegates, setDelegates] = useState<Delegate[]>([]);
   const [requests, setRequests] = useState<PaymentRequest[]>([]);
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [branch, setBranch] = useState("");
+  const [editingDelegateId, setEditingDelegateId] = useState<string | null>(null);
+
+  // Payment request edit dialog
+  const [editPrOpen, setEditPrOpen] = useState(false);
+  const [editPr, setEditPr] = useState<PaymentRequest | null>(null);
+  const [editPrTitle, setEditPrTitle] = useState("");
+  const [editPrAmount, setEditPrAmount] = useState("");
+  const [editPrDesc, setEditPrDesc] = useState("");
 
   const [invoiceUrl, setInvoiceUrl] = useState<string | null>(null);
   const [invoicePath, setInvoicePath] = useState<string | null>(null);
@@ -60,12 +77,14 @@ export function FinanceModule() {
   const [totalBudgetNeeded, setTotalBudgetNeeded] = useState(0);
 
   const load = async () => {
-    const [{ data: dels }, { data: subs }, { data: prs }, { data: coms }] = await Promise.all([
+    const [{ data: dels }, { data: subs }, { data: prs }, { data: coms }, { data: financeCom }] = await Promise.all([
       supabase.from("delegates").select("*").order("created_at", { ascending: false }),
       supabase.from("subscriptions").select("delegate_id, amount, status"),
       supabase.from("payment_requests").select("*").order("created_at", { ascending: false }),
       supabase.from("committees").select("id, name, type"),
+      supabase.from("committees").select("head_user_id").eq("type", "finance").maybeSingle(),
     ]);
+    setFinanceHeadId(financeCom?.head_user_id ?? null);
 
     const enriched =
       dels?.map((d) => {
@@ -89,12 +108,75 @@ export function FinanceModule() {
 
   useEffect(() => { load(); }, []);
 
+  const resetDelegateForm = () => {
+    setName(""); setPhone(""); setBranch(""); setEditingDelegateId(null);
+  };
+
   const addDelegate = async (e: React.FormEvent) => {
     e.preventDefault();
-    const { error } = await supabase.from("delegates").insert({ full_name: name, phone, family_branch: branch });
-    if (error) return toast.error("تعذر إضافة المندوب", { description: error.message });
-    toast.success("تمت إضافة المندوب");
-    setName(""); setPhone(""); setBranch(""); setOpen(false); load();
+    if (editingDelegateId) {
+      const { error } = await supabase
+        .from("delegates")
+        .update({ full_name: name, phone, family_branch: branch })
+        .eq("id", editingDelegateId);
+      if (error) return toast.error("تعذر التحديث", { description: error.message });
+      toast.success("تم تحديث بيانات المندوب");
+    } else {
+      const { error } = await supabase.from("delegates").insert({ full_name: name, phone, family_branch: branch });
+      if (error) return toast.error("تعذر إضافة المندوب", { description: error.message });
+      toast.success("تمت إضافة المندوب");
+    }
+    resetDelegateForm();
+    setOpen(false);
+    load();
+  };
+
+  const startEditDelegate = (d: Delegate) => {
+    setEditingDelegateId(d.id);
+    setName(d.full_name);
+    setPhone(d.phone);
+    setBranch(d.family_branch);
+    setOpen(true);
+  };
+
+  const removeDelegate = async (d: Delegate) => {
+    if (!confirm(`حذف المندوب "${d.full_name}" نهائياً؟ سيتم حذف اشتراكاته المرتبطة أيضاً.`)) return;
+    const { error } = await supabase.from("delegates").delete().eq("id", d.id);
+    if (error) return toast.error("تعذر الحذف", { description: error.message });
+    toast.success("تم حذف المندوب");
+    load();
+  };
+
+  const startEditRequest = (r: PaymentRequest) => {
+    setEditPr(r);
+    setEditPrTitle(r.title);
+    setEditPrAmount(String(r.amount));
+    setEditPrDesc(r.description ?? "");
+    setEditPrOpen(true);
+  };
+
+  const saveEditRequest = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editPr) return;
+    const amt = Number(editPrAmount);
+    if (!amt || amt <= 0) return toast.error("المبلغ غير صحيح");
+    const { error } = await supabase
+      .from("payment_requests")
+      .update({ title: editPrTitle, amount: amt, description: editPrDesc })
+      .eq("id", editPr.id);
+    if (error) return toast.error("تعذر التحديث", { description: error.message });
+    toast.success("تم تحديث الطلب");
+    setEditPrOpen(false);
+    setEditPr(null);
+    load();
+  };
+
+  const removeRequest = async (r: PaymentRequest) => {
+    if (!confirm(`حذف طلب الصرف "${r.title}" نهائياً؟`)) return;
+    const { error } = await supabase.from("payment_requests").delete().eq("id", r.id);
+    if (error) return toast.error("تعذر الحذف", { description: error.message });
+    toast.success("تم حذف الطلب");
+    load();
   };
 
   const reviewRequest = async (id: string, status: "approved" | "rejected" | "paid") => {
@@ -288,6 +370,26 @@ export function FinanceModule() {
                         </Button>
                       </div>
                     )}
+                    {canManage && (
+                      <div className="flex gap-1.5 mt-2 justify-end">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => startEditRequest(r)}
+                          className="text-xs h-7 gap-1 text-muted-foreground hover:text-primary"
+                        >
+                          <Pencil className="h-3 w-3" /> تعديل
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => removeRequest(r)}
+                          className="text-xs h-7 gap-1 text-muted-foreground hover:text-rose-600"
+                        >
+                          <Trash2 className="h-3 w-3" /> حذف
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 );
               })}
@@ -302,19 +404,21 @@ export function FinanceModule() {
                 <h3 className="font-bold">جدول المناديب</h3>
                 <p className="text-xs text-muted-foreground mt-1">المناديب المسؤولون عن تحصيل الاشتراكات (300 ر.س)</p>
               </div>
-              <Dialog open={open} onOpenChange={setOpen}>
+              <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) resetDelegateForm(); }}>
                 <DialogTrigger asChild>
                   <Button size="sm" className="bg-gradient-hero text-primary-foreground">
                     <Plus className="h-4 w-4 ms-1" /> إضافة مندوب
                   </Button>
                 </DialogTrigger>
                 <DialogContent dir="rtl">
-                  <DialogHeader><DialogTitle>مندوب جديد</DialogTitle></DialogHeader>
+                  <DialogHeader><DialogTitle>{editingDelegateId ? "تعديل بيانات مندوب" : "مندوب جديد"}</DialogTitle></DialogHeader>
                   <form onSubmit={addDelegate} className="space-y-3 pt-2">
                     <div className="space-y-2"><Label>الاسم</Label><Input value={name} onChange={(e) => setName(e.target.value)} required /></div>
                     <div className="space-y-2"><Label>الجوال</Label><Input value={phone} onChange={(e) => setPhone(e.target.value)} required dir="ltr" /></div>
                     <div className="space-y-2"><Label>الفرع العائلي</Label><Input value={branch} onChange={(e) => setBranch(e.target.value)} required /></div>
-                    <Button type="submit" className="w-full bg-gradient-hero text-primary-foreground">حفظ</Button>
+                    <Button type="submit" className="w-full bg-gradient-hero text-primary-foreground">
+                      {editingDelegateId ? "حفظ التعديلات" : "حفظ"}
+                    </Button>
                   </form>
                 </DialogContent>
               </Dialog>
@@ -329,6 +433,7 @@ export function FinanceModule() {
                     <th className="px-4 py-3 font-medium">الاشتراكات</th>
                     <th className="px-4 py-3 font-medium">المحصّل</th>
                     <th className="px-4 py-3 font-medium">الحالة</th>
+                    {canManage && <th className="px-4 py-3 font-medium">إجراءات</th>}
                   </tr>
                 </thead>
                 <tbody>
@@ -346,10 +451,36 @@ export function FinanceModule() {
                           <Badge variant="outline" className="gap-1"><Clock className="h-3 w-3" />بانتظار التحصيل</Badge>
                         )}
                       </td>
+                      {canManage && (
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-1">
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => startEditDelegate(d)}
+                              className="h-7 w-7 p-0 hover:bg-primary/10 hover:text-primary"
+                              aria-label="تعديل"
+                              title="تعديل"
+                            >
+                              <Pencil className="h-3.5 w-3.5" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => removeDelegate(d)}
+                              className="h-7 w-7 p-0 hover:bg-rose-500/10 hover:text-rose-600"
+                              aria-label="حذف"
+                              title="حذف"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
+                        </td>
+                      )}
                     </tr>
                   ))}
                   {delegates.length === 0 && (
-                    <tr><td colSpan={6} className="text-center py-12 text-muted-foreground">لا يوجد مناديب بعد. أضف أول مندوب لتبدأ المتابعة.</td></tr>
+                    <tr><td colSpan={canManage ? 7 : 6} className="text-center py-12 text-muted-foreground">لا يوجد مناديب بعد. أضف أول مندوب لتبدأ المتابعة.</td></tr>
                   )}
                 </tbody>
               </table>
@@ -419,6 +550,32 @@ export function FinanceModule() {
               <Button size="sm" variant="ghost" onClick={() => { setInvoiceUrl(null); setInvoicePath(null); setInvoiceLoading(false); }}>إغلاق</Button>
             </div>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Payment Request Dialog */}
+      <Dialog open={editPrOpen} onOpenChange={(o) => { setEditPrOpen(o); if (!o) setEditPr(null); }}>
+        <DialogContent dir="rtl" className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Pencil className="h-4 w-4 text-primary" /> تعديل طلب الصرف
+            </DialogTitle>
+          </DialogHeader>
+          <form onSubmit={saveEditRequest} className="space-y-3 pt-2">
+            <div className="space-y-2">
+              <Label>عنوان الطلب</Label>
+              <Input value={editPrTitle} onChange={(e) => setEditPrTitle(e.target.value)} required />
+            </div>
+            <div className="space-y-2">
+              <Label>المبلغ (ر.س)</Label>
+              <Input type="number" min="1" value={editPrAmount} onChange={(e) => setEditPrAmount(e.target.value)} required dir="ltr" />
+            </div>
+            <div className="space-y-2">
+              <Label>تفاصيل الطلب</Label>
+              <Textarea value={editPrDesc} onChange={(e) => setEditPrDesc(e.target.value)} rows={4} />
+            </div>
+            <Button type="submit" className="w-full bg-gradient-hero text-primary-foreground">حفظ التعديلات</Button>
+          </form>
         </DialogContent>
       </Dialog>
     </div>

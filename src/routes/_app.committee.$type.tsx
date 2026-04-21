@@ -131,6 +131,12 @@ function CommitteePage() {
   const [prRecipient, setPrRecipient] = useState<string>("finance");
   const [prSubmitting, setPrSubmitting] = useState(false);
 
+  // Edit/Delete payment request state
+  const [editPrOpen, setEditPrOpen] = useState(false);
+  const [editingPr, setEditingPr] = useState<PaymentRequest | null>(null);
+  const [editPrTitle, setEditPrTitle] = useState("");
+  const [editPrAmount, setEditPrAmount] = useState("");
+
   const isHead = !!(user && committee && committee.head_user_id === user.id);
   const canManageTasks = isAdmin || isHead;
 
@@ -357,6 +363,37 @@ function CommitteePage() {
     const id = e.dataTransfer.getData("text/plain") || dragId;
     setDragId(null); setDragOverCol(null);
     if (id) moveTask(id, col);
+  };
+
+  const openEditRequest = (r: PaymentRequest) => {
+    setEditingPr(r);
+    setEditPrTitle(r.title);
+    setEditPrAmount(String(r.amount));
+    setEditPrOpen(true);
+  };
+
+  const saveEditRequest = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingPr) return;
+    const amt = Number(editPrAmount);
+    if (!amt || amt <= 0) return toast.error("المبلغ غير صحيح");
+    const { error } = await supabase
+      .from("payment_requests")
+      .update({ title: editPrTitle, amount: amt })
+      .eq("id", editingPr.id);
+    if (error) return toast.error("تعذر التحديث", { description: error.message });
+    toast.success("تم تحديث الطلب");
+    setEditPrOpen(false);
+    setEditingPr(null);
+    load();
+  };
+
+  const deleteRequest = async (r: PaymentRequest) => {
+    if (!confirm(`حذف طلب الصرف "${r.title}" نهائياً؟`)) return;
+    const { error } = await supabase.from("payment_requests").delete().eq("id", r.id);
+    if (error) return toast.error("تعذر الحذف", { description: error.message });
+    toast.success("تم حذف الطلب");
+    load();
   };
 
   const submitRequest = async (e: React.FormEvent) => {
@@ -618,6 +655,8 @@ function CommitteePage() {
               )}
               {requests.map((r) => {
                 const s = PR_STATUS[r.status] ?? PR_STATUS.pending;
+                const canEditThis = (isAdmin || isHead) && r.status === "pending";
+                const canDeleteThis = isAdmin || isHead;
                 return (
                   <div key={r.id} className="px-4 py-3 flex items-center justify-between gap-3 hover:bg-muted/30 transition-colors">
                     <div className="min-w-0 flex items-center gap-2">
@@ -636,6 +675,28 @@ function CommitteePage() {
                     <div className="flex items-center gap-2 shrink-0">
                       <span className="font-bold text-xs">{fmt(Number(r.amount))} ر.س</span>
                       <Badge variant="outline" className={`${s.cls} text-[10px]`}>{s.label}</Badge>
+                      {canEditThis && (
+                        <button
+                          type="button"
+                          onClick={() => openEditRequest(r)}
+                          className="h-6 w-6 rounded-md flex items-center justify-center hover:bg-primary/10 hover:text-primary transition"
+                          aria-label="تعديل الطلب"
+                          title="تعديل (متاح قبل الاعتماد)"
+                        >
+                          <Pencil className="h-3 w-3" />
+                        </button>
+                      )}
+                      {canDeleteThis && (
+                        <button
+                          type="button"
+                          onClick={() => deleteRequest(r)}
+                          className="h-6 w-6 rounded-md flex items-center justify-center hover:bg-destructive/10 hover:text-destructive transition"
+                          aria-label="حذف الطلب"
+                          title="حذف"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </button>
+                      )}
                     </div>
                   </div>
                 );
@@ -903,6 +964,28 @@ function CommitteePage() {
 
       {/* Archive of past reports / files / images for this committee */}
       <CommitteeArchive committeeId={committee.id} committeeName={committee.name} />
+
+      {/* Edit payment request dialog */}
+      <Dialog open={editPrOpen} onOpenChange={(o) => { setEditPrOpen(o); if (!o) setEditingPr(null); }}>
+        <DialogContent dir="rtl" className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Pencil className="h-4 w-4 text-primary" /> تعديل طلب الصرف
+            </DialogTitle>
+          </DialogHeader>
+          <form onSubmit={saveEditRequest} className="space-y-3 pt-2">
+            <div className="space-y-2">
+              <Label>عنوان الطلب</Label>
+              <Input value={editPrTitle} onChange={(e) => setEditPrTitle(e.target.value)} required />
+            </div>
+            <div className="space-y-2">
+              <Label>المبلغ (ر.س)</Label>
+              <Input type="number" min="1" value={editPrAmount} onChange={(e) => setEditPrAmount(e.target.value)} required dir="ltr" />
+            </div>
+            <Button type="submit" className="w-full bg-gradient-hero text-primary-foreground">حفظ التعديلات</Button>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
