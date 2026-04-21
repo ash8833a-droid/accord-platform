@@ -406,12 +406,26 @@ function CommitteePage() {
 
   const [dragId, setDragId] = useState<string | null>(null);
   const [dragOverCol, setDragOverCol] = useState<Task["status"] | null>(null);
-  const [expandedComments, setExpandedComments] = useState<Set<string>>(new Set());
+  const COMMENTS_STORAGE_KEY = "committee:expandedComments";
+  const [expandedComments, setExpandedComments] = useState<Set<string>>(() => {
+    if (typeof window === "undefined") return new Set();
+    try {
+      const raw = window.localStorage.getItem(COMMENTS_STORAGE_KEY);
+      return raw ? new Set(JSON.parse(raw) as string[]) : new Set();
+    } catch {
+      return new Set();
+    }
+  });
   const toggleComments = (id: string) => {
     setExpandedComments((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
       else next.add(id);
+      try {
+        window.localStorage.setItem(COMMENTS_STORAGE_KEY, JSON.stringify([...next]));
+      } catch {
+        /* ignore quota / private mode */
+      }
       return next;
     });
   };
