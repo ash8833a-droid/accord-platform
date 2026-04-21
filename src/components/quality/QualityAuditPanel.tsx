@@ -354,7 +354,7 @@ export function QualityAuditPanel() {
         <DialogContent dir="rtl" className="max-w-xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <ClipboardCheck className="h-5 w-5 text-sky-600" /> تدقيق المهمة
+              <ClipboardCheck className="h-5 w-5 text-sky-600" /> متابعة المهمة
             </DialogTitle>
           </DialogHeader>
           {auditOpen && (
@@ -375,7 +375,7 @@ export function QualityAuditPanel() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <label className="text-xs font-bold">ملاحظات التدقيق والجودة</label>
+                <label className="text-xs font-bold">ملاحظات المتابعة والجودة</label>
                 <Textarea
                   value={auditNote}
                   onChange={(e) => setAuditNote(e.target.value)}
@@ -383,12 +383,12 @@ export function QualityAuditPanel() {
                   placeholder="مثال: تم التحقق من المخرج، يحتاج تحديث المرفقات، نسبة المطابقة 90%..."
                 />
                 <p className="text-[10px] text-muted-foreground">
-                  تظهر هذه الملاحظات لرئيس اللجنة وأعضائها وتُطبع ضمن تقرير التدقيق.
+                  تظهر هذه الملاحظات لرئيس اللجنة وأعضائها وتُطبع ضمن تقرير المتابعة.
                 </p>
               </div>
               <Button onClick={saveAudit} disabled={saving} className="w-full bg-gradient-hero text-primary-foreground">
                 {saving ? <Loader2 className="h-4 w-4 ms-1 animate-spin" /> : <Save className="h-4 w-4 ms-1" />}
-                حفظ التدقيق
+                حفظ المتابعة
               </Button>
             </div>
           )}
