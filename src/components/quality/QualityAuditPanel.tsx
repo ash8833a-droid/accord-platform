@@ -241,6 +241,13 @@ export function QualityAuditPanel() {
             const total = list.length;
             const done = list.filter((t) => t.status === "completed").length;
             const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+            const overdue = list.filter((t) => getTimeStatus(t) === "overdue").length;
+            const approaching = list.filter((t) => getTimeStatus(t) === "approaching").length;
+            const onTime = list.filter((t) => {
+              const ts = getTimeStatus(t);
+              return ts === "ontrack" || ts === "completed";
+            }).length;
+            const compliancePct = total > 0 ? Math.round((onTime / total) * 100) : 100;
             const isOpen = openCommittee === c.id;
             const Icon = meta?.icon ?? FileText;
             return (
@@ -255,9 +262,23 @@ export function QualityAuditPanel() {
                     </span>
                     <div className="min-w-0 flex-1">
                       <p className="font-bold text-sm truncate">{c.name}</p>
-                      <p className="text-[11px] text-muted-foreground">
-                        {total} مهمة · مكتملة: {done} ({pct}%)
-                      </p>
+                      <div className="text-[11px] text-muted-foreground flex flex-wrap items-center gap-x-2 gap-y-0.5">
+                        <span>{total} مهمة · مكتملة: {done} ({pct}%)</span>
+                        <span className="text-muted-foreground/50">|</span>
+                        <span className="inline-flex items-center gap-1 text-emerald-700">
+                          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>التزام زمني: {compliancePct}%
+                        </span>
+                        {approaching > 0 && (
+                          <span className="inline-flex items-center gap-1 text-amber-700">
+                            <span className="h-1.5 w-1.5 rounded-full bg-amber-500"></span>قاربت: {approaching}
+                          </span>
+                        )}
+                        {overdue > 0 && (
+                          <span className="inline-flex items-center gap-1 text-rose-700 font-semibold">
+                            <AlertTriangle className="h-3 w-3" />متأخرة: {overdue}
+                          </span>
+                        )}
+                      </div>
                     </div>
                     {isOpen ? <ChevronDown className="h-4 w-4 text-muted-foreground" /> : <ChevronLeft className="h-4 w-4 text-muted-foreground" />}
                   </button>
