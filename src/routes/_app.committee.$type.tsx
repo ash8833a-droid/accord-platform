@@ -852,7 +852,7 @@ function CommitteePage() {
                               <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-destructive" />
                             </span>
                             <AlertTriangle className="h-3.5 w-3.5 text-destructive shrink-0" />
-                            <span className="text-[11px] font-bold text-destructive">عاجل — لرؤساء اللجان</span>
+                            <span className="text-[11px] font-bold text-destructive">عاجل</span>
                           </div>
                         )}
                         {/* Priority accent bar */}
