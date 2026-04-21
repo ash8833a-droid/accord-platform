@@ -77,7 +77,6 @@ const PHASE_TONE: Record<string, string> = {
 export function PmpCharter({ meta }: { meta: CommitteeMeta }) {
   const Icon = meta.icon;
   const targets = COMMITTEE_TARGETS[meta.type] ?? [];
-  const goals = meta.goals ?? [];
   const phases: Array<keyof typeof PHASE_LABELS> = [
     "initiating",
     "planning",
