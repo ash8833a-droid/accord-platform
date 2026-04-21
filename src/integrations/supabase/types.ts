@@ -347,6 +347,45 @@ export type Database = {
         }
         Relationships: []
       }
+      historical_shareholders: {
+        Row: {
+          amount: number
+          created_at: string
+          created_by: string | null
+          family_branch: string
+          full_name: string
+          hijri_year: number
+          id: string
+          notes: string | null
+          source_file_url: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          created_by?: string | null
+          family_branch: string
+          full_name: string
+          hijri_year: number
+          id?: string
+          notes?: string | null
+          source_file_url?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          created_by?: string | null
+          family_branch?: string
+          full_name?: string
+          hijri_year?: number
+          id?: string
+          notes?: string | null
+          source_file_url?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       idea_votes: {
         Row: {
           created_at: string

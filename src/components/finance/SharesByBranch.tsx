@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Users2, Search, TreePine, Coins } from "lucide-react";
+import { HistoricalShares } from "./HistoricalShares";
 
 interface Subscriber {
   id: string;
@@ -180,6 +181,11 @@ export function SharesByBranch() {
             )}
           </table>
         </div>
+      </div>
+
+      {/* Historical shareholders by Hijri year */}
+      <div className="pt-4 border-t-2 border-dashed">
+        <HistoricalShares />
       </div>
     </div>
   );
