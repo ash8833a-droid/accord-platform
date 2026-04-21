@@ -21,7 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { UserPlus, Loader2 } from "lucide-react";
+import { UserPlus, Loader2, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 
 type Role = "admin" | "committee" | "delegate" | "quality";
@@ -31,11 +31,11 @@ interface Committee {
   name: string;
 }
 
-const ROLE_OPTIONS: { value: Role; label: string }[] = [
-  { value: "admin", label: "مدير نظام (إدارة عليا)" },
-  { value: "committee", label: "عضو/منسق لجنة" },
-  { value: "quality", label: "الجودة" },
-  { value: "delegate", label: "مندوب اشتراكات" },
+const ROLE_OPTIONS: { value: Role; label: string; hint: string }[] = [
+  { value: "committee", label: "عضو/منسق لجنة", hint: "يرى لجنته فقط — الخيار الافتراضي للأعضاء" },
+  { value: "delegate", label: "مندوب اشتراكات", hint: "خاص بمندوبي تحصيل الاشتراكات" },
+  { value: "quality", label: "الجودة (رقابي شامل)", hint: "⚠️ يرى جميع اللجان — استخدمه فقط لأعضاء لجنة الجودة" },
+  { value: "admin", label: "مدير نظام (صلاحيات كاملة)", hint: "⚠️ صلاحيات إدارة كاملة على المنصة" },
 ];
 
 export function CreateMemberDialog({ onCreated }: { onCreated?: () => void }) {
@@ -160,10 +160,25 @@ export function CreateMemberDialog({ onCreated }: { onCreated?: () => void }) {
                 </SelectTrigger>
                 <SelectContent>
                   {ROLE_OPTIONS.map((o) => (
-                    <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                    <SelectItem key={o.value} value={o.value}>
+                      <div className="flex flex-col items-start text-right">
+                        <span>{o.label}</span>
+                        <span className="text-[11px] text-muted-foreground">{o.hint}</span>
+                      </div>
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
+              {(role === "quality" || role === "admin") && (
+                <div className="flex items-start gap-2 rounded-md border border-amber-300/60 bg-amber-50 p-2 text-[11px] text-amber-800 dark:border-amber-700/60 dark:bg-amber-950/30 dark:text-amber-200">
+                  <AlertTriangle className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+                  <span>
+                    {role === "quality"
+                      ? "صلاحية «الجودة» تمنح المستخدم اطّلاعاً على بيانات جميع اللجان. تأكّد أن العضو فعلاً من فريق الجودة."
+                      : "صلاحية «مدير نظام» تمنح إدارة كاملة للمنصة (إنشاء/حذف/اعتماد). امنحها بحذر شديد."}
+                  </span>
+                </div>
+              )}
             </div>
             <div className="grid gap-1.5">
               <Label>اللجنة {role === "admin" || role === "delegate" ? "(اختياري)" : ""}</Label>
