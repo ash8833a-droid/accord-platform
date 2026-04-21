@@ -108,12 +108,75 @@ export function FinanceModule() {
 
   useEffect(() => { load(); }, []);
 
+  const resetDelegateForm = () => {
+    setName(""); setPhone(""); setBranch(""); setEditingDelegateId(null);
+  };
+
   const addDelegate = async (e: React.FormEvent) => {
     e.preventDefault();
-    const { error } = await supabase.from("delegates").insert({ full_name: name, phone, family_branch: branch });
-    if (error) return toast.error("تعذر إضافة المندوب", { description: error.message });
-    toast.success("تمت إضافة المندوب");
-    setName(""); setPhone(""); setBranch(""); setOpen(false); load();
+    if (editingDelegateId) {
+      const { error } = await supabase
+        .from("delegates")
+        .update({ full_name: name, phone, family_branch: branch })
+        .eq("id", editingDelegateId);
+      if (error) return toast.error("تعذر التحديث", { description: error.message });
+      toast.success("تم تحديث بيانات المندوب");
+    } else {
+      const { error } = await supabase.from("delegates").insert({ full_name: name, phone, family_branch: branch });
+      if (error) return toast.error("تعذر إضافة المندوب", { description: error.message });
+      toast.success("تمت إضافة المندوب");
+    }
+    resetDelegateForm();
+    setOpen(false);
+    load();
+  };
+
+  const startEditDelegate = (d: Delegate) => {
+    setEditingDelegateId(d.id);
+    setName(d.full_name);
+    setPhone(d.phone);
+    setBranch(d.family_branch);
+    setOpen(true);
+  };
+
+  const removeDelegate = async (d: Delegate) => {
+    if (!confirm(`حذف المندوب "${d.full_name}" نهائياً؟ سيتم حذف اشتراكاته المرتبطة أيضاً.`)) return;
+    const { error } = await supabase.from("delegates").delete().eq("id", d.id);
+    if (error) return toast.error("تعذر الحذف", { description: error.message });
+    toast.success("تم حذف المندوب");
+    load();
+  };
+
+  const startEditRequest = (r: PaymentRequest) => {
+    setEditPr(r);
+    setEditPrTitle(r.title);
+    setEditPrAmount(String(r.amount));
+    setEditPrDesc(r.description ?? "");
+    setEditPrOpen(true);
+  };
+
+  const saveEditRequest = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editPr) return;
+    const amt = Number(editPrAmount);
+    if (!amt || amt <= 0) return toast.error("المبلغ غير صحيح");
+    const { error } = await supabase
+      .from("payment_requests")
+      .update({ title: editPrTitle, amount: amt, description: editPrDesc })
+      .eq("id", editPr.id);
+    if (error) return toast.error("تعذر التحديث", { description: error.message });
+    toast.success("تم تحديث الطلب");
+    setEditPrOpen(false);
+    setEditPr(null);
+    load();
+  };
+
+  const removeRequest = async (r: PaymentRequest) => {
+    if (!confirm(`حذف طلب الصرف "${r.title}" نهائياً؟`)) return;
+    const { error } = await supabase.from("payment_requests").delete().eq("id", r.id);
+    if (error) return toast.error("تعذر الحذف", { description: error.message });
+    toast.success("تم حذف الطلب");
+    load();
   };
 
   const reviewRequest = async (id: string, status: "approved" | "rejected" | "paid") => {
