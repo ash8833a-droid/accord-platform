@@ -171,6 +171,14 @@
   h1, h2, h3, h4 { font-family: var(--font-display); letter-spacing: -0.01em; }
 }
 
+/* RTL alignment defaults — keep table cells, headings, and form labels right-aligned */
+@layer base {
+  [dir="rtl"] table { text-align: right; }
+  [dir="rtl"] th, [dir="rtl"] td { text-align: right; }
+  [dir="rtl"] th.text-center, [dir="rtl"] td.text-center { text-align: center; }
+  [dir="rtl"] th.text-left, [dir="rtl"] td.text-left { text-align: left; }
+}
+
 /* Animated rings (logo-inspired) */
 @keyframes ring-spin-slow { to { transform: rotate(360deg); } }
 @keyframes ring-spin-rev { to { transform: rotate(-360deg); } }
