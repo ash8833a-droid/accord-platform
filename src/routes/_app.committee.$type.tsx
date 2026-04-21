@@ -1141,19 +1141,39 @@ function CommitteePage() {
                           <TaskAttachments taskId={t.id} committeeId={committee.id} compact />
                         </div>
 
-                        {/* Comments toggle + panel */}
+                        {/* Unified expand: quick response + thread + comments */}
                         <div className="ps-7 mb-2.5">
                           <button
                             type="button"
                             onClick={() => toggleComments(t.id)}
-                            className="inline-flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground hover:text-primary transition"
+                            className="inline-flex items-center gap-1.5 text-[11px] font-bold text-primary hover:text-primary/80 transition w-full justify-between rounded-lg border border-primary/20 bg-primary/5 hover:bg-primary/10 px-2.5 py-1.5"
+                            aria-expanded={expandedComments.has(t.id)}
                           >
-                            <MessageSquare className="h-3.5 w-3.5" />
-                            {expandedComments.has(t.id) ? "إخفاء التعليقات" : "تعليقات الأعضاء"}
+                            <span className="inline-flex items-center gap-1.5">
+                              <MessageSquare className="h-3.5 w-3.5" />
+                              {expandedComments.has(t.id) ? "إخفاء التفاصيل" : "الرد على المهمة والتفاصيل"}
+                            </span>
+                            <ChevronDown
+                              className={`h-3.5 w-3.5 transition-transform ${
+                                expandedComments.has(t.id) ? "rotate-180" : ""
+                              }`}
+                            />
                           </button>
                           {expandedComments.has(t.id) && (
-                            <div className="mt-2 rounded-lg border border-border/60 bg-background/60 p-2.5">
-                              <TaskComments taskId={t.id} />
+                            <div className="mt-2 rounded-lg border border-border/60 bg-background/60 p-3 space-y-3 animate-in fade-in slide-in-from-top-1 duration-200">
+                              <QuickResponseBar
+                                taskId={t.id}
+                                committeeId={committee.id}
+                                initialPercent={
+                                  t.status === "completed" ? 100 : t.status === "in_progress" ? 50 : 0
+                                }
+                              />
+                              <div className="border-t pt-3">
+                                <p className="text-[10.5px] font-bold text-muted-foreground mb-2 inline-flex items-center gap-1.5">
+                                  <MessagesSquare className="h-3 w-3" /> نقاش الأعضاء
+                                </p>
+                                <TaskComments taskId={t.id} />
+                              </div>
                             </div>
                           )}
                         </div>
