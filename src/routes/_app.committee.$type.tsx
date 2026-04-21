@@ -1078,9 +1078,6 @@ function CommitteePage() {
                           )}
                           {(() => {
                             const { phase, clean } = splitPhase(t.title);
-                            const k = taskKpis[t.id];
-                            const count = k?.count ?? 0;
-                            const avg = k?.avg ?? 0;
                             return (
                               <>
                                 <div className="flex items-center gap-1.5 mb-2 flex-wrap">
@@ -1092,11 +1089,6 @@ function CommitteePage() {
                                   <Badge variant="secondary" className={`${PRIORITY_TONE[t.priority]} text-[10px] font-medium px-1.5 py-0 h-5 rounded-md`}>
                                     {PRIORITY_LABELS[t.priority]}
                                   </Badge>
-                                  {count > 0 && (
-                                    <Badge variant="outline" className="text-[10px] h-5 rounded-md gap-1 px-1.5 ms-auto bg-muted/50">
-                                      <MessagesSquare className="h-3 w-3" /> {count} • {avg}%
-                                    </Badge>
-                                  )}
                                 </div>
                                 <div className="flex items-start gap-1.5">
                                   <GripVertical className="h-4 w-4 text-muted-foreground/40 mt-0.5 shrink-0 group-hover:text-muted-foreground transition" />
@@ -1112,19 +1104,8 @@ function CommitteePage() {
                           })()}
                         </div>
 
-                        {/* === SECTION 2: Quick response (always visible — the main action) === */}
-                        <div className="px-3.5 pb-3 ps-4 border-t border-border/40 bg-muted/20 pt-3">
-                          <QuickResponseBar
-                            taskId={t.id}
-                            committeeId={committee.id}
-                            initialPercent={
-                              t.status === "completed" ? 100 : t.status === "in_progress" ? 50 : 0
-                            }
-                          />
-                        </div>
-
-                        {/* === SECTION 3: Attachments + collapsible discussion === */}
-                        <div className="px-3.5 ps-4 pb-2 space-y-2">
+                        {/* === SECTION 2: Attachments + collapsible discussion === */}
+                        <div className="px-3.5 ps-4 pb-2 pt-1 space-y-2 border-t border-border/40">
                           <TaskAttachments taskId={t.id} committeeId={committee.id} compact />
                           <button
                             type="button"
