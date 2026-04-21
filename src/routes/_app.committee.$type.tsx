@@ -163,7 +163,7 @@ function CommitteePage() {
     }
     setCommittee(c);
 
-    const [{ data: t }, { data: p }, { data: m }, { data: am }, { data: rolesInCommittee }, { data: allRoles }] = await Promise.all([
+    const [{ data: t }, { data: p }, { data: m }, { data: am }, { data: rolesInCommittee }, { data: allRoles }, { data: rsp }] = await Promise.all([
       supabase.from("committee_tasks")
         .select("id, title, description, status, priority, assigned_to, created_at")
         .eq("committee_id", c.id)
@@ -173,7 +173,29 @@ function CommitteePage() {
       supabase.from("team_members").select("id, full_name, role_title, is_head, committee_id, committees(name)").order("display_order"),
       supabase.from("user_roles").select("user_id, role").eq("committee_id", c.id),
       supabase.from("user_roles").select("user_id, role, committee_id").not("committee_id", "is", null),
+      supabase
+        .from("task_responses" as any)
+        .select("id, task_id, author_name, action_taken, outcomes, completion_percent, challenges, recommendations, execution_date, attachments_note, created_at")
+        .eq("committee_id", c.id)
+        .order("created_at", { ascending: false }),
     ]);
+
+    // Build per-task KPIs from response rows
+    const responsesData = (rsp ?? []) as any[];
+    const kpiMap: Record<string, { count: number; sum: number }> = {};
+    responsesData.forEach((r) => {
+      const k = kpiMap[r.task_id] ?? { count: 0, sum: 0 };
+      k.count += 1;
+      k.sum += Number(r.completion_percent) || 0;
+      kpiMap[r.task_id] = k;
+    });
+    const kpis: Record<string, { count: number; avg: number }> = {};
+    Object.entries(kpiMap).forEach(([id, v]) => {
+      kpis[id] = { count: v.count, avg: Math.round(v.sum / v.count) };
+    });
+    setTaskKpis(kpis);
+    // Stash raw response rows for export (attached to closure via state below)
+    setCommitteeResponses(responsesData);
 
     const teamForCommittee = (m ?? []) as TeamMember[];
     const allTeam = ((am ?? []) as any[]).map((x) => ({
