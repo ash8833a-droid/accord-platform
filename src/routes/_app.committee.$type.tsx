@@ -964,6 +964,28 @@ function CommitteePage() {
 
       {/* Archive of past reports / files / images for this committee */}
       <CommitteeArchive committeeId={committee.id} committeeName={committee.name} />
+
+      {/* Edit payment request dialog */}
+      <Dialog open={editPrOpen} onOpenChange={(o) => { setEditPrOpen(o); if (!o) setEditingPr(null); }}>
+        <DialogContent dir="rtl" className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Pencil className="h-4 w-4 text-primary" /> تعديل طلب الصرف
+            </DialogTitle>
+          </DialogHeader>
+          <form onSubmit={saveEditRequest} className="space-y-3 pt-2">
+            <div className="space-y-2">
+              <Label>عنوان الطلب</Label>
+              <Input value={editPrTitle} onChange={(e) => setEditPrTitle(e.target.value)} required />
+            </div>
+            <div className="space-y-2">
+              <Label>المبلغ (ر.س)</Label>
+              <Input type="number" min="1" value={editPrAmount} onChange={(e) => setEditPrAmount(e.target.value)} required dir="ltr" />
+            </div>
+            <Button type="submit" className="w-full bg-gradient-hero text-primary-foreground">حفظ التعديلات</Button>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
