@@ -112,6 +112,8 @@ function CommitteePage() {
   const [committee, setCommittee] = useState<{ id: string; name: string; description: string | null; budget_allocated: number; budget_spent: number; head_user_id: string | null } | null>(null);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [requests, setRequests] = useState<PaymentRequest[]>([]);
+  // per-task response KPIs: count + average completion %
+  const [taskKpis, setTaskKpis] = useState<Record<string, { count: number; avg: number }>>({});
 
   const { user, hasRole } = useAuth();
   const isAdmin = hasRole("admin");
