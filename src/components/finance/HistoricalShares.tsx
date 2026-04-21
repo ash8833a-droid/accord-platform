@@ -184,23 +184,93 @@ export function HistoricalShares() {
     load();
   };
 
-  const uploadSourceFile = async () => {
+  const fileToBase64 = (file: File): Promise<string> =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = reader.result as string;
+        const base64 = result.split(",")[1] ?? "";
+        resolve(base64);
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+
+  const extractFromFile = async () => {
     if (!uploadFile) return;
     setUploading(true);
-    const ext = uploadFile.name.split(".").pop() || "pdf";
-    const path = `${uploadYear}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-    const { error } = await supabase.storage.from("historical-shares").upload(path, uploadFile, {
-      cacheControl: "3600",
-      upsert: false,
-    });
-    setUploading(false);
+    try {
+      // 1) رفع للأرشيف
+      const ext = uploadFile.name.split(".").pop() || "pdf";
+      const path = `${uploadYear}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+      await supabase.storage.from("historical-shares").upload(path, uploadFile, {
+        cacheControl: "3600",
+        upsert: false,
+      });
+
+      // 2) تحويل لـ base64 + استدعاء edge function
+      const fileBase64 = await fileToBase64(uploadFile);
+      const mimeType = uploadFile.type || (ext === "pdf" ? "application/pdf" : "application/octet-stream");
+
+      toast.info("جارٍ استخراج الأسماء بالذكاء الاصطناعي... قد يستغرق 30-60 ثانية");
+
+      const { data, error } = await supabase.functions.invoke("extract-shareholders", {
+        body: { fileBase64, mimeType, hijriYear: uploadYear, defaultAmount: uploadAmount },
+      });
+
+      if (error) {
+        toast.error("فشل الاستخراج: " + error.message);
+        return;
+      }
+      if (data?.error) {
+        toast.error(data.error);
+        return;
+      }
+      const rows = (data?.rows ?? []) as Array<{ full_name: string; family_branch: string; amount: number; hijri_year: number }>;
+      if (rows.length === 0) {
+        toast.warning("لم يتم العثور على أسماء في الملف");
+        return;
+      }
+
+      setPreviewRows(rows);
+      setUploadOpen(false);
+      setPreviewOpen(true);
+      toast.success(`تم استخراج ${rows.length} اسم — راجعهم ثم اضغط تأكيد الإدراج`);
+    } catch (e) {
+      toast.error("خطأ غير متوقع: " + (e as Error).message);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const confirmInsert = async () => {
+    if (previewRows.length === 0) return;
+    setConfirming(true);
+    const payload = previewRows.map((r) => ({
+      full_name: r.full_name,
+      family_branch: r.family_branch,
+      hijri_year: r.hijri_year,
+      amount: r.amount,
+    }));
+    const { error } = await supabase.from("historical_shareholders").insert(payload);
+    setConfirming(false);
     if (error) {
-      toast.error("تعذّر رفع الملف");
+      toast.error("تعذّر الإدراج: " + error.message);
       return;
     }
-    toast.success(`تم رفع الملف لسنة ${uploadYear}هـ — أرسله الآن لي في المحادثة لاستخراج الأسماء تلقائياً`);
-    setUploadOpen(false);
+    toast.success(`تم إدراج ${payload.length} مساهم بنجاح`);
+    setPreviewOpen(false);
+    setPreviewRows([]);
     setUploadFile(null);
+    load();
+  };
+
+  const removePreviewRow = (idx: number) => {
+    setPreviewRows((prev) => prev.filter((_, i) => i !== idx));
+  };
+
+  const updatePreviewBranch = (idx: number, branch: string) => {
+    setPreviewRows((prev) => prev.map((r, i) => (i === idx ? { ...r, family_branch: branch } : r)));
   };
 
   const downloadCSV = () => {
