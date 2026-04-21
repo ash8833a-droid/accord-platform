@@ -27,6 +27,7 @@ import {
   Filter,
   ShieldCheck,
 } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
 import { useAuth } from "@/lib/auth";
 import { COMMITTEES, committeeByType } from "@/lib/committees";
 import * as XLSX from "xlsx";
@@ -97,6 +98,7 @@ function TaskResponsesPage() {
 
   const [search, setSearch] = useState("");
   const [activeTab, setActiveTab] = useState<string>("all");
+  const [progressFilter, setProgressFilter] = useState<"all" | "done" | "mid" | "low">("all");
 
   // Authorization check: admin, quality, or supreme committee member
   useEffect(() => {
@@ -190,6 +192,10 @@ function TaskResponsesPage() {
     const q = search.trim().toLowerCase();
     return joined.filter((r) => {
       if (activeTab !== "all" && r.committeeType !== activeTab) return false;
+      if (progressFilter === "done" && r.completion_percent !== 100) return false;
+      if (progressFilter === "mid" && (r.completion_percent < 50 || r.completion_percent === 100))
+        return false;
+      if (progressFilter === "low" && r.completion_percent >= 50) return false;
       if (!q) return true;
       return (
         r.taskTitle.toLowerCase().includes(q) ||
@@ -199,7 +205,7 @@ function TaskResponsesPage() {
         (r.outcomes ?? "").toLowerCase().includes(q)
       );
     });
-  }, [joined, search, activeTab]);
+  }, [joined, search, activeTab, progressFilter]);
 
   const stats = useMemo(() => {
     const total = filtered.length;
@@ -349,6 +355,29 @@ function TaskResponsesPage() {
             className="pe-9 text-sm"
           />
         </div>
+        <div className="flex items-center gap-1 rounded-lg border bg-card p-0.5">
+          {(
+            [
+              { v: "all", label: "الكل" },
+              { v: "done", label: "مكتمل" },
+              { v: "mid", label: "متوسط" },
+              { v: "low", label: "منخفض" },
+            ] as const
+          ).map((p) => (
+            <button
+              key={p.v}
+              type="button"
+              onClick={() => setProgressFilter(p.v)}
+              className={`text-[11px] font-bold px-2.5 py-1 rounded-md transition-colors ${
+                progressFilter === p.v
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:bg-muted"
+              }`}
+            >
+              {p.label}
+            </button>
+          ))}
+        </div>
         <Button onClick={exportXLSX} size="sm" variant="outline" className="gap-1.5">
           <FileSpreadsheet className="h-4 w-4" /> Excel
         </Button>
@@ -383,7 +412,75 @@ function TaskResponsesPage() {
                 <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
               </div>
             ) : (
-              <div className="overflow-x-auto">
+              <>
+              {/* Mobile: cards */}
+              <div className="md:hidden divide-y">
+                {filtered.map((r, i) => {
+                  const meta = committeeByType(r.committeeType);
+                  return (
+                    <div key={r.id} className="p-3 space-y-2">
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <span className="text-[10px] font-mono text-muted-foreground">
+                            #{i + 1}
+                          </span>
+                          <Badge
+                            variant="outline"
+                            className={`${meta?.tone ?? "bg-muted"} text-[10px] font-bold border`}
+                          >
+                            {r.committeeName}
+                          </Badge>
+                        </div>
+                        <Badge
+                          className={`text-[10px] font-bold border ${
+                            r.completion_percent === 100
+                              ? "bg-emerald-500/15 text-emerald-700 border-emerald-500/40"
+                              : r.completion_percent >= 50
+                                ? "bg-sky-500/15 text-sky-700 border-sky-500/40"
+                                : "bg-amber-500/15 text-amber-700 border-amber-500/40"
+                          }`}
+                        >
+                          {r.completion_percent}%
+                        </Badge>
+                      </div>
+                      <p className="text-xs font-bold leading-snug">{r.taskTitle}</p>
+                      <Progress value={r.completion_percent} className="h-1.5" />
+                      <p className="text-[11px]">
+                        <span className="font-bold text-foreground/70">العضو: </span>
+                        {r.author_name}
+                      </p>
+                      <p className="text-[11px] bg-muted/40 rounded-md p-2">
+                        <span className="font-bold">الإجراء: </span>
+                        <span className="line-clamp-3 whitespace-pre-wrap">{r.action_taken}</span>
+                      </p>
+                      {r.outcomes && (
+                        <p className="text-[11px] text-emerald-700">
+                          <span className="font-bold">المخرجات: </span>
+                          <span className="line-clamp-2 whitespace-pre-wrap">{r.outcomes}</span>
+                        </p>
+                      )}
+                      {r.challenges && (
+                        <p className="text-[11px] text-amber-700">
+                          <span className="font-bold">التحديات: </span>
+                          <span className="line-clamp-2 whitespace-pre-wrap">{r.challenges}</span>
+                        </p>
+                      )}
+                      <div className="flex items-center justify-between text-[10px] text-muted-foreground pt-1 border-t border-border/40">
+                        <span>تنفيذ: {r.execution_date ?? "—"}</span>
+                        <span>رد: {fmtDate(r.created_at)}</span>
+                      </div>
+                    </div>
+                  );
+                })}
+                {filtered.length === 0 && (
+                  <div className="text-center py-12 text-muted-foreground text-sm">
+                    لا توجد ردود مطابقة
+                  </div>
+                )}
+              </div>
+
+              {/* Desktop: table */}
+              <div className="overflow-x-auto hidden md:block">
                 <Table>
                   <TableHeader>
                     <TableRow className="bg-gradient-to-l from-primary/10 to-primary/5 hover:bg-primary/10">
@@ -464,6 +561,7 @@ function TaskResponsesPage() {
                   </TableBody>
                 </Table>
               </div>
+              </>
             )}
           </div>
         </TabsContent>
