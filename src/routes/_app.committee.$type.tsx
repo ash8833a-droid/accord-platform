@@ -19,7 +19,6 @@ import { CommitteeArchive } from "@/components/CommitteeArchive";
 import { CommitteeMembersPanel } from "@/components/CommitteeMembersPanel";
 import { GroomFollowups } from "@/components/committee/GroomFollowups";
 import { QualityAuditPanel } from "@/components/quality/QualityAuditPanel";
-import { PmpCharter } from "@/components/committee/PmpCharter";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth } from "@/lib/auth";
 
