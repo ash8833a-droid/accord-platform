@@ -27,6 +27,7 @@ import {
   Filter,
   ShieldCheck,
 } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
 import { useAuth } from "@/lib/auth";
 import { COMMITTEES, committeeByType } from "@/lib/committees";
 import * as XLSX from "xlsx";
