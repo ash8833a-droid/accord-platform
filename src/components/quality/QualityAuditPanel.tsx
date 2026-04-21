@@ -302,6 +302,7 @@ export function QualityAuditPanel() {
                     {list.map((t) => {
                       const { phase, clean } = splitPhase(t.title);
                       const { body, audit } = splitAudit(t.description);
+                      const ts = getTimeStatus(t);
                       return (
                         <div key={t.id} className="rounded-lg border bg-card p-3 hover:border-sky-500/40 transition">
                           <div className="flex items-start gap-2 flex-wrap">
@@ -314,6 +315,11 @@ export function QualityAuditPanel() {
                                 <Badge variant="secondary" className="text-[10px]">
                                   {PRIORITY_LABELS[t.priority]}
                                 </Badge>
+                                <Badge variant="outline" className={`${TIME_TONE[ts]} text-[10px] border`}>
+                                  {ts === "overdue" && <AlertTriangle className="h-2.5 w-2.5 ms-1" />}
+                                  {ts !== "overdue" && <Clock className="h-2.5 w-2.5 ms-1" />}
+                                  {TIME_LABELS[ts]}
+                                </Badge>
                               </div>
                               <p className="font-semibold text-sm">{clean}</p>
                               {body && (
@@ -322,7 +328,7 @@ export function QualityAuditPanel() {
                               {audit && (
                                 <div className="mt-2 rounded-md bg-sky-500/5 border border-sky-500/30 px-2.5 py-1.5">
                                   <p className="text-[10px] font-bold text-sky-700 mb-0.5 flex items-center gap-1">
-                                    <ClipboardCheck className="h-3 w-3" /> ملاحظة الجودة
+                                    <ClipboardCheck className="h-3 w-3" /> ملاحظة المتابعة
                                   </p>
                                   <p className="text-[11.5px] text-foreground whitespace-pre-wrap">{audit}</p>
                                 </div>
@@ -330,7 +336,7 @@ export function QualityAuditPanel() {
                             </div>
                             <Button size="sm" variant="outline" onClick={() => openAudit(t)}>
                               <ClipboardCheck className="h-3.5 w-3.5 ms-1" />
-                              {audit ? "تعديل التدقيق" : "تدقيق"}
+                              {audit ? "تعديل المتابعة" : "متابعة"}
                             </Button>
                           </div>
                         </div>
