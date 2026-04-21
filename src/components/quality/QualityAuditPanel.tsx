@@ -451,7 +451,7 @@ function buildReportHTML(c: CommitteeRow, tasks: RawTask[]): string {
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8" />
-<title>تقرير تدقيق الجودة — ${escapeHtml(c.name)}</title>
+<title>تقرير متابعة الجودة — ${escapeHtml(c.name)}</title>
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&display=swap" rel="stylesheet">
 <style>
   @page { size: A4; margin: 14mm 12mm; }
@@ -539,7 +539,7 @@ function buildReportHTML(c: CommitteeRow, tasks: RawTask[]): string {
     <div class="topbar">
       <img src="${logo}" alt="شعار الحملة" />
       <div class="ti">
-        <h1>تقرير تدقيق الجودة — ${escapeHtml(c.name)}</h1>
+        <h1>تقرير متابعة الجودة — ${escapeHtml(c.name)}</h1>
         <p class="sub">منصة لجنة الزواج الجماعي العائلي · إصدار رسمي صادر عن لجنة الجودة</p>
         <p class="meta">${escapeHtml(meta?.description ?? "")}</p>
       </div>
@@ -548,7 +548,7 @@ function buildReportHTML(c: CommitteeRow, tasks: RawTask[]): string {
 
     <div class="meta-grid">
       <div class="item"><div class="l">تاريخ التقرير</div><div class="v">${today}</div></div>
-      <div class="item"><div class="l">اللجنة المُدقَّقة</div><div class="v">${escapeHtml(c.name)}</div></div>
+      <div class="item"><div class="l">اللجنة المتابَعة</div><div class="v">${escapeHtml(c.name)}</div></div>
       <div class="item"><div class="l">جهة الإصدار</div><div class="v">لجنة الجودة</div></div>
     </div>
 
@@ -563,10 +563,18 @@ function buildReportHTML(c: CommitteeRow, tasks: RawTask[]): string {
       <div class="kpi"><div class="lbl">الميزانية المعتمدة</div><div class="val">${fmt(Number(c.budget_allocated))} ر.س</div></div>
       <div class="kpi"><div class="lbl">المنصرف</div><div class="val">${fmt(Number(c.budget_spent))} ر.س</div></div>
       <div class="kpi"><div class="lbl">المتبقي</div><div class="val">${fmt(remaining)} ر.س</div></div>
-      <div class="kpi gold"><div class="lbl">عدد المهام المُدقَّقة</div><div class="val">${fmt(audited)} / ${fmt(total)}</div></div>
+      <div class="kpi gold"><div class="lbl">المهام المتابَعة</div><div class="val">${fmt(audited)} / ${fmt(total)}</div></div>
     </div>
 
-    <div class="section-title">سجل المهام وملاحظات التدقيق</div>
+    <div class="section-title">الالتزام الزمني (سقف ${SYSTEM_DEADLINE_DAYS} يوماً حتى ${fmtDate(SYSTEM_DEADLINE)})</div>
+    <div class="kpis">
+      <div class="kpi gold"><div class="lbl">نسبة الالتزام الزمني</div><div class="val">${compliancePct}%</div></div>
+      <div class="kpi"><div class="lbl">في الوقت / مُنجزة</div><div class="val">${fmt(onTime)}</div></div>
+      <div class="kpi"><div class="lbl">قاربت المهلة</div><div class="val">${fmt(approaching)}</div></div>
+      <div class="kpi"><div class="lbl">متأخرة</div><div class="val">${fmt(overdue)}</div></div>
+    </div>
+
+    <div class="section-title">سجل المهام وملاحظات المتابعة</div>
     <table>
       <thead>
         <tr>
@@ -574,17 +582,18 @@ function buildReportHTML(c: CommitteeRow, tasks: RawTask[]): string {
           <th>المهمة</th>
           <th>الأولوية</th>
           <th>الحالة</th>
+          <th>الحالة الزمنية</th>
           <th>ملاحظات لجنة الجودة</th>
         </tr>
       </thead>
       <tbody>
-        ${rows || `<tr><td colspan="5" style="text-align:center;color:#888;padding:18px">لا توجد مهام مسجّلة لهذه اللجنة.</td></tr>`}
+        ${rows || `<tr><td colspan="6" style="text-align:center;color:#888;padding:18px">لا توجد مهام مسجّلة لهذه اللجنة.</td></tr>`}
       </tbody>
     </table>
 
     <div class="signatures">
       <div class="sig">
-        <div class="role">المُدقِّق — لجنة الجودة</div>
+        <div class="role">مسؤول المتابعة — لجنة الجودة</div>
         <div class="name">..............................................</div>
       </div>
       <div class="sig">
