@@ -912,6 +912,72 @@ export type Database = {
           },
         ]
       }
+      task_responses: {
+        Row: {
+          action_taken: string
+          attachments_note: string | null
+          author_name: string
+          challenges: string | null
+          committee_id: string
+          completion_percent: number
+          created_at: string
+          execution_date: string | null
+          id: string
+          outcomes: string | null
+          recommendations: string | null
+          task_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          action_taken: string
+          attachments_note?: string | null
+          author_name: string
+          challenges?: string | null
+          committee_id: string
+          completion_percent?: number
+          created_at?: string
+          execution_date?: string | null
+          id?: string
+          outcomes?: string | null
+          recommendations?: string | null
+          task_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          action_taken?: string
+          attachments_note?: string | null
+          author_name?: string
+          challenges?: string | null
+          committee_id?: string
+          completion_percent?: number
+          created_at?: string
+          execution_date?: string | null
+          id?: string
+          outcomes?: string | null
+          recommendations?: string | null
+          task_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_responses_committee_id_fkey"
+            columns: ["committee_id"]
+            isOneToOne: false
+            referencedRelation: "committees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "task_responses_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "committee_tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       team_members: {
         Row: {
           committee_id: string
