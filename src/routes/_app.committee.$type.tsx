@@ -472,6 +472,9 @@ function CommitteePage() {
     <div className="space-y-6">
       <Header meta={meta} />
 
+      {/* PMP Charter: committee idea, goals, targets, and lifecycle */}
+      <PmpCharter meta={meta} />
+
       {/* Budget icon button → opens dialog */}
       <Dialog>
         <DialogTrigger asChild>
