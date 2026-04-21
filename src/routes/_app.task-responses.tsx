@@ -355,6 +355,29 @@ function TaskResponsesPage() {
             className="pe-9 text-sm"
           />
         </div>
+        <div className="flex items-center gap-1 rounded-lg border bg-card p-0.5">
+          {(
+            [
+              { v: "all", label: "الكل" },
+              { v: "done", label: "مكتمل" },
+              { v: "mid", label: "متوسط" },
+              { v: "low", label: "منخفض" },
+            ] as const
+          ).map((p) => (
+            <button
+              key={p.v}
+              type="button"
+              onClick={() => setProgressFilter(p.v)}
+              className={`text-[11px] font-bold px-2.5 py-1 rounded-md transition-colors ${
+                progressFilter === p.v
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:bg-muted"
+              }`}
+            >
+              {p.label}
+            </button>
+          ))}
+        </div>
         <Button onClick={exportXLSX} size="sm" variant="outline" className="gap-1.5">
           <FileSpreadsheet className="h-4 w-4" /> Excel
         </Button>
