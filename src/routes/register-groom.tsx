@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { FAMILY_BRANCHES } from "@/lib/family-branches";
 import { Logo } from "@/components/Logo";
@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Loader2, CheckCircle2, Upload, Heart } from "lucide-react";
+import { Loader2, CheckCircle2, Upload, User, Phone, Calendar, IdCard, Camera, FileImage, StickyNote, Users } from "lucide-react";
 
 export const Route = createFileRoute("/register-groom")({
   component: RegisterGroomPage,
@@ -24,6 +24,8 @@ export const Route = createFileRoute("/register-groom")({
 });
 
 const isValidSaPhone = (p: string) => /^05\d{8}$/.test(p.trim());
+const isQuadName = (n: string) => n.trim().split(/\s+/).filter(Boolean).length >= 4;
+const MAX_BYTES = 8 * 1024 * 1024;
 
 async function uploadPublic(file: File, prefix: string): Promise<string | null> {
   const ext = file.name.split(".").pop() || "bin";
@@ -38,6 +40,59 @@ async function uploadPublic(file: File, prefix: string): Promise<string | null> 
   }
   const { data } = supabase.storage.from("groom-public").getPublicUrl(path);
   return data.publicUrl;
+}
+
+interface UploadCardProps {
+  id: string;
+  label: string;
+  icon: React.ReactNode;
+  hint: string;
+  file: File | null;
+  onFile: (f: File | null) => void;
+  accept: string;
+}
+
+function UploadCard({ id, label, icon, hint, file, onFile, accept }: UploadCardProps) {
+  const ref = useRef<HTMLInputElement>(null);
+  const [preview, setPreview] = useState<string | null>(null);
+
+  const handle = (f: File | null) => {
+    onFile(f);
+    if (preview) URL.revokeObjectURL(preview);
+    if (f && f.type.startsWith("image/")) setPreview(URL.createObjectURL(f));
+    else setPreview(null);
+  };
+
+  return (
+    <div className="space-y-2">
+      <Label htmlFor={id} className="flex items-center gap-2 text-sm">
+        {icon} {label} <span className="text-destructive">*</span>
+      </Label>
+      <button
+        type="button"
+        onClick={() => ref.current?.click()}
+        className="w-full rounded-2xl border-2 border-dashed border-primary/30 bg-primary/5 hover:bg-primary/10 transition p-6 text-center group"
+      >
+        {preview ? (
+          <img src={preview} alt="معاينة" className="mx-auto max-h-32 rounded-lg object-contain" />
+        ) : (
+          <div className="mx-auto w-12 h-12 rounded-full bg-primary/15 flex items-center justify-center group-hover:scale-110 transition">
+            <Upload className="h-5 w-5 text-primary" />
+          </div>
+        )}
+        <p className="mt-3 text-sm font-medium">{file ? file.name : "اضغط لاختيار ملف"}</p>
+        <p className="mt-1 text-xs text-muted-foreground">{hint}</p>
+      </button>
+      <Input
+        ref={ref}
+        id={id}
+        type="file"
+        accept={accept}
+        className="hidden"
+        onChange={(e) => handle(e.target.files?.[0] ?? null)}
+      />
+    </div>
+  );
 }
 
 function RegisterGroomPage() {
@@ -55,46 +110,40 @@ function RegisterGroomPage() {
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!fullName.trim()) return toast.error("الرجاء إدخال اسم العريس");
-    if (!isValidSaPhone(phone)) {
-      return toast.error("رقم الجوال غير صحيح", {
-        description: "يجب أن يبدأ بـ 05 ويتكون من 10 أرقام",
-      });
-    }
+    if (!isQuadName(fullName)) return toast.error("الاسم يجب أن يكون رباعياً", { description: "الاسم الأول واسم الأب والجد واسم العائلة" });
+    if (!isValidSaPhone(phone)) return toast.error("رقم الجوال غير صحيح", { description: "يجب أن يبدأ بـ 05 ويتكون من 10 أرقام" });
     if (!familyBranch) return toast.error("الرجاء اختيار فرع العائلة");
+    if (!brideName.trim()) return toast.error("الرجاء إدخال اسم العروس");
+    if (!weddingDate) return toast.error("الرجاء إدخال تاريخ الزفاف");
+    if (!/^\d{10}$/.test(nationalId.trim())) return toast.error("رقم الهوية يجب أن يكون 10 أرقام");
+    if (!photoFile) return toast.error("الرجاء رفع الصورة الشخصية للعريس");
+    if (!idFile) return toast.error("الرجاء رفع صورة الهوية الوطنية");
+    if (!specialRequests.trim()) return toast.error("الرجاء كتابة الملاحظات أو الطلبات الخاصة");
 
     setBusy(true);
     try {
-      let national_id_url: string | null = null;
-      let photo_url: string | null = null;
+      if (idFile.size > MAX_BYTES) throw new Error("حجم صورة الهوية يجب أن يكون أقل من 8 ميغابايت");
+      if (photoFile.size > MAX_BYTES) throw new Error("حجم الصورة الشخصية يجب أن يكون أقل من 8 ميغابايت");
 
-      if (idFile) {
-        if (idFile.size > 5 * 1024 * 1024) throw new Error("حجم صورة الهوية يجب أن يكون أقل من 5 ميغابايت");
-        national_id_url = await uploadPublic(idFile, "id");
-      }
-      if (photoFile) {
-        if (photoFile.size > 5 * 1024 * 1024) throw new Error("حجم الصورة الشخصية يجب أن يكون أقل من 5 ميغابايت");
-        photo_url = await uploadPublic(photoFile, "photo");
-      }
+      const national_id_url = await uploadPublic(idFile, "id");
+      const photo_url = await uploadPublic(photoFile, "photo");
 
       const { error } = await supabase.from("grooms").insert({
         full_name: fullName.trim(),
         phone: phone.trim(),
         family_branch: familyBranch,
-        bride_name: brideName.trim() || null,
-        wedding_date: weddingDate || null,
-        national_id: nationalId.trim() || null,
+        bride_name: brideName.trim(),
+        wedding_date: weddingDate,
+        national_id: nationalId.trim(),
         national_id_url,
         photo_url,
-        special_requests: specialRequests.trim() || null,
+        special_requests: specialRequests.trim(),
         status: "new",
         created_by: null,
       });
       if (error) throw error;
       setDone(true);
-      toast.success("تم استلام طلبك بنجاح", {
-        description: "ستتواصل معك اللجنة قريباً للمتابعة",
-      });
+      toast.success("تم استلام طلبك بنجاح", { description: "ستتواصل معك اللجنة قريباً للمتابعة" });
     } catch (err) {
       const msg = err instanceof Error ? err.message : "تعذّر إرسال الطلب";
       toast.error("خطأ", { description: msg });
@@ -133,35 +182,36 @@ function RegisterGroomPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-gold/5 py-8 px-4" dir="rtl">
-      <div className="max-w-2xl mx-auto space-y-6 animate-fade-up">
+      <div className="max-w-3xl mx-auto space-y-6 animate-fade-up">
         <header className="text-center space-y-3">
           <div className="flex justify-center"><Logo size={56} /></div>
-          <h1 className="text-3xl font-black">
+          <h1 className="text-3xl md:text-4xl font-black">
             <span className="text-shimmer-gold">تسجيل عريس جديد</span>
           </h1>
-          <p className="text-sm text-muted-foreground max-w-md mx-auto leading-relaxed">
-            عبّئ النموذج التالي للانضمام لبرنامج الزواج الجماعي. ستراجع اللجنة طلبك وتتواصل معك.
-          </p>
+          <p className="text-sm text-muted-foreground">الحقول المميزة بـ <span className="text-destructive font-bold">*</span> إلزامية</p>
         </header>
 
-        <form onSubmit={submit} className="bg-card rounded-3xl shadow-elegant border p-6 md:p-8 space-y-5">
-          <section className="space-y-4">
-            <div className="flex items-center gap-2 text-primary font-semibold">
-              <Heart className="h-4 w-4" /> البيانات الأساسية
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="name">اسم العريس الكامل *</Label>
-              <Input id="name" value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="مثال: أحمد بن محمد" required />
+        <form onSubmit={submit} className="space-y-5">
+          {/* Section: Basic Info */}
+          <section className="rounded-3xl border-2 border-primary/20 bg-card/60 backdrop-blur p-5 md:p-7 space-y-5 shadow-elegant">
+            <div className="flex items-center gap-2 text-primary font-bold text-lg">
+              <User className="h-5 w-5" /> البيانات الأساسية
             </div>
 
             <div className="grid md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="phone">رقم الجوال *</Label>
-                <Input id="phone" type="tel" dir="ltr" maxLength={10} value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="05xxxxxxxx" required />
+                <Label htmlFor="name" className="flex items-center gap-2"><User className="h-4 w-4" /> الاسم الرباعي <span className="text-destructive">*</span></Label>
+                <Input id="name" value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="الاسم الأول واسم الأب والجد واسم العائلة" required />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="branch">فرع العائلة *</Label>
+                <Label htmlFor="phone" className="flex items-center gap-2"><Phone className="h-4 w-4" /> رقم الجوال <span className="text-destructive">*</span></Label>
+                <Input id="phone" type="tel" dir="ltr" maxLength={10} value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="05xxxxxxxx" required />
+              </div>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="branch" className="flex items-center gap-2"><Users className="h-4 w-4" /> فرع العائلة <span className="text-destructive">*</span></Label>
                 <Select value={familyBranch} onValueChange={setFamilyBranch}>
                   <SelectTrigger id="branch"><SelectValue placeholder="اختر الفرع" /></SelectTrigger>
                   <SelectContent>
@@ -169,47 +219,66 @@ function RegisterGroomPage() {
                   </SelectContent>
                 </Select>
               </div>
+              <div className="space-y-2">
+                <Label htmlFor="bride">اسم العروس <span className="text-destructive">*</span></Label>
+                <Input id="bride" value={brideName} onChange={(e) => setBrideName(e.target.value)} placeholder="اسم العروس" required />
+              </div>
             </div>
 
             <div className="grid md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="bride">اسم العروس (اختياري)</Label>
-                <Input id="bride" value={brideName} onChange={(e) => setBrideName(e.target.value)} placeholder="اسم العروس" />
+                <Label htmlFor="date" className="flex items-center gap-2"><Calendar className="h-4 w-4" /> تاريخ الزفاف <span className="text-destructive">*</span></Label>
+                <Input id="date" type="date" value={weddingDate} onChange={(e) => setWeddingDate(e.target.value)} required />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="date">تاريخ الزواج المتوقع (اختياري)</Label>
-                <Input id="date" type="date" value={weddingDate} onChange={(e) => setWeddingDate(e.target.value)} />
+                <Label htmlFor="nid" className="flex items-center gap-2"><IdCard className="h-4 w-4" /> رقم الهوية الوطنية <span className="text-destructive">*</span></Label>
+                <Input id="nid" dir="ltr" maxLength={10} value={nationalId} onChange={(e) => setNationalId(e.target.value)} placeholder="10 أرقام" required />
               </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="nid">رقم الهوية الوطنية (اختياري)</Label>
-              <Input id="nid" dir="ltr" maxLength={10} value={nationalId} onChange={(e) => setNationalId(e.target.value)} placeholder="10 أرقام" />
             </div>
           </section>
 
-          <section className="space-y-4 pt-4 border-t">
-            <div className="flex items-center gap-2 text-primary font-semibold">
-              <Upload className="h-4 w-4" /> المرفقات (اختياري)
+          {/* Section: Documents */}
+          <section className="rounded-3xl border-2 border-primary/20 bg-card/60 backdrop-blur p-5 md:p-7 space-y-5 shadow-elegant">
+            <div className="flex items-center gap-2 text-primary font-bold text-lg">
+              <FileImage className="h-5 w-5" /> المستندات والصور
             </div>
 
             <div className="grid md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="idfile">صورة الهوية الوطنية</Label>
-                <Input id="idfile" type="file" accept="image/*,application/pdf" onChange={(e) => setIdFile(e.target.files?.[0] ?? null)} />
-                {idFile && <p className="text-xs text-muted-foreground truncate">{idFile.name}</p>}
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="photofile">الصورة الشخصية للعريس</Label>
-                <Input id="photofile" type="file" accept="image/*" onChange={(e) => setPhotoFile(e.target.files?.[0] ?? null)} />
-                {photoFile && <p className="text-xs text-muted-foreground truncate">{photoFile.name}</p>}
-              </div>
+              <UploadCard
+                id="photofile"
+                label="صورة شخصية للعريس"
+                icon={<Camera className="h-4 w-4" />}
+                hint="JPG / PNG — حتى 8 ميغابايت"
+                file={photoFile}
+                onFile={setPhotoFile}
+                accept="image/*"
+              />
+              <UploadCard
+                id="idfile"
+                label="صورة الهوية الوطنية"
+                icon={<IdCard className="h-4 w-4" />}
+                hint="صورة واضحة للوجهين"
+                file={idFile}
+                onFile={setIdFile}
+                accept="image/*,application/pdf"
+              />
             </div>
           </section>
 
-          <section className="space-y-2 pt-4 border-t">
-            <Label htmlFor="req">ملاحظات وطلبات خاصة (اختياري)</Label>
-            <Textarea id="req" value={specialRequests} onChange={(e) => setSpecialRequests(e.target.value)} placeholder="مثال: زيادة ذبائح، ضيوف خاصون، طلبات إضافية..." rows={4} />
+          {/* Section: Notes */}
+          <section className="rounded-3xl border-2 border-primary/20 bg-card/60 backdrop-blur p-5 md:p-7 space-y-3 shadow-elegant">
+            <div className="flex items-center gap-2 text-primary font-bold text-lg">
+              <StickyNote className="h-5 w-5" /> الملاحظات والطلبات الخاصة
+            </div>
+            <Label htmlFor="req" className="text-sm">اكتب ملاحظاتك أو طلباتك الخاصة <span className="text-destructive">*</span></Label>
+            <Textarea
+              id="req"
+              value={specialRequests}
+              onChange={(e) => setSpecialRequests(e.target.value)}
+              placeholder="مثال: زيادة ذبائح، ضيوف خاصون، طلبات إضافية..."
+              rows={4}
+              required
+            />
           </section>
 
           <Button type="submit" disabled={busy} className="w-full bg-gradient-hero text-primary-foreground hover:opacity-90 shadow-elegant h-12 text-base font-semibold">
