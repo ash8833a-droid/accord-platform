@@ -1,0 +1,1 @@
+UPDATE public.committees SET budget_allocated = 0, budget_spent = 0;
