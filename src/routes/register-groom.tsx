@@ -107,8 +107,8 @@ function RegisterGroomPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-primary/5 to-gold/5 p-6" dir="rtl">
         <div className="max-w-md w-full text-center bg-card rounded-3xl shadow-elegant border p-8 space-y-5 animate-fade-up">
-          <div className="mx-auto w-20 h-20 rounded-full bg-emerald-500/15 flex items-center justify-center">
-            <CheckCircle2 className="h-12 w-12 text-emerald-600" />
+          <div className="mx-auto w-20 h-20 rounded-full bg-primary/15 flex items-center justify-center">
+            <CheckCircle2 className="h-12 w-12 text-primary" />
           </div>
           <h1 className="text-2xl font-bold">تم استلام طلبك</h1>
           <p className="text-muted-foreground leading-relaxed">
