@@ -16,6 +16,19 @@ import {
 import { toast } from "sonner";
 import { GroomDetailsDialog } from "@/components/grooms/GroomDetailsDialog";
 import { supabase as sb } from "@/integrations/supabase/client";
+import { useAppSetting } from "@/hooks/use-app-setting";
+
+const REGISTER_LINK_KEY = "groom_registration_url";
+
+function useRegistrationUrl() {
+  const { value } = useAppSetting<string>(REGISTER_LINK_KEY, "");
+  const fallback =
+    typeof window !== "undefined"
+      ? `${window.location.origin}/register-groom`
+      : "/register-groom";
+  const trimmed = (value ?? "").trim();
+  return trimmed || fallback;
+}
 
 const REQUEST_TYPES = [
   { value: "extra_sheep", label: "زيادة في عدد الذبائح", icon: "🐑" },
@@ -564,9 +577,20 @@ function FileUploader({
 
 function ShareRegistrationLink() {
   const [open, setOpen] = useState(false);
-  const url = typeof window !== "undefined"
-    ? `${window.location.origin}/register-groom`
-    : "/register-groom";
+  const url = useRegistrationUrl();
+  const [draft, setDraft] = useState(url);
+  useEffect(() => { setDraft(url); }, [url]);
+
+  const saveUrl = async () => {
+    const next = draft.trim();
+    if (!next) { toast.error("الرجاء إدخال رابط صحيح"); return; }
+    try { new URL(next); } catch { toast.error("صيغة الرابط غير صحيحة"); return; }
+    const { error } = await supabase
+      .from("app_settings" as any)
+      .upsert({ key: REGISTER_LINK_KEY, value: next }, { onConflict: "key" });
+    if (error) toast.error("تعذّر حفظ الرابط");
+    else toast.success("تم اعتماد الرابط — سيُستخدم في كل مشاركة");
+  };
 
   const message = `🤍 بـارَكَ اللهُ لكَ وبارَكَ عليكَ وجَمَعَ بينَكُما في خَير 🤍
 
@@ -636,12 +660,29 @@ ${url}
             />
           </div>
 
-          <div className="flex items-center gap-2 rounded-xl border bg-muted/40 px-3 py-2">
-            <Globe2 className="h-4 w-4 text-primary shrink-0" />
-            <code className="flex-1 truncate text-xs text-foreground/80" dir="ltr">{url}</code>
-            <Button size="sm" variant="ghost" onClick={copyLinkOnly}>
-              <Copy className="h-3.5 w-3.5 ms-1" /> الرابط فقط
-            </Button>
+          <div className="space-y-2 rounded-xl border bg-muted/40 px-3 py-3">
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <Globe2 className="h-4 w-4 text-primary shrink-0" />
+              <span>الرابط المعتمد للتسجيل (يُستخدم في كل أزرار المشاركة)</span>
+            </div>
+            <Input
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              dir="ltr"
+              className="font-mono text-xs bg-background"
+              placeholder="https://..."
+            />
+            <div className="flex flex-wrap gap-2">
+              <Button size="sm" onClick={saveUrl} className="bg-primary text-primary-foreground">
+                اعتماد الرابط
+              </Button>
+              <Button size="sm" variant="ghost" onClick={copyLinkOnly}>
+                <Copy className="h-3.5 w-3.5 ms-1" /> نسخ الرابط
+              </Button>
+              {draft.trim() !== url && (
+                <span className="text-[11px] text-warning self-center">تغييرات غير محفوظة</span>
+              )}
+            </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -675,10 +716,8 @@ ${url}
 بانتظار مشاركتكَ معنا… وكلّ التوفيق والبركة لكَ ولأهلكَ ✨`;
 
 function QuickWhatsAppShare() {
+  const url = useRegistrationUrl();
   const handleClick = () => {
-    const url = typeof window !== "undefined"
-      ? `${window.location.origin}/register-groom`
-      : "/register-groom";
     const wa = `https://wa.me/?text=${encodeURIComponent(INVITATION_MESSAGE(url))}`;
     window.open(wa, "_blank", "noopener");
   };
