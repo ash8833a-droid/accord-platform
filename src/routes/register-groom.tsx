@@ -25,7 +25,10 @@ export const Route = createFileRoute("/register-groom")({
 
 const isValidSaPhone = (p: string) => /^05\d{8}$/.test(p.trim());
 const isQuadName = (n: string) => n.trim().split(/\s+/).filter(Boolean).length >= 4;
-const MAX_BYTES = 8 * 1024 * 1024;
+const MAX_BYTES = 5 * 1024 * 1024; // 5 MB max per file
+const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+const ALLOWED_EXT = /\.(jpe?g|png|webp)$/i;
+const formatBytes = (b: number) => `${(b / (1024 * 1024)).toFixed(2)} م.ب`;
 
 async function uploadPublic(file: File, prefix: string): Promise<string | null> {
   const ext = file.name.split(".").pop() || "bin";
