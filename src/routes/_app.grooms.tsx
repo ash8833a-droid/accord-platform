@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import {
   HeartHandshake, Plus, FileCheck2, FolderOpen, User, Phone, Users, Heart,
   StickyNote, IdCard, Camera, ClipboardList, Globe2, Crown, Upload, X, ImageIcon, FileImage,
-  Pencil, Trash2,
+  Pencil, Trash2, Share2, Copy, MessageCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 import { GroomDetailsDialog } from "@/components/grooms/GroomDetailsDialog";
@@ -201,6 +201,8 @@ function GroomsPage() {
           <h1 className="text-3xl font-bold">سجل العرسان</h1>
           <p className="text-muted-foreground mt-1">قاعدة بيانات شاملة لطلبات العرسان والمستندات</p>
         </div>
+        <div className="flex gap-2">
+        <ShareRegistrationLink />
         <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) resetForm(); }}>
           <DialogTrigger asChild onClick={() => resetForm()}>
             <Button className="bg-gradient-hero text-primary-foreground shadow-elegant">
@@ -351,6 +353,7 @@ function GroomsPage() {
             </form>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       <div className="grid grid-cols-3 gap-4">
@@ -555,5 +558,101 @@ function FileUploader({
         onChange={(e) => onChange(e.target.files?.[0] ?? null)}
       />
     </div>
+  );
+}
+
+function ShareRegistrationLink() {
+  const [open, setOpen] = useState(false);
+  const url = typeof window !== "undefined"
+    ? `${window.location.origin}/register-groom`
+    : "/register-groom";
+
+  const message = `🤍 بـارَكَ اللهُ لكَ وبارَكَ عليكَ وجَمَعَ بينَكُما في خَير 🤍
+
+يسعدنا أن ندعوكَ — أيها العريس الكريم — للانضمام إلى ركب العرسان في
+*برنامج الزواج الجماعي* الذي تنظّمه لجنة الزواج الجماعي بقبيلة الهملة من قريش.
+
+نسألكَ التكرّم بإكمال تسجيل بياناتك عبر الرابط الرسمي أدناه،
+لتكون معنا في ليلةٍ من ليالي الفرح والاجتماع، إن شاء الله:
+
+${url}
+
+• النموذج آمن وسهل ولا يستغرق سوى دقائق معدودة.
+• جميع بياناتك محفوظة بسرّية تامّة لدى اللجنة.
+• في حال واجهتَ أي استفسار، فريق اللجنة في خدمتك.
+
+بانتظار مشاركتكَ معنا… وكلّ التوفيق والبركة لكَ ولأهلكَ ✨`;
+
+  const copyMessage = async () => {
+    try {
+      await navigator.clipboard.writeText(message);
+      toast.success("تم نسخ نص الدعوة مع الرابط");
+    } catch {
+      toast.error("تعذّر النسخ، الرجاء المحاولة يدويًا");
+    }
+  };
+
+  const copyLinkOnly = async () => {
+    try {
+      await navigator.clipboard.writeText(url);
+      toast.success("تم نسخ الرابط");
+    } catch {
+      toast.error("تعذّر النسخ");
+    }
+  };
+
+  const sendWhatsApp = () => {
+    const wa = `https://wa.me/?text=${encodeURIComponent(message)}`;
+    window.open(wa, "_blank", "noopener");
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="outline" className="border-primary/30">
+          <Share2 className="h-4 w-4 ms-1" /> مشاركة رابط التسجيل
+        </Button>
+      </DialogTrigger>
+      <DialogContent dir="rtl" className="max-w-xl">
+        <DialogHeader>
+          <DialogTitle className="text-xl flex items-center gap-2">
+            <Share2 className="h-5 w-5 text-primary" />
+            دعوة العريس لتسجيل بياناته
+          </DialogTitle>
+          <p className="text-xs text-muted-foreground mt-1">
+            نص جاهز ومُلهم يُرسل مع رابط التسجيل عبر واتساب أو أي تطبيق محادثة.
+          </p>
+        </DialogHeader>
+
+        <div className="space-y-4 pt-2">
+          <div className="rounded-2xl border bg-gradient-to-br from-primary/5 to-transparent p-4">
+            <Textarea
+              value={message}
+              readOnly
+              rows={14}
+              className="resize-none bg-background/60 text-sm leading-7 font-medium"
+              dir="rtl"
+            />
+          </div>
+
+          <div className="flex items-center gap-2 rounded-xl border bg-muted/40 px-3 py-2">
+            <Globe2 className="h-4 w-4 text-primary shrink-0" />
+            <code className="flex-1 truncate text-xs text-foreground/80" dir="ltr">{url}</code>
+            <Button size="sm" variant="ghost" onClick={copyLinkOnly}>
+              <Copy className="h-3.5 w-3.5 ms-1" /> الرابط فقط
+            </Button>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <Button onClick={copyMessage} className="bg-gradient-hero text-primary-foreground">
+              <Copy className="h-4 w-4 ms-1" /> نسخ النص مع الرابط
+            </Button>
+            <Button onClick={sendWhatsApp} variant="outline" className="border-success/40 text-success-foreground">
+              <MessageCircle className="h-4 w-4 ms-1" /> إرسال عبر واتساب
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
