@@ -7,9 +7,10 @@ export function useAppSetting<T = any>(key: string, defaultValue: T) {
 
   useEffect(() => {
     let active = true;
+    const channelName = `app_settings_${key}_${Math.random().toString(36).slice(2)}`;
 
     const channel = supabase
-      .channel(`app_settings_${key}`)
+      .channel(channelName)
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "app_settings", filter: `key=eq.${key}` },
