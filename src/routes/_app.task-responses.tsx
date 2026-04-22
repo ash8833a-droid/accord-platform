@@ -485,6 +485,19 @@ function TaskResponsesPage() {
                         <span>تنفيذ: {r.execution_date ?? "—"}</span>
                         <span>رد: {fmtDate(r.created_at)}</span>
                       </div>
+                      {(isAdmin || r.user_id === user?.id) && (
+                        <div className="flex justify-end pt-1">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => deleteResponse(r)}
+                            className="h-7 px-2 text-destructive hover:text-destructive hover:bg-destructive/10 gap-1"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                            <span className="text-[11px]">حذف</span>
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   );
                 })}
