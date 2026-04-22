@@ -118,7 +118,6 @@ function UploadCard({ id, label, icon, hint, file, onFile }: UploadCardProps) {
 function RegisterGroomPage() {
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
-  const [familyBranch, setFamilyBranch] = useState("");
   const [nationalId, setNationalId] = useState("");
   const [idFile, setIdFile] = useState<File | null>(null);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
@@ -136,7 +135,7 @@ function RegisterGroomPage() {
   const [idPreviewUrl, setIdPreviewUrl] = useState<string | null>(null);
 
   const reset = () => {
-    setFullName(""); setPhone(""); setFamilyBranch(""); setNationalId("");
+    setFullName(""); setPhone(""); setNationalId("");
     setIdFile(null); setPhotoFile(null);
     setExtraSheep(""); setExtraCardsMen(""); setExtraCardsWomen("");
     setExternalParticipation(false); setExternalDetails("");
@@ -146,7 +145,6 @@ function RegisterGroomPage() {
   const validate = (): boolean => {
     if (!isQuadName(fullName)) { toast.error("الاسم يجب أن يكون رباعياً", { description: "الاسم الأول واسم الأب والجد واسم العائلة" }); return false; }
     if (!isValidSaPhone(phone)) { toast.error("رقم الجوال غير صحيح", { description: "يجب أن يبدأ بـ 05 ويتكون من 10 أرقام" }); return false; }
-    if (!familyBranch) { toast.error("الرجاء اختيار فرع العائلة"); return false; }
     if (!/^\d{10}$/.test(nationalId.trim())) { toast.error("رقم الهوية يجب أن يكون 10 أرقام"); return false; }
     if (!photoFile) { toast.error("الرجاء رفع الصورة الشخصية للعريس"); return false; }
     if (!idFile) { toast.error("الرجاء رفع صورة الهوية الوطنية"); return false; }
