@@ -577,9 +577,20 @@ function FileUploader({
 
 function ShareRegistrationLink() {
   const [open, setOpen] = useState(false);
-  const url = typeof window !== "undefined"
-    ? `${window.location.origin}/register-groom`
-    : "/register-groom";
+  const url = useRegistrationUrl();
+  const [draft, setDraft] = useState(url);
+  useEffect(() => { setDraft(url); }, [url]);
+
+  const saveUrl = async () => {
+    const next = draft.trim();
+    if (!next) { toast.error("الرجاء إدخال رابط صحيح"); return; }
+    try { new URL(next); } catch { toast.error("صيغة الرابط غير صحيحة"); return; }
+    const { error } = await supabase
+      .from("app_settings" as any)
+      .upsert({ key: REGISTER_LINK_KEY, value: next }, { onConflict: "key" });
+    if (error) toast.error("تعذّر حفظ الرابط");
+    else toast.success("تم اعتماد الرابط — سيُستخدم في كل مشاركة");
+  };
 
   const message = `🤍 بـارَكَ اللهُ لكَ وبارَكَ عليكَ وجَمَعَ بينَكُما في خَير 🤍
 
