@@ -7,6 +7,19 @@ export function useAppSetting<T = any>(key: string, defaultValue: T) {
 
   useEffect(() => {
     let active = true;
+
+    const channel = supabase
+      .channel(`app_settings_${key}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "app_settings", filter: `key=eq.${key}` },
+        (payload: any) => {
+          const newVal = payload?.new?.value;
+          if (newVal !== undefined && newVal !== null) setValue(newVal as T);
+        },
+      )
+      .subscribe();
+
     const load = async () => {
       const { data } = await supabase
         .from("app_settings" as any)
@@ -20,18 +33,6 @@ export function useAppSetting<T = any>(key: string, defaultValue: T) {
       setLoading(false);
     };
     load();
-
-    const channel = supabase
-      .channel(`app_settings_${key}`)
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "app_settings", filter: `key=eq.${key}` },
-        (payload: any) => {
-          const newVal = payload?.new?.value;
-          if (newVal !== undefined && newVal !== null) setValue(newVal as T);
-        },
-      )
-      .subscribe();
 
     return () => {
       active = false;
