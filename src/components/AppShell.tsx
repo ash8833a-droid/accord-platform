@@ -45,9 +45,10 @@ interface AppShellProps {
   children: ReactNode;
   restricted?: boolean;
   restrictedToCommitteeType?: string | null;
+  canSeeDashboard?: boolean;
 }
 
-export function AppShell({ children, restricted = false, restrictedToCommitteeType = null }: AppShellProps) {
+export function AppShell({ children, restricted = false, restrictedToCommitteeType = null, canSeeDashboard = true }: AppShellProps) {
   const { user, signOut, hasRole } = useAuth();
   const nav = useNavigate();
   const path = useRouterState({ select: (s) => s.location.pathname });
@@ -65,7 +66,9 @@ export function AppShell({ children, restricted = false, restrictedToCommitteeTy
   }, [user]);
   const isAdminUser = hasRole("admin");
   const TOP_NAV = restricted
-    ? [{ to: "/dashboard", label: "لوحة التحكم", icon: LayoutDashboard } as const]
+    ? (canSeeDashboard
+        ? [{ to: "/dashboard", label: "لوحة التحكم", icon: LayoutDashboard } as const]
+        : [])
     : ADMIN_TOP;
   const BOTTOM_NAV = restricted ? RESTRICTED_EXTRA : ADMIN_BOTTOM;
   const visibleCommittees = restricted
@@ -243,7 +246,7 @@ export function AppShell({ children, restricted = false, restrictedToCommitteeTy
         <nav className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-background border-t border-border shadow-[0_-2px_10px_rgba(0,0,0,0.04)]">
           <div className="grid grid-cols-5 h-16">
             {[
-              { to: "/dashboard", label: "الرئيسية", icon: LayoutDashboard },
+              ...(canSeeDashboard ? [{ to: "/dashboard", label: "الرئيسية", icon: LayoutDashboard }] : []),
               { to: "/ideas", label: "الأفكار", icon: Lightbulb },
               { to: "/grooms", label: "العرسان", icon: HeartHandshake },
               { to: "/team", label: "الفريق", icon: Users },
