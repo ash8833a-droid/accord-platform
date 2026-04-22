@@ -242,18 +242,9 @@ function RegisterGroomPage() {
             </div>
 
             <div className="grid md:grid-cols-2 gap-4">
-              <div className="space-y-2">
+              <div className="space-y-2 md:col-span-2">
                 <Label htmlFor="phone" className="flex items-center gap-2"><Phone className="h-4 w-4" /> رقم الجوال <span className="text-destructive">*</span></Label>
                 <Input id="phone" type="tel" dir="ltr" maxLength={10} value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="05xxxxxxxx" required />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="branch" className="flex items-center gap-2">فرع العائلة <span className="text-destructive">*</span></Label>
-                <Select value={familyBranch} onValueChange={setFamilyBranch}>
-                  <SelectTrigger id="branch"><SelectValue placeholder="اختر الفرع" /></SelectTrigger>
-                  <SelectContent>
-                    {FAMILY_BRANCHES.map((b) => <SelectItem key={b} value={b}>{b}</SelectItem>)}
-                  </SelectContent>
-                </Select>
               </div>
             </div>
 
