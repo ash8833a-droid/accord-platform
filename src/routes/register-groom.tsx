@@ -437,7 +437,6 @@ function PreviewDialog({
           <PreviewSection icon={<User className="h-4 w-4" />} title="البيانات الأساسية">
             <Row label="الاسم الرباعي" value={data.fullName} />
             <Row label="رقم الجوال" value={<span dir="ltr">{data.phone}</span>} />
-            <Row label="فرع العائلة" value={data.familyBranch} />
             <Row label="رقم الهوية الوطنية" value={<span dir="ltr">{data.nationalId}</span>} />
           </PreviewSection>
 
