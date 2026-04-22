@@ -1,0 +1,1 @@
+UPDATE public.committees SET max_members = 12 WHERE type = 'programs';
