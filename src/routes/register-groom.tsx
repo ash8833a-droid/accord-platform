@@ -146,13 +146,13 @@ function RegisterGroomPage() {
   };
 
   const validate = (): boolean => {
-    if (!isQuadName(fullName)) return toast.error("الاسم يجب أن يكون رباعياً", { description: "الاسم الأول واسم الأب والجد واسم العائلة" });
-    if (!isValidSaPhone(phone)) return toast.error("رقم الجوال غير صحيح", { description: "يجب أن يبدأ بـ 05 ويتكون من 10 أرقام" });
-    if (!familyBranch) return toast.error("الرجاء اختيار فرع العائلة");
-    if (!/^\d{10}$/.test(nationalId.trim())) return toast.error("رقم الهوية يجب أن يكون 10 أرقام");
-    if (!photoFile) return toast.error("الرجاء رفع الصورة الشخصية للعريس");
-    if (!idFile) return toast.error("الرجاء رفع صورة الهوية الوطنية");
-    if (externalParticipation && !externalDetails.trim()) return toast.error("الرجاء كتابة تفاصيل المشاركات الخارجية");
+    if (!isQuadName(fullName)) { toast.error("الاسم يجب أن يكون رباعياً", { description: "الاسم الأول واسم الأب والجد واسم العائلة" }); return false; }
+    if (!isValidSaPhone(phone)) { toast.error("رقم الجوال غير صحيح", { description: "يجب أن يبدأ بـ 05 ويتكون من 10 أرقام" }); return false; }
+    if (!familyBranch) { toast.error("الرجاء اختيار فرع العائلة"); return false; }
+    if (!/^\d{10}$/.test(nationalId.trim())) { toast.error("رقم الهوية يجب أن يكون 10 أرقام"); return false; }
+    if (!photoFile) { toast.error("الرجاء رفع الصورة الشخصية للعريس"); return false; }
+    if (!idFile) { toast.error("الرجاء رفع صورة الهوية الوطنية"); return false; }
+    if (externalParticipation && !externalDetails.trim()) { toast.error("الرجاء كتابة تفاصيل المشاركات الخارجية"); return false; }
     return true;
   };
 
