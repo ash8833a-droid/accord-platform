@@ -16,8 +16,6 @@ export const Route = createFileRoute("/auth")({
   component: AuthPage,
 });
 
-const FAMILY_BRANCHES = ["الفرع الأول", "الفرع الثاني", "الفرع الثالث", "الفرع الرابع", "الفرع الخامس"];
-
 const isValidSaPhone = (p: string) => /^05\d{8}$/.test(p.trim());
 
 function AuthPage() {
@@ -27,7 +25,6 @@ function AuthPage() {
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
-  const [familyBranch, setFamilyBranch] = useState("");
   const [committeeId, setCommitteeId] = useState<string>("");
   const [committees, setCommittees] = useState<{ id: string; name: string; type: string }[]>([]);
   const [notes, setNotes] = useState("");
