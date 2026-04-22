@@ -52,18 +52,37 @@ interface UploadCardProps {
   hint: string;
   file: File | null;
   onFile: (f: File | null) => void;
-  accept: string;
 }
 
-function UploadCard({ id, label, icon, hint, file, onFile, accept }: UploadCardProps) {
+function UploadCard({ id, label, icon, hint, file, onFile }: UploadCardProps) {
   const ref = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState<string | null>(null);
 
   const handle = (f: File | null) => {
+    if (!f) {
+      onFile(null);
+      if (preview) URL.revokeObjectURL(preview);
+      setPreview(null);
+      return;
+    }
+    const okType = ALLOWED_IMAGE_TYPES.includes(f.type) || ALLOWED_EXT.test(f.name);
+    if (!okType) {
+      toast.error("نوع الملف غير مدعوم", {
+        description: "الصور فقط: JPG أو PNG أو WebP",
+      });
+      if (ref.current) ref.current.value = "";
+      return;
+    }
+    if (f.size > MAX_BYTES) {
+      toast.error("حجم الملف كبير", {
+        description: `الحد الأقصى ${formatBytes(MAX_BYTES)} — حجم ملفك ${formatBytes(f.size)}`,
+      });
+      if (ref.current) ref.current.value = "";
+      return;
+    }
     onFile(f);
     if (preview) URL.revokeObjectURL(preview);
-    if (f && f.type.startsWith("image/")) setPreview(URL.createObjectURL(f));
-    else setPreview(null);
+    setPreview(URL.createObjectURL(f));
   };
 
   return (
@@ -90,7 +109,7 @@ function UploadCard({ id, label, icon, hint, file, onFile, accept }: UploadCardP
         ref={ref}
         id={id}
         type="file"
-        accept={accept}
+        accept="image/jpeg,image/png,image/webp"
         className="hidden"
         onChange={(e) => handle(e.target.files?.[0] ?? null)}
       />
