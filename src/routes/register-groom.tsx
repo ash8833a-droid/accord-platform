@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Logo } from "@/components/Logo";
+import ogImage from "@/assets/og-register-groom.jpg";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,10 +16,30 @@ export const Route = createFileRoute("/register-groom")({
   component: RegisterGroomPage,
   head: () => ({
     meta: [
-      { title: "تسجيل عريس جديد — لجنة الزواج الجماعي" },
-      { name: "description", content: "نموذج تسجيل العرسان للانضمام لبرنامج الزواج الجماعي" },
-      { property: "og:title", content: "تسجيل عريس جديد" },
-      { property: "og:description", content: "سجّل بياناتك للانضمام لبرنامج الزواج الجماعي" },
+      { title: "تسجيل العرسان — لجنة الزواج الجماعي" },
+      {
+        name: "description",
+        content:
+          "بكل فخرٍ ندعوك لتسجيل بياناتك والانضمام إلى ركب العرسان في برنامج الزواج الجماعي — خطوة ميسّرة نحو بداية مباركة.",
+      },
+      { property: "og:type", content: "website" },
+      { property: "og:title", content: "دعوة لتسجيل بيانات العريس" },
+      {
+        property: "og:description",
+        content:
+          "بارك الله لك… أكمل تسجيل بياناتك للانضمام لبرنامج الزواج الجماعي بخطوات بسيطة وآمنة.",
+      },
+      { property: "og:image", content: ogImage },
+      { property: "og:image:width", content: "1200" },
+      { property: "og:image:height", content: "630" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "دعوة لتسجيل بيانات العريس" },
+      {
+        name: "twitter:description",
+        content:
+          "بارك الله لك… أكمل تسجيل بياناتك للانضمام لبرنامج الزواج الجماعي بخطوات بسيطة وآمنة.",
+      },
+      { name: "twitter:image", content: ogImage },
     ],
   }),
 });
