@@ -270,19 +270,17 @@ function RegisterGroomPage() {
                 id="photofile"
                 label="صورة شخصية للعريس"
                 icon={<Camera className="h-4 w-4" />}
-                hint="JPG / PNG — حتى 8 ميغابايت"
+                hint="JPG / PNG / WebP — حتى 5 ميغابايت"
                 file={photoFile}
                 onFile={setPhotoFile}
-                accept="image/*"
               />
               <UploadCard
                 id="idfile"
                 label="صورة الهوية الوطنية"
                 icon={<IdCard className="h-4 w-4" />}
-                hint="صورة واضحة للوجهين"
+                hint="صورة واضحة — JPG / PNG — حتى 5 ميغابايت"
                 file={idFile}
                 onFile={setIdFile}
-                accept="image/*,application/pdf"
               />
             </div>
           </section>
