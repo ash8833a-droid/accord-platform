@@ -578,12 +578,25 @@ function TaskResponsesPage() {
                           <TableCell className="text-right text-xs text-muted-foreground">
                             {fmtDate(r.created_at)}
                           </TableCell>
+                          <TableCell className="text-right">
+                            {(isAdmin || r.user_id === user?.id) && (
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                onClick={() => deleteResponse(r)}
+                                className="h-7 w-7 text-destructive hover:text-destructive hover:bg-destructive/10"
+                                title="حذف الرد"
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </Button>
+                            )}
+                          </TableCell>
                         </TableRow>
                       );
                     })}
                     {filtered.length === 0 && (
                       <TableRow>
-                        <TableCell colSpan={11} className="text-center py-12 text-muted-foreground text-sm">
+                        <TableCell colSpan={12} className="text-center py-12 text-muted-foreground text-sm">
                           لا توجد ردود مطابقة لمعايير البحث
                         </TableCell>
                       </TableRow>
