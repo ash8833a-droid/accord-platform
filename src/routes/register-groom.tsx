@@ -2,7 +2,6 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Logo } from "@/components/Logo";
-import ogImage from "@/assets/og-register-groom.jpg";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,7 +13,14 @@ import { Loader2, CheckCircle2, Upload, User, Phone, IdCard, Camera, FileImage, 
 
 export const Route = createFileRoute("/register-groom")({
   component: RegisterGroomPage,
-  head: () => ({
+  head: ({ match }) => {
+    const origin =
+      typeof window !== "undefined"
+        ? window.location.origin
+        : "https://www.lajnat-zawaj.org";
+    const ogUrl = `${origin}/og-register-groom.jpg`;
+    void match;
+    return {
     meta: [
       { title: "تسجيل العرسان — لجنة الزواج الجماعي" },
       {
@@ -29,9 +35,12 @@ export const Route = createFileRoute("/register-groom")({
         content:
           "بارك الله لك… أكمل تسجيل بياناتك للانضمام لبرنامج الزواج الجماعي بخطوات بسيطة وآمنة.",
       },
-      { property: "og:image", content: ogImage },
-      { property: "og:image:width", content: "1200" },
-      { property: "og:image:height", content: "630" },
+      { property: "og:image", content: ogUrl },
+      { property: "og:image:secure_url", content: ogUrl },
+      { property: "og:image:type", content: "image/jpeg" },
+      { property: "og:image:width", content: "640" },
+      { property: "og:image:height", content: "640" },
+      { property: "og:image:alt", content: "شعار لجنة الزواج الجماعي" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "دعوة لتسجيل بيانات العريس" },
       {
@@ -39,9 +48,10 @@ export const Route = createFileRoute("/register-groom")({
         content:
           "بارك الله لك… أكمل تسجيل بياناتك للانضمام لبرنامج الزواج الجماعي بخطوات بسيطة وآمنة.",
       },
-      { name: "twitter:image", content: ogImage },
+      { name: "twitter:image", content: ogUrl },
     ],
-  }),
+    };
+  },
 });
 
 const isValidSaPhone = (p: string) => /^05\d{8}$/.test(p.trim());
