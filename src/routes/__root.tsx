@@ -35,8 +35,6 @@ export const Route = createRootRoute({
       { name: "twitter:title", content: "منصة لجنة الزواج الجماعي" },
       { property: "og:description", content: "منصة مؤسسية لإدارة برنامج الزواج الجماعي العائلي" },
       { name: "twitter:description", content: "منصة مؤسسية لإدارة برنامج الزواج الجماعي العائلي" },
-      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/138cf71b-16c8-4a68-b7b1-be5614a7e9e6" },
-      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/138cf71b-16c8-4a68-b7b1-be5614a7e9e6" },
       { name: "twitter:card", content: "summary_large_image" },
       { property: "og:type", content: "website" },
     ],
