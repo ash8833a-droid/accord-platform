@@ -370,7 +370,7 @@ function RegisterGroomPage() {
           busy={busy}
           onConfirm={submit}
           data={{
-            fullName, phone, familyBranch, nationalId,
+            fullName, phone, nationalId,
             extraSheep, extraCardsMen, extraCardsWomen,
             externalParticipation, externalDetails,
             vipGuests, notes,
@@ -384,7 +384,7 @@ function RegisterGroomPage() {
 }
 
 interface PreviewData {
-  fullName: string; phone: string; familyBranch: string; nationalId: string;
+  fullName: string; phone: string; nationalId: string;
   extraSheep: string; extraCardsMen: string; extraCardsWomen: string;
   externalParticipation: boolean; externalDetails: string;
   vipGuests: string; notes: string;
