@@ -1,17 +1,15 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { FAMILY_BRANCHES } from "@/lib/family-branches";
 import { Logo } from "@/components/Logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Loader2, CheckCircle2, Upload, User, Phone, IdCard, Camera, FileImage, StickyNote, Users, ClipboardList, Globe2, Crown, Eye, Pencil, Send } from "lucide-react";
+import { Loader2, CheckCircle2, Upload, User, Phone, IdCard, Camera, FileImage, StickyNote, ClipboardList, Globe2, Crown, Eye, Pencil, Send } from "lucide-react";
 
 export const Route = createFileRoute("/register-groom")({
   component: RegisterGroomPage,
@@ -120,7 +118,6 @@ function UploadCard({ id, label, icon, hint, file, onFile }: UploadCardProps) {
 function RegisterGroomPage() {
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
-  const [familyBranch, setFamilyBranch] = useState("");
   const [nationalId, setNationalId] = useState("");
   const [idFile, setIdFile] = useState<File | null>(null);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
@@ -138,7 +135,7 @@ function RegisterGroomPage() {
   const [idPreviewUrl, setIdPreviewUrl] = useState<string | null>(null);
 
   const reset = () => {
-    setFullName(""); setPhone(""); setFamilyBranch(""); setNationalId("");
+    setFullName(""); setPhone(""); setNationalId("");
     setIdFile(null); setPhotoFile(null);
     setExtraSheep(""); setExtraCardsMen(""); setExtraCardsWomen("");
     setExternalParticipation(false); setExternalDetails("");
@@ -148,7 +145,6 @@ function RegisterGroomPage() {
   const validate = (): boolean => {
     if (!isQuadName(fullName)) { toast.error("الاسم يجب أن يكون رباعياً", { description: "الاسم الأول واسم الأب والجد واسم العائلة" }); return false; }
     if (!isValidSaPhone(phone)) { toast.error("رقم الجوال غير صحيح", { description: "يجب أن يبدأ بـ 05 ويتكون من 10 أرقام" }); return false; }
-    if (!familyBranch) { toast.error("الرجاء اختيار فرع العائلة"); return false; }
     if (!/^\d{10}$/.test(nationalId.trim())) { toast.error("رقم الهوية يجب أن يكون 10 أرقام"); return false; }
     if (!photoFile) { toast.error("الرجاء رفع الصورة الشخصية للعريس"); return false; }
     if (!idFile) { toast.error("الرجاء رفع صورة الهوية الوطنية"); return false; }
@@ -177,7 +173,7 @@ function RegisterGroomPage() {
       const { error } = await supabase.from("grooms").insert({
         full_name: fullName.trim(),
         phone: phone.trim(),
-        family_branch: familyBranch,
+        family_branch: "غير محدد",
         national_id: nationalId.trim(),
         national_id_url,
         photo_url,
@@ -246,18 +242,9 @@ function RegisterGroomPage() {
             </div>
 
             <div className="grid md:grid-cols-2 gap-4">
-              <div className="space-y-2">
+              <div className="space-y-2 md:col-span-2">
                 <Label htmlFor="phone" className="flex items-center gap-2"><Phone className="h-4 w-4" /> رقم الجوال <span className="text-destructive">*</span></Label>
                 <Input id="phone" type="tel" dir="ltr" maxLength={10} value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="05xxxxxxxx" required />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="branch" className="flex items-center gap-2">فرع العائلة <span className="text-destructive">*</span></Label>
-                <Select value={familyBranch} onValueChange={setFamilyBranch}>
-                  <SelectTrigger id="branch"><SelectValue placeholder="اختر الفرع" /></SelectTrigger>
-                  <SelectContent>
-                    {FAMILY_BRANCHES.map((b) => <SelectItem key={b} value={b}>{b}</SelectItem>)}
-                  </SelectContent>
-                </Select>
               </div>
             </div>
 
@@ -383,7 +370,7 @@ function RegisterGroomPage() {
           busy={busy}
           onConfirm={submit}
           data={{
-            fullName, phone, familyBranch, nationalId,
+            fullName, phone, nationalId,
             extraSheep, extraCardsMen, extraCardsWomen,
             externalParticipation, externalDetails,
             vipGuests, notes,
@@ -397,7 +384,7 @@ function RegisterGroomPage() {
 }
 
 interface PreviewData {
-  fullName: string; phone: string; familyBranch: string; nationalId: string;
+  fullName: string; phone: string; nationalId: string;
   extraSheep: string; extraCardsMen: string; extraCardsWomen: string;
   externalParticipation: boolean; externalDetails: string;
   vipGuests: string; notes: string;
@@ -450,7 +437,6 @@ function PreviewDialog({
           <PreviewSection icon={<User className="h-4 w-4" />} title="البيانات الأساسية">
             <Row label="الاسم الرباعي" value={data.fullName} />
             <Row label="رقم الجوال" value={<span dir="ltr">{data.phone}</span>} />
-            <Row label="فرع العائلة" value={data.familyBranch} />
             <Row label="رقم الهوية الوطنية" value={<span dir="ltr">{data.nationalId}</span>} />
           </PreviewSection>
 
