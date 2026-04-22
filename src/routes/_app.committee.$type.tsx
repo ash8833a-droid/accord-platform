@@ -1220,7 +1220,18 @@ function CommitteePage() {
 
                         {/* === SECTION 4: Footer (assignee + actions) === */}
                         <div className="flex items-center justify-between gap-2 px-3.5 ps-4 py-2 border-t border-border/40 bg-card">
-                          {assignee ? (
+                          {canManageTasks ? (
+                            <QuickAssignPopover
+                              task={t}
+                              assignee={assignee}
+                              isMine={isMine}
+                              members={members}
+                              allMembers={allMembers}
+                              isAdmin={isAdmin}
+                              currentCommitteeLabel={meta.label}
+                              onAssign={(id) => quickAssign(t.id, id)}
+                            />
+                          ) : assignee ? (
                             <div className="flex items-center gap-1.5 min-w-0" title={assignee.full_name}>
                               <Avatar className="h-6 w-6 border border-primary/20">
                                 <AvatarFallback className="text-[10px] bg-primary/10 text-primary font-bold">
