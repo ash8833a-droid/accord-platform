@@ -246,7 +246,7 @@ export function AppShell({ children, restricted = false, restrictedToCommitteeTy
         <nav className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-background border-t border-border shadow-[0_-2px_10px_rgba(0,0,0,0.04)]">
           <div className="grid grid-cols-5 h-16">
             {[
-              { to: "/dashboard", label: "الرئيسية", icon: LayoutDashboard },
+              ...(canSeeDashboard ? [{ to: "/dashboard", label: "الرئيسية", icon: LayoutDashboard }] : []),
               { to: "/ideas", label: "الأفكار", icon: Lightbulb },
               { to: "/grooms", label: "العرسان", icon: HeartHandshake },
               { to: "/team", label: "الفريق", icon: Users },
