@@ -25,7 +25,10 @@ export const Route = createFileRoute("/register-groom")({
 
 const isValidSaPhone = (p: string) => /^05\d{8}$/.test(p.trim());
 const isQuadName = (n: string) => n.trim().split(/\s+/).filter(Boolean).length >= 4;
-const MAX_BYTES = 8 * 1024 * 1024;
+const MAX_BYTES = 5 * 1024 * 1024; // 5 MB max per file
+const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+const ALLOWED_EXT = /\.(jpe?g|png|webp)$/i;
+const formatBytes = (b: number) => `${(b / (1024 * 1024)).toFixed(2)} م.ب`;
 
 async function uploadPublic(file: File, prefix: string): Promise<string | null> {
   const ext = file.name.split(".").pop() || "bin";
@@ -49,18 +52,37 @@ interface UploadCardProps {
   hint: string;
   file: File | null;
   onFile: (f: File | null) => void;
-  accept: string;
 }
 
-function UploadCard({ id, label, icon, hint, file, onFile, accept }: UploadCardProps) {
+function UploadCard({ id, label, icon, hint, file, onFile }: UploadCardProps) {
   const ref = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState<string | null>(null);
 
   const handle = (f: File | null) => {
+    if (!f) {
+      onFile(null);
+      if (preview) URL.revokeObjectURL(preview);
+      setPreview(null);
+      return;
+    }
+    const okType = ALLOWED_IMAGE_TYPES.includes(f.type) || ALLOWED_EXT.test(f.name);
+    if (!okType) {
+      toast.error("نوع الملف غير مدعوم", {
+        description: "الصور فقط: JPG أو PNG أو WebP",
+      });
+      if (ref.current) ref.current.value = "";
+      return;
+    }
+    if (f.size > MAX_BYTES) {
+      toast.error("حجم الملف كبير", {
+        description: `الحد الأقصى ${formatBytes(MAX_BYTES)} — حجم ملفك ${formatBytes(f.size)}`,
+      });
+      if (ref.current) ref.current.value = "";
+      return;
+    }
     onFile(f);
     if (preview) URL.revokeObjectURL(preview);
-    if (f && f.type.startsWith("image/")) setPreview(URL.createObjectURL(f));
-    else setPreview(null);
+    setPreview(URL.createObjectURL(f));
   };
 
   return (
@@ -87,7 +109,7 @@ function UploadCard({ id, label, icon, hint, file, onFile, accept }: UploadCardP
         ref={ref}
         id={id}
         type="file"
-        accept={accept}
+        accept="image/jpeg,image/png,image/webp"
         className="hidden"
         onChange={(e) => handle(e.target.files?.[0] ?? null)}
       />
@@ -122,8 +144,8 @@ function RegisterGroomPage() {
 
     setBusy(true);
     try {
-      if (idFile.size > MAX_BYTES) throw new Error("حجم صورة الهوية يجب أن يكون أقل من 8 ميغابايت");
-      if (photoFile.size > MAX_BYTES) throw new Error("حجم الصورة الشخصية يجب أن يكون أقل من 8 ميغابايت");
+      if (idFile.size > MAX_BYTES) throw new Error(`حجم صورة الهوية تجاوز ${formatBytes(MAX_BYTES)}`);
+      if (photoFile.size > MAX_BYTES) throw new Error(`حجم الصورة الشخصية تجاوز ${formatBytes(MAX_BYTES)}`);
 
       const national_id_url = await uploadPublic(idFile, "id");
       const photo_url = await uploadPublic(photoFile, "photo");
@@ -248,19 +270,17 @@ function RegisterGroomPage() {
                 id="photofile"
                 label="صورة شخصية للعريس"
                 icon={<Camera className="h-4 w-4" />}
-                hint="JPG / PNG — حتى 8 ميغابايت"
+                hint="JPG / PNG / WebP — حتى 5 ميغابايت"
                 file={photoFile}
                 onFile={setPhotoFile}
-                accept="image/*"
               />
               <UploadCard
                 id="idfile"
                 label="صورة الهوية الوطنية"
                 icon={<IdCard className="h-4 w-4" />}
-                hint="صورة واضحة للوجهين"
+                hint="صورة واضحة — JPG / PNG — حتى 5 ميغابايت"
                 file={idFile}
                 onFile={setIdFile}
-                accept="image/*,application/pdf"
               />
             </div>
           </section>
