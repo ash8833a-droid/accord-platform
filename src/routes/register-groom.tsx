@@ -9,8 +9,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Loader2, CheckCircle2, Upload, User, Phone, IdCard, Camera, FileImage, StickyNote, Users, ClipboardList, Globe2, Crown } from "lucide-react";
+import { Loader2, CheckCircle2, Upload, User, Phone, IdCard, Camera, FileImage, StickyNote, Users, ClipboardList, Globe2, Crown, Eye, Pencil, Send } from "lucide-react";
 
 export const Route = createFileRoute("/register-groom")({
   component: RegisterGroomPage,
