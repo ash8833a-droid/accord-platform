@@ -26,6 +26,7 @@ import {
   Printer,
   Filter,
   ShieldCheck,
+  Trash2,
 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { useAuth } from "@/lib/auth";
@@ -55,6 +56,7 @@ interface ResponseRow {
   id: string;
   task_id: string;
   committee_id: string;
+  user_id: string;
   author_name: string;
   action_taken: string;
   outcomes: string | null;
@@ -144,7 +146,7 @@ function TaskResponsesPage() {
       supabase
         .from("task_responses" as any)
         .select(
-          "id, task_id, committee_id, author_name, action_taken, outcomes, completion_percent, challenges, recommendations, execution_date, attachments_note, created_at",
+          "id, task_id, committee_id, user_id, author_name, action_taken, outcomes, completion_percent, challenges, recommendations, execution_date, attachments_note, created_at",
         )
         .order("created_at", { ascending: false }),
     ]);
@@ -308,6 +310,20 @@ function TaskResponsesPage() {
     w.document.close();
   };
 
+  const deleteResponse = async (r: JoinedRow) => {
+    if (!confirm(`هل تريد حذف رد "${r.author_name}" على مهمة "${r.taskTitle}"؟`)) return;
+    const { error } = await supabase
+      .from("task_responses" as any)
+      .delete()
+      .eq("id", r.id);
+    if (error) {
+      toast.error("تعذّر حذف الرد", { description: error.message });
+      return;
+    }
+    toast.success("تم حذف الرد");
+    setResponses((prev) => prev.filter((x) => x.id !== r.id));
+  };
+
   if (authorized === null) {
     return (
       <div className="flex justify-center py-20">
@@ -469,6 +485,19 @@ function TaskResponsesPage() {
                         <span>تنفيذ: {r.execution_date ?? "—"}</span>
                         <span>رد: {fmtDate(r.created_at)}</span>
                       </div>
+                      {(isAdmin || r.user_id === user?.id) && (
+                        <div className="flex justify-end pt-1">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => deleteResponse(r)}
+                            className="h-7 px-2 text-destructive hover:text-destructive hover:bg-destructive/10 gap-1"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                            <span className="text-[11px]">حذف</span>
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   );
                 })}
@@ -495,6 +524,7 @@ function TaskResponsesPage() {
                       <TableHead className="text-right font-bold text-primary min-w-[140px]">التوصيات</TableHead>
                       <TableHead className="text-right font-bold text-primary">تاريخ التنفيذ</TableHead>
                       <TableHead className="text-right font-bold text-primary">تاريخ الرد</TableHead>
+                      <TableHead className="text-right font-bold text-primary w-12"></TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -548,12 +578,25 @@ function TaskResponsesPage() {
                           <TableCell className="text-right text-xs text-muted-foreground">
                             {fmtDate(r.created_at)}
                           </TableCell>
+                          <TableCell className="text-right">
+                            {(isAdmin || r.user_id === user?.id) && (
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                onClick={() => deleteResponse(r)}
+                                className="h-7 w-7 text-destructive hover:text-destructive hover:bg-destructive/10"
+                                title="حذف الرد"
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </Button>
+                            )}
+                          </TableCell>
                         </TableRow>
                       );
                     })}
                     {filtered.length === 0 && (
                       <TableRow>
-                        <TableCell colSpan={11} className="text-center py-12 text-muted-foreground text-sm">
+                        <TableCell colSpan={12} className="text-center py-12 text-muted-foreground text-sm">
                           لا توجد ردود مطابقة لمعايير البحث
                         </TableCell>
                       </TableRow>
