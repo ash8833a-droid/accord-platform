@@ -203,6 +203,7 @@ function GroomsPage() {
         </div>
         <div className="flex gap-2">
         <ShareRegistrationLink />
+        <QuickWhatsAppShare />
         <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) resetForm(); }}>
           <DialogTrigger asChild onClick={() => resetForm()}>
             <Button className="bg-gradient-hero text-primary-foreground shadow-elegant">
