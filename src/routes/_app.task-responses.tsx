@@ -310,6 +310,20 @@ function TaskResponsesPage() {
     w.document.close();
   };
 
+  const deleteResponse = async (r: JoinedRow) => {
+    if (!confirm(`هل تريد حذف رد "${r.author_name}" على مهمة "${r.taskTitle}"؟`)) return;
+    const { error } = await supabase
+      .from("task_responses" as any)
+      .delete()
+      .eq("id", r.id);
+    if (error) {
+      toast.error("تعذّر حذف الرد", { description: error.message });
+      return;
+    }
+    toast.success("تم حذف الرد");
+    setResponses((prev) => prev.filter((x) => x.id !== r.id));
+  };
+
   if (authorized === null) {
     return (
       <div className="flex justify-center py-20">
