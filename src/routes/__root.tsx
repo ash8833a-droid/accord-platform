@@ -3,6 +3,7 @@ import appCss from "../styles.css?url";
 import { AuthProvider } from "@/lib/auth";
 import { Toaster } from "@/components/ui/sonner";
 import { AnnouncementsBanner } from "@/components/AnnouncementsBanner";
+import { InstallAppButton } from "@/components/InstallAppButton";
 
 function NotFound() {
   return (
@@ -46,10 +47,19 @@ export const Route = createRootRoute({
       { name: "twitter:image", content: "https://lajnat-zawaj.org/og-register-groom.jpg" },
       { name: "twitter:card", content: "summary_large_image" },
       { property: "og:type", content: "website" },
+      { name: "theme-color", content: "#0E3A42" },
+      { name: "apple-mobile-web-app-capable", content: "yes" },
+      { name: "mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
+      { name: "apple-mobile-web-app-title", content: "لجنة الزواج" },
     ],
     links: [
       { rel: "canonical", href: "https://lajnat-zawaj.org" },
       { rel: "stylesheet", href: appCss },
+      { rel: "manifest", href: "/manifest.webmanifest" },
+      { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
+      { rel: "icon", type: "image/png", sizes: "192x192", href: "/icon-192.png" },
+      { rel: "icon", type: "image/png", sizes: "512x512", href: "/icon-512.png" },
     ],
   }),
   shellComponent: RootShell,
@@ -69,6 +79,7 @@ function RootComponent() {
       )}
       <Outlet />
       <Toaster richColors position="top-center" />
+      <InstallAppButton />
     </AuthProvider>
   );
 }
