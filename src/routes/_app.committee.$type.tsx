@@ -406,6 +406,63 @@ function CommitteePage() {
     }
   };
 
+  /** Quick reassign a task to a member (or null) directly from the card.
+   *  Resolves virtual role-based ids to real team_members rows just like saveTask. */
+  const quickAssign = async (taskId: string, newAssigneeId: string | null) => {
+    if (!canManageTasks) {
+      toast.error("لا تملك صلاحية إسناد المهام في هذه اللجنة");
+      return;
+    }
+    let assigned_to: string | null = newAssigneeId;
+    if (assigned_to && assigned_to.startsWith("role::")) {
+      const [, , committeeId] = assigned_to.split("::");
+      const target = allMembers.find((m) => m.id === assigned_to);
+      const fullName = target?.full_name ?? "";
+      const { data: existing } = await supabase
+        .from("team_members")
+        .select("id")
+        .eq("committee_id", committeeId)
+        .eq("full_name", fullName)
+        .maybeSingle();
+      if (existing?.id) {
+        assigned_to = existing.id;
+      } else {
+        const { data: created, error: createErr } = await supabase
+          .from("team_members")
+          .insert({
+            committee_id: committeeId,
+            full_name: fullName,
+            role_title: target?.role_title ?? "عضو لجنة",
+            is_head: false,
+          })
+          .select("id")
+          .single();
+        if (createErr || !created) {
+          toast.error("تعذّر تجهيز بيانات العضو", { description: createErr?.message });
+          return;
+        }
+        assigned_to = created.id;
+      }
+    }
+    // optimistic update
+    setTasks((prev) => prev.map((t) => (t.id === taskId ? { ...t, assigned_to } : t)));
+    const { error } = await supabase
+      .from("committee_tasks")
+      .update({ assigned_to })
+      .eq("id", taskId);
+    if (error) {
+      toast.error("تعذّر الإسناد", { description: error.message });
+      load();
+      return;
+    }
+    if (assigned_to) {
+      const m = (allMembers.length ? allMembers : members).find((x) => x.id === assigned_to);
+      toast.success(`تم إسناد المهمة إلى ${m?.full_name ?? "العضو"}`);
+    } else {
+      toast.success("تم إلغاء الإسناد");
+    }
+  };
+
   const [dragId, setDragId] = useState<string | null>(null);
   const [dragOverCol, setDragOverCol] = useState<Task["status"] | null>(null);
   const COMMENTS_STORAGE_KEY = "committee:expandedComments";
