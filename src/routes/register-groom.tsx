@@ -133,6 +133,9 @@ function RegisterGroomPage() {
   const [notes, setNotes] = useState("");
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [photoPreviewUrl, setPhotoPreviewUrl] = useState<string | null>(null);
+  const [idPreviewUrl, setIdPreviewUrl] = useState<string | null>(null);
 
   const reset = () => {
     setFullName(""); setPhone(""); setFamilyBranch(""); setNationalId("");
@@ -142,8 +145,7 @@ function RegisterGroomPage() {
     setVipGuests(""); setNotes("");
   };
 
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const validate = (): boolean => {
     if (!isQuadName(fullName)) return toast.error("الاسم يجب أن يكون رباعياً", { description: "الاسم الأول واسم الأب والجد واسم العائلة" });
     if (!isValidSaPhone(phone)) return toast.error("رقم الجوال غير صحيح", { description: "يجب أن يبدأ بـ 05 ويتكون من 10 أرقام" });
     if (!familyBranch) return toast.error("الرجاء اختيار فرع العائلة");
@@ -151,11 +153,26 @@ function RegisterGroomPage() {
     if (!photoFile) return toast.error("الرجاء رفع الصورة الشخصية للعريس");
     if (!idFile) return toast.error("الرجاء رفع صورة الهوية الوطنية");
     if (externalParticipation && !externalDetails.trim()) return toast.error("الرجاء كتابة تفاصيل المشاركات الخارجية");
+    return true;
+  };
 
+  const openPreview = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!validate()) return;
+    // generate object URLs for preview
+    if (photoPreviewUrl) URL.revokeObjectURL(photoPreviewUrl);
+    if (idPreviewUrl) URL.revokeObjectURL(idPreviewUrl);
+    setPhotoPreviewUrl(photoFile ? URL.createObjectURL(photoFile) : null);
+    setIdPreviewUrl(idFile ? URL.createObjectURL(idFile) : null);
+    setPreviewOpen(true);
+  };
+
+  const submit = async () => {
+    if (!validate()) return;
     setBusy(true);
     try {
-      const national_id_url = await uploadPublic(idFile, "id");
-      const photo_url = await uploadPublic(photoFile, "photo");
+      const national_id_url = idFile ? await uploadPublic(idFile, "id") : null;
+      const photo_url = photoFile ? await uploadPublic(photoFile, "photo") : null;
 
       const { error } = await supabase.from("grooms").insert({
         full_name: fullName.trim(),
@@ -175,6 +192,7 @@ function RegisterGroomPage() {
         created_by: null,
       });
       if (error) throw error;
+      setPreviewOpen(false);
       setDone(true);
       toast.success("تم استلام طلبك بنجاح", { description: "ستتواصل معك اللجنة قريباً للمتابعة" });
     } catch (err) {
