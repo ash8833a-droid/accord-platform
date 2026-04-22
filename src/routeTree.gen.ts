@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as RegisterGroomRouteImport } from './routes/register-groom'
 import { Route as PendingRouteImport } from './routes/pending'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AppRouteImport } from './routes/_app'
@@ -24,6 +25,11 @@ import { Route as AppDashboardRouteImport } from './routes/_app.dashboard'
 import { Route as AppAdminRouteImport } from './routes/_app.admin'
 import { Route as AppCommitteeTypeRouteImport } from './routes/_app.committee.$type'
 
+const RegisterGroomRoute = RegisterGroomRouteImport.update({
+  id: '/register-groom',
+  path: '/register-groom',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PendingRoute = PendingRouteImport.update({
   id: '/pending',
   path: '/pending',
@@ -98,6 +104,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/pending': typeof PendingRoute
+  '/register-groom': typeof RegisterGroomRoute
   '/admin': typeof AppAdminRoute
   '/dashboard': typeof AppDashboardRoute
   '/finance': typeof AppFinanceRoute
@@ -113,6 +120,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/pending': typeof PendingRoute
+  '/register-groom': typeof RegisterGroomRoute
   '/admin': typeof AppAdminRoute
   '/dashboard': typeof AppDashboardRoute
   '/finance': typeof AppFinanceRoute
@@ -130,6 +138,7 @@ export interface FileRoutesById {
   '/_app': typeof AppRouteWithChildren
   '/auth': typeof AuthRoute
   '/pending': typeof PendingRoute
+  '/register-groom': typeof RegisterGroomRoute
   '/_app/admin': typeof AppAdminRoute
   '/_app/dashboard': typeof AppDashboardRoute
   '/_app/finance': typeof AppFinanceRoute
@@ -147,6 +156,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/pending'
+    | '/register-groom'
     | '/admin'
     | '/dashboard'
     | '/finance'
@@ -162,6 +172,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/pending'
+    | '/register-groom'
     | '/admin'
     | '/dashboard'
     | '/finance'
@@ -178,6 +189,7 @@ export interface FileRouteTypes {
     | '/_app'
     | '/auth'
     | '/pending'
+    | '/register-groom'
     | '/_app/admin'
     | '/_app/dashboard'
     | '/_app/finance'
@@ -195,10 +207,18 @@ export interface RootRouteChildren {
   AppRoute: typeof AppRouteWithChildren
   AuthRoute: typeof AuthRoute
   PendingRoute: typeof PendingRoute
+  RegisterGroomRoute: typeof RegisterGroomRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/register-groom': {
+      id: '/register-groom'
+      path: '/register-groom'
+      fullPath: '/register-groom'
+      preLoaderRoute: typeof RegisterGroomRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/pending': {
       id: '/pending'
       path: '/pending'
@@ -333,6 +353,7 @@ const rootRouteChildren: RootRouteChildren = {
   AppRoute: AppRouteWithChildren,
   AuthRoute: AuthRoute,
   PendingRoute: PendingRoute,
+  RegisterGroomRoute: RegisterGroomRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
