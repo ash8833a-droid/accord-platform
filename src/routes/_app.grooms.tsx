@@ -201,6 +201,8 @@ function GroomsPage() {
           <h1 className="text-3xl font-bold">سجل العرسان</h1>
           <p className="text-muted-foreground mt-1">قاعدة بيانات شاملة لطلبات العرسان والمستندات</p>
         </div>
+        <div className="flex gap-2">
+        <ShareRegistrationLink />
         <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) resetForm(); }}>
           <DialogTrigger asChild onClick={() => resetForm()}>
             <Button className="bg-gradient-hero text-primary-foreground shadow-elegant">
