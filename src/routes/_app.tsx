@@ -50,13 +50,27 @@ function AppLayout() {
     }
     if (!restricted || !typeLoaded) return;
 
-    // Allowed: /dashboard + /ideas + their committee page only
-    const allowed: string[] = ["/dashboard", "/ideas"];
+    // Dashboard is restricted to admin, quality, and supreme committee only
+    const isSupreme = myCommitteeType === "supreme";
+    if (path === "/dashboard" || path.startsWith("/dashboard/")) {
+      if (!isSupreme) {
+        if (myCommitteeType) {
+          nav({ to: "/committee/$type", params: { type: myCommitteeType } });
+        } else {
+          nav({ to: "/ideas" });
+        }
+        return;
+      }
+    }
+
+    // Allowed paths for restricted users
+    const allowed: string[] = ["/ideas"];
+    if (isSupreme) allowed.push("/dashboard");
     if (myCommitteeType) allowed.push(`/committee/${myCommitteeType}`);
     const ok = allowed.some((p) => path === p || path.startsWith(p + "/"));
     if (!ok) {
       if (myCommitteeType) nav({ to: "/committee/$type", params: { type: myCommitteeType } });
-      else nav({ to: "/dashboard" });
+      else nav({ to: "/ideas" });
     }
   }, [user, loading, approved, nav, path, restricted, typeLoaded, myCommitteeType]);
 
@@ -69,7 +83,11 @@ function AppLayout() {
   }
 
   return (
-    <AppShell restrictedToCommitteeType={restricted ? myCommitteeType : null} restricted={restricted}>
+    <AppShell
+      restrictedToCommitteeType={restricted ? myCommitteeType : null}
+      restricted={restricted}
+      canSeeDashboard={isAdmin || isQuality || myCommitteeType === "supreme"}
+    >
       <Outlet />
     </AppShell>
   );
