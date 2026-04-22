@@ -65,6 +65,7 @@ const STATUS_BADGE: Record<string, { label: string; cls: string }> = {
 function GroomsPage() {
   const [grooms, setGrooms] = useState<Groom[]>([]);
   const [open, setOpen] = useState(false);
+  const registrationUrl = useRegistrationUrl();
 
   const [form, setForm] = useState({
     full_name: "", phone: "", family_branch: "", notes: "",
@@ -215,8 +216,8 @@ function GroomsPage() {
           <p className="text-muted-foreground mt-1">قاعدة بيانات شاملة لطلبات العرسان والمستندات</p>
         </div>
         <div className="flex gap-2">
-        <ShareRegistrationLink />
-        <QuickWhatsAppShare />
+        <ShareRegistrationLink url={registrationUrl} />
+        <QuickWhatsAppShare url={registrationUrl} />
         <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) resetForm(); }}>
           <DialogTrigger asChild onClick={() => resetForm()}>
             <Button className="bg-gradient-hero text-primary-foreground shadow-elegant">
@@ -575,9 +576,8 @@ function FileUploader({
   );
 }
 
-function ShareRegistrationLink() {
+function ShareRegistrationLink({ url }: { url: string }) {
   const [open, setOpen] = useState(false);
-  const url = useRegistrationUrl();
   const [draft, setDraft] = useState(url);
   useEffect(() => { setDraft(url); }, [url]);
 
@@ -715,8 +715,7 @@ ${url}
 
 بانتظار مشاركتكَ معنا… وكلّ التوفيق والبركة لكَ ولأهلكَ ✨`;
 
-function QuickWhatsAppShare() {
-  const url = useRegistrationUrl();
+function QuickWhatsAppShare({ url }: { url: string }) {
   const handleClick = () => {
     const wa = `https://wa.me/?text=${encodeURIComponent(INVITATION_MESSAGE(url))}`;
     window.open(wa, "_blank", "noopener");
