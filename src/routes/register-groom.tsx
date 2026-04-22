@@ -251,7 +251,7 @@ function RegisterGroomPage() {
                 <Input id="phone" type="tel" dir="ltr" maxLength={10} value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="05xxxxxxxx" required />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="branch" className="flex items-center gap-2"><Users className="h-4 w-4" /> فرع العائلة <span className="text-destructive">*</span></Label>
+                <Label htmlFor="branch" className="flex items-center gap-2">فرع العائلة <span className="text-destructive">*</span></Label>
                 <Select value={familyBranch} onValueChange={setFamilyBranch}>
                   <SelectTrigger id="branch"><SelectValue placeholder="اختر الفرع" /></SelectTrigger>
                   <SelectContent>
