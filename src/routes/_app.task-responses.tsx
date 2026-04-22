@@ -26,6 +26,7 @@ import {
   Printer,
   Filter,
   ShieldCheck,
+  Trash2,
 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { useAuth } from "@/lib/auth";
