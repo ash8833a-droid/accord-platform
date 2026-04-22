@@ -657,3 +657,39 @@ ${url}
     </Dialog>
   );
 }
+
+const INVITATION_MESSAGE = (url: string) => `🤍 بـارَكَ اللهُ لكَ وبارَكَ عليكَ وجَمَعَ بينَكُما في خَير 🤍
+
+يسعدنا أن ندعوكَ — أيها العريس الكريم — للانضمام إلى ركب العرسان في
+*برنامج الزواج الجماعي* الذي تنظّمه لجنة الزواج الجماعي بقبيلة الهملة من قريش.
+
+نسألكَ التكرّم بإكمال تسجيل بياناتك عبر الرابط الرسمي أدناه،
+لتكون معنا في ليلةٍ من ليالي الفرح والاجتماع، إن شاء الله:
+
+${url}
+
+• النموذج آمن وسهل ولا يستغرق سوى دقائق معدودة.
+• جميع بياناتك محفوظة بسرّية تامّة لدى اللجنة.
+• في حال واجهتَ أي استفسار، فريق اللجنة في خدمتك.
+
+بانتظار مشاركتكَ معنا… وكلّ التوفيق والبركة لكَ ولأهلكَ ✨`;
+
+function QuickWhatsAppShare() {
+  const handleClick = () => {
+    const url = typeof window !== "undefined"
+      ? `${window.location.origin}/register-groom`
+      : "/register-groom";
+    const wa = `https://wa.me/?text=${encodeURIComponent(INVITATION_MESSAGE(url))}`;
+    window.open(wa, "_blank", "noopener");
+  };
+
+  return (
+    <Button
+      onClick={handleClick}
+      className="bg-[#25D366] hover:bg-[#1ebe57] text-white shadow-elegant"
+      title="إرسال دعوة عبر واتساب مباشرة"
+    >
+      <MessageCircle className="h-4 w-4 ms-1" /> واتساب مباشر
+    </Button>
+  );
+}
