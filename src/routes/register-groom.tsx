@@ -14,42 +14,42 @@ import { Loader2, CheckCircle2, Upload, User, Phone, IdCard, Camera, FileImage, 
 export const Route = createFileRoute("/register-groom")({
   component: RegisterGroomPage,
   head: ({ match }) => {
-    const origin =
-      typeof window !== "undefined"
-        ? window.location.origin
-        : "https://www.lajnat-zawaj.org";
-    const ogUrl = `${origin}/og-register-groom.jpg`;
+    const canonicalUrl = "https://lajnat-zawaj.org/register-groom";
+    const ogUrl = "https://lajnat-zawaj.org/og-register-groom.jpg";
     void match;
     return {
-    meta: [
-      { title: "تسجيل العرسان — لجنة الزواج الجماعي" },
-      {
-        name: "description",
-        content:
-          "بكل فخرٍ ندعوك لتسجيل بياناتك والانضمام إلى ركب العرسان في برنامج الزواج الجماعي — خطوة ميسّرة نحو بداية مباركة.",
-      },
-      { property: "og:type", content: "website" },
-      { property: "og:title", content: "دعوة لتسجيل بيانات العريس" },
-      {
-        property: "og:description",
-        content:
-          "بارك الله لك… أكمل تسجيل بياناتك للانضمام لبرنامج الزواج الجماعي بخطوات بسيطة وآمنة.",
-      },
-      { property: "og:image", content: ogUrl },
-      { property: "og:image:secure_url", content: ogUrl },
-      { property: "og:image:type", content: "image/jpeg" },
-      { property: "og:image:width", content: "640" },
-      { property: "og:image:height", content: "640" },
-      { property: "og:image:alt", content: "شعار لجنة الزواج الجماعي" },
-      { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "دعوة لتسجيل بيانات العريس" },
-      {
-        name: "twitter:description",
-        content:
-          "بارك الله لك… أكمل تسجيل بياناتك للانضمام لبرنامج الزواج الجماعي بخطوات بسيطة وآمنة.",
-      },
-      { name: "twitter:image", content: ogUrl },
-    ],
+      meta: [
+        { title: "تسجيل العرسان — لجنة الزواج الجماعي" },
+        {
+          name: "description",
+          content:
+            "بكل فخرٍ ندعوك لتسجيل بياناتك والانضمام إلى ركب العرسان في برنامج الزواج الجماعي — خطوة ميسّرة نحو بداية مباركة.",
+        },
+        { property: "og:type", content: "website" },
+        { property: "og:url", content: canonicalUrl },
+        { property: "og:site_name", content: "لجنة الزواج الجماعي" },
+        { property: "og:title", content: "دعوة لتسجيل بيانات العريس" },
+        {
+          property: "og:description",
+          content:
+            "بارك الله لك… أكمل تسجيل بياناتك للانضمام لبرنامج الزواج الجماعي بخطوات بسيطة وآمنة.",
+        },
+        { property: "og:image", content: ogUrl },
+        { property: "og:image:secure_url", content: ogUrl },
+        { property: "og:image:type", content: "image/jpeg" },
+        { property: "og:image:width", content: "640" },
+        { property: "og:image:height", content: "640" },
+        { property: "og:image:alt", content: "شعار لجنة الزواج الجماعي" },
+        { name: "twitter:card", content: "summary_large_image" },
+        { name: "twitter:title", content: "دعوة لتسجيل بيانات العريس" },
+        {
+          name: "twitter:description",
+          content:
+            "بارك الله لك… أكمل تسجيل بياناتك للانضمام لبرنامج الزواج الجماعي بخطوات بسيطة وآمنة.",
+        },
+        { name: "twitter:image", content: ogUrl },
+      ],
+      links: [{ rel: "canonical", href: canonicalUrl }],
     };
   },
 });
