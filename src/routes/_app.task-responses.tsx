@@ -56,6 +56,7 @@ interface ResponseRow {
   id: string;
   task_id: string;
   committee_id: string;
+  user_id: string;
   author_name: string;
   action_taken: string;
   outcomes: string | null;
@@ -145,7 +146,7 @@ function TaskResponsesPage() {
       supabase
         .from("task_responses" as any)
         .select(
-          "id, task_id, committee_id, author_name, action_taken, outcomes, completion_percent, challenges, recommendations, execution_date, attachments_note, created_at",
+          "id, task_id, committee_id, user_id, author_name, action_taken, outcomes, completion_percent, challenges, recommendations, execution_date, attachments_note, created_at",
         )
         .order("created_at", { ascending: false }),
     ]);
