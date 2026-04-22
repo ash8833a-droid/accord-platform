@@ -9,6 +9,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Plus, ListTodo, Receipt, Wallet, ArrowLeft, FileText, Upload, Loader2, Pencil, Trash2, GripVertical, User as UserIcon, Users, Target, CheckCircle2, AlertTriangle, MessageSquare, FileSpreadsheet, Printer, MessagesSquare, ChevronDown } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { toast } from "sonner";
 import { committeeByType, COMMITTEES } from "@/lib/committees";
 import * as XLSX from "xlsx";
@@ -401,6 +403,63 @@ function CommitteePage() {
     if (error) {
       toast.error("تعذر النقل", { description: error.message });
       load();
+    }
+  };
+
+  /** Quick reassign a task to a member (or null) directly from the card.
+   *  Resolves virtual role-based ids to real team_members rows just like saveTask. */
+  const quickAssign = async (taskId: string, newAssigneeId: string | null) => {
+    if (!canManageTasks) {
+      toast.error("لا تملك صلاحية إسناد المهام في هذه اللجنة");
+      return;
+    }
+    let assigned_to: string | null = newAssigneeId;
+    if (assigned_to && assigned_to.startsWith("role::")) {
+      const [, , committeeId] = assigned_to.split("::");
+      const target = allMembers.find((m) => m.id === assigned_to);
+      const fullName = target?.full_name ?? "";
+      const { data: existing } = await supabase
+        .from("team_members")
+        .select("id")
+        .eq("committee_id", committeeId)
+        .eq("full_name", fullName)
+        .maybeSingle();
+      if (existing?.id) {
+        assigned_to = existing.id;
+      } else {
+        const { data: created, error: createErr } = await supabase
+          .from("team_members")
+          .insert({
+            committee_id: committeeId,
+            full_name: fullName,
+            role_title: target?.role_title ?? "عضو لجنة",
+            is_head: false,
+          })
+          .select("id")
+          .single();
+        if (createErr || !created) {
+          toast.error("تعذّر تجهيز بيانات العضو", { description: createErr?.message });
+          return;
+        }
+        assigned_to = created.id;
+      }
+    }
+    // optimistic update
+    setTasks((prev) => prev.map((t) => (t.id === taskId ? { ...t, assigned_to } : t)));
+    const { error } = await supabase
+      .from("committee_tasks")
+      .update({ assigned_to })
+      .eq("id", taskId);
+    if (error) {
+      toast.error("تعذّر الإسناد", { description: error.message });
+      load();
+      return;
+    }
+    if (assigned_to) {
+      const m = (allMembers.length ? allMembers : members).find((x) => x.id === assigned_to);
+      toast.success(`تم إسناد المهمة إلى ${m?.full_name ?? "العضو"}`);
+    } else {
+      toast.success("تم إلغاء الإسناد");
     }
   };
 
@@ -1161,7 +1220,18 @@ function CommitteePage() {
 
                         {/* === SECTION 4: Footer (assignee + actions) === */}
                         <div className="flex items-center justify-between gap-2 px-3.5 ps-4 py-2 border-t border-border/40 bg-card">
-                          {assignee ? (
+                          {canManageTasks ? (
+                            <QuickAssignPopover
+                              task={t}
+                              assignee={assignee}
+                              isMine={isMine}
+                              members={members}
+                              allMembers={allMembers}
+                              isAdmin={isAdmin}
+                              currentCommitteeLabel={meta.label}
+                              onAssign={(id) => quickAssign(t.id, id)}
+                            />
+                          ) : assignee ? (
                             <div className="flex items-center gap-1.5 min-w-0" title={assignee.full_name}>
                               <Avatar className="h-6 w-6 border border-primary/20">
                                 <AvatarFallback className="text-[10px] bg-primary/10 text-primary font-bold">
@@ -1266,5 +1336,156 @@ function Stat({ label, value, tone }: { label: string; value: string; tone: stri
       <p className="text-[10px] opacity-80">{label}</p>
       <p className="font-bold text-sm mt-0.5">{value}</p>
     </div>
+  );
+}
+
+/**
+ * Inline quick-assign popover for task cards.
+ * Heads see only their committee members; admins see all committees grouped.
+ */
+function QuickAssignPopover({
+  task,
+  assignee,
+  isMine,
+  members,
+  allMembers,
+  isAdmin,
+  currentCommitteeLabel,
+  onAssign,
+}: {
+  task: Task;
+  assignee: TeamMember | undefined;
+  isMine: boolean;
+  members: TeamMember[];
+  allMembers: TeamMember[];
+  isAdmin: boolean;
+  currentCommitteeLabel: string;
+  onAssign: (id: string | null) => void | Promise<void>;
+}) {
+  const [open, setOpen] = useState(false);
+  const otherCommittees = isAdmin
+    ? COMMITTEES.filter((cm) => cm.label !== currentCommitteeLabel)
+    : [];
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          className="flex items-center gap-1.5 min-w-0 rounded-lg px-1.5 py-1 hover:bg-primary/10 hover:ring-1 hover:ring-primary/30 transition group/assign"
+          title="انقر لإسناد المهمة"
+        >
+          {assignee ? (
+            <>
+              <Avatar className="h-6 w-6 border border-primary/20">
+                <AvatarFallback className="text-[10px] bg-primary/10 text-primary font-bold">
+                  {initials(assignee.full_name)}
+                </AvatarFallback>
+              </Avatar>
+              <span className="text-[11px] text-muted-foreground truncate font-medium">
+                {assignee.full_name.split(" ").slice(0, 2).join(" ")}
+              </span>
+              {isMine && (
+                <Badge variant="secondary" className="bg-primary/10 text-primary text-[9px] px-1.5 h-4 rounded-md">
+                  أنت
+                </Badge>
+              )}
+            </>
+          ) : (
+            <span className="text-[10.5px] text-primary inline-flex items-center gap-1 font-medium">
+              <UserIcon className="h-3 w-3" /> إسناد لعضو
+            </span>
+          )}
+          <ChevronDown className="h-3 w-3 text-muted-foreground/60 opacity-0 group-hover/assign:opacity-100 transition" />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent dir="rtl" align="start" className="p-0 w-72">
+        <Command>
+          <CommandInput placeholder="ابحث عن عضو..." className="text-xs" />
+          <CommandList className="max-h-72">
+            <CommandEmpty className="py-6 text-center text-xs text-muted-foreground">
+              لا يوجد أعضاء مطابقون
+            </CommandEmpty>
+            <CommandGroup heading="إجراء">
+              <CommandItem
+                value="__unassign__"
+                onSelect={() => {
+                  setOpen(false);
+                  void onAssign(null);
+                }}
+                className="text-xs gap-2"
+              >
+                <UserIcon className="h-3.5 w-3.5 text-muted-foreground" />
+                إلغاء الإسناد
+                {!task.assigned_to && (
+                  <Badge variant="outline" className="text-[9px] h-4 ms-auto">الحالة الحالية</Badge>
+                )}
+              </CommandItem>
+            </CommandGroup>
+            {members.length > 0 && (
+              <CommandGroup heading={`أعضاء ${currentCommitteeLabel}`}>
+                {members.map((m) => (
+                  <CommandItem
+                    key={`own-${m.id}`}
+                    value={`${m.full_name} ${m.role_title ?? ""}`}
+                    onSelect={() => {
+                      setOpen(false);
+                      void onAssign(m.id);
+                    }}
+                    className="text-xs gap-2"
+                  >
+                    <Avatar className="h-5 w-5 border">
+                      <AvatarFallback className="text-[9px] bg-primary/10 text-primary font-bold">
+                        {initials(m.full_name)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span className="truncate">{m.full_name}</span>
+                    {m.is_head && (
+                      <Badge className="bg-gold/15 text-gold-foreground border border-gold/40 text-[9px] h-4 px-1">رئيس</Badge>
+                    )}
+                    {task.assigned_to === m.id && (
+                      <CheckCircle2 className="h-3.5 w-3.5 text-primary ms-auto shrink-0" />
+                    )}
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            )}
+            {otherCommittees.map((cm) => {
+              const list = allMembers.filter((m) => m.committee_name === cm.label);
+              if (list.length === 0) return null;
+              return (
+                <CommandGroup key={cm.type} heading={`${cm.label} (لجنة أخرى)`}>
+                  {list.map((m) => (
+                    <CommandItem
+                      key={m.id}
+                      value={`${m.full_name} ${cm.label}`}
+                      onSelect={() => {
+                        setOpen(false);
+                        void onAssign(m.id);
+                      }}
+                      className="text-xs gap-2"
+                    >
+                      <Avatar className="h-5 w-5 border">
+                        <AvatarFallback className="text-[9px] bg-muted text-muted-foreground font-bold">
+                          {initials(m.full_name)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <span className="truncate">{m.full_name}</span>
+                      {task.assigned_to === m.id && (
+                        <CheckCircle2 className="h-3.5 w-3.5 text-primary ms-auto shrink-0" />
+                      )}
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              );
+            })}
+            {members.length === 0 && otherCommittees.length === 0 && (
+              <div className="px-3 py-4 text-center text-[11px] text-muted-foreground">
+                لا يوجد أعضاء معتمدون. أضف أعضاء من إدارة اللجنة أولاً.
+              </div>
+            )}
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
   );
 }
