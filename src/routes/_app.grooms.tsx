@@ -716,10 +716,8 @@ ${url}
 بانتظار مشاركتكَ معنا… وكلّ التوفيق والبركة لكَ ولأهلكَ ✨`;
 
 function QuickWhatsAppShare() {
+  const url = useRegistrationUrl();
   const handleClick = () => {
-    const url = typeof window !== "undefined"
-      ? `${window.location.origin}/register-groom`
-      : "/register-groom";
     const wa = `https://wa.me/?text=${encodeURIComponent(INVITATION_MESSAGE(url))}`;
     window.open(wa, "_blank", "noopener");
   };
