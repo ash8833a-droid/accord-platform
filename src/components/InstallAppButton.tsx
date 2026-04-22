@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Download, Share, X } from "lucide-react";
+import { Download, Share, X, MoreVertical, Smartphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 type BIPEvent = Event & {
@@ -16,10 +16,31 @@ function isStandalone() {
   );
 }
 
-function isIOS() {
-  if (typeof navigator === "undefined") return false;
+type Platform =
+  | "ios-safari"
+  | "ios-other"
+  | "android-chrome"
+  | "android-firefox"
+  | "android-other"
+  | "desktop";
+
+function detectPlatform(): Platform {
+  if (typeof navigator === "undefined") return "desktop";
   const ua = navigator.userAgent || "";
-  return /iPhone|iPad|iPod/i.test(ua) && !/CriOS|FxiOS|EdgiOS/i.test(ua);
+  const isIOS =
+    /iPhone|iPad|iPod/i.test(ua) ||
+    // iPadOS 13+ reports as Mac
+    (/Macintosh/i.test(ua) && "ontouchend" in document);
+  if (isIOS) {
+    if (/CriOS|FxiOS|EdgiOS|OPiOS/i.test(ua)) return "ios-other";
+    return "ios-safari";
+  }
+  if (/Android/i.test(ua)) {
+    if (/Firefox/i.test(ua)) return "android-firefox";
+    if (/Chrome|EdgA|SamsungBrowser/i.test(ua)) return "android-chrome";
+    return "android-other";
+  }
+  return "desktop";
 }
 
 function isInIframe() {
@@ -34,12 +55,16 @@ const DISMISS_KEY = "lz_install_dismissed_at";
 
 export function InstallAppButton() {
   const [deferred, setDeferred] = useState<BIPEvent | null>(null);
-  const [showIosHint, setShowIosHint] = useState(false);
+  const [showHint, setShowHint] = useState(false);
   const [dismissed, setDismissed] = useState(false);
   const [installed, setInstalled] = useState(false);
+  const [platform, setPlatform] = useState<Platform>("desktop");
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+    setMounted(true);
+    setPlatform(detectPlatform());
     if (isInIframe()) return;
     if (isStandalone()) {
       setInstalled(true);
@@ -63,11 +88,13 @@ export function InstallAppButton() {
     };
   }, []);
 
-  if (installed || dismissed || isInIframe()) return null;
+  if (!mounted || installed || dismissed || isInIframe()) return null;
 
-  const ios = isIOS();
   const canPrompt = !!deferred;
-  if (!canPrompt && !ios) return null;
+  // Show on mobile platforms always (we have manual fallback instructions),
+  // and on desktop only when the native prompt is available.
+  const isMobile = platform !== "desktop";
+  if (!canPrompt && !isMobile) return null;
 
   const dismiss = () => {
     try {
@@ -76,7 +103,7 @@ export function InstallAppButton() {
       /* ignore */
     }
     setDismissed(true);
-    setShowIosHint(false);
+    setShowHint(false);
   };
 
   const onClick = async () => {
@@ -87,7 +114,47 @@ export function InstallAppButton() {
       setDeferred(null);
       return;
     }
-    if (ios) setShowIosHint(true);
+    setShowHint((s) => !s);
+  };
+
+  const renderHint = () => {
+    switch (platform) {
+      case "ios-safari":
+        return (
+          <>
+            في Safari: اضغط زر المشاركة <Share className="inline h-3.5 w-3.5 mx-1" /> في الأسفل،
+            ثم اختر «إضافة إلى الشاشة الرئيسية».
+          </>
+        );
+      case "ios-other":
+        return (
+          <>
+            على iPhone، التثبيت متاح فقط من متصفح <b>Safari</b>. افتح الرابط في Safari ثم اضغط
+            زر المشاركة <Share className="inline h-3.5 w-3.5 mx-1" /> ← «إضافة إلى الشاشة الرئيسية».
+          </>
+        );
+      case "android-chrome":
+      case "android-other":
+        return (
+          <>
+            افتح قائمة المتصفح <MoreVertical className="inline h-3.5 w-3.5 mx-1" /> ثم اختر
+            «تثبيت التطبيق» أو «إضافة إلى الشاشة الرئيسية».
+          </>
+        );
+      case "android-firefox":
+        return (
+          <>
+            في Firefox: اضغط القائمة <MoreVertical className="inline h-3.5 w-3.5 mx-1" /> ثم
+            «التثبيت» أو «إضافة إلى الشاشة الرئيسية».
+          </>
+        );
+      default:
+        return (
+          <>
+            افتح الموقع من جوالك (Android: Chrome — iPhone: Safari) لتثبيته كتطبيق.
+          </>
+        );
+    }
   };
 
   return (
@@ -95,17 +162,16 @@ export function InstallAppButton() {
       <div className="pointer-events-auto max-w-md w-full rounded-2xl border border-gold/30 bg-card/95 backdrop-blur shadow-elegant p-3 flex items-center gap-3">
         <div className="flex-1 text-sm">
           <div className="font-semibold text-shimmer-gold">ثبّت التطبيق على جوالك</div>
-          <div className="text-xs text-muted-foreground">وصول أسرع كأنه تطبيق أصلي.</div>
-          {showIosHint && (
-            <div className="mt-2 text-xs text-foreground/80 leading-relaxed">
-              في Safari: اضغط أيقونة <Share className="inline h-3.5 w-3.5 mx-1" /> ثم
-              «إضافة إلى الشاشة الرئيسية».
-            </div>
+          <div className="text-xs text-muted-foreground">
+            {canPrompt ? "تثبيت بضغطة واحدة." : "وصول أسرع كأنه تطبيق أصلي."}
+          </div>
+          {showHint && (
+            <div className="mt-2 text-xs text-foreground/80 leading-relaxed">{renderHint()}</div>
           )}
         </div>
         <Button size="sm" onClick={onClick} className="gap-1">
-          <Download className="h-4 w-4" />
-          ثبّت
+          {canPrompt ? <Download className="h-4 w-4" /> : <Smartphone className="h-4 w-4" />}
+          {canPrompt ? "ثبّت" : "كيف؟"}
         </Button>
         <button
           aria-label="إغلاق"
