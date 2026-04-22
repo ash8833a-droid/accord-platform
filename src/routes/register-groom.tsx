@@ -9,8 +9,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Loader2, CheckCircle2, Upload, User, Phone, IdCard, Camera, FileImage, StickyNote, Users, ClipboardList, Globe2, Crown } from "lucide-react";
+import { Loader2, CheckCircle2, Upload, User, Phone, IdCard, Camera, FileImage, StickyNote, Users, ClipboardList, Globe2, Crown, Eye, Pencil, Send } from "lucide-react";
 
 export const Route = createFileRoute("/register-groom")({
   component: RegisterGroomPage,
@@ -132,6 +133,9 @@ function RegisterGroomPage() {
   const [notes, setNotes] = useState("");
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [photoPreviewUrl, setPhotoPreviewUrl] = useState<string | null>(null);
+  const [idPreviewUrl, setIdPreviewUrl] = useState<string | null>(null);
 
   const reset = () => {
     setFullName(""); setPhone(""); setFamilyBranch(""); setNationalId("");
@@ -141,20 +145,34 @@ function RegisterGroomPage() {
     setVipGuests(""); setNotes("");
   };
 
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!isQuadName(fullName)) return toast.error("الاسم يجب أن يكون رباعياً", { description: "الاسم الأول واسم الأب والجد واسم العائلة" });
-    if (!isValidSaPhone(phone)) return toast.error("رقم الجوال غير صحيح", { description: "يجب أن يبدأ بـ 05 ويتكون من 10 أرقام" });
-    if (!familyBranch) return toast.error("الرجاء اختيار فرع العائلة");
-    if (!/^\d{10}$/.test(nationalId.trim())) return toast.error("رقم الهوية يجب أن يكون 10 أرقام");
-    if (!photoFile) return toast.error("الرجاء رفع الصورة الشخصية للعريس");
-    if (!idFile) return toast.error("الرجاء رفع صورة الهوية الوطنية");
-    if (externalParticipation && !externalDetails.trim()) return toast.error("الرجاء كتابة تفاصيل المشاركات الخارجية");
+  const validate = (): boolean => {
+    if (!isQuadName(fullName)) { toast.error("الاسم يجب أن يكون رباعياً", { description: "الاسم الأول واسم الأب والجد واسم العائلة" }); return false; }
+    if (!isValidSaPhone(phone)) { toast.error("رقم الجوال غير صحيح", { description: "يجب أن يبدأ بـ 05 ويتكون من 10 أرقام" }); return false; }
+    if (!familyBranch) { toast.error("الرجاء اختيار فرع العائلة"); return false; }
+    if (!/^\d{10}$/.test(nationalId.trim())) { toast.error("رقم الهوية يجب أن يكون 10 أرقام"); return false; }
+    if (!photoFile) { toast.error("الرجاء رفع الصورة الشخصية للعريس"); return false; }
+    if (!idFile) { toast.error("الرجاء رفع صورة الهوية الوطنية"); return false; }
+    if (externalParticipation && !externalDetails.trim()) { toast.error("الرجاء كتابة تفاصيل المشاركات الخارجية"); return false; }
+    return true;
+  };
 
+  const openPreview = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!validate()) return;
+    // generate object URLs for preview
+    if (photoPreviewUrl) URL.revokeObjectURL(photoPreviewUrl);
+    if (idPreviewUrl) URL.revokeObjectURL(idPreviewUrl);
+    setPhotoPreviewUrl(photoFile ? URL.createObjectURL(photoFile) : null);
+    setIdPreviewUrl(idFile ? URL.createObjectURL(idFile) : null);
+    setPreviewOpen(true);
+  };
+
+  const submit = async () => {
+    if (!validate()) return;
     setBusy(true);
     try {
-      const national_id_url = await uploadPublic(idFile, "id");
-      const photo_url = await uploadPublic(photoFile, "photo");
+      const national_id_url = idFile ? await uploadPublic(idFile, "id") : null;
+      const photo_url = photoFile ? await uploadPublic(photoFile, "photo") : null;
 
       const { error } = await supabase.from("grooms").insert({
         full_name: fullName.trim(),
@@ -174,6 +192,7 @@ function RegisterGroomPage() {
         created_by: null,
       });
       if (error) throw error;
+      setPreviewOpen(false);
       setDone(true);
       toast.success("تم استلام طلبك بنجاح", { description: "ستتواصل معك اللجنة قريباً للمتابعة" });
     } catch (err) {
@@ -214,7 +233,7 @@ function RegisterGroomPage() {
           <p className="text-sm text-muted-foreground">الحقول المميزة بـ <span className="text-destructive font-bold">*</span> إلزامية</p>
         </header>
 
-        <form onSubmit={submit} className="space-y-5">
+        <form onSubmit={openPreview} className="space-y-5">
           {/* Basic Info */}
           <section className="rounded-3xl border-2 border-primary/20 bg-card/60 backdrop-blur p-5 md:p-7 space-y-5 shadow-elegant">
             <div className="flex items-center gap-2 text-primary font-bold text-lg">
@@ -342,13 +361,13 @@ function RegisterGroomPage() {
             <Textarea id="notes" value={notes} onChange={(e) => setNotes(e.target.value)} rows={4} placeholder="أي ملاحظات أو طلبات خاصة..." />
           </section>
 
-          <Button type="submit" disabled={busy} className="w-full bg-gradient-hero text-primary-foreground hover:opacity-90 shadow-elegant h-12 text-base font-semibold">
-            {busy && <Loader2 className="h-4 w-4 animate-spin ms-2" />}
-            إرسال الطلب
+          <Button type="submit" className="w-full bg-gradient-hero text-primary-foreground hover:opacity-90 shadow-elegant h-12 text-base font-semibold">
+            <Eye className="h-4 w-4 ms-2" />
+            معاينة الطلب قبل الإرسال
           </Button>
 
           <p className="text-xs text-center text-muted-foreground">
-            بإرسالك للنموذج فإنك توافق على مراجعة بياناتك من قِبَل اللجنة المختصة.
+            ستتمكن من مراجعة بياناتك في الخطوة التالية قبل الإرسال النهائي.
           </p>
         </form>
 
@@ -357,7 +376,133 @@ function RegisterGroomPage() {
             العودة للصفحة الرئيسية
           </Link>
         </div>
+
+        <PreviewDialog
+          open={previewOpen}
+          onOpenChange={setPreviewOpen}
+          busy={busy}
+          onConfirm={submit}
+          data={{
+            fullName, phone, familyBranch, nationalId,
+            extraSheep, extraCardsMen, extraCardsWomen,
+            externalParticipation, externalDetails,
+            vipGuests, notes,
+            photoFile, idFile,
+            photoPreviewUrl, idPreviewUrl,
+          }}
+        />
       </div>
     </div>
+  );
+}
+
+interface PreviewData {
+  fullName: string; phone: string; familyBranch: string; nationalId: string;
+  extraSheep: string; extraCardsMen: string; extraCardsWomen: string;
+  externalParticipation: boolean; externalDetails: string;
+  vipGuests: string; notes: string;
+  photoFile: File | null; idFile: File | null;
+  photoPreviewUrl: string | null; idPreviewUrl: string | null;
+}
+
+function Row({ label, value }: { label: string; value: React.ReactNode }) {
+  return (
+    <div className="flex items-start justify-between gap-4 py-2 border-b border-dashed border-border/50 last:border-0">
+      <span className="text-xs text-muted-foreground shrink-0">{label}</span>
+      <span className="text-sm font-medium text-end break-words">{value || <span className="text-muted-foreground">—</span>}</span>
+    </div>
+  );
+}
+
+function PreviewSection({ icon, title, children }: { icon: React.ReactNode; title: string; children: React.ReactNode }) {
+  return (
+    <div className="rounded-2xl border bg-muted/30 p-4 space-y-1">
+      <div className="flex items-center gap-2 text-primary font-semibold text-sm mb-2">
+        {icon} {title}
+      </div>
+      {children}
+    </div>
+  );
+}
+
+function PreviewDialog({
+  open, onOpenChange, busy, onConfirm, data,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  busy: boolean;
+  onConfirm: () => void;
+  data: PreviewData;
+}) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent dir="rtl" className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2 text-xl">
+            <Eye className="h-5 w-5 text-primary" /> معاينة الطلب قبل الإرسال
+          </DialogTitle>
+          <DialogDescription>
+            راجع جميع البيانات بدقّة. اضغط «تأكيد وإرسال» لإرسال الطلب نهائياً، أو «تعديل» للرجوع للنموذج.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-3 py-2">
+          <PreviewSection icon={<User className="h-4 w-4" />} title="البيانات الأساسية">
+            <Row label="الاسم الرباعي" value={data.fullName} />
+            <Row label="رقم الجوال" value={<span dir="ltr">{data.phone}</span>} />
+            <Row label="فرع العائلة" value={data.familyBranch} />
+            <Row label="رقم الهوية الوطنية" value={<span dir="ltr">{data.nationalId}</span>} />
+          </PreviewSection>
+
+          <PreviewSection icon={<FileImage className="h-4 w-4" />} title="المستندات والصور">
+            <div className="grid grid-cols-2 gap-3 pt-2">
+              <div className="space-y-1 text-center">
+                <p className="text-xs text-muted-foreground">صورة العريس</p>
+                {data.photoPreviewUrl ? (
+                  <img src={data.photoPreviewUrl} alt="العريس" className="mx-auto h-32 w-full object-cover rounded-lg border" />
+                ) : <p className="text-xs">—</p>}
+                <p className="text-[10px] text-muted-foreground truncate">{data.photoFile?.name}</p>
+              </div>
+              <div className="space-y-1 text-center">
+                <p className="text-xs text-muted-foreground">صورة الهوية</p>
+                {data.idPreviewUrl ? (
+                  <img src={data.idPreviewUrl} alt="الهوية" className="mx-auto h-32 w-full object-cover rounded-lg border" />
+                ) : <p className="text-xs">—</p>}
+                <p className="text-[10px] text-muted-foreground truncate">{data.idFile?.name}</p>
+              </div>
+            </div>
+          </PreviewSection>
+
+          <PreviewSection icon={<ClipboardList className="h-4 w-4" />} title="ذبائح وكروت إضافية">
+            <Row label="ذبائح إضافية" value={data.extraSheep || "0"} />
+            <Row label="كروت رجال إضافية" value={data.extraCardsMen || "0"} />
+            <Row label="كروت نساء إضافية" value={data.extraCardsWomen || "0"} />
+          </PreviewSection>
+
+          <PreviewSection icon={<Globe2 className="h-4 w-4" />} title="مشاركات خارجية">
+            <Row label="يوجد مشاركات" value={data.externalParticipation ? "نعم" : "لا"} />
+            {data.externalParticipation && <Row label="التفاصيل" value={data.externalDetails} />}
+          </PreviewSection>
+
+          <PreviewSection icon={<Crown className="h-4 w-4" />} title="ضيوف الشخصيات الاعتبارية">
+            <Row label="الأسماء والألقاب" value={data.vipGuests} />
+          </PreviewSection>
+
+          <PreviewSection icon={<StickyNote className="h-4 w-4" />} title="ملاحظات إضافية">
+            <Row label="الملاحظات" value={data.notes} />
+          </PreviewSection>
+        </div>
+
+        <DialogFooter className="flex-col sm:flex-row gap-2">
+          <Button type="button" variant="outline" disabled={busy} onClick={() => onOpenChange(false)} className="gap-2">
+            <Pencil className="h-4 w-4" /> تعديل البيانات
+          </Button>
+          <Button type="button" disabled={busy} onClick={onConfirm} className="bg-gradient-hero text-primary-foreground gap-2">
+            {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+            تأكيد وإرسال
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
