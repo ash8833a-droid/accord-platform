@@ -144,8 +144,8 @@ function RegisterGroomPage() {
 
     setBusy(true);
     try {
-      if (idFile.size > MAX_BYTES) throw new Error("حجم صورة الهوية يجب أن يكون أقل من 8 ميغابايت");
-      if (photoFile.size > MAX_BYTES) throw new Error("حجم الصورة الشخصية يجب أن يكون أقل من 8 ميغابايت");
+      if (idFile.size > MAX_BYTES) throw new Error(`حجم صورة الهوية تجاوز ${formatBytes(MAX_BYTES)}`);
+      if (photoFile.size > MAX_BYTES) throw new Error(`حجم الصورة الشخصية تجاوز ${formatBytes(MAX_BYTES)}`);
 
       const national_id_url = await uploadPublic(idFile, "id");
       const photo_url = await uploadPublic(photoFile, "photo");
