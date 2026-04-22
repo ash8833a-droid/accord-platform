@@ -19,7 +19,7 @@ import { supabase as sb } from "@/integrations/supabase/client";
 import { useAppSetting } from "@/hooks/use-app-setting";
 
 const REGISTER_LINK_KEY = "groom_registration_url";
-const DEFAULT_REGISTRATION_URL = "https://lajnat-zawaj.org/register-groom";
+const DEFAULT_REGISTRATION_URL = "https://lajnat-zawaj.org";
 
 function useRegistrationUrl() {
   const { value } = useAppSetting<string>(REGISTER_LINK_KEY, "");
