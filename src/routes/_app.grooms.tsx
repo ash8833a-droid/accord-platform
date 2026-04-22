@@ -16,6 +16,19 @@ import {
 import { toast } from "sonner";
 import { GroomDetailsDialog } from "@/components/grooms/GroomDetailsDialog";
 import { supabase as sb } from "@/integrations/supabase/client";
+import { useAppSetting } from "@/hooks/use-app-setting";
+
+const REGISTER_LINK_KEY = "groom_registration_url";
+
+function useRegistrationUrl() {
+  const { value } = useAppSetting<string>(REGISTER_LINK_KEY, "");
+  const fallback =
+    typeof window !== "undefined"
+      ? `${window.location.origin}/register-groom`
+      : "/register-groom";
+  const trimmed = (value ?? "").trim();
+  return trimmed || fallback;
+}
 
 const REQUEST_TYPES = [
   { value: "extra_sheep", label: "زيادة في عدد الذبائح", icon: "🐑" },
