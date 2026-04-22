@@ -16,8 +16,6 @@ export const Route = createFileRoute("/auth")({
   component: AuthPage,
 });
 
-const FAMILY_BRANCHES = ["الفرع الأول", "الفرع الثاني", "الفرع الثالث", "الفرع الرابع", "الفرع الخامس"];
-
 const isValidSaPhone = (p: string) => /^05\d{8}$/.test(p.trim());
 
 function AuthPage() {
@@ -27,7 +25,6 @@ function AuthPage() {
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
-  const [familyBranch, setFamilyBranch] = useState("");
   const [committeeId, setCommitteeId] = useState<string>("");
   const [committees, setCommittees] = useState<{ id: string; name: string; type: string }[]>([]);
   const [notes, setNotes] = useState("");
@@ -59,12 +56,11 @@ function AuthPage() {
         else toast.success("مرحباً بعودتك");
       } else {
         if (!fullName.trim()) return toast.error("الرجاء إدخال الاسم الكامل");
-        if (!familyBranch) return toast.error("الرجاء اختيار فرع العائلة");
         const { error } = await signUp(
           phone,
           password,
           fullName,
-          familyBranch,
+          "",
           committeeId || undefined,
           notes || undefined,
         );
@@ -121,15 +117,6 @@ function AuthPage() {
                 <div className="space-y-2">
                   <Label htmlFor="name">الاسم الكامل *</Label>
                   <Input id="name" value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="مثال: أحمد بن محمد" required />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="branch">فرع العائلة *</Label>
-                  <Select value={familyBranch} onValueChange={setFamilyBranch}>
-                    <SelectTrigger id="branch"><SelectValue placeholder="اختر الفرع" /></SelectTrigger>
-                    <SelectContent>
-                      {FAMILY_BRANCHES.map((b) => <SelectItem key={b} value={b}>{b}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="cmt">اللجنة المطلوب الانضمام إليها (اختياري)</Label>
