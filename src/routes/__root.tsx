@@ -1,4 +1,4 @@
-import { Outlet, createRootRoute, HeadContent, Scripts, Link } from "@tanstack/react-router";
+import { Outlet, createRootRoute, HeadContent, Scripts, Link, useRouterState } from "@tanstack/react-router";
 import appCss from "../styles.css?url";
 import { AuthProvider } from "@/lib/auth";
 import { Toaster } from "@/components/ui/sonner";
@@ -53,17 +53,25 @@ export const Route = createRootRoute({
     ],
   }),
   shellComponent: RootShell,
-  component: () => (
+  component: RootComponent,
+  notFoundComponent: NotFound,
+});
+
+function RootComponent() {
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const hideBanner = pathname.startsWith("/register-groom") || pathname === "/";
+  return (
     <AuthProvider>
-      <div className="z-50 md:sticky md:top-0">
-        <AnnouncementsBanner />
-      </div>
+      {!hideBanner && (
+        <div className="z-50 md:sticky md:top-0">
+          <AnnouncementsBanner />
+        </div>
+      )}
       <Outlet />
       <Toaster richColors position="top-center" />
     </AuthProvider>
-  ),
-  notFoundComponent: NotFound,
-});
+  );
+}
 
 function RootShell({ children }: { children: React.ReactNode }) {
   return (
