@@ -173,7 +173,7 @@ function RegisterGroomPage() {
       const { error } = await supabase.from("grooms").insert({
         full_name: fullName.trim(),
         phone: phone.trim(),
-        family_branch: familyBranch,
+        family_branch: "غير محدد",
         national_id: nationalId.trim(),
         national_id_url,
         photo_url,
