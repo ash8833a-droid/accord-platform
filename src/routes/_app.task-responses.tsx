@@ -524,6 +524,7 @@ function TaskResponsesPage() {
                       <TableHead className="text-right font-bold text-primary min-w-[140px]">التوصيات</TableHead>
                       <TableHead className="text-right font-bold text-primary">تاريخ التنفيذ</TableHead>
                       <TableHead className="text-right font-bold text-primary">تاريخ الرد</TableHead>
+                      <TableHead className="text-right font-bold text-primary w-12"></TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
