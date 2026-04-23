@@ -28,6 +28,8 @@ import { QualityAuditPanel } from "@/components/quality/QualityAuditPanel";
 import { EvaluationPlanBuilder } from "@/components/quality/EvaluationPlanBuilder";
 import { EvaluationCriteria } from "@/components/quality/EvaluationCriteria";
 import { EvaluationForm } from "@/components/quality/EvaluationForm";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { ClipboardList, ClipboardCheck, CalendarRange, ShieldCheck } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth } from "@/lib/auth";
 import { useAppSetting } from "@/hooks/use-app-setting";
