@@ -69,8 +69,6 @@ export function EvaluationPlanBuilder() {
         id: r.id ?? (globalThis.crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2)),
         committee_type: r.committee_type,
         task: r.task ?? r.criteria ?? "",
-        start_date: r.start_date ?? "",
-        end_date: r.end_date ?? "",
         done: typeof r.done === "boolean" ? r.done : false,
         notes: r.notes ?? "",
       }));
