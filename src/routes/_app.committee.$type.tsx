@@ -1603,7 +1603,8 @@ function QualitySection({
   storageKey: string;
   children: React.ReactNode;
 }) {
-  const fullKey = `quality:section:${storageKey}`;
+  // storageKey is provided fully-qualified by the caller (e.g. "committee:quality:criteria")
+  const fullKey = storageKey;
   const [open, setOpen] = useState<boolean>(() => {
     if (typeof window === "undefined") return defaultOpen;
     const saved = window.localStorage.getItem(fullKey);
