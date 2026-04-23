@@ -1,5 +1,5 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -466,6 +466,45 @@ function CommitteePage() {
 
   const [dragId, setDragId] = useState<string | null>(null);
   const [dragOverCol, setDragOverCol] = useState<Task["status"] | null>(null);
+  const [dragOverTaskId, setDragOverTaskId] = useState<string | null>(null);
+
+  // ----- Manual task ordering (per-committee, persisted in localStorage) -----
+  const ORDER_STORAGE_KEY = committee ? `committee:taskOrder:${committee.id}` : "";
+  const [taskOrder, setTaskOrder] = useState<Record<Task["status"], string[]>>({
+    todo: [], in_progress: [], completed: [],
+  });
+  useEffect(() => {
+    if (!ORDER_STORAGE_KEY || typeof window === "undefined") return;
+    try {
+      const raw = window.localStorage.getItem(ORDER_STORAGE_KEY);
+      if (raw) setTaskOrder(JSON.parse(raw));
+      else setTaskOrder({ todo: [], in_progress: [], completed: [] });
+    } catch { /* ignore */ }
+  }, [ORDER_STORAGE_KEY]);
+  const persistOrder = (next: Record<Task["status"], string[]>) => {
+    setTaskOrder(next);
+    if (!ORDER_STORAGE_KEY || typeof window === "undefined") return;
+    try { window.localStorage.setItem(ORDER_STORAGE_KEY, JSON.stringify(next)); } catch { /* ignore */ }
+  };
+
+  /** Reorder a task within its column, inserting BEFORE targetId (or to the end if null). */
+  const reorderWithinColumn = (
+    sourceId: string,
+    targetId: string | null,
+    col: Task["status"],
+    colTaskIds: string[],
+  ) => {
+    // Build the current effective order of the column (manual first, then the rest)
+    const manual = (taskOrder[col] ?? []).filter((id) => colTaskIds.includes(id));
+    const rest = colTaskIds.filter((id) => !manual.includes(id));
+    const current = [...manual, ...rest];
+    const without = current.filter((id) => id !== sourceId);
+    let insertAt = targetId ? without.indexOf(targetId) : without.length;
+    if (insertAt < 0) insertAt = without.length;
+    without.splice(insertAt, 0, sourceId);
+    persistOrder({ ...taskOrder, [col]: without });
+  };
+
   const COMMENTS_STORAGE_KEY = "committee:expandedComments";
   const [expandedComments, setExpandedComments] = useState<Set<string>>(() => {
     if (typeof window === "undefined") return new Set();
@@ -494,17 +533,43 @@ function CommitteePage() {
     e.dataTransfer.effectAllowed = "move";
     e.dataTransfer.setData("text/plain", id);
   };
-  const onDragEnd = () => { setDragId(null); setDragOverCol(null); };
+  const onDragEnd = () => { setDragId(null); setDragOverCol(null); setDragOverTaskId(null); };
   const onDragOverCol = (e: React.DragEvent, col: Task["status"]) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = "move";
     setDragOverCol(col);
   };
-  const onDropCol = (e: React.DragEvent, col: Task["status"]) => {
+  const onDropCol = (e: React.DragEvent, col: Task["status"], colTaskIds: string[]) => {
     e.preventDefault();
     const id = e.dataTransfer.getData("text/plain") || dragId;
-    setDragId(null); setDragOverCol(null);
-    if (id) moveTask(id, col);
+    setDragId(null); setDragOverCol(null); setDragOverTaskId(null);
+    if (!id) return;
+    const src = tasks.find((t) => t.id === id);
+    if (!src) return;
+    // Cross-column move: update status (will be appended to end of new column)
+    if (src.status !== col) {
+      moveTask(id, col);
+      // Place it at the end of manual order for the new column
+      const next = { ...taskOrder, [col]: [...(taskOrder[col] ?? []).filter((x) => x !== id), id] };
+      persistOrder(next);
+      return;
+    }
+    // Same column: drop on empty area → move to end
+    reorderWithinColumn(id, null, col, colTaskIds);
+  };
+  const onDropOnCard = (e: React.DragEvent, targetId: string, col: Task["status"], colTaskIds: string[]) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const id = e.dataTransfer.getData("text/plain") || dragId;
+    setDragId(null); setDragOverCol(null); setDragOverTaskId(null);
+    if (!id || id === targetId) return;
+    const src = tasks.find((t) => t.id === id);
+    if (!src) return;
+    if (src.status !== col) {
+      // Move across columns AND position before the target
+      moveTask(id, col);
+    }
+    reorderWithinColumn(id, targetId, col, colTaskIds);
   };
 
   // ---------- Per-committee responses export ----------
@@ -1086,14 +1151,18 @@ function CommitteePage() {
         </div>
 
         <p className="text-[11px] text-muted-foreground mb-3">
-          💡 اسحب البطاقة وأفلتها بين الأعمدة لتغيير حالتها{showMine ? " · يتم عرض مهامك فقط" : ""}
+          💡 اسحب البطاقة بين الأعمدة لتغيير حالتها، أو فوق بطاقة أخرى لإعادة الترتيب يدوياً{showMine ? " · يتم عرض مهامك فقط" : ""}
         </p>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {(["todo", "in_progress", "completed"] as const).map((col) => {
             const priorityRank: Record<string, number> = { urgent: 0, high: 1, medium: 2, low: 3 };
-            const colTasks = visibleTasks
-              .filter((t) => t.status === col)
-              .slice()
+            const inCol = visibleTasks.filter((t) => t.status === col);
+            const manualIds = (taskOrder[col] ?? []).filter((id) => inCol.some((t) => t.id === id));
+            const ordered: Task[] = manualIds
+              .map((id) => inCol.find((t) => t.id === id)!)
+              .filter(Boolean);
+            const remainder = inCol
+              .filter((t) => !manualIds.includes(t.id))
               .sort((a, b) => {
                 const pr = (priorityRank[a.priority] ?? 9) - (priorityRank[b.priority] ?? 9);
                 if (pr !== 0) return pr;
@@ -1101,13 +1170,15 @@ function CommitteePage() {
                 const bd = (b as any).created_at ? new Date((b as any).created_at).getTime() : 0;
                 return bd - ad;
               });
+            const colTasks: Task[] = [...ordered, ...remainder];
+            const colTaskIds = colTasks.map((t) => t.id);
             const isOver = dragOverCol === col;
             return (
               <div
                 key={col}
                 onDragOver={(e) => onDragOverCol(e, col)}
                 onDragLeave={() => setDragOverCol((c) => (c === col ? null : c))}
-                onDrop={(e) => onDropCol(e, col)}
+                onDrop={(e) => onDropCol(e, col, colTaskIds)}
                 className={`rounded-2xl border bg-muted/30 p-4 min-h-[280px] transition-all ${
                   isOver ? "border-primary border-2 bg-primary/5 ring-2 ring-primary/20" : ""
                 }`}
@@ -1129,9 +1200,18 @@ function CommitteePage() {
                         draggable
                         onDragStart={(e) => onDragStart(e, t.id)}
                         onDragEnd={onDragEnd}
+                        onDragOver={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          if (dragId && dragId !== t.id) setDragOverTaskId(t.id);
+                        }}
+                        onDragLeave={() => setDragOverTaskId((c) => (c === t.id ? null : c))}
+                        onDrop={(e) => onDropOnCard(e, t.id, col, colTaskIds)}
                         className={`group relative rounded-2xl bg-card shadow-sm border border-border/60 hover:border-primary/40 hover:shadow-lg transition-all overflow-hidden ${
                           dragId === t.id ? "opacity-40 scale-95" : ""
-                        } ${isMine ? "ring-1 ring-primary/40" : ""} ${isFirstUrgent ? "ring-2 ring-destructive/60 border-destructive/50" : ""}`}
+                        } ${isMine ? "ring-1 ring-primary/40" : ""} ${isFirstUrgent ? "ring-2 ring-destructive/60 border-destructive/50" : ""} ${
+                          dragOverTaskId === t.id && dragId !== t.id ? "before:absolute before:inset-x-0 before:-top-1 before:h-1 before:bg-primary before:rounded-full" : ""
+                        }`}
                       >
                         {/* Priority accent bar */}
                         <span
