@@ -860,6 +860,7 @@ function CommitteePage() {
       {type === "quality" && (
         <>
           <EvaluationCriteria />
+          <EvaluationForm />
           <EvaluationPlanBuilder />
           <QualityAuditPanel />
         </>
