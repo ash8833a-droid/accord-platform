@@ -790,7 +790,12 @@ function CommitteePage() {
       )}
 
       {/* Quality committee: audit panel for monitoring all committees' tasks + per-committee PDF reports */}
-      {type === "quality" && <QualityAuditPanel />}
+      {type === "quality" && (
+        <>
+          <EvaluationPlanBuilder />
+          <QualityAuditPanel />
+        </>
+      )}
 
       {/* Media committee gets inbox + invitation cards distribution */}
       {type === "media" && (
