@@ -1589,3 +1589,33 @@ function QuickAssignPopover({
     </Popover>
   );
 }
+
+function QualitySection({
+  title,
+  icon: Icon,
+  defaultOpen = false,
+  children,
+}: {
+  title: string;
+  icon: React.ComponentType<{ className?: string }>;
+  defaultOpen?: boolean;
+  children: React.ReactNode;
+}) {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <Collapsible open={open} onOpenChange={setOpen} className="rounded-2xl border bg-card shadow-sm overflow-hidden">
+      <CollapsibleTrigger className="w-full flex items-center justify-between gap-3 px-4 py-3 hover:bg-muted/40 transition-colors text-right">
+        <div className="flex items-center gap-3">
+          <div className="h-9 w-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+            <Icon className="h-4.5 w-4.5" />
+          </div>
+          <div className="font-semibold text-sm md:text-base">{title}</div>
+        </div>
+        <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`} />
+      </CollapsibleTrigger>
+      <CollapsibleContent className="border-t bg-background/40 p-3 md:p-4">
+        {children}
+      </CollapsibleContent>
+    </Collapsible>
+  );
+}
