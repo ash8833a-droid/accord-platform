@@ -1594,14 +1594,25 @@ function QualitySection({
   title,
   icon: Icon,
   defaultOpen = false,
+  storageKey,
   children,
 }: {
   title: string;
   icon: React.ComponentType<{ className?: string }>;
   defaultOpen?: boolean;
+  storageKey: string;
   children: React.ReactNode;
 }) {
-  const [open, setOpen] = useState(defaultOpen);
+  const fullKey = `quality:section:${storageKey}`;
+  const [open, setOpen] = useState<boolean>(() => {
+    if (typeof window === "undefined") return defaultOpen;
+    const saved = window.localStorage.getItem(fullKey);
+    return saved === null ? defaultOpen : saved === "1";
+  });
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    window.localStorage.setItem(fullKey, open ? "1" : "0");
+  }, [fullKey, open]);
   return (
     <Collapsible open={open} onOpenChange={setOpen} className="rounded-2xl border bg-card shadow-sm overflow-hidden">
       <CollapsibleTrigger className="w-full flex items-center justify-between gap-3 px-4 py-3 hover:bg-muted/40 transition-colors text-right">
