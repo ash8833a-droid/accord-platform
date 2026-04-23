@@ -124,14 +124,12 @@ export function EvaluationPlanBuilder() {
     const data = rows.map(r => ({
       "اللجنة": COMMITTEES.find(c => c.type === r.committee_type)?.label ?? r.committee_type,
       "المهمة": r.task,
-      "تاريخ البدء": r.start_date,
-      "تاريخ الانتهاء": r.end_date,
       "الحالة": r.done ? "تمت ✓" : "لم تتم ✗",
       "ملاحظات": r.notes,
     }));
     const ws = XLSX.utils.json_to_sheet(data);
     ws["!cols"] = [
-      { wch: 22 }, { wch: 38 }, { wch: 14 }, { wch: 14 }, { wch: 12 }, { wch: 28 },
+      { wch: 22 }, { wch: 44 }, { wch: 12 }, { wch: 28 },
     ];
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "خطة التقييم");
