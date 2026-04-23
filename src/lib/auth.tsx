@@ -71,12 +71,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     });
 
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
-      setUser(data.session?.user ?? null);
-      if (data.session?.user) loadAccess(data.session.user.id);
-      setLoading(false);
-    });
+    supabase.auth
+      .getSession()
+      .then(async ({ data, error }) => {
+        // If the stored refresh token is invalid/expired, clear it so the user can log in fresh
+        if (error && /refresh token/i.test(error.message)) {
+          await supabase.auth.signOut().catch(() => {});
+          setSession(null);
+          setUser(null);
+        } else {
+          setSession(data.session);
+          setUser(data.session?.user ?? null);
+          if (data.session?.user) loadAccess(data.session.user.id);
+        }
+      })
+      .catch(async () => {
+        await supabase.auth.signOut().catch(() => {});
+      })
+      .finally(() => setLoading(false));
 
     return () => sub.subscription.unsubscribe();
   }, [loadAccess]);
