@@ -29,7 +29,7 @@ import { EvaluationPlanBuilder } from "@/components/quality/EvaluationPlanBuilde
 import { EvaluationCriteria } from "@/components/quality/EvaluationCriteria";
 import { EvaluationForm } from "@/components/quality/EvaluationForm";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ClipboardList, ClipboardCheck, CalendarRange, ShieldCheck } from "lucide-react";
+import { ClipboardList, ClipboardCheck, CalendarRange, ShieldCheck, UsersRound, HeartHandshake, Wallet as WalletIcon, Megaphone, Inbox, Archive } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth } from "@/lib/auth";
 import { useAppSetting } from "@/hooks/use-app-setting";
@@ -848,29 +848,35 @@ function CommitteePage() {
 
       {/* Strategic goals card */}
 
-      <CommitteeMembersPanel committeeId={committee.id} />
+      <QualitySection storageKey={`committee:${type}:members`} title="أعضاء اللجنة" icon={UsersRound} defaultOpen>
+        <CommitteeMembersPanel committeeId={committee.id} />
+      </QualitySection>
 
-      <GroomFollowups committeeType={type as any} />
+      <QualitySection storageKey={`committee:${type}:grooms`} title="متابعة العرسان" icon={HeartHandshake}>
+        <GroomFollowups committeeType={type as any} />
+      </QualitySection>
 
       {type === "finance" && (
-        <div className="rounded-2xl border bg-card p-5 shadow-soft">
-          <FinanceModule />
-        </div>
+        <QualitySection storageKey={`committee:${type}:finance`} title="الوحدة المالية" icon={WalletIcon} defaultOpen>
+          <div className="rounded-2xl border bg-card p-5 shadow-soft">
+            <FinanceModule />
+          </div>
+        </QualitySection>
       )}
 
       {/* Quality committee: audit panel for monitoring all committees' tasks + per-committee PDF reports */}
       {type === "quality" && (
         <>
-          <QualitySection title="معايير وبنود التقييم" icon={ClipboardList} defaultOpen>
+          <QualitySection storageKey={`committee:${type}:criteria`} title="معايير وبنود التقييم" icon={ClipboardList} defaultOpen>
             <EvaluationCriteria />
           </QualitySection>
-          <QualitySection title="نموذج تقييم اللجان" icon={ClipboardCheck}>
+          <QualitySection storageKey={`committee:${type}:form`} title="نموذج تقييم اللجان" icon={ClipboardCheck}>
             <EvaluationForm />
           </QualitySection>
-          <QualitySection title="خطة التقييم الأسبوعية" icon={CalendarRange}>
+          <QualitySection storageKey={`committee:${type}:plan`} title="خطة التقييم الأسبوعية" icon={CalendarRange}>
             <EvaluationPlanBuilder />
           </QualitySection>
-          <QualitySection title="لوحة تدقيق الجودة" icon={ShieldCheck}>
+          <QualitySection storageKey={`committee:${type}:audit`} title="لوحة تدقيق الجودة" icon={ShieldCheck}>
             <QualityAuditPanel />
           </QualitySection>
         </>
@@ -879,10 +885,14 @@ function CommitteePage() {
       {/* Media committee gets inbox + invitation cards distribution */}
       {type === "media" && (
         <>
-          <MediaInbox />
-          <div className="rounded-2xl border bg-card p-5 shadow-soft">
-            <InvitationCards />
-          </div>
+          <QualitySection storageKey={`committee:${type}:inbox`} title="صندوق الوارد الإعلامي" icon={Inbox} defaultOpen>
+            <MediaInbox />
+          </QualitySection>
+          <QualitySection storageKey={`committee:${type}:invitations`} title="بطاقات الدعوة" icon={Megaphone}>
+            <div className="rounded-2xl border bg-card p-5 shadow-soft">
+              <InvitationCards />
+            </div>
+          </QualitySection>
         </>
       )}
 
@@ -1026,7 +1036,13 @@ function CommitteePage() {
       </Dialog>
 
       {/* Tasks Kanban */}
-      <section>
+      <QualitySection
+        storageKey={`committee:${type}:tasks`}
+        title={`لوحة المهام${isHead ? " — رئيس اللجنة" : ""}`}
+        icon={ListTodo}
+        defaultOpen
+      >
+        <section>
         <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
           <div className="flex items-center gap-2 flex-wrap">
             <h3 className="font-bold flex items-center gap-2">
@@ -1380,10 +1396,13 @@ function CommitteePage() {
             );
           })}
         </div>
-      </section>
+        </section>
+      </QualitySection>
 
       {/* Archive of past reports / files / images for this committee */}
-      <CommitteeArchive committeeId={committee.id} committeeName={committee.name} />
+      <QualitySection storageKey={`committee:${type}:archive`} title="الأرشيف والتقارير" icon={Archive}>
+        <CommitteeArchive committeeId={committee.id} committeeName={committee.name} />
+      </QualitySection>
 
       {/* Edit payment request dialog */}
       <Dialog open={editPrOpen} onOpenChange={(o) => { setEditPrOpen(o); if (!o) setEditingPr(null); }}>
@@ -1594,14 +1613,26 @@ function QualitySection({
   title,
   icon: Icon,
   defaultOpen = false,
+  storageKey,
   children,
 }: {
   title: string;
   icon: React.ComponentType<{ className?: string }>;
   defaultOpen?: boolean;
+  storageKey: string;
   children: React.ReactNode;
 }) {
-  const [open, setOpen] = useState(defaultOpen);
+  // storageKey is provided fully-qualified by the caller (e.g. "committee:quality:criteria")
+  const fullKey = storageKey;
+  const [open, setOpen] = useState<boolean>(() => {
+    if (typeof window === "undefined") return defaultOpen;
+    const saved = window.localStorage.getItem(fullKey);
+    return saved === null ? defaultOpen : saved === "1";
+  });
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    window.localStorage.setItem(fullKey, open ? "1" : "0");
+  }, [fullKey, open]);
   return (
     <Collapsible open={open} onOpenChange={setOpen} className="rounded-2xl border bg-card shadow-sm overflow-hidden">
       <CollapsibleTrigger className="w-full flex items-center justify-between gap-3 px-4 py-3 hover:bg-muted/40 transition-colors text-right">
