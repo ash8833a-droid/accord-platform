@@ -352,8 +352,6 @@ function buildHTML(rows: EvalRow[]): string {
       const tbody = items.map(r => `
         <tr class="${r.done ? 'row-done' : 'row-pending'}">
           <td>${escapeHtml(r.task) || "—"}</td>
-          <td class="num">${escapeHtml(fmtDate(r.start_date))}</td>
-          <td class="num">${escapeHtml(fmtDate(r.end_date))}</td>
           <td class="status">${r.done
             ? '<span class="badge done">✓ تمت</span>'
             : '<span class="badge pending">✗ لم تتم</span>'}</td>
@@ -366,10 +364,8 @@ function buildHTML(rows: EvalRow[]): string {
           </header>
           <table>
             <thead><tr>
-              <th style="width:42%">المهمة</th>
-              <th style="width:18%">تاريخ البدء</th>
-              <th style="width:18%">تاريخ الانتهاء</th>
-              <th style="width:22%">الحالة</th>
+              <th style="width:75%">المهمة</th>
+              <th style="width:25%">الحالة</th>
             </tr></thead>
             <tbody>${tbody}</tbody>
           </table>
