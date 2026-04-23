@@ -848,29 +848,35 @@ function CommitteePage() {
 
       {/* Strategic goals card */}
 
-      <CommitteeMembersPanel committeeId={committee.id} />
+      <QualitySection storageKey={`committee:${type}:members`} title="أعضاء اللجنة" icon={UsersRound} defaultOpen>
+        <CommitteeMembersPanel committeeId={committee.id} />
+      </QualitySection>
 
-      <GroomFollowups committeeType={type as any} />
+      <QualitySection storageKey={`committee:${type}:grooms`} title="متابعة العرسان" icon={HeartHandshake}>
+        <GroomFollowups committeeType={type as any} />
+      </QualitySection>
 
       {type === "finance" && (
-        <div className="rounded-2xl border bg-card p-5 shadow-soft">
-          <FinanceModule />
-        </div>
+        <QualitySection storageKey={`committee:${type}:finance`} title="الوحدة المالية" icon={WalletIcon} defaultOpen>
+          <div className="rounded-2xl border bg-card p-5 shadow-soft">
+            <FinanceModule />
+          </div>
+        </QualitySection>
       )}
 
       {/* Quality committee: audit panel for monitoring all committees' tasks + per-committee PDF reports */}
       {type === "quality" && (
         <>
-          <QualitySection storageKey="criteria" title="معايير وبنود التقييم" icon={ClipboardList} defaultOpen>
+          <QualitySection storageKey={`committee:${type}:criteria`} title="معايير وبنود التقييم" icon={ClipboardList} defaultOpen>
             <EvaluationCriteria />
           </QualitySection>
-          <QualitySection storageKey="form" title="نموذج تقييم اللجان" icon={ClipboardCheck}>
+          <QualitySection storageKey={`committee:${type}:form`} title="نموذج تقييم اللجان" icon={ClipboardCheck}>
             <EvaluationForm />
           </QualitySection>
-          <QualitySection storageKey="plan" title="خطة التقييم الأسبوعية" icon={CalendarRange}>
+          <QualitySection storageKey={`committee:${type}:plan`} title="خطة التقييم الأسبوعية" icon={CalendarRange}>
             <EvaluationPlanBuilder />
           </QualitySection>
-          <QualitySection storageKey="audit" title="لوحة تدقيق الجودة" icon={ShieldCheck}>
+          <QualitySection storageKey={`committee:${type}:audit`} title="لوحة تدقيق الجودة" icon={ShieldCheck}>
             <QualityAuditPanel />
           </QualitySection>
         </>
@@ -879,10 +885,14 @@ function CommitteePage() {
       {/* Media committee gets inbox + invitation cards distribution */}
       {type === "media" && (
         <>
-          <MediaInbox />
-          <div className="rounded-2xl border bg-card p-5 shadow-soft">
-            <InvitationCards />
-          </div>
+          <QualitySection storageKey={`committee:${type}:inbox`} title="صندوق الوارد الإعلامي" icon={Inbox} defaultOpen>
+            <MediaInbox />
+          </QualitySection>
+          <QualitySection storageKey={`committee:${type}:invitations`} title="بطاقات الدعوة" icon={Megaphone}>
+            <div className="rounded-2xl border bg-card p-5 shadow-soft">
+              <InvitationCards />
+            </div>
+          </QualitySection>
         </>
       )}
 
