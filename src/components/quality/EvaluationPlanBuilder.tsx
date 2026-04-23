@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   ClipboardList, Save, FileSpreadsheet, Printer, Plus, Trash2, Loader2,
-  CheckCircle2, XCircle, Stamp, CalendarDays,
+  CheckCircle2, XCircle, Stamp, CalendarDays, RefreshCw,
 } from "lucide-react";
 import { toast } from "sonner";
 import * as XLSX from "xlsx";
@@ -19,8 +19,6 @@ interface EvalRow {
   id: string;
   committee_type: CommitteeType;
   task: string;            // المهمة
-  start_date: string;      // YYYY-MM-DD
-  end_date: string;        // YYYY-MM-DD
   done: boolean;           // تمت / لم تتم
   notes: string;
 }
@@ -31,8 +29,6 @@ const newRow = (committee_type: CommitteeType): EvalRow => ({
   id: (globalThis.crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2)),
   committee_type,
   task: "",
-  start_date: "",
-  end_date: "",
   done: false,
   notes: "",
 });
@@ -41,14 +37,17 @@ function defaultPlan(): EvalRow[] {
   return COMMITTEES.map((c) => newRow(c.type));
 }
 
-function fmtDate(s: string) {
-  if (!s) return "—";
-  try { return new Date(s).toLocaleDateString("ar-SA", { day: "numeric", month: "long", year: "numeric" }); }
-  catch { return s; }
-}
-
 function escapeHtml(s: string) {
   return (s ?? "").replace(/[&<>"']/g, (c) => ({ "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;" } as Record<string,string>)[c]!);
+}
+
+/** Returns next Saturday (or today if Saturday) — weekly issue date label. */
+function nextSaturday(): Date {
+  const d = new Date();
+  const day = d.getDay(); // 0=Sun..6=Sat
+  const diff = (6 - day + 7) % 7; // days until Saturday
+  d.setDate(d.getDate() + diff);
+  return d;
 }
 
 export function EvaluationPlanBuilder() {
