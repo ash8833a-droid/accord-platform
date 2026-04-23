@@ -419,8 +419,8 @@ function buildHTML(rows: EvalRow[]): string {
         </section>`;
     }).join("");
 
-  const printDate = new Date().toLocaleDateString("ar-SA", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
-  const printTime = new Date().toLocaleTimeString("ar-SA", { hour: "2-digit", minute: "2-digit" });
+  const sat = nextSaturday();
+  const issueDate = sat.toLocaleDateString("ar-SA", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
 
   return `<!doctype html><html dir="rtl" lang="ar"><head><meta charset="utf-8"/>
 <title>تقرير تقييم ومتابعة اللجان</title>
@@ -484,9 +484,8 @@ function buildHTML(rows: EvalRow[]): string {
       <div class="sub">إعداد: لجنة الجودة — لجنة الزواج الجماعي</div>
     </div>
     <div class="org">
-      <strong>تاريخ الطباعة</strong>
-      ${escapeHtml(printDate)}
-      <br/>الساعة ${escapeHtml(printTime)}
+      <strong>تقرير أسبوعي</strong>
+      تاريخ الإصدار:<br/>${escapeHtml(issueDate)}
     </div>
   </div>
 
