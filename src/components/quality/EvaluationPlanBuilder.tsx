@@ -204,12 +204,18 @@ export function EvaluationPlanBuilder() {
           <h2 className="text-base font-bold flex items-center gap-2">
             جدول تقييم اللجان ومتابعتها
             <Badge variant="outline" className="text-[10px] border-gold/40 text-gold">لجنة الجودة</Badge>
+            <Badge variant="outline" className="text-[10px] border-primary/40 text-primary inline-flex items-center gap-1">
+              <CalendarDays className="h-3 w-3" /> تقرير أسبوعي · كل سبت
+            </Badge>
           </h2>
           <p className="text-xs text-muted-foreground mt-0.5">
-            متابعة مهام اللجان مع تواريخ البدء والانتهاء وحالة الإنجاز — صدّر أو اطبع التقرير المعتمد.
+            متابعة المهمة الحالية لكل لجنة وحالة الإنجاز — التقرير يُصدر أسبوعياً يوم السبت.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
+          <Button size="sm" variant="outline" onClick={refreshFromCommittees} title="جلب المهمة الأولى الحالية من كل لجنة">
+            <RefreshCw className="h-4 w-4 ms-1" /> تحديث من اللجان
+          </Button>
           <Button size="sm" variant="outline" onClick={exportXLSX}>
             <FileSpreadsheet className="h-4 w-4 ms-1" /> Excel
           </Button>
