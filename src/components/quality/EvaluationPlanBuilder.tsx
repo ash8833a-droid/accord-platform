@@ -3,11 +3,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
-  ClipboardList, Save, FileSpreadsheet, Printer, Plus, Trash2, Loader2, CalendarRange, Sparkles,
+  ClipboardList, Save, FileSpreadsheet, Printer, Plus, Trash2, Loader2,
+  CheckCircle2, XCircle, Stamp, CalendarDays,
 } from "lucide-react";
 import { toast } from "sonner";
 import * as XLSX from "xlsx";
@@ -15,54 +15,29 @@ import { COMMITTEES, type CommitteeType } from "@/lib/committees";
 import { useAuth } from "@/lib/auth";
 import { BRAND_LOGO_SVG } from "@/assets/brand-logo";
 
-type PmpPhase = "initiating" | "planning" | "executing" | "monitoring" | "closing";
-const PHASE_LABELS: Record<PmpPhase, string> = {
-  initiating: "التهيئة",
-  planning: "التخطيط",
-  executing: "التنفيذ",
-  monitoring: "المراقبة والضبط",
-  closing: "الإغلاق",
-};
-const PHASE_TONE: Record<PmpPhase, string> = {
-  initiating: "bg-sky-500/15 text-sky-700 border-sky-500/30",
-  planning: "bg-violet-500/15 text-violet-700 border-violet-500/30",
-  executing: "bg-amber-500/15 text-amber-700 border-amber-500/30",
-  monitoring: "bg-rose-500/15 text-rose-700 border-rose-500/30",
-  closing: "bg-emerald-500/15 text-emerald-700 border-emerald-500/30",
-};
-
 interface EvalRow {
   id: string;
   committee_type: CommitteeType;
-  phase: PmpPhase;
-  criteria: string;        // معايير التقييم
-  tools: string;           // أدوات القياس
-  weight: number;          // الوزن النسبي %
+  task: string;            // المهمة
   start_date: string;      // YYYY-MM-DD
   end_date: string;        // YYYY-MM-DD
-  responsible: string;     // المسؤول
-  deliverable: string;     // المخرج النهائي
+  done: boolean;           // تمت / لم تتم
   notes: string;
 }
 
 const SETTING_KEY = "quality.evaluation_plan";
 
-const newRow = (committee_type: CommitteeType, phase: PmpPhase = "initiating"): EvalRow => ({
+const newRow = (committee_type: CommitteeType): EvalRow => ({
   id: (globalThis.crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2)),
   committee_type,
-  phase,
-  criteria: "",
-  tools: "قائمة تحقق · مراجعة وثائق",
-  weight: 20,
+  task: "",
   start_date: "",
   end_date: "",
-  responsible: "لجنة الجودة",
-  deliverable: "تقرير تقييم",
+  done: false,
   notes: "",
 });
 
 function defaultPlan(): EvalRow[] {
-  // Seed: one row per committee × initiating phase to make starting easier
   return COMMITTEES.map((c) => newRow(c.type));
 }
 
@@ -89,8 +64,18 @@ export function EvaluationPlanBuilder() {
       const { data } = await supabase
         .from("app_settings").select("value").eq("key", SETTING_KEY).maybeSingle();
       const v = data?.value as { rows?: EvalRow[] } | null;
-      const loaded = Array.isArray(v?.rows) && v!.rows.length > 0 ? v!.rows : defaultPlan();
-      setRows(loaded);
+      // Migrate legacy rows (with phase/criteria/...) into new shape
+      const raw = Array.isArray(v?.rows) && v!.rows.length > 0 ? v!.rows : defaultPlan();
+      const migrated: EvalRow[] = (raw as any[]).map((r) => ({
+        id: r.id ?? (globalThis.crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2)),
+        committee_type: r.committee_type,
+        task: r.task ?? r.criteria ?? "",
+        start_date: r.start_date ?? "",
+        end_date: r.end_date ?? "",
+        done: typeof r.done === "boolean" ? r.done : false,
+        notes: r.notes ?? "",
+      }));
+      setRows(migrated);
       setLoading(false);
     })();
   }, []);
@@ -100,14 +85,21 @@ export function EvaluationPlanBuilder() {
     [rows, filterCommittee]
   );
 
-  const totalsByCommittee = useMemo(() => {
-    const m = new Map<CommitteeType, { count: number; weight: number }>();
+  const statsByCommittee = useMemo(() => {
+    const m = new Map<CommitteeType, { count: number; done: number }>();
     rows.forEach(r => {
-      const cur = m.get(r.committee_type) ?? { count: 0, weight: 0 };
-      cur.count += 1; cur.weight += Number(r.weight) || 0;
+      const cur = m.get(r.committee_type) ?? { count: 0, done: 0 };
+      cur.count += 1; if (r.done) cur.done += 1;
       m.set(r.committee_type, cur);
     });
     return m;
+  }, [rows]);
+
+  const overall = useMemo(() => {
+    const total = rows.length;
+    const done = rows.filter(r => r.done).length;
+    const pct = total ? Math.round((done / total) * 100) : 0;
+    return { total, done, pending: total - done, pct };
   }, [rows]);
 
   const updateRow = (id: string, patch: Partial<EvalRow>) =>
@@ -120,27 +112,9 @@ export function EvaluationPlanBuilder() {
     setRows(prev => [...prev, newRow(ct)]);
   };
 
-  const seedAllPhasesForCommittee = (ct: CommitteeType) => {
-    const phases: PmpPhase[] = ["initiating", "planning", "executing", "monitoring", "closing"];
-    setRows(prev => [
-      ...prev,
-      ...phases.map(p => newRow(ct, p)),
-    ]);
-    toast.success("تم إضافة 5 صفوف (مرحلة لكل صفّ) لهذه اللجنة");
-  };
-
   const save = async () => {
     setSaving(true);
     try {
-      // Validate weights per committee shouldn't exceed 100%
-      const overweight: string[] = [];
-      totalsByCommittee.forEach((v, k) => {
-        if (v.weight > 100) overweight.push(COMMITTEES.find(c => c.type === k)?.label ?? k);
-      });
-      if (overweight.length) {
-        toast.warning("تنبيه: مجموع الأوزان يتجاوز 100% في: " + overweight.join("، "));
-      }
-
       const { error } = await supabase
         .from("app_settings")
         .upsert({ key: SETTING_KEY, value: { rows } as never, updated_by: user?.id ?? null }, { onConflict: "key" });
@@ -152,20 +126,15 @@ export function EvaluationPlanBuilder() {
   const exportXLSX = () => {
     const data = rows.map(r => ({
       "اللجنة": COMMITTEES.find(c => c.type === r.committee_type)?.label ?? r.committee_type,
-      "المرحلة": PHASE_LABELS[r.phase],
-      "معايير التقييم": r.criteria,
-      "أدوات القياس": r.tools,
-      "الوزن %": r.weight,
+      "المهمة": r.task,
       "تاريخ البدء": r.start_date,
       "تاريخ الانتهاء": r.end_date,
-      "المسؤول": r.responsible,
-      "المخرج النهائي": r.deliverable,
+      "الحالة": r.done ? "تمت ✓" : "لم تتم ✗",
       "ملاحظات": r.notes,
     }));
     const ws = XLSX.utils.json_to_sheet(data);
     ws["!cols"] = [
-      { wch: 22 }, { wch: 16 }, { wch: 38 }, { wch: 28 },
-      { wch: 8 }, { wch: 14 }, { wch: 14 }, { wch: 18 }, { wch: 22 }, { wch: 28 },
+      { wch: 22 }, { wch: 38 }, { wch: 14 }, { wch: 14 }, { wch: 12 }, { wch: 28 },
     ];
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "خطة التقييم");
@@ -191,17 +160,17 @@ export function EvaluationPlanBuilder() {
   return (
     <section className="rounded-2xl border bg-card shadow-sm overflow-hidden">
       {/* Header */}
-      <div className="px-5 py-4 border-b bg-gradient-to-l from-sky-500/5 to-transparent flex flex-wrap items-center gap-3">
-        <span className="h-10 w-10 rounded-xl bg-sky-500/15 text-sky-600 flex items-center justify-center">
+      <div className="px-5 py-4 border-b bg-gradient-to-l from-primary/10 via-gold/5 to-transparent flex flex-wrap items-center gap-3">
+        <span className="h-11 w-11 rounded-xl bg-gradient-hero text-primary-foreground flex items-center justify-center shadow-elegant">
           <ClipboardList className="h-5 w-5" />
         </span>
         <div className="flex-1 min-w-[200px]">
           <h2 className="text-base font-bold flex items-center gap-2">
-            خطة تقييم اللجان — المرحلة الأولى
-            <Badge variant="outline" className="text-[10px]">PMP</Badge>
+            جدول تقييم اللجان ومتابعتها
+            <Badge variant="outline" className="text-[10px] border-gold/40 text-gold">لجنة الجودة</Badge>
           </h2>
           <p className="text-xs text-muted-foreground mt-0.5">
-            عرّف معايير التقييم لكل لجنة، وحدّد جدول البدء والانتهاء، ثم احفظ أو صدّر النتيجة.
+            متابعة مهام اللجان مع تواريخ البدء والانتهاء وحالة الإنجاز — صدّر أو اطبع التقرير المعتمد.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -218,6 +187,26 @@ export function EvaluationPlanBuilder() {
         </div>
       </div>
 
+      {/* KPI strip */}
+      <div className="px-5 py-3 border-b grid grid-cols-2 md:grid-cols-4 gap-2">
+        <div className="rounded-lg border bg-muted/20 px-3 py-2">
+          <div className="text-[10px] text-muted-foreground">إجمالي المهام</div>
+          <div className="text-lg font-bold">{overall.total}</div>
+        </div>
+        <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/5 px-3 py-2">
+          <div className="text-[10px] text-emerald-700 flex items-center gap-1"><CheckCircle2 className="h-3 w-3" /> تمت</div>
+          <div className="text-lg font-bold text-emerald-700">{overall.done}</div>
+        </div>
+        <div className="rounded-lg border border-rose-500/30 bg-rose-500/5 px-3 py-2">
+          <div className="text-[10px] text-rose-700 flex items-center gap-1"><XCircle className="h-3 w-3" /> لم تتم</div>
+          <div className="text-lg font-bold text-rose-700">{overall.pending}</div>
+        </div>
+        <div className="rounded-lg border border-gold/40 bg-gold/5 px-3 py-2">
+          <div className="text-[10px] text-gold">نسبة الإنجاز</div>
+          <div className="text-lg font-bold text-gold">{overall.pct}%</div>
+        </div>
+      </div>
+
       {/* Toolbar */}
       <div className="px-5 py-3 border-b bg-muted/20 flex flex-wrap items-center gap-2">
         <div className="flex items-center gap-2">
@@ -231,11 +220,6 @@ export function EvaluationPlanBuilder() {
           </Select>
         </div>
         <div className="flex items-center gap-2 ms-auto">
-          {filterCommittee !== "all" && (
-            <Button size="sm" variant="outline" onClick={() => seedAllPhasesForCommittee(filterCommittee)}>
-              <Sparkles className="h-4 w-4 ms-1" /> إضافة 5 مراحل
-            </Button>
-          )}
           <Button size="sm" variant="outline" onClick={() => addRow()}>
             <Plus className="h-4 w-4 ms-1" /> صف جديد
           </Button>
@@ -245,15 +229,18 @@ export function EvaluationPlanBuilder() {
       {/* Summary chips */}
       <div className="px-5 py-3 border-b flex flex-wrap gap-2">
         {COMMITTEES.map(c => {
-          const t = totalsByCommittee.get(c.type);
-          const w = t?.weight ?? 0;
-          const tone = w === 0 ? "bg-muted text-muted-foreground"
-            : w > 100 ? "bg-rose-500/15 text-rose-700 border-rose-500/30"
-            : w === 100 ? "bg-emerald-500/15 text-emerald-700 border-emerald-500/30"
+          const t = statsByCommittee.get(c.type);
+          const count = t?.count ?? 0;
+          const done = t?.done ?? 0;
+          const Icon = c.icon;
+          const tone = count === 0 ? "bg-muted text-muted-foreground border-border"
+            : done === count ? "bg-emerald-500/10 text-emerald-700 border-emerald-500/30"
+            : done === 0 ? "bg-rose-500/10 text-rose-700 border-rose-500/30"
             : "bg-amber-500/10 text-amber-700 border-amber-500/30";
           return (
-            <span key={c.type} className={`text-[11px] px-2 py-1 rounded-md border ${tone}`}>
-              {c.label}: {t?.count ?? 0} صفوف · {w}%
+            <span key={c.type} className={`text-[11px] px-2 py-1 rounded-md border inline-flex items-center gap-1.5 ${tone}`}>
+              <Icon className="h-3.5 w-3.5" />
+              {c.label}: {done}/{count}
             </span>
           );
         })}
@@ -261,92 +248,105 @@ export function EvaluationPlanBuilder() {
 
       {/* Table */}
       <div className="overflow-x-auto">
-        <table className="w-full text-sm min-w-[1100px]">
-          <thead className="bg-muted/30 text-xs">
+        <table className="w-full text-sm min-w-[900px]">
+          <thead className="bg-gradient-to-l from-primary/5 to-gold/5 text-xs border-b-2 border-gold/30">
             <tr className="text-start">
-              <th className="px-3 py-2 font-medium text-start">اللجنة</th>
-              <th className="px-3 py-2 font-medium text-start">المرحلة</th>
-              <th className="px-3 py-2 font-medium text-start">معايير التقييم</th>
-              <th className="px-3 py-2 font-medium text-start">أدوات القياس</th>
-              <th className="px-3 py-2 font-medium text-start">الوزن %</th>
-              <th className="px-3 py-2 font-medium text-start">البدء</th>
-              <th className="px-3 py-2 font-medium text-start">الانتهاء</th>
-              <th className="px-3 py-2 font-medium text-start">المسؤول</th>
-              <th className="px-3 py-2 font-medium text-start">المخرج</th>
-              <th className="px-3 py-2 font-medium text-start"></th>
+              <th className="px-3 py-3 font-bold text-start w-12">#</th>
+              <th className="px-3 py-3 font-bold text-start">اللجنة</th>
+              <th className="px-3 py-3 font-bold text-start">المهمة</th>
+              <th className="px-3 py-3 font-bold text-start w-[150px]">تاريخ البدء</th>
+              <th className="px-3 py-3 font-bold text-start w-[150px]">تاريخ الانتهاء</th>
+              <th className="px-3 py-3 font-bold text-center w-[110px]">الحالة</th>
+              <th className="px-3 py-3 font-bold text-start w-12"></th>
             </tr>
           </thead>
           <tbody className="divide-y">
             {filtered.length === 0 && (
-              <tr><td colSpan={10} className="px-4 py-10 text-center text-sm text-muted-foreground">
+              <tr><td colSpan={7} className="px-4 py-10 text-center text-sm text-muted-foreground">
                 لا توجد صفوف. اضغط «صف جديد» للبدء.
               </td></tr>
             )}
-            {filtered.map(r => (
-              <tr key={r.id} className="align-top hover:bg-muted/10">
-                <td className="px-3 py-2 min-w-[140px]">
-                  <Select value={r.committee_type} onValueChange={(v) => updateRow(r.id, { committee_type: v as CommitteeType })}>
-                    <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      {COMMITTEES.map(c => <SelectItem key={c.type} value={c.type}>{c.label}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </td>
-                <td className="px-3 py-2 min-w-[140px]">
-                  <Select value={r.phase} onValueChange={(v) => updateRow(r.id, { phase: v as PmpPhase })}>
-                    <SelectTrigger className={`h-8 text-xs border ${PHASE_TONE[r.phase]}`}><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      {(Object.keys(PHASE_LABELS) as PmpPhase[]).map(p => (
-                        <SelectItem key={p} value={p}>{PHASE_LABELS[p]}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </td>
-                <td className="px-3 py-2 min-w-[260px]">
-                  <Textarea rows={2} className="text-xs" value={r.criteria}
-                    onChange={(e) => updateRow(r.id, { criteria: e.target.value })}
-                    placeholder="مثال: التزام بالخطة الزمنية، جودة المخرجات، التوثيق…" />
-                </td>
-                <td className="px-3 py-2 min-w-[200px]">
-                  <Textarea rows={2} className="text-xs" value={r.tools}
-                    onChange={(e) => updateRow(r.id, { tools: e.target.value })}
-                    placeholder="قائمة تحقق · مقابلة · مراجعة وثائق · استبيان" />
-                </td>
-                <td className="px-3 py-2 w-[80px]">
-                  <Input type="number" min={0} max={100} className="h-8 text-xs" value={r.weight}
-                    onChange={(e) => updateRow(r.id, { weight: Math.max(0, Math.min(100, Number(e.target.value) || 0)) })} />
-                </td>
-                <td className="px-3 py-2 w-[140px]">
-                  <Input type="date" className="h-8 text-xs" value={r.start_date}
-                    onChange={(e) => updateRow(r.id, { start_date: e.target.value })} />
-                </td>
-                <td className="px-3 py-2 w-[140px]">
-                  <Input type="date" className="h-8 text-xs" value={r.end_date}
-                    onChange={(e) => updateRow(r.id, { end_date: e.target.value })} />
-                </td>
-                <td className="px-3 py-2 min-w-[140px]">
-                  <Input className="h-8 text-xs" value={r.responsible}
-                    onChange={(e) => updateRow(r.id, { responsible: e.target.value })} placeholder="المسؤول" />
-                </td>
-                <td className="px-3 py-2 min-w-[160px]">
-                  <Input className="h-8 text-xs" value={r.deliverable}
-                    onChange={(e) => updateRow(r.id, { deliverable: e.target.value })} placeholder="تقرير تقييم" />
-                </td>
-                <td className="px-3 py-2">
-                  <Button size="sm" variant="ghost" className="h-8 text-rose-600 hover:bg-rose-500/10"
-                    onClick={() => removeRow(r.id)} aria-label="حذف الصف">
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </td>
-              </tr>
-            ))}
+            {filtered.map((r, idx) => {
+              const meta = COMMITTEES.find(c => c.type === r.committee_type);
+              const Icon = meta?.icon ?? ClipboardList;
+              return (
+                <tr key={r.id} className={`align-middle hover:bg-muted/10 transition-colors ${r.done ? "bg-emerald-500/[0.03]" : ""}`}>
+                  <td className="px-3 py-2 text-xs text-muted-foreground font-medium">{idx + 1}</td>
+                  <td className="px-3 py-2 min-w-[160px]">
+                    <div className="flex items-center gap-2">
+                      <span className={`h-7 w-7 rounded-md flex items-center justify-center ${meta?.tone ?? "bg-muted"}`}>
+                        <Icon className="h-3.5 w-3.5" />
+                      </span>
+                      <Select value={r.committee_type} onValueChange={(v) => updateRow(r.id, { committee_type: v as CommitteeType })}>
+                        <SelectTrigger className="h-8 text-xs border-0 bg-transparent shadow-none px-1 hover:bg-muted/50"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          {COMMITTEES.map(c => <SelectItem key={c.type} value={c.type}>{c.label}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </td>
+                  <td className="px-3 py-2 min-w-[260px]">
+                    <Input className="h-9 text-xs" value={r.task}
+                      onChange={(e) => updateRow(r.id, { task: e.target.value })}
+                      placeholder="مثال: مراجعة الخطة الزمنية للجنة الإعلام" />
+                  </td>
+                  <td className="px-3 py-2">
+                    <div className="relative">
+                      <CalendarDays className="h-3.5 w-3.5 text-muted-foreground absolute end-2 top-1/2 -translate-y-1/2 pointer-events-none" />
+                      <Input type="date" className="h-9 text-xs pe-7" value={r.start_date}
+                        onChange={(e) => updateRow(r.id, { start_date: e.target.value })} />
+                    </div>
+                  </td>
+                  <td className="px-3 py-2">
+                    <div className="relative">
+                      <CalendarDays className="h-3.5 w-3.5 text-muted-foreground absolute end-2 top-1/2 -translate-y-1/2 pointer-events-none" />
+                      <Input type="date" className="h-9 text-xs pe-7" value={r.end_date}
+                        onChange={(e) => updateRow(r.id, { end_date: e.target.value })} />
+                    </div>
+                  </td>
+                  <td className="px-3 py-2 text-center">
+                    <button
+                      type="button"
+                      onClick={() => updateRow(r.id, { done: !r.done })}
+                      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border transition-all ${
+                        r.done
+                          ? "bg-emerald-500/15 text-emerald-700 border-emerald-500/40 hover:bg-emerald-500/25"
+                          : "bg-rose-500/15 text-rose-700 border-rose-500/40 hover:bg-rose-500/25"
+                      }`}
+                      aria-label={r.done ? "تمت" : "لم تتم"}
+                    >
+                      {r.done ? <><CheckCircle2 className="h-4 w-4" /> تمت</> : <><XCircle className="h-4 w-4" /> لم تتم</>}
+                    </button>
+                  </td>
+                  <td className="px-3 py-2">
+                    <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-rose-600 hover:bg-rose-500/10"
+                      onClick={() => removeRow(r.id)} aria-label="حذف الصف">
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
 
-      <div className="px-5 py-3 border-t bg-muted/10 text-[11px] text-muted-foreground flex items-center gap-2">
-        <CalendarRange className="h-3.5 w-3.5" />
-        تنبيه: مجموع الأوزان لكل لجنة يجب ألا يتجاوز 100%. يتم التحقق عند الحفظ.
+      {/* Quality stamp footer */}
+      <div className="px-5 py-5 border-t bg-gradient-to-l from-gold/5 via-transparent to-primary/5 flex flex-wrap items-center justify-between gap-4">
+        <div className="text-[11px] text-muted-foreground flex items-center gap-2">
+          <CalendarDays className="h-3.5 w-3.5" />
+          آخر تحديث: {new Date().toLocaleDateString("ar-SA", { day: "numeric", month: "long", year: "numeric" })}
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="text-end">
+            <div className="text-[10px] text-muted-foreground">معتمد من</div>
+            <div className="text-xs font-bold text-foreground">لجنة الجودة</div>
+          </div>
+          <div className="relative h-16 w-16 rounded-full border-2 border-gold/60 bg-gold/5 flex items-center justify-center rotate-[-8deg] shadow-elegant">
+            <div className="absolute inset-1 rounded-full border border-dashed border-gold/40" />
+            <Stamp className="h-6 w-6 text-gold" />
+          </div>
+        </div>
       </div>
     </section>
   );
@@ -360,65 +360,141 @@ function buildHTML(rows: EvalRow[]): string {
     arr.push(r); grouped.set(r.committee_type, arr);
   });
 
+  const totalCount = rows.length;
+  const doneCount = rows.filter(r => r.done).length;
+  const pendingCount = totalCount - doneCount;
+  const pct = totalCount ? Math.round((doneCount / totalCount) * 100) : 0;
+
   const sections = COMMITTEES
     .filter(c => grouped.has(c.type))
     .map(c => {
       const items = grouped.get(c.type)!;
-      const totalW = items.reduce((s, r) => s + (Number(r.weight) || 0), 0);
+      const cDone = items.filter(r => r.done).length;
       const tbody = items.map(r => `
-        <tr>
-          <td><span class="phase">${escapeHtml(PHASE_LABELS[r.phase])}</span></td>
-          <td>${escapeHtml(r.criteria) || "—"}</td>
-          <td>${escapeHtml(r.tools) || "—"}</td>
-          <td class="num">${Number(r.weight) || 0}%</td>
+        <tr class="${r.done ? 'row-done' : 'row-pending'}">
+          <td>${escapeHtml(r.task) || "—"}</td>
           <td class="num">${escapeHtml(fmtDate(r.start_date))}</td>
           <td class="num">${escapeHtml(fmtDate(r.end_date))}</td>
-          <td>${escapeHtml(r.responsible) || "—"}</td>
-          <td>${escapeHtml(r.deliverable) || "—"}</td>
+          <td class="status">${r.done
+            ? '<span class="badge done">✓ تمت</span>'
+            : '<span class="badge pending">✗ لم تتم</span>'}</td>
         </tr>`).join("");
       return `
         <section class="committee">
           <header class="ch">
             <h3>${escapeHtml(c.label)}</h3>
-            <span class="meta">${items.length} صفوف · مجموع الأوزان: ${totalW}%</span>
+            <span class="meta">${cDone} من ${items.length} منجزة</span>
           </header>
           <table>
             <thead><tr>
-              <th>المرحلة</th><th>معايير التقييم</th><th>أدوات القياس</th>
-              <th>الوزن</th><th>البدء</th><th>الانتهاء</th><th>المسؤول</th><th>المخرج</th>
+              <th style="width:42%">المهمة</th>
+              <th style="width:18%">تاريخ البدء</th>
+              <th style="width:18%">تاريخ الانتهاء</th>
+              <th style="width:22%">الحالة</th>
             </tr></thead>
             <tbody>${tbody}</tbody>
           </table>
         </section>`;
     }).join("");
 
+  const printDate = new Date().toLocaleDateString("ar-SA", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+  const printTime = new Date().toLocaleTimeString("ar-SA", { hour: "2-digit", minute: "2-digit" });
+
   return `<!doctype html><html dir="rtl" lang="ar"><head><meta charset="utf-8"/>
-<title>خطة تقييم اللجان — المرحلة الأولى</title>
+<title>تقرير تقييم ومتابعة اللجان</title>
 <style>
-  *{box-sizing:border-box} body{font-family:'Segoe UI',Tahoma,Arial,sans-serif;background:#f7f8fb;color:#0f172a;margin:0;padding:24px}
-  .wrap{max-width:1100px;margin:0 auto;background:#fff;border-radius:14px;padding:28px;box-shadow:0 4px 20px rgba(0,0,0,.06)}
-  .top{display:flex;align-items:center;gap:14px;border-bottom:1px solid #e5e7eb;padding-bottom:14px;margin-bottom:18px}
-  .top .logo{width:56px;height:56px}
-  h1{margin:0;font-size:20px} .sub{color:#64748b;font-size:12px;margin-top:2px}
-  .committee{margin:18px 0;border:1px solid #e5e7eb;border-radius:10px;overflow:hidden}
-  .ch{display:flex;justify-content:space-between;align-items:center;background:#f1f5f9;padding:10px 14px}
-  .ch h3{margin:0;font-size:14px} .ch .meta{font-size:11px;color:#475569}
+  *{box-sizing:border-box}
+  body{font-family:'Tajawal','Segoe UI',Tahoma,Arial,sans-serif;background:#f7f8fb;color:#0f172a;margin:0;padding:24px}
+  .wrap{max-width:1100px;margin:0 auto;background:#fff;border-radius:14px;padding:32px;box-shadow:0 4px 20px rgba(0,0,0,.06);position:relative;overflow:hidden}
+  .wrap::before{content:'';position:absolute;top:0;left:0;right:0;height:6px;background:linear-gradient(90deg,#C4A25C,#2A7E8B,#C4A25C)}
+  .top{display:flex;align-items:center;gap:16px;border-bottom:2px solid #C4A25C;padding-bottom:16px;margin-bottom:20px}
+  .top .logo{width:64px;height:64px;flex-shrink:0}
+  .top h1{margin:0;font-size:22px;color:#0E3A42;font-weight:700}
+  .top .sub{color:#64748b;font-size:12px;margin-top:4px}
+  .top .org{margin-inline-start:auto;text-align:end;font-size:11px;color:#64748b}
+  .top .org strong{display:block;color:#0E3A42;font-size:13px}
+
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
+  .kpi{border:1px solid #e5e7eb;border-radius:10px;padding:10px 12px;background:#fafafa}
+  .kpi .l{font-size:10px;color:#64748b}
+  .kpi .v{font-size:18px;font-weight:700;color:#0E3A42;margin-top:2px}
+  .kpi.done{border-color:#86efac;background:#f0fdf4} .kpi.done .v{color:#15803d}
+  .kpi.pending{border-color:#fca5a5;background:#fef2f2} .kpi.pending .v{color:#b91c1c}
+  .kpi.gold{border-color:#C4A25C;background:#fdf8eb} .kpi.gold .v{color:#8C6E2E}
+
+  .committee{margin:18px 0;border:1px solid #e5e7eb;border-radius:10px;overflow:hidden;page-break-inside:avoid}
+  .ch{display:flex;justify-content:space-between;align-items:center;background:linear-gradient(90deg,#fdf8eb,#f1f5f9);padding:10px 14px;border-bottom:1px solid #e5e7eb}
+  .ch h3{margin:0;font-size:14px;color:#0E3A42;font-weight:700}
+  .ch .meta{font-size:11px;color:#475569;background:#fff;padding:2px 8px;border-radius:6px;border:1px solid #e5e7eb}
+
   table{width:100%;border-collapse:collapse;font-size:12px}
-  th,td{padding:8px 10px;border-bottom:1px solid #eef2f7;text-align:right;vertical-align:top}
-  th{background:#fafafa;font-weight:600;color:#334155}
-  td.num{white-space:nowrap;color:#0f172a}
-  .phase{display:inline-block;padding:2px 8px;border-radius:6px;background:#eef2ff;color:#3730a3;font-size:11px;font-weight:600}
-  .footer{margin-top:18px;font-size:11px;color:#64748b;text-align:center;border-top:1px dashed #e5e7eb;padding-top:10px}
-  @media print{body{background:#fff;padding:0}.wrap{box-shadow:none;border-radius:0;padding:14px}}
+  th,td{padding:9px 10px;border-bottom:1px solid #eef2f7;text-align:right;vertical-align:middle}
+  th{background:#fafafa;font-weight:700;color:#0E3A42;font-size:11px}
+  td.num{white-space:nowrap;color:#334155}
+  td.status{text-align:center}
+
+  .row-done{background:#f0fdf4} .row-pending{background:#fff}
+  .badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:700;border:1px solid}
+  .badge.done{background:#dcfce7;color:#15803d;border-color:#86efac}
+  .badge.pending{background:#fee2e2;color:#b91c1c;border-color:#fca5a5}
+
+  .footer{margin-top:24px;display:flex;justify-content:space-between;align-items:flex-end;gap:20px;border-top:1px dashed #C4A25C;padding-top:16px}
+  .meta-foot{font-size:11px;color:#64748b;line-height:1.7}
+  .meta-foot strong{color:#0E3A42}
+  .stamp{position:relative;width:120px;height:120px;border:3px double #8C6E2E;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;transform:rotate(-8deg);background:rgba(196,162,92,0.06);text-align:center;flex-shrink:0}
+  .stamp::before{content:'';position:absolute;inset:5px;border:1px dashed #8C6E2E;border-radius:50%}
+  .stamp .t1{font-size:10px;color:#8C6E2E;font-weight:700;letter-spacing:1px}
+  .stamp .t2{font-size:14px;color:#8C6E2E;font-weight:800;margin-top:2px}
+  .stamp .t3{font-size:9px;color:#8C6E2E;margin-top:4px;opacity:.8}
+  .sig{font-size:11px;color:#64748b;text-align:center}
+  .sig .line{width:160px;border-bottom:1px solid #94a3b8;margin:0 auto 4px}
+
+  @media print{
+    body{background:#fff;padding:0}
+    .wrap{box-shadow:none;border-radius:0;padding:18px}
+    .committee{page-break-inside:avoid}
+  }
 </style></head><body><div class="wrap">
   <div class="top">
     <div class="logo">${BRAND_LOGO_SVG}</div>
     <div>
-      <h1>خطة تقييم اللجان — المرحلة الأولى</h1>
-      <div class="sub">إعداد: لجنة الجودة · تاريخ التصدير: ${new Date().toLocaleDateString("ar-SA")}</div>
+      <h1>تقرير تقييم ومتابعة اللجان</h1>
+      <div class="sub">إعداد: لجنة الجودة — لجنة الزواج الجماعي</div>
+    </div>
+    <div class="org">
+      <strong>تاريخ الطباعة</strong>
+      ${escapeHtml(printDate)}
+      <br/>الساعة ${escapeHtml(printTime)}
     </div>
   </div>
+
+  <div class="kpis">
+    <div class="kpi"><div class="l">إجمالي المهام</div><div class="v">${totalCount}</div></div>
+    <div class="kpi done"><div class="l">✓ تمت</div><div class="v">${doneCount}</div></div>
+    <div class="kpi pending"><div class="l">✗ لم تتم</div><div class="v">${pendingCount}</div></div>
+    <div class="kpi gold"><div class="l">نسبة الإنجاز</div><div class="v">${pct}%</div></div>
+  </div>
+
   ${sections || '<p style="text-align:center;color:#64748b">لا توجد بيانات</p>'}
-  <div class="footer">منصة لجنة الزواج الجماعي · مستند داخلي</div>
+
+  <div class="footer">
+    <div class="meta-foot">
+      <strong>ملاحظات:</strong><br/>
+      • هذا التقرير معتمد من لجنة الجودة ويعكس حالة المتابعة وقت الطباعة.<br/>
+      • العلامة <span class="badge done">✓ تمت</span> تعني إنجاز المهمة، و <span class="badge pending">✗ لم تتم</span> تعني عدم الإنجاز.<br/>
+      • مستند داخلي — منصة لجنة الزواج الجماعي.
+    </div>
+    <div style="display:flex;align-items:flex-end;gap:24px">
+      <div class="sig">
+        <div class="line"></div>
+        رئيس لجنة الجودة
+      </div>
+      <div class="stamp">
+        <div class="t1">QUALITY</div>
+        <div class="t2">لجنة الجودة</div>
+        <div class="t3">معتمد ✓</div>
+      </div>
+    </div>
+  </div>
 </div></body></html>`;
 }
