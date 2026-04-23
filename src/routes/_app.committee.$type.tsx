@@ -25,6 +25,7 @@ import { CommitteeMembersPanel } from "@/components/CommitteeMembersPanel";
 import { QuickResponseBar } from "@/components/QuickResponseBar";
 import { GroomFollowups } from "@/components/committee/GroomFollowups";
 import { QualityAuditPanel } from "@/components/quality/QualityAuditPanel";
+import { EvaluationPlanBuilder } from "@/components/quality/EvaluationPlanBuilder";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth } from "@/lib/auth";
 import { useAppSetting } from "@/hooks/use-app-setting";
@@ -789,7 +790,12 @@ function CommitteePage() {
       )}
 
       {/* Quality committee: audit panel for monitoring all committees' tasks + per-committee PDF reports */}
-      {type === "quality" && <QualityAuditPanel />}
+      {type === "quality" && (
+        <>
+          <EvaluationPlanBuilder />
+          <QualityAuditPanel />
+        </>
+      )}
 
       {/* Media committee gets inbox + invitation cards distribution */}
       {type === "media" && (
