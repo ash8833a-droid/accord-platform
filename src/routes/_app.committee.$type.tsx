@@ -861,16 +861,16 @@ function CommitteePage() {
       {/* Quality committee: audit panel for monitoring all committees' tasks + per-committee PDF reports */}
       {type === "quality" && (
         <>
-          <QualitySection title="معايير وبنود التقييم" icon={ClipboardList} defaultOpen>
+          <QualitySection storageKey="criteria" title="معايير وبنود التقييم" icon={ClipboardList} defaultOpen>
             <EvaluationCriteria />
           </QualitySection>
-          <QualitySection title="نموذج تقييم اللجان" icon={ClipboardCheck}>
+          <QualitySection storageKey="form" title="نموذج تقييم اللجان" icon={ClipboardCheck}>
             <EvaluationForm />
           </QualitySection>
-          <QualitySection title="خطة التقييم الأسبوعية" icon={CalendarRange}>
+          <QualitySection storageKey="plan" title="خطة التقييم الأسبوعية" icon={CalendarRange}>
             <EvaluationPlanBuilder />
           </QualitySection>
-          <QualitySection title="لوحة تدقيق الجودة" icon={ShieldCheck}>
+          <QualitySection storageKey="audit" title="لوحة تدقيق الجودة" icon={ShieldCheck}>
             <QualityAuditPanel />
           </QualitySection>
         </>
