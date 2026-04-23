@@ -26,6 +26,7 @@ import { QuickResponseBar } from "@/components/QuickResponseBar";
 import { GroomFollowups } from "@/components/committee/GroomFollowups";
 import { QualityAuditPanel } from "@/components/quality/QualityAuditPanel";
 import { EvaluationPlanBuilder } from "@/components/quality/EvaluationPlanBuilder";
+import { EvaluationCriteria } from "@/components/quality/EvaluationCriteria";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth } from "@/lib/auth";
 import { useAppSetting } from "@/hooks/use-app-setting";
@@ -857,6 +858,7 @@ function CommitteePage() {
       {/* Quality committee: audit panel for monitoring all committees' tasks + per-committee PDF reports */}
       {type === "quality" && (
         <>
+          <EvaluationCriteria />
           <EvaluationPlanBuilder />
           <QualityAuditPanel />
         </>
