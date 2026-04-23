@@ -1036,7 +1036,13 @@ function CommitteePage() {
       </Dialog>
 
       {/* Tasks Kanban */}
-      <section>
+      <QualitySection
+        storageKey={`committee:${type}:tasks`}
+        title={`لوحة المهام${isHead ? " — رئيس اللجنة" : ""}`}
+        icon={ListTodo}
+        defaultOpen
+      >
+        <section>
         <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
           <div className="flex items-center gap-2 flex-wrap">
             <h3 className="font-bold flex items-center gap-2">
@@ -1390,10 +1396,13 @@ function CommitteePage() {
             );
           })}
         </div>
-      </section>
+        </section>
+      </QualitySection>
 
       {/* Archive of past reports / files / images for this committee */}
-      <CommitteeArchive committeeId={committee.id} committeeName={committee.name} />
+      <QualitySection storageKey={`committee:${type}:archive`} title="الأرشيف والتقارير" icon={Archive}>
+        <CommitteeArchive committeeId={committee.id} committeeName={committee.name} />
+      </QualitySection>
 
       {/* Edit payment request dialog */}
       <Dialog open={editPrOpen} onOpenChange={(o) => { setEditPrOpen(o); if (!o) setEditingPr(null); }}>
