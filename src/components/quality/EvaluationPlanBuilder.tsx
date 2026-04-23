@@ -361,7 +361,9 @@ export function EvaluationPlanBuilder() {
       <div className="px-5 py-5 border-t bg-gradient-to-l from-gold/5 via-transparent to-primary/5 flex flex-wrap items-center justify-between gap-4">
         <div className="text-[11px] text-muted-foreground flex items-center gap-2">
           <CalendarDays className="h-3.5 w-3.5" />
-          آخر تحديث: {new Date().toLocaleDateString("ar-SA", { day: "numeric", month: "long", year: "numeric" })}
+          تقرير أسبوعي · يصدر يوم السبت
+          {" — "}
+          الإصدار القادم: {nextSaturday().toLocaleDateString("ar-SA", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
         </div>
         <div className="flex items-center gap-3">
           <div className="text-end">
