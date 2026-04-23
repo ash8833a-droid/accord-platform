@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   ClipboardList, Save, FileSpreadsheet, Printer, Plus, Trash2, Loader2,
-  CheckCircle2, XCircle, Stamp, CalendarDays,
+  CheckCircle2, XCircle, Stamp, CalendarDays, RefreshCw,
 } from "lucide-react";
 import { toast } from "sonner";
 import * as XLSX from "xlsx";
@@ -19,8 +19,6 @@ interface EvalRow {
   id: string;
   committee_type: CommitteeType;
   task: string;            // المهمة
-  start_date: string;      // YYYY-MM-DD
-  end_date: string;        // YYYY-MM-DD
   done: boolean;           // تمت / لم تتم
   notes: string;
 }
@@ -31,8 +29,6 @@ const newRow = (committee_type: CommitteeType): EvalRow => ({
   id: (globalThis.crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2)),
   committee_type,
   task: "",
-  start_date: "",
-  end_date: "",
   done: false,
   notes: "",
 });
@@ -41,14 +37,17 @@ function defaultPlan(): EvalRow[] {
   return COMMITTEES.map((c) => newRow(c.type));
 }
 
-function fmtDate(s: string) {
-  if (!s) return "—";
-  try { return new Date(s).toLocaleDateString("ar-SA", { day: "numeric", month: "long", year: "numeric" }); }
-  catch { return s; }
-}
-
 function escapeHtml(s: string) {
   return (s ?? "").replace(/[&<>"']/g, (c) => ({ "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;" } as Record<string,string>)[c]!);
+}
+
+/** Returns next Saturday (or today if Saturday) — weekly issue date label. */
+function nextSaturday(): Date {
+  const d = new Date();
+  const day = d.getDay(); // 0=Sun..6=Sat
+  const diff = (6 - day + 7) % 7; // days until Saturday
+  d.setDate(d.getDate() + diff);
+  return d;
 }
 
 export function EvaluationPlanBuilder() {
@@ -58,27 +57,66 @@ export function EvaluationPlanBuilder() {
   const [saving, setSaving] = useState(false);
   const [filterCommittee, setFilterCommittee] = useState<CommitteeType | "all">("all");
 
+  /** Fetches the first current/active task for every committee. */
+  const fetchCurrentTasksByCommittee = async (): Promise<Map<CommitteeType, string>> => {
+    const map = new Map<CommitteeType, string>();
+    const { data: comms } = await supabase
+      .from("committees")
+      .select("id, type");
+    if (!comms?.length) return map;
+    const { data: tasks } = await supabase
+      .from("committee_tasks")
+      .select("committee_id, title, status, priority, created_at")
+      .in("status", ["todo", "in_progress"])
+      .order("created_at", { ascending: true });
+    const byCommittee = new Map<string, string>();
+    (tasks ?? []).forEach((t) => {
+      if (!byCommittee.has(t.committee_id)) byCommittee.set(t.committee_id, t.title);
+    });
+    comms.forEach((c) => {
+      const title = byCommittee.get(c.id);
+      if (title) map.set(c.type as CommitteeType, title);
+    });
+    return map;
+  };
+
   useEffect(() => {
     (async () => {
       setLoading(true);
       const { data } = await supabase
         .from("app_settings").select("value").eq("key", SETTING_KEY).maybeSingle();
       const v = data?.value as { rows?: EvalRow[] } | null;
-      // Migrate legacy rows (with phase/criteria/...) into new shape
       const raw = Array.isArray(v?.rows) && v!.rows.length > 0 ? v!.rows : defaultPlan();
       const migrated: EvalRow[] = (raw as any[]).map((r) => ({
         id: r.id ?? (globalThis.crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2)),
         committee_type: r.committee_type,
         task: r.task ?? r.criteria ?? "",
-        start_date: r.start_date ?? "",
-        end_date: r.end_date ?? "",
         done: typeof r.done === "boolean" ? r.done : false,
         notes: r.notes ?? "",
       }));
-      setRows(migrated);
+
+      // Auto-fill empty tasks from each committee's current first task
+      const taskMap = await fetchCurrentTasksByCommittee();
+      const filled = migrated.map((r) => {
+        if (r.task && r.task.trim()) return r;
+        const t = taskMap.get(r.committee_type);
+        return t ? { ...r, task: t } : r;
+      });
+      setRows(filled);
       setLoading(false);
     })();
   }, []);
+
+  const refreshFromCommittees = async () => {
+    const taskMap = await fetchCurrentTasksByCommittee();
+    let updated = 0;
+    setRows((prev) => prev.map((r) => {
+      const t = taskMap.get(r.committee_type);
+      if (t && t !== r.task) { updated += 1; return { ...r, task: t }; }
+      return r;
+    }));
+    toast.success(`تم تحديث ${updated} مهمة من صفحات اللجان`);
+  };
 
   const filtered = useMemo(
     () => filterCommittee === "all" ? rows : rows.filter(r => r.committee_type === filterCommittee),
@@ -127,14 +165,12 @@ export function EvaluationPlanBuilder() {
     const data = rows.map(r => ({
       "اللجنة": COMMITTEES.find(c => c.type === r.committee_type)?.label ?? r.committee_type,
       "المهمة": r.task,
-      "تاريخ البدء": r.start_date,
-      "تاريخ الانتهاء": r.end_date,
       "الحالة": r.done ? "تمت ✓" : "لم تتم ✗",
       "ملاحظات": r.notes,
     }));
     const ws = XLSX.utils.json_to_sheet(data);
     ws["!cols"] = [
-      { wch: 22 }, { wch: 38 }, { wch: 14 }, { wch: 14 }, { wch: 12 }, { wch: 28 },
+      { wch: 22 }, { wch: 44 }, { wch: 12 }, { wch: 28 },
     ];
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "خطة التقييم");
@@ -168,12 +204,18 @@ export function EvaluationPlanBuilder() {
           <h2 className="text-base font-bold flex items-center gap-2">
             جدول تقييم اللجان ومتابعتها
             <Badge variant="outline" className="text-[10px] border-gold/40 text-gold">لجنة الجودة</Badge>
+            <Badge variant="outline" className="text-[10px] border-primary/40 text-primary inline-flex items-center gap-1">
+              <CalendarDays className="h-3 w-3" /> تقرير أسبوعي · كل سبت
+            </Badge>
           </h2>
           <p className="text-xs text-muted-foreground mt-0.5">
-            متابعة مهام اللجان مع تواريخ البدء والانتهاء وحالة الإنجاز — صدّر أو اطبع التقرير المعتمد.
+            متابعة المهمة الحالية لكل لجنة وحالة الإنجاز — التقرير يُصدر أسبوعياً يوم السبت.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
+          <Button size="sm" variant="outline" onClick={refreshFromCommittees} title="جلب المهمة الأولى الحالية من كل لجنة">
+            <RefreshCw className="h-4 w-4 ms-1" /> تحديث من اللجان
+          </Button>
           <Button size="sm" variant="outline" onClick={exportXLSX}>
             <FileSpreadsheet className="h-4 w-4 ms-1" /> Excel
           </Button>
@@ -248,21 +290,19 @@ export function EvaluationPlanBuilder() {
 
       {/* Table */}
       <div className="overflow-x-auto">
-        <table className="w-full text-sm min-w-[900px]">
+        <table className="w-full text-sm min-w-[700px]">
           <thead className="bg-gradient-to-l from-primary/5 to-gold/5 text-xs border-b-2 border-gold/30">
             <tr className="text-start">
               <th className="px-3 py-3 font-bold text-start w-12">#</th>
               <th className="px-3 py-3 font-bold text-start">اللجنة</th>
               <th className="px-3 py-3 font-bold text-start">المهمة</th>
-              <th className="px-3 py-3 font-bold text-start w-[150px]">تاريخ البدء</th>
-              <th className="px-3 py-3 font-bold text-start w-[150px]">تاريخ الانتهاء</th>
               <th className="px-3 py-3 font-bold text-center w-[110px]">الحالة</th>
               <th className="px-3 py-3 font-bold text-start w-12"></th>
             </tr>
           </thead>
           <tbody className="divide-y">
             {filtered.length === 0 && (
-              <tr><td colSpan={7} className="px-4 py-10 text-center text-sm text-muted-foreground">
+              <tr><td colSpan={5} className="px-4 py-10 text-center text-sm text-muted-foreground">
                 لا توجد صفوف. اضغط «صف جديد» للبدء.
               </td></tr>
             )}
@@ -289,20 +329,6 @@ export function EvaluationPlanBuilder() {
                     <Input className="h-9 text-xs" value={r.task}
                       onChange={(e) => updateRow(r.id, { task: e.target.value })}
                       placeholder="مثال: مراجعة الخطة الزمنية للجنة الإعلام" />
-                  </td>
-                  <td className="px-3 py-2">
-                    <div className="relative">
-                      <CalendarDays className="h-3.5 w-3.5 text-muted-foreground absolute end-2 top-1/2 -translate-y-1/2 pointer-events-none" />
-                      <Input type="date" className="h-9 text-xs pe-7" value={r.start_date}
-                        onChange={(e) => updateRow(r.id, { start_date: e.target.value })} />
-                    </div>
-                  </td>
-                  <td className="px-3 py-2">
-                    <div className="relative">
-                      <CalendarDays className="h-3.5 w-3.5 text-muted-foreground absolute end-2 top-1/2 -translate-y-1/2 pointer-events-none" />
-                      <Input type="date" className="h-9 text-xs pe-7" value={r.end_date}
-                        onChange={(e) => updateRow(r.id, { end_date: e.target.value })} />
-                    </div>
                   </td>
                   <td className="px-3 py-2 text-center">
                     <button
@@ -335,7 +361,9 @@ export function EvaluationPlanBuilder() {
       <div className="px-5 py-5 border-t bg-gradient-to-l from-gold/5 via-transparent to-primary/5 flex flex-wrap items-center justify-between gap-4">
         <div className="text-[11px] text-muted-foreground flex items-center gap-2">
           <CalendarDays className="h-3.5 w-3.5" />
-          آخر تحديث: {new Date().toLocaleDateString("ar-SA", { day: "numeric", month: "long", year: "numeric" })}
+          تقرير أسبوعي · يصدر يوم السبت
+          {" — "}
+          الإصدار القادم: {nextSaturday().toLocaleDateString("ar-SA", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
         </div>
         <div className="flex items-center gap-3">
           <div className="text-end">
@@ -373,8 +401,6 @@ function buildHTML(rows: EvalRow[]): string {
       const tbody = items.map(r => `
         <tr class="${r.done ? 'row-done' : 'row-pending'}">
           <td>${escapeHtml(r.task) || "—"}</td>
-          <td class="num">${escapeHtml(fmtDate(r.start_date))}</td>
-          <td class="num">${escapeHtml(fmtDate(r.end_date))}</td>
           <td class="status">${r.done
             ? '<span class="badge done">✓ تمت</span>'
             : '<span class="badge pending">✗ لم تتم</span>'}</td>
@@ -387,18 +413,16 @@ function buildHTML(rows: EvalRow[]): string {
           </header>
           <table>
             <thead><tr>
-              <th style="width:42%">المهمة</th>
-              <th style="width:18%">تاريخ البدء</th>
-              <th style="width:18%">تاريخ الانتهاء</th>
-              <th style="width:22%">الحالة</th>
+              <th style="width:75%">المهمة</th>
+              <th style="width:25%">الحالة</th>
             </tr></thead>
             <tbody>${tbody}</tbody>
           </table>
         </section>`;
     }).join("");
 
-  const printDate = new Date().toLocaleDateString("ar-SA", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
-  const printTime = new Date().toLocaleTimeString("ar-SA", { hour: "2-digit", minute: "2-digit" });
+  const sat = nextSaturday();
+  const issueDate = sat.toLocaleDateString("ar-SA", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
 
   return `<!doctype html><html dir="rtl" lang="ar"><head><meta charset="utf-8"/>
 <title>تقرير تقييم ومتابعة اللجان</title>
@@ -462,9 +486,8 @@ function buildHTML(rows: EvalRow[]): string {
       <div class="sub">إعداد: لجنة الجودة — لجنة الزواج الجماعي</div>
     </div>
     <div class="org">
-      <strong>تاريخ الطباعة</strong>
-      ${escapeHtml(printDate)}
-      <br/>الساعة ${escapeHtml(printTime)}
+      <strong>تقرير أسبوعي</strong>
+      تاريخ الإصدار:<br/>${escapeHtml(issueDate)}
     </div>
   </div>
 
