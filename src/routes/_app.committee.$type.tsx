@@ -858,6 +858,7 @@ function CommitteePage() {
       {/* Quality committee: audit panel for monitoring all committees' tasks + per-committee PDF reports */}
       {type === "quality" && (
         <>
+          <EvaluationCriteria />
           <EvaluationPlanBuilder />
           <QualityAuditPanel />
         </>
