@@ -28,6 +28,8 @@ import { QualityAuditPanel } from "@/components/quality/QualityAuditPanel";
 import { EvaluationPlanBuilder } from "@/components/quality/EvaluationPlanBuilder";
 import { EvaluationCriteria } from "@/components/quality/EvaluationCriteria";
 import { EvaluationForm } from "@/components/quality/EvaluationForm";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { ClipboardList, ClipboardCheck, CalendarRange, ShieldCheck } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth } from "@/lib/auth";
 import { useAppSetting } from "@/hooks/use-app-setting";
@@ -859,10 +861,18 @@ function CommitteePage() {
       {/* Quality committee: audit panel for monitoring all committees' tasks + per-committee PDF reports */}
       {type === "quality" && (
         <>
-          <EvaluationCriteria />
-          <EvaluationForm />
-          <EvaluationPlanBuilder />
-          <QualityAuditPanel />
+          <QualitySection title="معايير وبنود التقييم" icon={ClipboardList} defaultOpen>
+            <EvaluationCriteria />
+          </QualitySection>
+          <QualitySection title="نموذج تقييم اللجان" icon={ClipboardCheck}>
+            <EvaluationForm />
+          </QualitySection>
+          <QualitySection title="خطة التقييم الأسبوعية" icon={CalendarRange}>
+            <EvaluationPlanBuilder />
+          </QualitySection>
+          <QualitySection title="لوحة تدقيق الجودة" icon={ShieldCheck}>
+            <QualityAuditPanel />
+          </QualitySection>
         </>
       )}
 
@@ -1577,5 +1587,35 @@ function QuickAssignPopover({
         </Command>
       </PopoverContent>
     </Popover>
+  );
+}
+
+function QualitySection({
+  title,
+  icon: Icon,
+  defaultOpen = false,
+  children,
+}: {
+  title: string;
+  icon: React.ComponentType<{ className?: string }>;
+  defaultOpen?: boolean;
+  children: React.ReactNode;
+}) {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <Collapsible open={open} onOpenChange={setOpen} className="rounded-2xl border bg-card shadow-sm overflow-hidden">
+      <CollapsibleTrigger className="w-full flex items-center justify-between gap-3 px-4 py-3 hover:bg-muted/40 transition-colors text-right">
+        <div className="flex items-center gap-3">
+          <div className="h-9 w-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+            <Icon className="h-4.5 w-4.5" />
+          </div>
+          <div className="font-semibold text-sm md:text-base">{title}</div>
+        </div>
+        <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`} />
+      </CollapsibleTrigger>
+      <CollapsibleContent className="border-t bg-background/40 p-3 md:p-4">
+        {children}
+      </CollapsibleContent>
+    </Collapsible>
   );
 }
