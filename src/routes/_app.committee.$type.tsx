@@ -1151,14 +1151,18 @@ function CommitteePage() {
         </div>
 
         <p className="text-[11px] text-muted-foreground mb-3">
-          💡 اسحب البطاقة وأفلتها بين الأعمدة لتغيير حالتها{showMine ? " · يتم عرض مهامك فقط" : ""}
+          💡 اسحب البطاقة بين الأعمدة لتغيير حالتها، أو فوق بطاقة أخرى لإعادة الترتيب يدوياً{showMine ? " · يتم عرض مهامك فقط" : ""}
         </p>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {(["todo", "in_progress", "completed"] as const).map((col) => {
             const priorityRank: Record<string, number> = { urgent: 0, high: 1, medium: 2, low: 3 };
-            const colTasks = visibleTasks
-              .filter((t) => t.status === col)
-              .slice()
+            const inCol = visibleTasks.filter((t) => t.status === col);
+            const manualIds = (taskOrder[col] ?? []).filter((id) => inCol.some((t) => t.id === id));
+            const ordered: Task[] = manualIds
+              .map((id) => inCol.find((t) => t.id === id)!)
+              .filter(Boolean);
+            const remainder = inCol
+              .filter((t) => !manualIds.includes(t.id))
               .sort((a, b) => {
                 const pr = (priorityRank[a.priority] ?? 9) - (priorityRank[b.priority] ?? 9);
                 if (pr !== 0) return pr;
@@ -1166,13 +1170,15 @@ function CommitteePage() {
                 const bd = (b as any).created_at ? new Date((b as any).created_at).getTime() : 0;
                 return bd - ad;
               });
+            const colTasks: Task[] = [...ordered, ...remainder];
+            const colTaskIds = colTasks.map((t) => t.id);
             const isOver = dragOverCol === col;
             return (
               <div
                 key={col}
                 onDragOver={(e) => onDragOverCol(e, col)}
                 onDragLeave={() => setDragOverCol((c) => (c === col ? null : c))}
-                onDrop={(e) => onDropCol(e, col)}
+                onDrop={(e) => onDropCol(e, col, colTaskIds)}
                 className={`rounded-2xl border bg-muted/30 p-4 min-h-[280px] transition-all ${
                   isOver ? "border-primary border-2 bg-primary/5 ring-2 ring-primary/20" : ""
                 }`}
