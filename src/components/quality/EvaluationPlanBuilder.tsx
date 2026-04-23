@@ -57,13 +57,35 @@ export function EvaluationPlanBuilder() {
   const [saving, setSaving] = useState(false);
   const [filterCommittee, setFilterCommittee] = useState<CommitteeType | "all">("all");
 
+  /** Fetches the first current/active task for every committee. */
+  const fetchCurrentTasksByCommittee = async (): Promise<Map<CommitteeType, string>> => {
+    const map = new Map<CommitteeType, string>();
+    const { data: comms } = await supabase
+      .from("committees")
+      .select("id, type");
+    if (!comms?.length) return map;
+    const { data: tasks } = await supabase
+      .from("committee_tasks")
+      .select("committee_id, title, status, priority, created_at")
+      .in("status", ["todo", "in_progress"])
+      .order("created_at", { ascending: true });
+    const byCommittee = new Map<string, string>();
+    (tasks ?? []).forEach((t) => {
+      if (!byCommittee.has(t.committee_id)) byCommittee.set(t.committee_id, t.title);
+    });
+    comms.forEach((c) => {
+      const title = byCommittee.get(c.id);
+      if (title) map.set(c.type as CommitteeType, title);
+    });
+    return map;
+  };
+
   useEffect(() => {
     (async () => {
       setLoading(true);
       const { data } = await supabase
         .from("app_settings").select("value").eq("key", SETTING_KEY).maybeSingle();
       const v = data?.value as { rows?: EvalRow[] } | null;
-      // Migrate legacy rows (with phase/criteria/...) into new shape
       const raw = Array.isArray(v?.rows) && v!.rows.length > 0 ? v!.rows : defaultPlan();
       const migrated: EvalRow[] = (raw as any[]).map((r) => ({
         id: r.id ?? (globalThis.crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2)),
@@ -72,10 +94,29 @@ export function EvaluationPlanBuilder() {
         done: typeof r.done === "boolean" ? r.done : false,
         notes: r.notes ?? "",
       }));
-      setRows(migrated);
+
+      // Auto-fill empty tasks from each committee's current first task
+      const taskMap = await fetchCurrentTasksByCommittee();
+      const filled = migrated.map((r) => {
+        if (r.task && r.task.trim()) return r;
+        const t = taskMap.get(r.committee_type);
+        return t ? { ...r, task: t } : r;
+      });
+      setRows(filled);
       setLoading(false);
     })();
   }, []);
+
+  const refreshFromCommittees = async () => {
+    const taskMap = await fetchCurrentTasksByCommittee();
+    let updated = 0;
+    setRows((prev) => prev.map((r) => {
+      const t = taskMap.get(r.committee_type);
+      if (t && t !== r.task) { updated += 1; return { ...r, task: t }; }
+      return r;
+    }));
+    toast.success(`تم تحديث ${updated} مهمة من صفحات اللجان`);
+  };
 
   const filtered = useMemo(
     () => filterCommittee === "all" ? rows : rows.filter(r => r.committee_type === filterCommittee),
