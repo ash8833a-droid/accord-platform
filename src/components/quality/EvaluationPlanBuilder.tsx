@@ -243,21 +243,19 @@ export function EvaluationPlanBuilder() {
 
       {/* Table */}
       <div className="overflow-x-auto">
-        <table className="w-full text-sm min-w-[900px]">
+        <table className="w-full text-sm min-w-[700px]">
           <thead className="bg-gradient-to-l from-primary/5 to-gold/5 text-xs border-b-2 border-gold/30">
             <tr className="text-start">
               <th className="px-3 py-3 font-bold text-start w-12">#</th>
               <th className="px-3 py-3 font-bold text-start">اللجنة</th>
               <th className="px-3 py-3 font-bold text-start">المهمة</th>
-              <th className="px-3 py-3 font-bold text-start w-[150px]">تاريخ البدء</th>
-              <th className="px-3 py-3 font-bold text-start w-[150px]">تاريخ الانتهاء</th>
               <th className="px-3 py-3 font-bold text-center w-[110px]">الحالة</th>
               <th className="px-3 py-3 font-bold text-start w-12"></th>
             </tr>
           </thead>
           <tbody className="divide-y">
             {filtered.length === 0 && (
-              <tr><td colSpan={7} className="px-4 py-10 text-center text-sm text-muted-foreground">
+              <tr><td colSpan={5} className="px-4 py-10 text-center text-sm text-muted-foreground">
                 لا توجد صفوف. اضغط «صف جديد» للبدء.
               </td></tr>
             )}
@@ -284,20 +282,6 @@ export function EvaluationPlanBuilder() {
                     <Input className="h-9 text-xs" value={r.task}
                       onChange={(e) => updateRow(r.id, { task: e.target.value })}
                       placeholder="مثال: مراجعة الخطة الزمنية للجنة الإعلام" />
-                  </td>
-                  <td className="px-3 py-2">
-                    <div className="relative">
-                      <CalendarDays className="h-3.5 w-3.5 text-muted-foreground absolute end-2 top-1/2 -translate-y-1/2 pointer-events-none" />
-                      <Input type="date" className="h-9 text-xs pe-7" value={r.start_date}
-                        onChange={(e) => updateRow(r.id, { start_date: e.target.value })} />
-                    </div>
-                  </td>
-                  <td className="px-3 py-2">
-                    <div className="relative">
-                      <CalendarDays className="h-3.5 w-3.5 text-muted-foreground absolute end-2 top-1/2 -translate-y-1/2 pointer-events-none" />
-                      <Input type="date" className="h-9 text-xs pe-7" value={r.end_date}
-                        onChange={(e) => updateRow(r.id, { end_date: e.target.value })} />
-                    </div>
                   </td>
                   <td className="px-3 py-2 text-center">
                     <button
