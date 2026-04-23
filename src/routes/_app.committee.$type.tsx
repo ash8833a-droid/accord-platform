@@ -1200,9 +1200,18 @@ function CommitteePage() {
                         draggable
                         onDragStart={(e) => onDragStart(e, t.id)}
                         onDragEnd={onDragEnd}
+                        onDragOver={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          if (dragId && dragId !== t.id) setDragOverTaskId(t.id);
+                        }}
+                        onDragLeave={() => setDragOverTaskId((c) => (c === t.id ? null : c))}
+                        onDrop={(e) => onDropOnCard(e, t.id, col, colTaskIds)}
                         className={`group relative rounded-2xl bg-card shadow-sm border border-border/60 hover:border-primary/40 hover:shadow-lg transition-all overflow-hidden ${
                           dragId === t.id ? "opacity-40 scale-95" : ""
-                        } ${isMine ? "ring-1 ring-primary/40" : ""} ${isFirstUrgent ? "ring-2 ring-destructive/60 border-destructive/50" : ""}`}
+                        } ${isMine ? "ring-1 ring-primary/40" : ""} ${isFirstUrgent ? "ring-2 ring-destructive/60 border-destructive/50" : ""} ${
+                          dragOverTaskId === t.id && dragId !== t.id ? "before:absolute before:inset-x-0 before:-top-1 before:h-1 before:bg-primary before:rounded-full" : ""
+                        }`}
                       >
                         {/* Priority accent bar */}
                         <span
