@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Logo } from "@/components/Logo";
+import heroBanner from "@/assets/hero-banner.jpg";
 import {
   HeartHandshake,
   Users,
@@ -116,6 +117,68 @@ function PublicHome() {
           </nav>
         </div>
       </header>
+
+      {/* Hero banner — branded image with elegant overlay text */}
+      <section className="relative">
+        <div className="relative w-full h-[340px] sm:h-[400px] md:h-[460px] lg:h-[520px] overflow-hidden">
+          <img
+            src={heroBanner}
+            alt="لجنة الزواج الجماعي — حيث تجتمع الهِمَم على صناعة الفرح"
+            width={1920}
+            height={1080}
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+          {/* RTL gradient overlay — darker on the right where text sits */}
+          <div className="absolute inset-0 bg-gradient-to-l from-transparent via-[oklch(0.27_0.05_200/0.55)] to-[oklch(0.22_0.05_200/0.85)]" />
+
+          {/* Text content — right aligned (RTL) */}
+          <div className="relative z-10 max-w-7xl mx-auto h-full px-6 sm:px-10 lg:px-16 flex items-center">
+            <div className="text-right max-w-2xl text-primary-foreground animate-fade-up">
+              <div className="inline-flex items-center gap-2 rounded-full border border-gold/40 bg-gold/15 backdrop-blur px-3 py-1 mb-4 text-[11px] sm:text-xs font-bold text-gold tracking-wider">
+                <Sparkles className="h-3 w-3" />
+                منصّة لجنة الزواج الجماعي
+              </div>
+
+              <h1
+                className="font-extrabold leading-[1.15] tracking-tight text-3xl sm:text-4xl md:text-5xl lg:text-6xl mb-3 sm:mb-4"
+                style={{
+                  background:
+                    "linear-gradient(180deg, oklch(0.95 0.13 90) 0%, oklch(0.82 0.15 85) 50%, oklch(0.68 0.14 80) 100%)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  backgroundClip: "text",
+                  filter: "drop-shadow(0 4px 14px oklch(0.2 0.05 200 / 0.6))",
+                }}
+              >
+                حيثُ تَلتقي الهِمَمُ… ويَكتمِلُ الفَرَح
+              </h1>
+
+              <p className="text-sm sm:text-base lg:text-lg text-primary-foreground/90 leading-loose mb-5 sm:mb-7 max-w-xl">
+                منصّةٌ مؤسَّسيّةٌ راقيةٌ تُنظِّمُ عملَ اللجان وتُديرُ مسيرةَ الزواج الجماعي بكلِّ
+                شفافيّةٍ وإتقان؛ من تسجيلِ العرسان وتوثيقِ المساهمات إلى متابعةِ المهامّ
+                وإصدارِ التقارير، ليَبقى الأَثَرُ مُمتدّاً وفَرَحُ العائلةِ مُكتمِلاً.
+              </p>
+
+              <div className="flex flex-wrap items-center gap-3">
+                <Link
+                  to="/register-groom"
+                  className="inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold bg-gradient-gold text-gold-foreground shadow-gold hover:opacity-95 transition-opacity"
+                >
+                  <HeartHandshake className="h-4 w-4" />
+                  تسجيل عريس
+                </Link>
+                <Link
+                  to="/auth"
+                  className="inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold border border-gold/50 bg-white/10 backdrop-blur text-primary-foreground hover:bg-white/20 transition-colors"
+                >
+                  <ShieldCheck className="h-4 w-4" />
+                  دخول الأعضاء
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* Hero KPIs — the 4 headline numbers (the only place these 4 appear) */}
       <section className="max-w-7xl mx-auto px-4 lg:px-8 mt-8 lg:mt-12 relative z-10">
