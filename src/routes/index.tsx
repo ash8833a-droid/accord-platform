@@ -119,31 +119,19 @@ function PublicHome() {
     ? Math.round(totalAmount / totalContributors)
     : 0;
 
-  // Duplicate the ticker list once for a seamless loop
-  const ticker = [...TICKER_MESSAGES, ...TICKER_MESSAGES];
+  // Auto-rotating hero pillar (ويبقى الأثر / العطاء / النيّة)
+  const [pillarIdx, setPillarIdx] = useState(0);
+  useEffect(() => {
+    const id = setInterval(
+      () => setPillarIdx((i) => (i + 1) % HERO_PILLARS.length),
+      5500,
+    );
+    return () => clearInterval(id);
+  }, []);
+  const activePillar = HERO_PILLARS[pillarIdx];
 
   return (
     <div className="min-h-screen bg-background" dir="rtl">
-      {/* Animated promo strip — appears above the header */}
-      <div className="relative overflow-hidden bg-gradient-hero text-primary-foreground border-b border-white/10">
-        <div className="absolute inset-0 opacity-30 [background:radial-gradient(circle_at_20%_50%,oklch(var(--gold)/0.4),transparent_50%),radial-gradient(circle_at_80%_50%,oklch(var(--primary-glow)/0.5),transparent_50%)]" />
-        <div
-          className="relative flex gap-12 whitespace-nowrap py-2.5 animate-marquee"
-          style={{ ["--marquee-duration" as string]: "55s" }}
-        >
-          {ticker.map((m, i) => (
-            <span
-              key={i}
-              className="inline-flex items-center gap-2 text-xs lg:text-sm font-semibold"
-            >
-              <m.icon className="h-3.5 w-3.5 text-gold shrink-0" />
-              {m.text}
-              <span className="mx-2 text-gold/60">✦</span>
-            </span>
-          ))}
-        </div>
-      </div>
-
       {/* Sticky header — single source of CTAs */}
       <header
         className={`sticky top-0 z-30 backdrop-blur transition-all duration-300 ${
@@ -173,40 +161,80 @@ function PublicHome() {
         </div>
       </header>
 
-      {/* Hero — narrative only, no buttons (CTAs already in header) */}
+      {/* Hero — three rotating pillars: ويبقى الأثر / العطاء / النيّة */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-hero opacity-95" />
+        <div
+          className={`absolute inset-0 bg-gradient-to-br ${activePillar.accent} transition-all duration-1000`}
+        />
         <div className="absolute -top-20 -left-20 w-96 h-96 bg-gold/25 rounded-full blur-3xl animate-float" />
         <div
           className="absolute -bottom-32 -right-20 w-96 h-96 bg-primary-glow/30 rounded-full blur-3xl animate-float"
           style={{ animationDelay: "1.2s" }}
         />
-        <div className="relative max-w-7xl mx-auto px-4 lg:px-8 py-16 lg:py-24 text-primary-foreground">
-          <div className="inline-flex items-center gap-2 rounded-full bg-white/10 backdrop-blur px-4 py-1.5 text-xs font-semibold mb-5 animate-fade-up">
+        {/* Subtle Arabic-inspired pattern */}
+        <div className="absolute inset-0 opacity-[0.07] [background-image:radial-gradient(circle_at_1px_1px,white_1px,transparent_0)] [background-size:32px_32px]" />
+
+        <div className="relative max-w-7xl mx-auto px-4 lg:px-8 py-20 lg:py-28 text-primary-foreground">
+          {/* Eyebrow chip — fixed brand identity */}
+          <div className="inline-flex items-center gap-2 rounded-full bg-white/10 backdrop-blur border border-white/15 px-4 py-1.5 text-xs font-semibold mb-8 animate-fade-up">
             <Sparkles className="h-3.5 w-3.5 text-gold animate-pulse" />
-            مسيرة عائلية مستمرة
+            مسيرة عائلية مستمرة · لجنة الزواج الجماعي
           </div>
-          <h1
-            className="text-3xl lg:text-5xl font-extrabold leading-tight max-w-3xl animate-fade-up"
-            style={{ animationDelay: "0.1s" }}
-          >
-            لجنة <span className="text-shimmer-gold">الزواج الجماعي</span>
-            <br />
-            أرقامٌ تروي قصة عطاء.
-          </h1>
-          <p
-            className="mt-5 text-base lg:text-lg text-primary-foreground/85 max-w-2xl leading-relaxed animate-fade-up"
-            style={{ animationDelay: "0.2s" }}
-          >
-            منذ انطلاق برنامج الزواج الجماعي وأبناء العائلة الكرام يتعاضدون لإقامة
-            أعراسٍ جامعةٍ تحفظ القيم وتُيسّر الزواج. هذه نظرة شفافة على ما تحقّق.
-          </p>
-          <div
-            className="mt-6 inline-flex items-center gap-2 text-xs text-primary-foreground/70 animate-fade-up"
-            style={{ animationDelay: "0.3s" }}
-          >
-            <ArrowLeft className="h-3.5 w-3.5" />
-            <span>تابع الأرقام أدناه — تُحدَّث باستمرار</span>
+
+          {/* Rotating pillar */}
+          <div key={activePillar.key} className="grid lg:grid-cols-[auto,1fr] gap-6 lg:gap-10 items-start animate-fade-up">
+            {/* Big circular icon with chapter numeral */}
+            <div className="relative shrink-0">
+              <div className={`relative h-28 w-28 lg:h-36 lg:w-36 rounded-full border-2 ${activePillar.iconBg} backdrop-blur-sm flex items-center justify-center shadow-elegant`}>
+                <activePillar.icon className="h-12 w-12 lg:h-16 lg:w-16" strokeWidth={1.4} />
+                <span className="absolute -top-2 -right-2 lg:-top-3 lg:-right-3 h-9 w-9 lg:h-11 lg:w-11 rounded-full bg-background text-foreground text-xs lg:text-sm font-extrabold flex items-center justify-center shadow-elegant border border-gold/40 tracking-wider">
+                  {activePillar.eyebrow}
+                </span>
+                <span className="absolute inset-0 rounded-full border border-gold/30 animate-ping opacity-40" />
+              </div>
+            </div>
+
+            <div className="min-w-0">
+              <h1 className="text-4xl sm:text-5xl lg:text-7xl font-extrabold leading-[1.05] tracking-tight">
+                <span className="text-shimmer-gold">{activePillar.title}</span>
+              </h1>
+              <p className="mt-5 text-base lg:text-xl text-primary-foreground/90 max-w-2xl leading-loose font-medium">
+                {activePillar.subtitle}
+              </p>
+
+              {/* Pillar progress dots */}
+              <div className="mt-8 flex items-center gap-3">
+                {HERO_PILLARS.map((p, i) => (
+                  <button
+                    key={p.key}
+                    onClick={() => setPillarIdx(i)}
+                    aria-label={p.title}
+                    className="group inline-flex items-center gap-2"
+                  >
+                    <span
+                      className={`h-1.5 rounded-full transition-all duration-500 ${
+                        i === pillarIdx
+                          ? "w-12 bg-gold shadow-[0_0_12px_oklch(var(--gold)/0.6)]"
+                          : "w-6 bg-white/30 group-hover:bg-white/50"
+                      }`}
+                    />
+                    <span
+                      className={`text-[11px] font-bold transition-colors ${
+                        i === pillarIdx ? "text-gold" : "text-primary-foreground/50 group-hover:text-primary-foreground/80"
+                      }`}
+                    >
+                      {p.title}
+                    </span>
+                  </button>
+                ))}
+              </div>
+
+              <div className="mt-8 inline-flex items-center gap-2 text-xs text-primary-foreground/70">
+                <ArrowLeft className="h-3.5 w-3.5" />
+                <span>تابع الأرقام أدناه — تُحدَّث باستمرار</span>
+              </div>
+            </div>
           </div>
         </div>
       </section>
