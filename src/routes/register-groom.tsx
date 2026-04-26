@@ -185,6 +185,13 @@ function RegisterGroomPage() {
     if (!photoFile) { toast.error("الرجاء رفع الصورة الشخصية للعريس"); return false; }
     if (!idFile) { toast.error("الرجاء رفع صورة الهوية الوطنية"); return false; }
     if (externalParticipation && !externalDetails.trim()) { toast.error("الرجاء كتابة تفاصيل المشاركات الخارجية"); return false; }
+    const sheep = Number(extraSheep) || 0;
+    if (sheep < 0 || !Number.isFinite(sheep) || !Number.isInteger(sheep)) {
+      toast.error("عدد الذبائح غير صحيح"); return false;
+    }
+    if (sheep > MAX_EXTRA_SHEEP) {
+      toast.error(`الحدّ الأقصى للذبائح الإضافية ${MAX_EXTRA_SHEEP} ذبيحتان فقط`); return false;
+    }
     return true;
   };
 
