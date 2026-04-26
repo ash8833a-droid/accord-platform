@@ -50,28 +50,18 @@ function PublicHome() {
 
   useEffect(() => {
     (async () => {
-      const [grooms, hs, subs, com] = await Promise.all([
-        supabase.from("grooms").select("id", { count: "exact", head: true }),
-        supabase.from("historical_shareholders").select("amount, hijri_year, family_branch"),
-        supabase.from("subscriptions").select("amount, status"),
-        supabase.from("committees").select("id", { count: "exact", head: true }),
-      ]);
-      const hsList = hs.data ?? [];
-      const subsList = subs.data ?? [];
-      const years = new Set(hsList.map((r) => r.hijri_year));
-      const branches = new Set(hsList.map((r) => r.family_branch));
-      const histAmount = hsList.reduce((a, r) => a + Number(r.amount || 0), 0);
-      const confirmed = subsList.filter((x) => x.status === "confirmed");
+      const { data } = await supabase.rpc("get_public_stats");
+      const d = (data ?? {}) as Record<string, number>;
       setS({
-        grooms: grooms.count ?? 0,
-        historicalShareholders: hsList.length,
-        historicalAmount: histAmount,
-        historicalYears: years.size,
-        firstYear: years.size ? Math.min(...Array.from(years)) : 0,
-        confirmedSubs: confirmed.length,
-        confirmedAmount: confirmed.reduce((a, x) => a + Number(x.amount || 0), 0),
-        committees: com.count ?? 0,
-        branches: branches.size,
+        grooms: Number(d.grooms ?? 0),
+        historicalShareholders: Number(d.historical_shareholders ?? 0),
+        historicalAmount: Number(d.historical_amount ?? 0),
+        historicalYears: Number(d.historical_years ?? 0),
+        firstYear: Number(d.first_year ?? 0),
+        confirmedSubs: Number(d.confirmed_subs ?? 0),
+        confirmedAmount: Number(d.confirmed_amount ?? 0),
+        committees: Number(d.committees ?? 0),
+        branches: Number(d.historical_branches ?? 0),
       });
       setLoaded(true);
     })();
