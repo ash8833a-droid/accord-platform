@@ -1,9 +1,9 @@
 import logo from "@/assets/logo.jpeg";
 
 export function Logo({ size = 40, withText = true }: { size?: number; withText?: boolean }) {
-  // Outer ring (الدبلة) is ~22% larger than the inner logo disc
-  const ringSize = Math.round(size * 1.22);
-  const ringStroke = Math.max(2, Math.round(size * 0.07));
+  // Outer ring (الدبلة) is noticeably larger than the inner logo disc to read clearly
+  const ringSize = Math.round(size * 1.45);
+  const ringStroke = Math.max(3, Math.round(size * 0.11));
   return (
     <div className="flex items-center gap-3">
       <div
@@ -13,16 +13,21 @@ export function Logo({ size = 40, withText = true }: { size?: number; withText?:
         {/* Outer wedding ring (الدبلة) — gold gradient with subtle highlight */}
         <svg
           viewBox="0 0 100 100"
-          className="absolute inset-0 w-full h-full drop-shadow-[0_2px_6px_rgba(196,162,92,0.45)]"
+          className="absolute inset-0 w-full h-full drop-shadow-[0_2px_8px_rgba(196,162,92,0.55)]"
           aria-hidden="true"
         >
           <defs>
             <linearGradient id="logoRingGold" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stopColor="#F0D88A" />
-              <stop offset="50%" stopColor="#C4A25C" />
+              <stop offset="0%" stopColor="#F5DE96" />
+              <stop offset="45%" stopColor="#D4B36A" />
               <stop offset="100%" stopColor="#8C6E2E" />
             </linearGradient>
+            <linearGradient id="logoRingInner" x1="0" y1="1" x2="1" y2="0">
+              <stop offset="0%" stopColor="#FFF1C2" stopOpacity="0.9" />
+              <stop offset="100%" stopColor="#C4A25C" stopOpacity="0.2" />
+            </linearGradient>
           </defs>
+          {/* Main band */}
           <circle
             cx="50"
             cy="50"
@@ -31,13 +36,23 @@ export function Logo({ size = 40, withText = true }: { size?: number; withText?:
             stroke="url(#logoRingGold)"
             strokeWidth={ringStroke}
           />
-          {/* tiny highlight dot for jewelry feel */}
-          <circle cx="30" cy="22" r="1.4" fill="#FFF8E1" opacity="0.85" />
+          {/* Inner thin highlight to give jewelry depth */}
+          <circle
+            cx="50"
+            cy="50"
+            r={50 - ringStroke + 0.4}
+            fill="none"
+            stroke="url(#logoRingInner)"
+            strokeWidth="0.6"
+            opacity="0.8"
+          />
+          {/* Tiny sparkle */}
+          <circle cx="28" cy="22" r="1.6" fill="#FFF8E1" opacity="0.9" />
         </svg>
 
         {/* Inner logo disc nested inside the ring */}
         <div
-          className="relative rounded-full overflow-hidden bg-background"
+          className="relative rounded-full overflow-hidden bg-background ring-1 ring-gold/20"
           style={{ width: size, height: size }}
         >
           <img src={logo} alt="شعار البرنامج" className="w-full h-full object-cover" />
