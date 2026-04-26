@@ -295,14 +295,16 @@ function PublicHome() {
           <div className="relative text-center max-w-2xl mx-auto">
             <div className="inline-flex items-center gap-2 rounded-full bg-gold/15 text-gold-foreground px-4 py-1.5 text-xs font-bold mb-4">
               <Sparkles className="h-3.5 w-3.5" />
-              دعوة كريمة
+              ويبقى الأثر
             </div>
             <h3 className="text-2xl lg:text-3xl font-bold leading-tight">
-              يدٌ واحدةٌ لا تُصفِّق… ومعاً نصنع الفرحة
+              تنقضي الليلةُ… ويبقى الأثرُ شاهداً على نُبلِكم
             </h3>
             <p className="text-sm lg:text-base text-muted-foreground mt-3 leading-relaxed">
-              نشكر كل من أسهم بريالٍ أو فكرةٍ أو وقت. ولأنّ القائمة تطول، نختصرها بكلمة:
-              <span className="font-bold text-foreground"> جزاكم الله خيراً</span>.
+              ما تُقدّمونه اليوم من جُهدٍ خفيٍّ، أو دعمٍ صادق، أو دعوةٍ في ظهرِ الغيب —
+              يَعبرُ حدودَ الحفل ليصير ذكرى راسخةً في وجدانِ كلِّ عريسٍ، ودعاءً مستجاباً
+              في بيتٍ جديد. <span className="font-bold text-foreground">أثرُكم باقٍ ما بقيت الفرحةُ تُروى</span>،
+              وأجرُكم عند الله أوفى وأبقى.
             </p>
           </div>
         </div>
