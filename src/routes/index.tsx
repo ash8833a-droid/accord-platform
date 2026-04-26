@@ -317,14 +317,6 @@ function PublicHome() {
             value={fmt(s.historicalShareholders)}
             sub={`بإجمالي ${fmtSAR(s.historicalAmount)}`}
           />
-          <DetailCard
-            icon={Gift}
-            label="معدّل العرسان لكلِّ لجنة"
-            value={
-              s.committees ? fmt(Math.round((s.grooms / s.committees) * 10) / 10) : "—"
-            }
-            sub="يعكسُ توزُّعَ الجهد بين اللجان"
-          />
         </div>
       </section>
 
