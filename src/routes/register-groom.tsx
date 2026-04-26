@@ -61,6 +61,11 @@ const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp
 const ALLOWED_EXT = /\.(jpe?g|png|webp)$/i;
 const formatBytes = (b: number) => `${(b / (1024 * 1024)).toFixed(2)} م.ب`;
 
+/** الحدود المعتمدة من اللجنة. */
+const MAX_EXTRA_SHEEP = 2;
+const BASE_CARDS_MEN = 50;
+const BASE_CARDS_WOMEN = 30;
+
 async function uploadPublic(file: File, prefix: string): Promise<string | null> {
   const { safeStorageKey } = await import("@/lib/uploads");
   const path = safeStorageKey(file.name, prefix);
