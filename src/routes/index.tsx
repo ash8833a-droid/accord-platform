@@ -42,32 +42,32 @@ const HERO_PILLARS = [
   {
     key: "athar",
     icon: Star,
-    eyebrow: "I",
+    eyebrow: "الفصل الأول",
     title: "ويبقى الأثر",
+    verse: "تنقضي الليلةُ… وتُطوى الأضواء",
     subtitle:
-      "تنقضي الليلةُ، وتُطوى الأضواء… ويبقى ما زرعتموه دعاءً في بيتٍ جديد، وذكرى في وجدانِ عريسٍ لا ينساها.",
-    accent: "from-gold/30 via-gold/10 to-transparent",
-    iconBg: "bg-gold/20 text-gold border-gold/40",
+      "ويبقى ما زرعتموه دعاءً في بيتٍ جديد، وذكرى في وجدانِ عريسٍ لا تَبلى.",
+    accent: "from-gold/40 via-gold/10 to-transparent",
   },
   {
     key: "ataa",
     icon: HandHeart,
-    eyebrow: "II",
+    eyebrow: "الفصل الثاني",
     title: "العطاء",
+    verse: "ريالٌ بصدق… ووقتٌ بإخلاص",
     subtitle:
-      "ريالٌ يُعطى بصدق، ووقتٌ يُبذل بإخلاص، ويدٌ تمتدّ في صمت — كلُّها أنهارٌ صغيرة تجتمع فتصير بحراً من الفرح.",
-    accent: "from-primary-glow/40 via-primary-glow/10 to-transparent",
-    iconBg: "bg-primary-glow/20 text-primary-foreground border-primary-glow/50",
+      "أنهارٌ صغيرةٌ من الكَرَم تجتمع في صمت، فتصير بحراً واسعاً من الفرح.",
+    accent: "from-primary-glow/50 via-primary-glow/10 to-transparent",
   },
   {
     key: "niyya",
     icon: Sparkles,
-    eyebrow: "III",
+    eyebrow: "الفصل الثالث",
     title: "النيّة",
+    verse: "قبل العطاءِ… قلبٌ نقيّ",
     subtitle:
-      "قبل العطاء قلبٌ نقي، وقبل الجهد نيّةٌ خالصة لله. بها تُبارَك الأعمال، وبها تتحوّل الجهود الصغيرة إلى صدقةٍ جارية.",
-    accent: "from-emerald-400/25 via-emerald-300/10 to-transparent",
-    iconBg: "bg-emerald-400/20 text-emerald-100 border-emerald-300/40",
+      "نيّةٌ خالصةٌ لله، بها تُبارَك الأعمالُ الصغيرة، فتغدو صدقةً جارية.",
+    accent: "from-emerald-400/35 via-emerald-300/10 to-transparent",
   },
 ] as const;
 
@@ -124,11 +124,10 @@ function PublicHome() {
   useEffect(() => {
     const id = setInterval(
       () => setPillarIdx((i) => (i + 1) % HERO_PILLARS.length),
-      5500,
+      7000,
     );
     return () => clearInterval(id);
   }, []);
-  const activePillar = HERO_PILLARS[pillarIdx];
 
   return (
     <div className="min-h-screen bg-background" dir="rtl">
@@ -161,80 +160,120 @@ function PublicHome() {
         </div>
       </header>
 
-      {/* Hero — three rotating pillars: ويبقى الأثر / العطاء / النيّة */}
-      <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-hero opacity-95" />
+      {/* Hero — cinematic horizontal slider (RTL), 7s per banner */}
+      <section className="relative overflow-hidden bg-gradient-hero">
+        {/* Ambient glow layers */}
+        <div className="absolute -top-24 right-1/3 w-[28rem] h-[28rem] bg-gold/25 rounded-full blur-[120px] animate-float pointer-events-none" />
         <div
-          className={`absolute inset-0 bg-gradient-to-br ${activePillar.accent} transition-all duration-1000`}
+          className="absolute -bottom-32 left-1/4 w-[26rem] h-[26rem] bg-primary-glow/25 rounded-full blur-[120px] animate-float pointer-events-none"
+          style={{ animationDelay: "1.4s" }}
         />
-        <div className="absolute -top-20 -left-20 w-96 h-96 bg-gold/25 rounded-full blur-3xl animate-float" />
-        <div
-          className="absolute -bottom-32 -right-20 w-96 h-96 bg-primary-glow/30 rounded-full blur-3xl animate-float"
-          style={{ animationDelay: "1.2s" }}
-        />
-        {/* Subtle Arabic-inspired pattern */}
-        <div className="absolute inset-0 opacity-[0.07] [background-image:radial-gradient(circle_at_1px_1px,white_1px,transparent_0)] [background-size:32px_32px]" />
+        {/* Arabesque dot grid */}
+        <div className="absolute inset-0 opacity-[0.06] [background-image:radial-gradient(circle_at_1px_1px,white_1px,transparent_0)] [background-size:28px_28px] pointer-events-none" />
 
-        <div className="relative max-w-7xl mx-auto px-4 lg:px-8 py-20 lg:py-28 text-primary-foreground">
-          {/* Eyebrow chip — fixed brand identity */}
-          <div className="inline-flex items-center gap-2 rounded-full bg-white/10 backdrop-blur border border-white/15 px-4 py-1.5 text-xs font-semibold mb-8 animate-fade-up">
-            <Sparkles className="h-3.5 w-3.5 text-gold animate-pulse" />
-            مسيرة عائلية مستمرة · لجنة الزواج الجماعي
-          </div>
-
-          {/* Rotating pillar */}
-          <div key={activePillar.key} className="grid lg:grid-cols-[auto,1fr] gap-6 lg:gap-10 items-start animate-fade-up">
-            {/* Big circular icon with chapter numeral */}
-            <div className="relative shrink-0">
-              <div className={`relative h-28 w-28 lg:h-36 lg:w-36 rounded-full border-2 ${activePillar.iconBg} backdrop-blur-sm flex items-center justify-center shadow-elegant`}>
-                <activePillar.icon className="h-12 w-12 lg:h-16 lg:w-16" strokeWidth={1.4} />
-                <span className="absolute -top-2 -right-2 lg:-top-3 lg:-right-3 h-9 w-9 lg:h-11 lg:w-11 rounded-full bg-background text-foreground text-xs lg:text-sm font-extrabold flex items-center justify-center shadow-elegant border border-gold/40 tracking-wider">
-                  {activePillar.eyebrow}
-                </span>
-                <span className="absolute inset-0 rounded-full border border-gold/30 animate-ping opacity-40" />
-              </div>
-            </div>
-
-            <div className="min-w-0">
-              <h1 className="text-4xl sm:text-5xl lg:text-7xl font-extrabold leading-[1.05] tracking-tight">
-                <span className="text-shimmer-gold">{activePillar.title}</span>
-              </h1>
-              <p className="mt-5 text-base lg:text-xl text-primary-foreground/90 max-w-2xl leading-loose font-medium">
-                {activePillar.subtitle}
-              </p>
-
-              {/* Pillar progress dots */}
-              <div className="mt-8 flex items-center gap-3">
-                {HERO_PILLARS.map((p, i) => (
-                  <button
-                    key={p.key}
-                    onClick={() => setPillarIdx(i)}
-                    aria-label={p.title}
-                    className="group inline-flex items-center gap-2"
-                  >
-                    <span
-                      className={`h-1.5 rounded-full transition-all duration-500 ${
-                        i === pillarIdx
-                          ? "w-12 bg-gold shadow-[0_0_12px_oklch(var(--gold)/0.6)]"
-                          : "w-6 bg-white/30 group-hover:bg-white/50"
-                      }`}
-                    />
-                    <span
-                      className={`text-[11px] font-bold transition-colors ${
-                        i === pillarIdx ? "text-gold" : "text-primary-foreground/50 group-hover:text-primary-foreground/80"
+        {/* Slider viewport */}
+        <div className="relative">
+          <div
+            className="flex transition-transform duration-[1100ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
+            style={{
+              // RTL: first slide is rightmost; translate to the LEFT (positive in RTL flex)
+              transform: `translateX(${pillarIdx * 100}%)`,
+            }}
+          >
+            {HERO_PILLARS.map((p, i) => {
+              const Icon = p.icon;
+              const isActive = i === pillarIdx;
+              return (
+                <article
+                  key={p.key}
+                  className="relative w-full shrink-0"
+                  aria-hidden={!isActive}
+                >
+                  {/* Per-slide accent wash */}
+                  <div
+                    className={`absolute inset-0 bg-gradient-to-bl ${p.accent} transition-opacity duration-1000 ${
+                      isActive ? "opacity-100" : "opacity-0"
+                    }`}
+                  />
+                  <div className="relative max-w-7xl mx-auto px-4 lg:px-8 py-20 lg:py-28 text-primary-foreground">
+                    {/* Chapter eyebrow with gold rule */}
+                    <div
+                      className={`flex items-center gap-3 mb-6 transition-all duration-700 ${
+                        isActive ? "opacity-100 translate-x-0" : "opacity-0 translate-x-8"
                       }`}
                     >
-                      {p.title}
-                    </span>
-                  </button>
-                ))}
-              </div>
+                      <span className="h-px w-10 bg-gold" />
+                      <span className="text-[11px] tracking-[0.3em] font-bold text-gold uppercase">
+                        {p.eyebrow}
+                      </span>
+                      <Icon className="h-4 w-4 text-gold" strokeWidth={1.6} />
+                    </div>
 
-              <div className="mt-8 inline-flex items-center gap-2 text-xs text-primary-foreground/70">
-                <ArrowLeft className="h-3.5 w-3.5" />
-                <span>تابع الأرقام أدناه — تُحدَّث باستمرار</span>
-              </div>
-            </div>
+                    {/* Verse line — small poetic preface */}
+                    <p
+                      className={`text-base lg:text-xl text-primary-foreground/75 font-medium mb-4 transition-all duration-700 delay-100 ${
+                        isActive ? "opacity-100 translate-x-0" : "opacity-0 translate-x-12"
+                      }`}
+                    >
+                      {p.verse}
+                    </p>
+
+                    {/* Monumental title */}
+                    <h1
+                      className={`text-6xl sm:text-7xl lg:text-[8.5rem] font-extrabold leading-[0.95] tracking-tight transition-all duration-1000 delay-200 ${
+                        isActive ? "opacity-100 translate-x-0" : "opacity-0 translate-x-16"
+                      }`}
+                    >
+                      <span className="text-shimmer-gold">{p.title}</span>
+                    </h1>
+
+                    {/* Supporting line */}
+                    <p
+                      className={`mt-6 text-base lg:text-2xl text-primary-foreground/90 max-w-2xl leading-loose font-medium transition-all duration-1000 delay-300 ${
+                        isActive ? "opacity-100 translate-x-0" : "opacity-0 translate-x-20"
+                      }`}
+                    >
+                      {p.subtitle}
+                    </p>
+
+                    {/* Brand line at the bottom of each slide */}
+                    <div
+                      className={`mt-12 inline-flex items-center gap-2 rounded-full bg-white/10 backdrop-blur border border-white/15 px-4 py-1.5 text-xs font-semibold transition-all duration-700 delay-500 ${
+                        isActive ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
+                      }`}
+                    >
+                      <Sparkles className="h-3.5 w-3.5 text-gold animate-pulse" />
+                      مسيرة عائلية مستمرة · لجنة الزواج الجماعي
+                    </div>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+
+          {/* Bottom progress bar — segments fill in over 7s */}
+          <div className="absolute bottom-0 inset-x-0 max-w-7xl mx-auto px-4 lg:px-8 pb-5 flex items-center gap-2">
+            {HERO_PILLARS.map((p, i) => (
+              <button
+                key={p.key}
+                onClick={() => setPillarIdx(i)}
+                aria-label={`الانتقال إلى ${p.title}`}
+                className="group relative flex-1 h-[3px] rounded-full bg-white/15 overflow-hidden"
+              >
+                <span
+                  className={`absolute inset-y-0 right-0 bg-gold rounded-full ${
+                    i === pillarIdx
+                      ? "animate-[heroFill_7s_linear_forwards]"
+                      : i < pillarIdx
+                      ? "w-full"
+                      : "w-0"
+                  }`}
+                  style={{
+                    boxShadow: i === pillarIdx ? "0 0 12px oklch(var(--gold) / 0.7)" : undefined,
+                  }}
+                />
+              </button>
+            ))}
           </div>
         </div>
       </section>
