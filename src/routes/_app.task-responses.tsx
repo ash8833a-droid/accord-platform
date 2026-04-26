@@ -92,6 +92,9 @@ function TaskResponsesPage() {
   const [authorized, setAuthorized] = useState<boolean | null>(null);
   const isAdmin = hasRole("admin");
   const isQuality = hasRole("quality");
+  const [isSupreme, setIsSupreme] = useState(false);
+  const canDelete = (r: JoinedRow) =>
+    isAdmin || isQuality || isSupreme || r.user_id === user?.id;
 
   const [committees, setCommittees] = useState<CommitteeRow[]>([]);
   const [tasks, setTasks] = useState<TaskRow[]>([]);
@@ -130,7 +133,11 @@ function TaskResponsesPage() {
         .eq("user_id", user.id)
         .eq("committee_id", supremeC.id)
         .limit(1);
-      if (active) setAuthorized((rolesData ?? []).length > 0);
+      const isMember = (rolesData ?? []).length > 0;
+      if (active) {
+        setIsSupreme(isMember);
+        setAuthorized(isMember);
+      }
     };
     check();
     return () => {
