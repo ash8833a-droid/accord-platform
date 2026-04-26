@@ -14,14 +14,6 @@ import {
   HandHeart,
   Star,
   Gift,
-  ChevronLeft,
-  ChevronRight,
-  Crown,
-  Heart,
-  Moon,
-  BookOpen,
-  Home as HomeIcon,
-  Users2,
 } from "lucide-react";
 
 export const Route = createFileRoute("/")({
@@ -43,51 +35,6 @@ export const Route = createFileRoute("/")({
   }),
   component: PublicHome,
 });
-
-const HERO_PILLARS = [
-  {
-    key: "athar",
-    icon: Crown,
-    title: "ويبقى الأثر",
-    kicker: "الفصل الأول",
-    verse: "تَنقضي الليلةُ… ويَبقى الأَثَر",
-    subtitle:
-      "ما تَبذُلونَهُ اليومَ يَتحوَّلُ غداً إلى بيتٍ يَعمُرُ بالسَّكينة، ودعاءٍ صالحٍ لا يَنقطع، وذكرى طيِّبةٍ في وِجدانِ كلِّ عَريس.",
-    badges: [
-      { icon: HomeIcon, label: "بيوتٌ تَعمُر" },
-      { icon: Heart, label: "مَودَّةٌ تَدوم" },
-      { icon: BookOpen, label: "ذِكرى طيِّبة" },
-    ],
-  },
-  {
-    key: "ataa",
-    icon: HandHeart,
-    title: "العطاء",
-    kicker: "الفصل الثاني",
-    verse: "يَدٌ كريمةٌ… تَصنعُ فَرَحاً",
-    subtitle:
-      "بكلِّ مُساهَمةٍ تُؤازِرونَ شاباً على بناءِ بيتِه، وتُشارِكونَ في فَرحةِ أُسرةٍ تَنتظرُ يومَها. هكذا يَجتمعُ الكَرَمُ فيُثمِرُ سَعادةً مُشترَكة.",
-    badges: [
-      { icon: HandHeart, label: "كَفالةُ عَريس" },
-      { icon: Users2, label: "تَكافُلُ العائلة" },
-      { icon: Gift, label: "هَديَّةُ فَرَح" },
-    ],
-  },
-  {
-    key: "niyya",
-    icon: Moon,
-    title: "النيّة",
-    kicker: "الفصل الثالث",
-    verse: "قَبلَ العَطاءِ… قَلبٌ نَقيّ",
-    subtitle:
-      "بالنيَّةِ الصادقةِ يُبارَكُ القليلُ ويَعظُمُ الأَجر؛ فتُكتَبُ المُساهمةُ صَدقةً جاريةً، ويَبقى أثرُها في ميزانِ صاحبِها ما دامَ بيتٌ قائمٌ على فَرَح.",
-    badges: [
-      { icon: Moon, label: "إخلاصٌ خَفيّ" },
-      { icon: Sparkles, label: "بَرَكةٌ نازلة" },
-      { icon: Star, label: "أَجرٌ مُمتَدّ" },
-    ],
-  },
-] as const;
 
 function PublicHome() {
   const [s, setS] = useState({
@@ -138,16 +85,6 @@ function PublicHome() {
   const avgContribution = totalContributors
     ? Math.round(totalAmount / totalContributors)
     : 0;
-
-  // Auto-rotating hero pillar (ويبقى الأثر / العطاء / النيّة)
-  const [pillarIdx, setPillarIdx] = useState(0);
-  useEffect(() => {
-    const id = setInterval(
-      () => setPillarIdx((i) => (i + 1) % HERO_PILLARS.length),
-      7000,
-    );
-    return () => clearInterval(id);
-  }, []);
 
   return (
     <div className="min-h-screen bg-background" dir="rtl">
