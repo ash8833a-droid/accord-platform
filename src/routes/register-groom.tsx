@@ -62,8 +62,8 @@ const ALLOWED_EXT = /\.(jpe?g|png|webp)$/i;
 const formatBytes = (b: number) => `${(b / (1024 * 1024)).toFixed(2)} م.ب`;
 
 async function uploadPublic(file: File, prefix: string): Promise<string | null> {
-  const ext = file.name.split(".").pop() || "bin";
-  const path = `${prefix}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+  const { safeStorageKey } = await import("@/lib/uploads");
+  const path = safeStorageKey(file.name, prefix);
   const { error } = await supabase.storage.from("groom-public").upload(path, file, {
     upsert: false,
     contentType: file.type,

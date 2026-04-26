@@ -76,8 +76,9 @@ export function GroomDetailsDialog({ groomId, open, onOpenChange, onSaved }: Pro
     const field = kind === "photo" ? "photo_url" : "national_id_url";
     setUploading(true);
     try {
-      const ext = file.name.split(".").pop() || "bin";
-      const path = `${data.id}/${kind}-${Date.now()}.${ext}`;
+      const { safeExt } = await import("@/lib/uploads");
+      const ext = safeExt(file.name, "bin");
+      const path = `${data.id}/${kind}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
       const { error: upErr } = await supabase.storage.from("groom-docs").upload(path, file, { upsert: true, contentType: file.type });
       if (upErr) {
         toast.error("فشل رفع الملف", { description: upErr.message });

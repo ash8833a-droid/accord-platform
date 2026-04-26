@@ -200,9 +200,10 @@ export function HistoricalShares() {
     if (!uploadFile) return;
     setUploading(true);
     try {
-      // 1) رفع للأرشيف
-      const ext = uploadFile.name.split(".").pop() || "pdf";
-      const path = `${uploadYear}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+      // 1) رفع للأرشيف (مسار ASCII آمن)
+      const { safeStorageKey, safeExt } = await import("@/lib/uploads");
+      const ext = safeExt(uploadFile.name, "pdf");
+      const path = safeStorageKey(uploadFile.name, String(uploadYear));
       await supabase.storage.from("historical-shares").upload(path, uploadFile, {
         cacheControl: "3600",
         upsert: false,
