@@ -1,1 +1,4 @@
 project_id = "opdivchnxercypeywoxf"
+
+[functions.bootstrap-chairman]
+verify_jwt = false
