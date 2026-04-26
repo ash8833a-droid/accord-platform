@@ -13,8 +13,8 @@ import {
   Building2,
   ShieldCheck,
   HandHeart,
-  Star,
-  Gift,
+  GitBranch,
+  Coins,
 } from "lucide-react";
 
 export const Route = createFileRoute("/")({
