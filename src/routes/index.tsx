@@ -14,7 +14,6 @@ import {
   ShieldCheck,
   HandHeart,
   GitBranch,
-  Coins,
 } from "lucide-react";
 
 export const Route = createFileRoute("/")({
@@ -221,7 +220,7 @@ function PublicHome() {
             delay="0.2s"
           />
           <HeroKpi
-            label="اللجان المُشاركة"
+            label="اللجان المنظِّمة"
             value={fmt(s.committees)}
             hint="فريق يعمل بروح واحدة"
             icon={Building2}
@@ -269,24 +268,10 @@ function PublicHome() {
             sub="لكلِّ مساهمٍ عبر السنين"
           />
           <DetailCard
-            icon={Coins}
-            label="حصّةُ العريسِ الواحد"
-            value={s.grooms ? fmtSAR(Math.round(totalAmount / s.grooms)) : "—"}
-            sub="متوسط ما يَصلُ كلَّ بيتٍ من البرنامج"
-          />
-          <DetailCard
             icon={Sparkles}
             label="نبضُ هذا العام"
             value={fmt(s.confirmedSubs)}
             sub={`مساهمٌ جديدٌ بقيمة ${fmtSAR(s.confirmedAmount)}`}
-          />
-          <DetailCard
-            icon={Users}
-            label="المساهمون لكلِّ فرع"
-            value={
-              s.branches ? fmt(Math.round(s.historicalShareholders / s.branches)) : "—"
-            }
-            sub="مؤشِّرٌ على تكاتفِ الفروع"
           />
         </div>
       </section>
