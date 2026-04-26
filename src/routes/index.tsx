@@ -16,6 +16,12 @@ import {
   Gift,
   ChevronLeft,
   ChevronRight,
+  Crown,
+  Heart,
+  Moon,
+  BookOpen,
+  Home as HomeIcon,
+  Users2,
 } from "lucide-react";
 
 export const Route = createFileRoute("/")({
@@ -41,33 +47,42 @@ export const Route = createFileRoute("/")({
 const HERO_PILLARS = [
   {
     key: "athar",
-    icon: Star,
-    eyebrow: "الفصل الأول",
+    icon: Crown,
     title: "ويبقى الأثر",
-    verse: "تنقضي الليلةُ… وتُطوى الأضواء",
+    verse: "بفضل الله وتوفيقه",
     subtitle:
-      "ويبقى ما زرعتموه دعاءً في بيتٍ جديد، وذكرى في وجدانِ عريسٍ لا تَبلى.",
-    accent: "from-gold/40 via-gold/10 to-transparent",
+      "ما تُقدّمونه اليوم يَعبرُ حدودَ الليلة ليصير ذكرى راسخةً في بيتٍ جديد، ودعاءً مستجاباً يبقى أثرُه ممتداً.",
+    badges: [
+      { icon: Heart, label: "محبّة باقية" },
+      { icon: HomeIcon, label: "بيوتٌ تُؤسَّس" },
+      { icon: BookOpen, label: "ذكرى تُروى" },
+    ],
   },
   {
     key: "ataa",
     icon: HandHeart,
-    eyebrow: "الفصل الثاني",
     title: "العطاء",
-    verse: "ريالٌ بصدق… ووقتٌ بإخلاص",
+    verse: "يدٌ تمتدّ في صمت",
     subtitle:
-      "أنهارٌ صغيرةٌ من الكَرَم تجتمع في صمت، فتصير بحراً واسعاً من الفرح.",
-    accent: "from-primary-glow/50 via-primary-glow/10 to-transparent",
+      "ريالٌ يُعطى بصدق، ووقتٌ يُبذل بإخلاص — أنهارٌ صغيرةٌ من الكَرَم تجتمع فتصير بحراً واسعاً من الفرح.",
+    badges: [
+      { icon: HandHeart, label: "كفالة عريس" },
+      { icon: Users2, label: "تكافل عائلي" },
+      { icon: Gift, label: "هديةُ فرح" },
+    ],
   },
   {
     key: "niyya",
-    icon: Sparkles,
-    eyebrow: "الفصل الثالث",
+    icon: Moon,
     title: "النيّة",
-    verse: "قبل العطاءِ… قلبٌ نقيّ",
+    verse: "قبل العطاءِ قلبٌ نقيّ",
     subtitle:
-      "نيّةٌ خالصةٌ لله، بها تُبارَك الأعمالُ الصغيرة، فتغدو صدقةً جارية.",
-    accent: "from-emerald-400/35 via-emerald-300/10 to-transparent",
+      "نيّةٌ خالصةٌ لله، بها تُبارَك الأعمالُ الصغيرة فتغدو صدقةً جارية، وبها يُكتَب الأجرُ ويبقى الجزاء.",
+    badges: [
+      { icon: Moon, label: "إخلاصٌ خفيّ" },
+      { icon: Sparkles, label: "بركةٌ نازلة" },
+      { icon: Star, label: "أجرٌ مضاعف" },
+    ],
   },
 ] as const;
 
@@ -162,7 +177,12 @@ function PublicHome() {
 
       {/* Hero — wide banner slider (inspired layout): pills on the right, big title in center, side arrows */}
       <section className="relative">
-        <div className="relative w-full h-[360px] md:h-[420px] lg:h-[460px] overflow-hidden bg-gradient-hero">
+        <div className="relative w-full h-[400px] md:h-[460px] lg:h-[500px] overflow-hidden bg-gradient-to-br from-[oklch(0.985_0.01_85)] via-[oklch(0.97_0.02_80)] to-[oklch(0.94_0.04_75)]">
+          {/* Decorative ornamental rings — like reference */}
+          <div className="absolute -bottom-32 -left-24 w-[420px] h-[420px] rounded-full border-[14px] border-gold/15 pointer-events-none" />
+          <div className="absolute -bottom-20 -left-12 w-[260px] h-[260px] rounded-full border-[10px] border-primary/15 pointer-events-none" />
+          <div className="absolute -top-32 -right-32 w-[360px] h-[360px] rounded-full border-[12px] border-gold/10 pointer-events-none" />
+
           {/* Sliding track */}
           <div
             className="flex h-full transition-transform duration-[1000ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
@@ -170,119 +190,134 @@ function PublicHome() {
           >
             {HERO_PILLARS.map((p, i) => {
               const isActive = i === pillarIdx;
+              const Icon = p.icon;
               return (
                 <div key={p.key} className="relative w-full h-full shrink-0 overflow-hidden">
-                  {/* Per-slide gradient wash */}
-                  <div className={`absolute inset-0 bg-gradient-to-bl ${p.accent}`} />
-                  {/* Ambient glows */}
-                  <div className="absolute -top-24 right-1/4 w-[28rem] h-[28rem] bg-gold/20 rounded-full blur-[120px] animate-float pointer-events-none" />
-                  <div
-                    className="absolute -bottom-32 left-1/4 w-[26rem] h-[26rem] bg-primary-glow/25 rounded-full blur-[120px] animate-float pointer-events-none"
-                    style={{ animationDelay: "1.4s" }}
-                  />
-                  {/* Arabesque dot grid */}
-                  <div className="absolute inset-0 opacity-[0.06] [background-image:radial-gradient(circle_at_1px_1px,white_1px,transparent_0)] [background-size:28px_28px] pointer-events-none" />
-
-                  {/* Centered monumental title */}
-                  <div className="relative h-full flex flex-col items-center justify-center text-center text-primary-foreground px-6">
-                    <span
-                      className={`text-[10px] md:text-xs tracking-[0.45em] font-bold text-gold uppercase mb-3 md:mb-4 transition-all duration-700 ${
-                        isActive ? "opacity-100 translate-y-0" : "opacity-0 translate-y-3"
-                      }`}
-                    >
-                      {p.eyebrow}
-                    </span>
-                    <div
-                      className={`flex items-center gap-4 mb-3 md:mb-5 transition-all duration-700 delay-100 ${
-                        isActive ? "opacity-100" : "opacity-0"
-                      }`}
-                    >
-                      <span className="h-px w-12 md:w-20 bg-gold/70" />
-                      <p className="text-sm md:text-lg text-primary-foreground/85 font-medium whitespace-nowrap">
+                  {/* Two-column composition: text right (RTL leading) + giant gold icon left */}
+                  <div className="relative h-full max-w-7xl mx-auto px-8 md:px-16 lg:px-24 grid grid-cols-1 md:grid-cols-[1.2fr,1fr] items-center gap-6">
+                    {/* RIGHT — Text column */}
+                    <div className="text-right order-1">
+                      {/* Verse — small italic gold preface */}
+                      <p
+                        className={`text-sm md:text-base lg:text-lg text-primary/80 font-semibold mb-2 md:mb-3 transition-all duration-700 ${
+                          isActive ? "opacity-100 translate-y-0" : "opacity-0 translate-y-3"
+                        }`}
+                      >
                         {p.verse}
                       </p>
-                      <span className="h-px w-12 md:w-20 bg-gold/70" />
+
+                      {/* Monumental gold title */}
+                      <h1
+                        className={`font-extrabold leading-[0.95] tracking-tight text-5xl md:text-6xl lg:text-8xl transition-all duration-1000 delay-100 ${
+                          isActive ? "opacity-100 translate-x-0" : "opacity-0 translate-x-10"
+                        }`}
+                        style={{
+                          background:
+                            "linear-gradient(180deg, oklch(0.85 0.16 85) 0%, oklch(0.72 0.18 75) 45%, oklch(0.55 0.16 70) 100%)",
+                          WebkitBackgroundClip: "text",
+                          WebkitTextFillColor: "transparent",
+                          backgroundClip: "text",
+                          textShadow: "0 6px 24px oklch(0.7 0.18 75 / 0.25)",
+                          filter: "drop-shadow(0 4px 8px oklch(0.6 0.18 75 / 0.25))",
+                        }}
+                      >
+                        {p.title}
+                      </h1>
+
+                      {/* Subtitle */}
+                      <p
+                        className={`mt-3 md:mt-4 max-w-xl text-xs md:text-sm lg:text-base text-foreground/75 leading-relaxed transition-all duration-1000 delay-200 ${
+                          isActive ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
+                        }`}
+                      >
+                        {p.subtitle}
+                      </p>
+
+                      {/* Icon badges row — like reference */}
+                      <div
+                        className={`mt-5 md:mt-7 flex flex-wrap gap-2 md:gap-3 transition-all duration-1000 delay-300 ${
+                          isActive ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
+                        }`}
+                      >
+                        {p.badges.map((b) => {
+                          const BIcon = b.icon;
+                          return (
+                            <span
+                              key={b.label}
+                              className="inline-flex items-center gap-2 rounded-full bg-white/80 backdrop-blur border border-gold/30 px-3 md:px-4 py-1.5 md:py-2 text-xs md:text-sm font-bold text-foreground shadow-sm"
+                            >
+                              <span className="inline-flex h-6 w-6 md:h-7 md:w-7 items-center justify-center rounded-full bg-gradient-to-br from-gold to-[oklch(0.6_0.18_70)] text-white shadow-gold">
+                                <BIcon className="h-3.5 w-3.5 md:h-4 md:w-4" strokeWidth={2.2} />
+                              </span>
+                              {b.label}
+                            </span>
+                          );
+                        })}
+                      </div>
                     </div>
-                    <h1
-                      className={`text-shimmer-gold font-extrabold leading-none tracking-tight text-6xl md:text-8xl lg:text-[7.5rem] transition-all duration-1000 delay-200 ${
-                        isActive ? "opacity-100 scale-100" : "opacity-0 scale-95"
-                      }`}
-                    >
-                      {p.title}
-                    </h1>
-                    <p
-                      className={`mt-4 md:mt-6 max-w-2xl text-sm md:text-base text-primary-foreground/80 leading-relaxed transition-all duration-1000 delay-300 ${
-                        isActive ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
-                      }`}
-                    >
-                      {p.subtitle}
-                    </p>
+
+                    {/* LEFT — Hero icon medallion (replaces 3D number) */}
+                    <div className="hidden md:flex items-center justify-center order-2">
+                      <div
+                        className={`relative transition-all duration-1000 delay-200 ${
+                          isActive ? "opacity-100 scale-100 rotate-0" : "opacity-0 scale-90 -rotate-6"
+                        }`}
+                      >
+                        {/* Outer glow ring */}
+                        <div className="absolute inset-0 rounded-full bg-gradient-to-br from-gold/30 via-gold/10 to-transparent blur-2xl scale-110" />
+                        {/* Concentric medallion */}
+                        <div className="relative h-44 w-44 lg:h-64 lg:w-64 rounded-full bg-gradient-to-br from-[oklch(0.95_0.05_85)] to-[oklch(0.85_0.1_80)] border-[6px] border-gold/40 shadow-elegant flex items-center justify-center">
+                          <div className="h-32 w-32 lg:h-48 lg:w-48 rounded-full bg-gradient-to-br from-gold via-[oklch(0.72_0.18_75)] to-[oklch(0.55_0.16_70)] flex items-center justify-center shadow-[inset_0_4px_16px_rgba(0,0,0,0.2),0_12px_30px_oklch(0.6_0.18_75/0.4)]">
+                            <Icon
+                              className="h-16 w-16 lg:h-24 lg:w-24 text-white drop-shadow-[0_4px_8px_rgba(0,0,0,0.3)]"
+                              strokeWidth={1.4}
+                            />
+                          </div>
+                          {/* Decorative dots around medallion */}
+                          <span className="absolute top-2 right-1/2 translate-x-1/2 h-2 w-2 rounded-full bg-gold animate-pulse" />
+                          <span className="absolute bottom-2 right-1/2 translate-x-1/2 h-2 w-2 rounded-full bg-gold animate-pulse" />
+                          <span className="absolute right-2 top-1/2 -translate-y-1/2 h-2 w-2 rounded-full bg-gold animate-pulse" />
+                          <span className="absolute left-2 top-1/2 -translate-y-1/2 h-2 w-2 rounded-full bg-gold animate-pulse" />
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               );
             })}
           </div>
 
-          {/* Vertical pill buttons — right side (RTL leading edge), like reference image */}
-          <div className="absolute right-4 md:right-8 top-1/2 -translate-y-1/2 flex flex-col gap-3 z-20">
-            {HERO_PILLARS.map((p, i) => {
-              const isActive = i === pillarIdx;
-              return (
-                <button
-                  key={p.key}
-                  onClick={() => setPillarIdx(i)}
-                  aria-label={p.title}
-                  className={`group relative min-w-[140px] md:min-w-[180px] rounded-full border px-5 md:px-7 py-2.5 md:py-3 text-sm md:text-base font-bold transition-all duration-500 backdrop-blur-md text-center ${
-                    isActive
-                      ? "bg-gold/95 text-gold-foreground border-gold shadow-[0_0_24px_oklch(var(--gold)/0.55)] scale-105"
-                      : "bg-background/10 text-primary-foreground/90 border-white/30 hover:bg-background/20 hover:border-gold/60"
-                  }`}
-                >
-                  {p.title}
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Side navigation arrows */}
-          <button
-            onClick={() => setPillarIdx((i) => (i + 1) % HERO_PILLARS.length)}
-            aria-label="التالي"
-            className="absolute right-1 md:right-2 top-1/2 -translate-y-1/2 z-10 h-10 w-10 md:h-12 md:w-12 rounded-full bg-background/20 border border-white/20 backdrop-blur text-primary-foreground hover:bg-gold/80 hover:text-gold-foreground hover:border-gold transition-all flex items-center justify-center opacity-0 pointer-events-none"
-          >
-            <ChevronRight className="h-5 w-5" />
-          </button>
+          {/* Side navigation arrows — like reference (purple thin chevrons) */}
           <button
             onClick={() =>
               setPillarIdx((i) => (i - 1 + HERO_PILLARS.length) % HERO_PILLARS.length)
             }
             aria-label="السابق"
-            className="absolute left-3 md:left-5 top-1/2 -translate-y-1/2 z-20 h-10 w-10 md:h-12 md:w-12 rounded-full bg-background/15 border border-white/25 backdrop-blur text-primary-foreground hover:bg-gold/90 hover:text-gold-foreground hover:border-gold transition-all flex items-center justify-center"
+            className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 z-20 h-10 w-10 md:h-12 md:w-12 rounded-full bg-white/70 border border-gold/30 backdrop-blur text-primary hover:bg-gold hover:text-white hover:border-gold transition-all flex items-center justify-center shadow-md"
+          >
+            <ChevronRight className="h-5 w-5" />
+          </button>
+          <button
+            onClick={() => setPillarIdx((i) => (i + 1) % HERO_PILLARS.length)}
+            aria-label="التالي"
+            className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 z-20 h-10 w-10 md:h-12 md:w-12 rounded-full bg-white/70 border border-gold/30 backdrop-blur text-primary hover:bg-gold hover:text-white hover:border-gold transition-all flex items-center justify-center shadow-md"
           >
             <ChevronLeft className="h-5 w-5" />
           </button>
 
-          {/* Bottom progress bar — segments fill over 7s */}
-          <div className="absolute bottom-3 md:bottom-4 inset-x-0 px-6 md:px-12 flex items-center gap-2 z-10">
+          {/* Bottom dot indicators — like reference */}
+          <div className="absolute bottom-4 md:bottom-6 inset-x-0 flex items-center justify-center gap-2.5 z-10">
             {HERO_PILLARS.map((p, i) => (
-              <span
+              <button
                 key={p.key}
-                className="relative flex-1 h-[3px] rounded-full bg-white/20 overflow-hidden"
-              >
-                <span
-                  className={`absolute inset-y-0 right-0 bg-gold rounded-full ${
-                    i === pillarIdx
-                      ? "animate-[heroFill_7s_linear_forwards]"
-                      : i < pillarIdx
-                      ? "w-full"
-                      : "w-0"
-                  }`}
-                  style={{
-                    boxShadow:
-                      i === pillarIdx ? "0 0 10px oklch(var(--gold) / 0.7)" : undefined,
-                  }}
-                />
-              </span>
+                onClick={() => setPillarIdx(i)}
+                aria-label={`الانتقال إلى ${p.title}`}
+                className={`transition-all duration-500 rounded-full ${
+                  i === pillarIdx
+                    ? "h-2.5 w-8 bg-gradient-to-r from-gold to-[oklch(0.6_0.18_70)] shadow-[0_0_10px_oklch(var(--gold)/0.6)]"
+                    : "h-2.5 w-2.5 bg-foreground/20 hover:bg-foreground/40"
+                }`}
+              />
             ))}
           </div>
         </div>
