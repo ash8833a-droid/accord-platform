@@ -1,13 +1,47 @@
 import logo from "@/assets/logo.jpeg";
 
 export function Logo({ size = 40, withText = true }: { size?: number; withText?: boolean }) {
+  // Outer ring (الدبلة) is ~22% larger than the inner logo disc
+  const ringSize = Math.round(size * 1.22);
+  const ringStroke = Math.max(2, Math.round(size * 0.07));
   return (
     <div className="flex items-center gap-3">
       <div
-        className="relative rounded-full overflow-hidden ring-2 ring-gold/40 shadow-gold"
-        style={{ width: size, height: size }}
+        className="relative flex items-center justify-center"
+        style={{ width: ringSize, height: ringSize }}
       >
-        <img src={logo} alt="شعار البرنامج" className="w-full h-full object-cover" />
+        {/* Outer wedding ring (الدبلة) — gold gradient with subtle highlight */}
+        <svg
+          viewBox="0 0 100 100"
+          className="absolute inset-0 w-full h-full drop-shadow-[0_2px_6px_rgba(196,162,92,0.45)]"
+          aria-hidden="true"
+        >
+          <defs>
+            <linearGradient id="logoRingGold" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stopColor="#F0D88A" />
+              <stop offset="50%" stopColor="#C4A25C" />
+              <stop offset="100%" stopColor="#8C6E2E" />
+            </linearGradient>
+          </defs>
+          <circle
+            cx="50"
+            cy="50"
+            r={50 - ringStroke / 2}
+            fill="none"
+            stroke="url(#logoRingGold)"
+            strokeWidth={ringStroke}
+          />
+          {/* tiny highlight dot for jewelry feel */}
+          <circle cx="30" cy="22" r="1.4" fill="#FFF8E1" opacity="0.85" />
+        </svg>
+
+        {/* Inner logo disc nested inside the ring */}
+        <div
+          className="relative rounded-full overflow-hidden bg-background"
+          style={{ width: size, height: size }}
+        >
+          <img src={logo} alt="شعار البرنامج" className="w-full h-full object-cover" />
+        </div>
       </div>
       {withText && (
         <div className="flex flex-col leading-tight">
