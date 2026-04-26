@@ -1,7 +1,6 @@
 import { ReactNode, useEffect, useState } from "react";
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import {
-  LayoutDashboard,
   Wallet,
   Users2,
   HeartHandshake,
