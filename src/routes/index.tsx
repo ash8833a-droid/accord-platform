@@ -160,105 +160,114 @@ function PublicHome() {
         </div>
       </header>
 
-      {/* Hero — cinematic horizontal slider (RTL), 7s per banner */}
-      <section className="relative overflow-hidden bg-gradient-hero">
-        {/* Ambient glow layers */}
-        <div className="absolute -top-24 right-1/3 w-[28rem] h-[28rem] bg-gold/25 rounded-full blur-[120px] animate-float pointer-events-none" />
-        <div
-          className="absolute -bottom-32 left-1/4 w-[26rem] h-[26rem] bg-primary-glow/25 rounded-full blur-[120px] animate-float pointer-events-none"
-          style={{ animationDelay: "1.4s" }}
-        />
-        {/* Arabesque dot grid */}
-        <div className="absolute inset-0 opacity-[0.06] [background-image:radial-gradient(circle_at_1px_1px,white_1px,transparent_0)] [background-size:28px_28px] pointer-events-none" />
-
-        {/* Slider viewport */}
-        <div className="relative">
+      {/* Hero — wide banner slider (inspired layout): pills on the right, big title in center, side arrows */}
+      <section className="relative">
+        <div className="relative w-full h-[360px] md:h-[420px] lg:h-[460px] overflow-hidden bg-gradient-hero">
+          {/* Sliding track */}
           <div
-            className="flex transition-transform duration-[1100ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
-            style={{
-              // RTL: first slide is rightmost; translate to the LEFT (positive in RTL flex)
-              transform: `translateX(${pillarIdx * 100}%)`,
-            }}
+            className="flex h-full transition-transform duration-[1000ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
+            style={{ transform: `translateX(${pillarIdx * 100}%)` }}
           >
             {HERO_PILLARS.map((p, i) => {
-              const Icon = p.icon;
               const isActive = i === pillarIdx;
               return (
-                <article
-                  key={p.key}
-                  className="relative w-full shrink-0"
-                  aria-hidden={!isActive}
-                >
-                  {/* Per-slide accent wash */}
+                <div key={p.key} className="relative w-full h-full shrink-0 overflow-hidden">
+                  {/* Per-slide gradient wash */}
+                  <div className={`absolute inset-0 bg-gradient-to-bl ${p.accent}`} />
+                  {/* Ambient glows */}
+                  <div className="absolute -top-24 right-1/4 w-[28rem] h-[28rem] bg-gold/20 rounded-full blur-[120px] animate-float pointer-events-none" />
                   <div
-                    className={`absolute inset-0 bg-gradient-to-bl ${p.accent} transition-opacity duration-1000 ${
-                      isActive ? "opacity-100" : "opacity-0"
-                    }`}
+                    className="absolute -bottom-32 left-1/4 w-[26rem] h-[26rem] bg-primary-glow/25 rounded-full blur-[120px] animate-float pointer-events-none"
+                    style={{ animationDelay: "1.4s" }}
                   />
-                  <div className="relative max-w-7xl mx-auto px-4 lg:px-8 py-20 lg:py-28 text-primary-foreground">
-                    {/* Chapter eyebrow with gold rule */}
+                  {/* Arabesque dot grid */}
+                  <div className="absolute inset-0 opacity-[0.06] [background-image:radial-gradient(circle_at_1px_1px,white_1px,transparent_0)] [background-size:28px_28px] pointer-events-none" />
+
+                  {/* Centered monumental title */}
+                  <div className="relative h-full flex flex-col items-center justify-center text-center text-primary-foreground px-6">
+                    <span
+                      className={`text-[10px] md:text-xs tracking-[0.45em] font-bold text-gold uppercase mb-3 md:mb-4 transition-all duration-700 ${
+                        isActive ? "opacity-100 translate-y-0" : "opacity-0 translate-y-3"
+                      }`}
+                    >
+                      {p.eyebrow}
+                    </span>
                     <div
-                      className={`flex items-center gap-3 mb-6 transition-all duration-700 ${
-                        isActive ? "opacity-100 translate-x-0" : "opacity-0 translate-x-8"
+                      className={`flex items-center gap-4 mb-3 md:mb-5 transition-all duration-700 delay-100 ${
+                        isActive ? "opacity-100" : "opacity-0"
                       }`}
                     >
-                      <span className="h-px w-10 bg-gold" />
-                      <span className="text-[11px] tracking-[0.3em] font-bold text-gold uppercase">
-                        {p.eyebrow}
-                      </span>
-                      <Icon className="h-4 w-4 text-gold" strokeWidth={1.6} />
+                      <span className="h-px w-12 md:w-20 bg-gold/70" />
+                      <p className="text-sm md:text-lg text-primary-foreground/85 font-medium whitespace-nowrap">
+                        {p.verse}
+                      </p>
+                      <span className="h-px w-12 md:w-20 bg-gold/70" />
                     </div>
-
-                    {/* Verse line — small poetic preface */}
-                    <p
-                      className={`text-base lg:text-xl text-primary-foreground/75 font-medium mb-4 transition-all duration-700 delay-100 ${
-                        isActive ? "opacity-100 translate-x-0" : "opacity-0 translate-x-12"
-                      }`}
-                    >
-                      {p.verse}
-                    </p>
-
-                    {/* Monumental title */}
                     <h1
-                      className={`text-6xl sm:text-7xl lg:text-[8.5rem] font-extrabold leading-[0.95] tracking-tight transition-all duration-1000 delay-200 ${
-                        isActive ? "opacity-100 translate-x-0" : "opacity-0 translate-x-16"
+                      className={`text-shimmer-gold font-extrabold leading-none tracking-tight text-6xl md:text-8xl lg:text-[7.5rem] transition-all duration-1000 delay-200 ${
+                        isActive ? "opacity-100 scale-100" : "opacity-0 scale-95"
                       }`}
                     >
-                      <span className="text-shimmer-gold">{p.title}</span>
+                      {p.title}
                     </h1>
-
-                    {/* Supporting line */}
                     <p
-                      className={`mt-6 text-base lg:text-2xl text-primary-foreground/90 max-w-2xl leading-loose font-medium transition-all duration-1000 delay-300 ${
-                        isActive ? "opacity-100 translate-x-0" : "opacity-0 translate-x-20"
+                      className={`mt-4 md:mt-6 max-w-2xl text-sm md:text-base text-primary-foreground/80 leading-relaxed transition-all duration-1000 delay-300 ${
+                        isActive ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
                       }`}
                     >
                       {p.subtitle}
                     </p>
-
-                    {/* Brand line at the bottom of each slide */}
-                    <div
-                      className={`mt-12 inline-flex items-center gap-2 rounded-full bg-white/10 backdrop-blur border border-white/15 px-4 py-1.5 text-xs font-semibold transition-all duration-700 delay-500 ${
-                        isActive ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
-                      }`}
-                    >
-                      <Sparkles className="h-3.5 w-3.5 text-gold animate-pulse" />
-                      مسيرة عائلية مستمرة · لجنة الزواج الجماعي
-                    </div>
                   </div>
-                </article>
+                </div>
               );
             })}
           </div>
 
-          {/* Bottom progress bar — segments fill in over 7s */}
-          <div className="absolute bottom-0 inset-x-0 max-w-7xl mx-auto px-4 lg:px-8 pb-5 flex items-center gap-2">
+          {/* Vertical pill buttons — right side (RTL leading edge), like reference image */}
+          <div className="absolute right-4 md:right-8 top-1/2 -translate-y-1/2 flex flex-col gap-3 z-20">
+            {HERO_PILLARS.map((p, i) => {
+              const isActive = i === pillarIdx;
+              return (
+                <button
+                  key={p.key}
+                  onClick={() => setPillarIdx(i)}
+                  aria-label={p.title}
+                  className={`group relative min-w-[140px] md:min-w-[180px] rounded-full border px-5 md:px-7 py-2.5 md:py-3 text-sm md:text-base font-bold transition-all duration-500 backdrop-blur-md text-center ${
+                    isActive
+                      ? "bg-gold/95 text-gold-foreground border-gold shadow-[0_0_24px_oklch(var(--gold)/0.55)] scale-105"
+                      : "bg-background/10 text-primary-foreground/90 border-white/30 hover:bg-background/20 hover:border-gold/60"
+                  }`}
+                >
+                  {p.title}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Side navigation arrows */}
+          <button
+            onClick={() => setPillarIdx((i) => (i + 1) % HERO_PILLARS.length)}
+            aria-label="التالي"
+            className="absolute right-1 md:right-2 top-1/2 -translate-y-1/2 z-10 h-10 w-10 md:h-12 md:w-12 rounded-full bg-background/20 border border-white/20 backdrop-blur text-primary-foreground hover:bg-gold/80 hover:text-gold-foreground hover:border-gold transition-all flex items-center justify-center opacity-0 pointer-events-none"
+          >
+            <ChevronRight className="h-5 w-5" />
+          </button>
+          <button
+            onClick={() =>
+              setPillarIdx((i) => (i - 1 + HERO_PILLARS.length) % HERO_PILLARS.length)
+            }
+            aria-label="السابق"
+            className="absolute left-3 md:left-5 top-1/2 -translate-y-1/2 z-20 h-10 w-10 md:h-12 md:w-12 rounded-full bg-background/15 border border-white/25 backdrop-blur text-primary-foreground hover:bg-gold/90 hover:text-gold-foreground hover:border-gold transition-all flex items-center justify-center"
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </button>
+
+          {/* Bottom progress bar — segments fill over 7s */}
+          <div className="absolute bottom-3 md:bottom-4 inset-x-0 px-6 md:px-12 flex items-center gap-2 z-10">
             {HERO_PILLARS.map((p, i) => (
-              <button
+              <span
                 key={p.key}
-                onClick={() => setPillarIdx(i)}
-                aria-label={`الانتقال إلى ${p.title}`}
-                className="group relative flex-1 h-[3px] rounded-full bg-white/15 overflow-hidden"
+                className="relative flex-1 h-[3px] rounded-full bg-white/20 overflow-hidden"
               >
                 <span
                   className={`absolute inset-y-0 right-0 bg-gold rounded-full ${
@@ -269,10 +278,11 @@ function PublicHome() {
                       : "w-0"
                   }`}
                   style={{
-                    boxShadow: i === pillarIdx ? "0 0 12px oklch(var(--gold) / 0.7)" : undefined,
+                    boxShadow:
+                      i === pillarIdx ? "0 0 10px oklch(var(--gold) / 0.7)" : undefined,
                   }}
                 />
-              </button>
+              </span>
             ))}
           </div>
         </div>
