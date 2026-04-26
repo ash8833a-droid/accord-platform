@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
+import { ACCEPT_ANY_FILE, MAX_UPLOAD_SIZE, MAX_UPLOAD_SIZE_LABEL, safeStorageKey } from "@/lib/uploads";
 
 interface Report {
   id: string;
@@ -50,11 +51,10 @@ export function CommitteeArchive({ committeeId, committeeName }: Props) {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!file) return toast.error("يرجى اختيار ملف");
-    if (file.size > 25 * 1024 * 1024) return toast.error("حجم الملف أكبر من 25 ميجابايت");
+    if (file.size > MAX_UPLOAD_SIZE) return toast.error(`حجم الملف أكبر من ${MAX_UPLOAD_SIZE_LABEL}`);
     setUploading(true);
     try {
-      const ext = file.name.split(".").pop() || "bin";
-      const path = `${committeeId}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      const path = safeStorageKey(file.name, committeeId);
       const { error: upErr } = await supabase.storage.from("reports").upload(path, file, {
         contentType: file.type || "application/octet-stream",
         upsert: false,
@@ -138,7 +138,7 @@ export function CommitteeArchive({ committeeId, committeeName }: Props) {
                 <span className="text-muted-foreground truncate">{file ? file.name : "اختر ملف للرفع"}</span>
                 <input
                   type="file"
-                  accept="application/pdf,image/*,.doc,.docx,.xls,.xlsx,.ppt,.pptx"
+                  accept={ACCEPT_ANY_FILE}
                   className="hidden"
                   onChange={(e) => setFile(e.target.files?.[0] ?? null)}
                 />
