@@ -350,35 +350,33 @@ function HeroKpi({
   loading: boolean;
   delay?: string;
 }) {
-  // هوية واحدة: تركواز + ذهبي فقط
-  const accent: Record<string, { bar: string; iconWrap: string; valueText: string }> = {
+  // هوية الشعار: ذهبي + تركواز — بلمسة واحدة هادئة فقط
+  const accent: Record<string, { dot: string; iconColor: string }> = {
     gold: {
-      bar: "bg-gradient-to-l from-gold to-gold/40",
-      iconWrap: "bg-gold/15 text-gold border border-gold/30",
-      valueText: "text-foreground",
+      dot: "bg-gold",
+      iconColor: "text-gold",
     },
     teal: {
-      bar: "bg-gradient-to-l from-primary to-primary-glow/40",
-      iconWrap: "bg-primary/10 text-primary border border-primary/20",
-      valueText: "text-foreground",
+      dot: "bg-primary",
+      iconColor: "text-primary",
     },
   };
   const a = accent[tone];
   return (
     <div
-      className="group relative overflow-hidden rounded-2xl border border-border bg-card p-5 lg:p-6 shadow-soft hover:shadow-elegant hover:-translate-y-0.5 transition-all duration-300 animate-fade-up"
+      className="group relative rounded-2xl border border-border/70 bg-card p-5 lg:p-6 shadow-soft hover:border-gold/30 transition-colors duration-300 animate-fade-up"
       style={{ animationDelay: delay }}
     >
-      {/* شريط لوني علوي يمثّل الهوية */}
-      <div className={`absolute top-0 inset-x-0 h-1 ${a.bar}`} />
-
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
-          <p className="text-xs font-semibold text-muted-foreground mb-2 leading-snug">
-            {label}
-          </p>
+          <div className="flex items-center gap-2 mb-2">
+            <span className={`h-1.5 w-1.5 rounded-full ${a.dot}`} />
+            <p className="text-xs font-medium text-muted-foreground leading-snug">
+              {label}
+            </p>
+          </div>
           <p
-            className={`text-2xl lg:text-[2rem] font-extrabold tracking-tight tabular-nums ${a.valueText} truncate`}
+            className="text-2xl lg:text-[1.85rem] font-bold tracking-tight tabular-nums text-foreground truncate"
             title={value}
           >
             {loading ? (
@@ -387,15 +385,11 @@ function HeroKpi({
               value
             )}
           </p>
-          <p className="text-[11px] lg:text-xs text-muted-foreground mt-1.5 leading-snug">
+          <p className="text-[11px] lg:text-xs text-muted-foreground/80 mt-1.5 leading-snug">
             {hint}
           </p>
         </div>
-        <div
-          className={`h-11 w-11 lg:h-12 lg:w-12 rounded-xl flex items-center justify-center shrink-0 transition-transform group-hover:scale-105 ${a.iconWrap}`}
-        >
-          <Icon className="h-5 w-5 lg:h-6 lg:w-6" />
-        </div>
+        <Icon className={`h-5 w-5 lg:h-6 lg:w-6 shrink-0 ${a.iconColor} opacity-70`} />
       </div>
     </div>
   );
@@ -413,17 +407,18 @@ function DetailCard({
   sub: string;
 }) {
   return (
-    <div className="group relative rounded-2xl border border-border bg-card p-5 lg:p-6 shadow-soft hover:shadow-elegant hover:-translate-y-0.5 transition-all duration-300 animate-fade-up">
-      <div className="flex items-center gap-3 mb-4">
-        <span className="h-10 w-10 rounded-xl bg-primary/10 text-primary border border-primary/15 flex items-center justify-center transition-transform group-hover:scale-105">
-          <Icon className="h-5 w-5" />
-        </span>
-        <p className="text-sm font-semibold text-muted-foreground leading-snug">{label}</p>
+    <div className="group relative rounded-2xl border border-border/70 bg-card p-5 lg:p-6 shadow-soft hover:border-primary/30 transition-colors duration-300 animate-fade-up">
+      <div className="flex items-start justify-between gap-3 mb-4">
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+          <p className="text-sm font-medium text-muted-foreground leading-snug">{label}</p>
+        </div>
+        <Icon className="h-5 w-5 shrink-0 text-primary opacity-70" />
       </div>
-      <p className="text-2xl lg:text-3xl font-extrabold tracking-tight tabular-nums text-foreground truncate" title={value}>
+      <p className="text-2xl lg:text-3xl font-bold tracking-tight tabular-nums text-foreground truncate" title={value}>
         {value}
       </p>
-      <p className="text-xs text-muted-foreground mt-1.5 leading-snug">{sub}</p>
+      <p className="text-xs text-muted-foreground/80 mt-1.5 leading-snug">{sub}</p>
     </div>
   );
 }
