@@ -74,7 +74,7 @@ function AdminCenter() {
       )}
 
       <Tabs defaultValue="dashboard" className="w-full">
-        <TabsList className="grid w-full grid-cols-8 max-w-6xl ms-auto">
+        <TabsList dir="rtl" className="grid w-full grid-cols-8 max-w-6xl ms-auto">
           <TabsTrigger value="dashboard" className="gap-2">
             <LayoutDashboard className="h-4 w-4" /> لوحة التحكم
           </TabsTrigger>
