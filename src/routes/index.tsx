@@ -118,62 +118,74 @@ function PublicHome() {
         </div>
       </header>
 
-      {/* Hero banner — branded image with elegant overlay text */}
-      <section className="relative">
-        <div className="relative w-full h-[340px] sm:h-[400px] md:h-[460px] lg:h-[520px] overflow-hidden">
-          <img
-            src={heroBanner}
-            alt="لجنة الزواج الجماعي — حيث تجتمع الهِمَم على صناعة الفرح"
-            width={1920}
-            height={1080}
-            className="absolute inset-0 w-full h-full object-cover"
-          />
-          {/* RTL gradient overlay — darker on the right where text sits */}
-          <div className="absolute inset-0 bg-gradient-to-l from-transparent via-[oklch(0.27_0.05_200/0.55)] to-[oklch(0.22_0.05_200/0.85)]" />
+      {/* Hero — split layout: text right, image card left, calm cream background */}
+      <section className="relative overflow-hidden bg-background">
+        {/* Soft brand-tinted blobs */}
+        <div className="absolute -top-24 -right-24 w-[420px] h-[420px] rounded-full bg-gold/10 blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-32 -left-24 w-[460px] h-[460px] rounded-full bg-primary/10 blur-3xl pointer-events-none" />
 
-          {/* Text content — right aligned (RTL) */}
-          <div className="relative z-10 max-w-7xl mx-auto h-full px-6 sm:px-10 lg:px-16 flex items-center">
-            <div className="text-right max-w-2xl text-primary-foreground animate-fade-up">
-              <div className="inline-flex items-center gap-2 rounded-full border border-gold/40 bg-gold/15 backdrop-blur px-3 py-1 mb-4 text-[11px] sm:text-xs font-bold text-gold tracking-wider">
-                <Sparkles className="h-3 w-3" />
-                منصّة لجنة الزواج الجماعي
-              </div>
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-8 lg:px-12 py-12 lg:py-20 grid grid-cols-1 lg:grid-cols-2 items-center gap-10 lg:gap-14">
+          {/* RIGHT — Text */}
+          <div className="text-right order-2 lg:order-1 animate-fade-up">
+            <div className="inline-flex items-center gap-2 rounded-full border border-gold/30 bg-gold/10 px-3 py-1 mb-5 text-[11px] sm:text-xs font-semibold text-gold tracking-wider">
+              <Sparkles className="h-3 w-3" />
+              منصّة لجنة الزواج الجماعي
+            </div>
 
-              <h1
-                className="font-extrabold leading-[1.15] tracking-tight text-3xl sm:text-4xl md:text-5xl lg:text-6xl mb-3 sm:mb-4"
-                style={{
-                  background:
-                    "linear-gradient(180deg, oklch(0.95 0.13 90) 0%, oklch(0.82 0.15 85) 50%, oklch(0.68 0.14 80) 100%)",
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                  backgroundClip: "text",
-                  filter: "drop-shadow(0 4px 14px oklch(0.2 0.05 200 / 0.6))",
-                }}
+            <h1 className="font-extrabold leading-[1.2] tracking-tight text-3xl sm:text-4xl md:text-5xl lg:text-[3.25rem] text-foreground mb-5">
+              حيثُ تَلتقي <span className="text-primary">الهِمَمُ</span>
+              <br className="hidden sm:block" />
+              ويَكتمِلُ <span className="text-gold">الفَرَح</span>
+            </h1>
+
+            {/* Subtle divider */}
+            <div className="flex items-center gap-2 mb-5 justify-end">
+              <span className="h-px w-12 bg-gradient-to-l from-transparent to-gold/50" />
+              <span className="h-1.5 w-1.5 rounded-full bg-gold" />
+              <span className="h-px w-6 bg-gradient-to-r from-gold/50 to-transparent" />
+            </div>
+
+            <p className="text-sm sm:text-base lg:text-[17px] text-muted-foreground leading-loose mb-7 max-w-xl">
+              منصّةٌ مؤسَّسيّةٌ راقيةٌ تُنظِّمُ عملَ اللجان وتُديرُ مسيرةَ الزواج الجماعي
+              بكلِّ شفافيّةٍ وإتقان؛ من تسجيلِ العرسان وتوثيقِ المساهمات إلى متابعةِ المهامّ
+              وإصدارِ التقارير، ليَبقى الأَثَرُ مُمتدّاً وفَرَحُ العائلةِ مُكتمِلاً.
+            </p>
+
+            <div className="flex flex-wrap items-center gap-3">
+              <Link
+                to="/register-groom"
+                className="inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold bg-gradient-gold text-gold-foreground shadow-gold hover:opacity-95 transition-opacity"
               >
-                حيثُ تَلتقي الهِمَمُ… ويَكتمِلُ الفَرَح
-              </h1>
+                <HeartHandshake className="h-4 w-4" />
+                تسجيل عريس
+              </Link>
+              <Link
+                to="/auth"
+                className="inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold border border-primary/30 bg-card text-primary hover:bg-primary/5 transition-colors"
+              >
+                <ShieldCheck className="h-4 w-4" />
+                دخول الأعضاء
+              </Link>
+            </div>
+          </div>
 
-              <p className="text-sm sm:text-base lg:text-lg text-primary-foreground/90 leading-loose mb-5 sm:mb-7 max-w-xl">
-                منصّةٌ مؤسَّسيّةٌ راقيةٌ تُنظِّمُ عملَ اللجان وتُديرُ مسيرةَ الزواج الجماعي بكلِّ
-                شفافيّةٍ وإتقان؛ من تسجيلِ العرسان وتوثيقِ المساهمات إلى متابعةِ المهامّ
-                وإصدارِ التقارير، ليَبقى الأَثَرُ مُمتدّاً وفَرَحُ العائلةِ مُكتمِلاً.
-              </p>
+          {/* LEFT — Image card */}
+          <div className="order-1 lg:order-2 animate-fade-up" style={{ animationDelay: "0.15s" }}>
+            <div className="relative">
+              {/* Decorative offset frame */}
+              <div className="absolute -inset-3 rounded-3xl border border-gold/30 -rotate-2 pointer-events-none" />
+              <div className="absolute -inset-1.5 rounded-3xl border border-primary/20 rotate-1 pointer-events-none" />
 
-              <div className="flex flex-wrap items-center gap-3">
-                <Link
-                  to="/register-groom"
-                  className="inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold bg-gradient-gold text-gold-foreground shadow-gold hover:opacity-95 transition-opacity"
-                >
-                  <HeartHandshake className="h-4 w-4" />
-                  تسجيل عريس
-                </Link>
-                <Link
-                  to="/auth"
-                  className="inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold border border-gold/50 bg-white/10 backdrop-blur text-primary-foreground hover:bg-white/20 transition-colors"
-                >
-                  <ShieldCheck className="h-4 w-4" />
-                  دخول الأعضاء
-                </Link>
+              <div className="relative rounded-3xl overflow-hidden shadow-elegant border border-border/60 bg-card">
+                <img
+                  src={heroBanner}
+                  alt="لجنة الزواج الجماعي — حيث تجتمع الهِمَم على صناعة الفرح"
+                  width={1920}
+                  height={1080}
+                  className="w-full h-[260px] sm:h-[320px] lg:h-[420px] object-cover"
+                />
+                {/* Subtle gradient veil for elegance */}
+                <div className="absolute inset-0 bg-gradient-to-tr from-primary/20 via-transparent to-transparent pointer-events-none" />
               </div>
             </div>
           </div>
