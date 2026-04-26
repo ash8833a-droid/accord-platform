@@ -171,21 +171,56 @@ function PublicHome() {
 
           {/* LEFT — Image card */}
           <div className="order-1 lg:order-2 animate-fade-up" style={{ animationDelay: "0.15s" }}>
-            <div className="relative">
-              {/* Decorative offset frame */}
-              <div className="absolute -inset-3 rounded-3xl border border-gold/30 -rotate-2 pointer-events-none" />
-              <div className="absolute -inset-1.5 rounded-3xl border border-primary/20 rotate-1 pointer-events-none" />
+            <div className="relative group">
+              {/* Soft outer glow — gold + teal */}
+              <div className="absolute -inset-6 rounded-[2rem] bg-gradient-to-tr from-gold/20 via-transparent to-primary/20 blur-2xl opacity-70 pointer-events-none" />
 
-              <div className="relative rounded-3xl overflow-hidden shadow-elegant border border-border/60 bg-card">
+              {/* Outer decorative frame (gold, slight tilt) */}
+              <div className="absolute -inset-4 rounded-[1.75rem] border border-gold/40 -rotate-2 pointer-events-none transition-transform duration-700 group-hover:-rotate-3" />
+              {/* Inner decorative frame (teal, opposite tilt) */}
+              <div className="absolute -inset-2 rounded-[1.5rem] border border-primary/30 rotate-1 pointer-events-none transition-transform duration-700 group-hover:rotate-2" />
+
+              {/* Image card */}
+              <div className="relative rounded-2xl overflow-hidden shadow-elegant border border-border/60 bg-card">
                 <img
                   src={heroBanner}
                   alt="لجنة الزواج الجماعي — حيث تجتمع الهِمَم على صناعة الفرح"
                   width={1920}
                   height={1080}
-                  className="w-full h-[260px] sm:h-[320px] lg:h-[420px] object-cover"
+                  loading="eager"
+                  className="w-full h-[280px] sm:h-[340px] lg:h-[440px] object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-[1.03]"
                 />
-                {/* Subtle gradient veil for elegance */}
-                <div className="absolute inset-0 bg-gradient-to-tr from-primary/20 via-transparent to-transparent pointer-events-none" />
+
+                {/* Cinematic gradient veil — bottom-up teal for depth */}
+                <div className="absolute inset-0 bg-gradient-to-t from-primary/40 via-primary/5 to-transparent pointer-events-none" />
+                {/* Top-right warm light wash */}
+                <div className="absolute inset-0 bg-gradient-to-bl from-gold/20 via-transparent to-transparent pointer-events-none" />
+                {/* Subtle vignette */}
+                <div className="absolute inset-0 shadow-[inset_0_0_120px_rgba(0,0,0,0.35)] pointer-events-none" />
+
+                {/* Corner ornaments — gold L-marks */}
+                <span className="absolute top-3 right-3 w-6 h-6 border-t-2 border-r-2 border-gold/80 rounded-tr-md pointer-events-none" />
+                <span className="absolute top-3 left-3 w-6 h-6 border-t-2 border-l-2 border-gold/80 rounded-tl-md pointer-events-none" />
+                <span className="absolute bottom-3 right-3 w-6 h-6 border-b-2 border-r-2 border-gold/80 rounded-br-md pointer-events-none" />
+                <span className="absolute bottom-3 left-3 w-6 h-6 border-b-2 border-l-2 border-gold/80 rounded-bl-md pointer-events-none" />
+
+                {/* Caption ribbon — bottom */}
+                <div className="absolute bottom-0 inset-x-0 p-4 sm:p-5 flex items-center justify-between gap-3 text-primary-foreground">
+                  <div className="flex items-center gap-2">
+                    <span className="h-1.5 w-1.5 rounded-full bg-gold shadow-[0_0_8px_rgba(196,162,92,0.9)]" />
+                    <span className="text-[11px] sm:text-xs font-semibold tracking-[0.2em] uppercase text-white/90">
+                      Al-Hamlah · 1446
+                    </span>
+                  </div>
+                  <span className="text-xs sm:text-sm font-bold text-white/95 drop-shadow">
+                    فَرَحٌ يَجمَعُنا
+                  </span>
+                </div>
+              </div>
+
+              {/* Floating gold seal — top-left corner outside the frame */}
+              <div className="absolute -top-4 -left-4 w-16 h-16 rounded-full bg-gradient-gold shadow-gold flex items-center justify-center border-2 border-background pointer-events-none">
+                <Sparkles className="h-6 w-6 text-gold-foreground" />
               </div>
             </div>
           </div>
