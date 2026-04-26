@@ -24,12 +24,13 @@ import {
   DialogTrigger,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { ShieldCheck, Plus, ListTodo, CalendarRange, Megaphone, Pin, Trash2, Calendar, UserCheck, Users, Crown, Settings } from "lucide-react";
+import { ShieldCheck, Plus, ListTodo, CalendarRange, Megaphone, Pin, Trash2, Calendar, UserCheck, Users, Crown, Settings, LayoutDashboard } from "lucide-react";
 import { MembersApproval } from "@/components/admin/MembersApproval";
 import { ApprovedMembers } from "@/components/admin/ApprovedMembers";
 import { CommitteeHeads } from "@/components/admin/CommitteeHeads";
 import { CreateMemberDialog } from "@/components/admin/CreateMemberDialog";
 import { UrgentAlertSettings } from "@/components/admin/UrgentAlertSettings";
+import { DashboardOverview } from "@/components/DashboardOverview";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_app/admin")({
@@ -72,8 +73,11 @@ function AdminCenter() {
         </div>
       )}
 
-      <Tabs defaultValue="members" className="w-full">
-        <TabsList className="grid w-full grid-cols-7 max-w-5xl ms-auto">
+      <Tabs defaultValue="dashboard" className="w-full">
+        <TabsList className="grid w-full grid-cols-8 max-w-6xl ms-auto">
+          <TabsTrigger value="dashboard" className="gap-2">
+            <LayoutDashboard className="h-4 w-4" /> لوحة التحكم
+          </TabsTrigger>
           <TabsTrigger value="members" className="gap-2">
             <UserCheck className="h-4 w-4" /> طلبات الانضمام
           </TabsTrigger>
@@ -97,6 +101,9 @@ function AdminCenter() {
           </TabsTrigger>
         </TabsList>
 
+        <TabsContent value="dashboard" className="mt-6">
+          <DashboardOverview showHero={false} />
+        </TabsContent>
         <TabsContent value="members" className="mt-6">
           <MembersApproval isAdmin={isAdmin} />
         </TabsContent>
