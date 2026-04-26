@@ -14,6 +14,8 @@ import {
   HandHeart,
   Star,
   Gift,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 
 export const Route = createFileRoute("/")({
