@@ -39,7 +39,7 @@ export const Route = createFileRoute("/_app/committee/$type")({
   notFoundComponent: () => (
     <div className="text-center py-20">
       <p className="text-muted-foreground">اللجنة غير موجودة</p>
-      <Link to="/dashboard" className="text-primary underline mt-4 inline-block">العودة</Link>
+      <Link to="/admin" className="text-primary underline mt-4 inline-block">العودة</Link>
     </div>
   ),
 });
@@ -1442,8 +1442,8 @@ function Header({ meta }: { meta: typeof COMMITTEES[number] }) {
           <p className="text-xs text-muted-foreground">{meta.description}</p>
         </div>
       </div>
-      <Link to="/dashboard" className="text-xs text-muted-foreground hover:text-primary inline-flex items-center gap-1">
-        <ArrowLeft className="h-3 w-3" /> العودة للوحة التحكم
+      <Link to="/admin" className="text-xs text-muted-foreground hover:text-primary inline-flex items-center gap-1">
+        <ArrowLeft className="h-3 w-3" /> العودة للإدارة العليا
       </Link>
     </div>
   );

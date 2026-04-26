@@ -1,7 +1,6 @@
 import { ReactNode, useEffect, useState } from "react";
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import {
-  LayoutDashboard,
   Wallet,
   Users2,
   HeartHandshake,
@@ -25,7 +24,6 @@ import { NotificationBell } from "@/components/NotificationBell";
 
 
 const ADMIN_TOP = [
-  { to: "/dashboard", label: "لوحة التحكم", icon: LayoutDashboard },
   { to: "/admin", label: "الإدارة العليا", icon: ShieldCheck },
   { to: "/team", label: "فريق العمل", icon: Users },
   { to: "/task-responses", label: "ردود اللجان", icon: ClipboardCheck },
@@ -67,7 +65,7 @@ export function AppShell({ children, restricted = false, restrictedToCommitteeTy
   const isAdminUser = hasRole("admin");
   const TOP_NAV = restricted
     ? (canSeeDashboard
-        ? [{ to: "/dashboard", label: "لوحة التحكم", icon: LayoutDashboard } as const]
+        ? [{ to: "/admin", label: "الإدارة العليا", icon: ShieldCheck } as const]
         : [])
     : ADMIN_TOP;
   const BOTTOM_NAV = restricted ? RESTRICTED_EXTRA : ADMIN_BOTTOM;
@@ -246,7 +244,7 @@ export function AppShell({ children, restricted = false, restrictedToCommitteeTy
         <nav className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-background border-t border-border shadow-[0_-2px_10px_rgba(0,0,0,0.04)]">
           <div className="grid grid-cols-5 h-16">
             {[
-              ...(canSeeDashboard ? [{ to: "/dashboard", label: "الرئيسية", icon: LayoutDashboard }] : []),
+              ...(canSeeDashboard ? [{ to: "/admin", label: "الإدارة", icon: ShieldCheck }] : []),
               { to: "/ideas", label: "الأفكار", icon: Lightbulb },
               { to: "/grooms", label: "العرسان", icon: HeartHandshake },
               { to: "/team", label: "الفريق", icon: Users },

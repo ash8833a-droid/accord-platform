@@ -18,7 +18,7 @@ function PendingPage() {
 
   useEffect(() => {
     if (!loading && !user) nav({ to: "/auth" });
-    if (!loading && user && approved) nav({ to: "/dashboard" });
+    if (!loading && user && approved) nav({ to: "/admin" });
   }, [user, approved, loading, nav]);
 
   useEffect(() => {
