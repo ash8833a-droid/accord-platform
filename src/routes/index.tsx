@@ -39,12 +39,38 @@ export const Route = createFileRoute("/")({
 });
 
 const TICKER_MESSAGES = [
-  { icon: Sparkles, text: "سجّل عريسك الآن وكن جزءاً من الفرحة الجماعية" },
-  { icon: HandHeart, text: "كل مساهمة تصنع بيتاً جديداً وفرحة لا تُنسى" },
-  { icon: Star, text: "مسيرة عائلية مستمرة منذ سنوات بعطاء أبنائها الكرام" },
-  { icon: Gift, text: "اشتراكك السنوي 300 ر.س — صدقة جارية وأثر باقٍ" },
-  { icon: Megaphone, text: "تابع آخر مستجدات اللجان من حسابك في المنصة" },
-];
+const HERO_PILLARS = [
+  {
+    key: "athar",
+    icon: Star,
+    eyebrow: "I",
+    title: "ويبقى الأثر",
+    subtitle:
+      "تنقضي الليلةُ، وتُطوى الأضواء… ويبقى ما زرعتموه دعاءً في بيتٍ جديد، وذكرى في وجدانِ عريسٍ لا ينساها.",
+    accent: "from-gold/30 via-gold/10 to-transparent",
+    iconBg: "bg-gold/20 text-gold border-gold/40",
+  },
+  {
+    key: "ataa",
+    icon: HandHeart,
+    eyebrow: "II",
+    title: "العطاء",
+    subtitle:
+      "ريالٌ يُعطى بصدق، ووقتٌ يُبذل بإخلاص، ويدٌ تمتدّ في صمت — كلُّها أنهارٌ صغيرة تجتمع فتصير بحراً من الفرح.",
+    accent: "from-primary-glow/40 via-primary-glow/10 to-transparent",
+    iconBg: "bg-primary-glow/20 text-primary-foreground border-primary-glow/50",
+  },
+  {
+    key: "niyya",
+    icon: Sparkles,
+    eyebrow: "III",
+    title: "النيّة",
+    subtitle:
+      "قبل العطاء قلبٌ نقي، وقبل الجهد نيّةٌ خالصة لله. بها تُبارَك الأعمال، وبها تتحوّل الجهود الصغيرة إلى صدقةٍ جارية.",
+    accent: "from-emerald-400/25 via-emerald-300/10 to-transparent",
+    iconBg: "bg-emerald-400/20 text-emerald-100 border-emerald-300/40",
+  },
+] as const;
 
 function PublicHome() {
   const [s, setS] = useState({
