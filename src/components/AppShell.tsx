@@ -14,6 +14,7 @@ import {
   Users,
   Lightbulb,
   ClipboardCheck,
+  Home,
 } from "lucide-react";
 import { Logo } from "./Logo";
 import { useAuth } from "@/lib/auth";
@@ -232,6 +233,14 @@ export function AppShell({ children, restricted = false, restrictedToCommitteeTy
               مرحباً بك في منصة البرنامج
             </div>
             <div className="flex items-center gap-2">
+              <Link
+                to="/"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-gold/30 bg-gold/5 px-3 py-1.5 text-xs font-bold text-foreground hover:bg-gold/15 hover:border-gold/50 transition-colors"
+                title="الصفحة الرئيسية العامة"
+              >
+                <Home className="h-4 w-4 text-gold" />
+                <span className="hidden sm:inline">الصفحة الرئيسية</span>
+              </Link>
               <NotificationBell />
             </div>
           </div>
