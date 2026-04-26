@@ -257,7 +257,7 @@ function PublicHome() {
             sub={s.firstYear ? `بدأت من عام ${s.firstYear}هـ` : "سجلٌّ ينمو"}
           />
           <DetailCard
-            icon={Building2}
+            icon={GitBranch}
             label="فروع العائلة المساهمة"
             value={fmt(s.branches)}
             sub="موزَّعةٌ على امتدادِ السجل التاريخي"
@@ -269,16 +269,24 @@ function PublicHome() {
             sub="لكلِّ مساهمٍ عبر السنين"
           />
           <DetailCard
-            icon={Wallet}
-            label="اشتراكاتُ هذا العام"
-            value={fmt(s.confirmedSubs)}
-            sub={`بقيمة ${fmtSAR(s.confirmedAmount)}`}
+            icon={Coins}
+            label="حصّةُ العريسِ الواحد"
+            value={s.grooms ? fmtSAR(Math.round(totalAmount / s.grooms)) : "—"}
+            sub="متوسط ما يَصلُ كلَّ بيتٍ من البرنامج"
           />
           <DetailCard
-            icon={Star}
-            label="المساهمات التاريخية"
-            value={fmt(s.historicalShareholders)}
-            sub={`بإجمالي ${fmtSAR(s.historicalAmount)}`}
+            icon={Sparkles}
+            label="نبضُ هذا العام"
+            value={fmt(s.confirmedSubs)}
+            sub={`مساهمٌ جديدٌ بقيمة ${fmtSAR(s.confirmedAmount)}`}
+          />
+          <DetailCard
+            icon={Users}
+            label="المساهمون لكلِّ فرع"
+            value={
+              s.branches ? fmt(Math.round(s.historicalShareholders / s.branches)) : "—"
+            }
+            sub="مؤشِّرٌ على تكاتفِ الفروع"
           />
         </div>
       </section>
