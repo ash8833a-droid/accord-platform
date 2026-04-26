@@ -1,10 +1,8 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { DashboardOverview } from "@/components/DashboardOverview";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
+// لوحة التحكم مدمجة الآن داخل صفحة الإدارة العليا — نحوّل أي زيارة لها إلى /admin
 export const Route = createFileRoute("/_app/dashboard")({
-  component: Dashboard,
+  beforeLoad: () => {
+    throw redirect({ to: "/admin" });
+  },
 });
-
-function Dashboard() {
-  return <DashboardOverview />;
-}

@@ -39,7 +39,7 @@ export const Route = createFileRoute("/_app/committee/$type")({
   notFoundComponent: () => (
     <div className="text-center py-20">
       <p className="text-muted-foreground">اللجنة غير موجودة</p>
-      <Link to="/dashboard" className="text-primary underline mt-4 inline-block">العودة</Link>
+      <Link to="/admin" className="text-primary underline mt-4 inline-block">العودة</Link>
     </div>
   ),
 });

@@ -50,9 +50,9 @@ function AppLayout() {
     }
     if (!restricted || !typeLoaded) return;
 
-    // Dashboard is restricted to admin, quality, and supreme committee only
     const isSupreme = myCommitteeType === "supreme";
-    if (path === "/dashboard" || path.startsWith("/dashboard/")) {
+    // الإدارة العليا (تشمل لوحة التحكم) متاحة فقط للجنة العليا/المدير/الجودة
+    if (path === "/admin" || path.startsWith("/admin/")) {
       if (!isSupreme) {
         if (myCommitteeType) {
           nav({ to: "/committee/$type", params: { type: myCommitteeType } });
@@ -65,7 +65,7 @@ function AppLayout() {
 
     // Allowed paths for restricted users
     const allowed: string[] = ["/ideas"];
-    if (isSupreme) allowed.push("/dashboard");
+    if (isSupreme) allowed.push("/admin");
     if (myCommitteeType) allowed.push(`/committee/${myCommitteeType}`);
     const ok = allowed.some((p) => path === p || path.startsWith(p + "/"));
     if (!ok) {
