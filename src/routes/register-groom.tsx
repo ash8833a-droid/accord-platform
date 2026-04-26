@@ -330,18 +330,60 @@ function RegisterGroomPage() {
             </div>
             <p className="text-xs text-muted-foreground">العدد الإضافي فوق المخصّص الأساسي للعريس.</p>
 
+            {/* بطاقة المخصّص الأساسي */}
+            <div className="rounded-2xl border border-primary/20 bg-primary/5 p-4">
+              <div className="text-[11px] font-bold text-primary mb-2">المخصَّصُ الأساسيُّ لكلِّ عريسٍ ابتداءً</div>
+              <div className="grid grid-cols-3 gap-2 text-center">
+                <div className="rounded-xl bg-card border p-2">
+                  <div className="text-[10px] text-muted-foreground">ذبيحة</div>
+                  <div className="font-extrabold text-lg text-primary">1</div>
+                </div>
+                <div className="rounded-xl bg-card border p-2">
+                  <div className="text-[10px] text-muted-foreground">كروت رجال</div>
+                  <div className="font-extrabold text-lg text-primary">{BASE_CARDS_MEN}</div>
+                </div>
+                <div className="rounded-xl bg-card border p-2">
+                  <div className="text-[10px] text-muted-foreground">كروت نساء</div>
+                  <div className="font-extrabold text-lg text-primary">{BASE_CARDS_WOMEN}</div>
+                </div>
+              </div>
+              <p className="mt-2 text-[11px] text-muted-foreground leading-relaxed">
+                ما يُكتَبُ في الحقولِ أدناه هو <span className="font-bold text-foreground">الزيادةُ فقط</span> فوقَ هذا المخصَّص،
+                والحدُّ الأقصى للذبائحِ الإضافيةِ <span className="font-bold text-foreground">ذبيحتان</span> ({MAX_EXTRA_SHEEP}) لا تتجاوزُهُما.
+              </p>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="sheep">عدد الذبائح الزيادة</Label>
-                <Input id="sheep" type="number" min={0} dir="ltr" value={extraSheep} onChange={(e) => setExtraSheep(e.target.value)} placeholder="0" />
+                <Label htmlFor="sheep">عدد الذبائح الزيادة (بحدٍّ أقصى {MAX_EXTRA_SHEEP})</Label>
+                <Input
+                  id="sheep"
+                  type="number"
+                  min={0}
+                  max={MAX_EXTRA_SHEEP}
+                  step={1}
+                  dir="ltr"
+                  value={extraSheep}
+                  onChange={(e) => {
+                    const raw = e.target.value;
+                    if (raw === "") return setExtraSheep("");
+                    const n = Math.floor(Number(raw));
+                    if (!Number.isFinite(n) || n < 0) return;
+                    setExtraSheep(String(Math.min(n, MAX_EXTRA_SHEEP)));
+                  }}
+                  placeholder="0"
+                />
+                <p className="text-[10px] text-muted-foreground">قيمة كلِّ ذبيحةٍ إضافيةٍ على العريس: 2000 ر.س</p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="cm">عدد كروت الرجال الإضافية</Label>
                 <Input id="cm" type="number" min={0} dir="ltr" value={extraCardsMen} onChange={(e) => setExtraCardsMen(e.target.value)} placeholder="0" />
+                <p className="text-[10px] text-muted-foreground">الأساسيُّ {BASE_CARDS_MEN} كرتاً</p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="cw">عدد كروت النساء الإضافية</Label>
                 <Input id="cw" type="number" min={0} dir="ltr" value={extraCardsWomen} onChange={(e) => setExtraCardsWomen(e.target.value)} placeholder="0" />
+                <p className="text-[10px] text-muted-foreground">الأساسيُّ {BASE_CARDS_WOMEN} كرتاً</p>
               </div>
             </div>
           </section>
