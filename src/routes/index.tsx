@@ -38,7 +38,6 @@ export const Route = createFileRoute("/")({
   component: PublicHome,
 });
 
-const TICKER_MESSAGES = [
 const HERO_PILLARS = [
   {
     key: "athar",
