@@ -67,13 +67,13 @@ export function UrgentAlertSettings({ isAdmin }: { isAdmin: boolean }) {
   }
 
   return (
-    <div className="space-y-6 max-w-2xl">
+    <div className="space-y-6 max-w-2xl text-right" dir="rtl">
       <div className="rounded-2xl border bg-card p-6 space-y-5">
         <div className="flex items-start gap-3">
           <div className="h-11 w-11 rounded-xl bg-destructive/10 border border-destructive/30 flex items-center justify-center shrink-0">
             <AlertTriangle className="h-5 w-5 text-destructive" />
           </div>
-          <div>
+          <div className="text-right">
             <h3 className="font-bold text-base">تنبيه المهمة العاجلة</h3>
             <p className="text-xs text-muted-foreground mt-1">
               يظهر هذا التنبيه على أول مهمة في صفحة كل لجنة. يمكنك إيقافه أو تعديل نصه بدون تغيير الكود.
@@ -82,7 +82,7 @@ export function UrgentAlertSettings({ isAdmin }: { isAdmin: boolean }) {
         </div>
 
         <div className="flex items-center justify-between rounded-xl border bg-muted/30 p-4">
-          <div>
+          <div className="text-right">
             <Label className="font-semibold">تفعيل التنبيه</Label>
             <p className="text-xs text-muted-foreground mt-0.5">
               عند الإيقاف لن يظهر التنبيه لأي مستخدم.
@@ -94,7 +94,7 @@ export function UrgentAlertSettings({ isAdmin }: { isAdmin: boolean }) {
           />
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-2 text-right">
           <Label htmlFor="urgent-label" className="font-semibold">نص التنبيه</Label>
           <Input
             id="urgent-label"
@@ -102,6 +102,8 @@ export function UrgentAlertSettings({ isAdmin }: { isAdmin: boolean }) {
             onChange={(e) => setValue((prev) => ({ ...prev, label: e.target.value }))}
             placeholder="عاجل"
             maxLength={50}
+            className="text-right"
+            dir="rtl"
           />
           <p className="text-[11px] text-muted-foreground">
             مثال: عاجل، أولوية قصوى، للتنفيذ اليوم…
@@ -109,7 +111,7 @@ export function UrgentAlertSettings({ isAdmin }: { isAdmin: boolean }) {
         </div>
 
         {/* معاينة */}
-        <div className="rounded-xl border border-dashed p-4 bg-background">
+        <div className="rounded-xl border border-dashed p-4 bg-background text-right">
           <p className="text-xs text-muted-foreground mb-2">معاينة:</p>
           {value.enabled ? (
             <div className="inline-flex items-center gap-2 rounded-lg bg-destructive/10 border border-destructive/30 px-2.5 py-1.5">
