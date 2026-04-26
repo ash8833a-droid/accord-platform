@@ -16,6 +16,12 @@ import {
   Gift,
   ChevronLeft,
   ChevronRight,
+  Crown,
+  Heart,
+  Moon,
+  BookOpen,
+  Home as HomeIcon,
+  Users2,
 } from "lucide-react";
 
 export const Route = createFileRoute("/")({
@@ -41,33 +47,42 @@ export const Route = createFileRoute("/")({
 const HERO_PILLARS = [
   {
     key: "athar",
-    icon: Star,
-    eyebrow: "الفصل الأول",
+    icon: Crown,
     title: "ويبقى الأثر",
-    verse: "تنقضي الليلةُ… وتُطوى الأضواء",
+    verse: "بفضل الله وتوفيقه",
     subtitle:
-      "ويبقى ما زرعتموه دعاءً في بيتٍ جديد، وذكرى في وجدانِ عريسٍ لا تَبلى.",
-    accent: "from-gold/40 via-gold/10 to-transparent",
+      "ما تُقدّمونه اليوم يَعبرُ حدودَ الليلة ليصير ذكرى راسخةً في بيتٍ جديد، ودعاءً مستجاباً يبقى أثرُه ممتداً.",
+    badges: [
+      { icon: Heart, label: "محبّة باقية" },
+      { icon: HomeIcon, label: "بيوتٌ تُؤسَّس" },
+      { icon: BookOpen, label: "ذكرى تُروى" },
+    ],
   },
   {
     key: "ataa",
     icon: HandHeart,
-    eyebrow: "الفصل الثاني",
     title: "العطاء",
-    verse: "ريالٌ بصدق… ووقتٌ بإخلاص",
+    verse: "يدٌ تمتدّ في صمت",
     subtitle:
-      "أنهارٌ صغيرةٌ من الكَرَم تجتمع في صمت، فتصير بحراً واسعاً من الفرح.",
-    accent: "from-primary-glow/50 via-primary-glow/10 to-transparent",
+      "ريالٌ يُعطى بصدق، ووقتٌ يُبذل بإخلاص — أنهارٌ صغيرةٌ من الكَرَم تجتمع فتصير بحراً واسعاً من الفرح.",
+    badges: [
+      { icon: HandHeart, label: "كفالة عريس" },
+      { icon: Users2, label: "تكافل عائلي" },
+      { icon: Gift, label: "هديةُ فرح" },
+    ],
   },
   {
     key: "niyya",
-    icon: Sparkles,
-    eyebrow: "الفصل الثالث",
+    icon: Moon,
     title: "النيّة",
-    verse: "قبل العطاءِ… قلبٌ نقيّ",
+    verse: "قبل العطاءِ قلبٌ نقيّ",
     subtitle:
-      "نيّةٌ خالصةٌ لله، بها تُبارَك الأعمالُ الصغيرة، فتغدو صدقةً جارية.",
-    accent: "from-emerald-400/35 via-emerald-300/10 to-transparent",
+      "نيّةٌ خالصةٌ لله، بها تُبارَك الأعمالُ الصغيرة فتغدو صدقةً جارية، وبها يُكتَب الأجرُ ويبقى الجزاء.",
+    badges: [
+      { icon: Moon, label: "إخلاصٌ خفيّ" },
+      { icon: Sparkles, label: "بركةٌ نازلة" },
+      { icon: Star, label: "أجرٌ مضاعف" },
+    ],
   },
 ] as const;
 
