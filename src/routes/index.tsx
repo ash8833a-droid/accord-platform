@@ -128,6 +128,8 @@ function PublicHome() {
   }, []);
 
   const fmt = (n: number) => new Intl.NumberFormat("ar-SA").format(n);
+  // Format currency with bidi isolation so digits + "ر.س" render correctly in RTL
+  const fmtSAR = (n: number) => `\u2066${fmt(n)}\u2069\u00A0ر.س`;
   const totalContributors = s.historicalShareholders + s.confirmedSubs;
   const totalAmount = s.historicalAmount + s.confirmedAmount;
   const avgContribution = totalContributors
@@ -345,7 +347,7 @@ function PublicHome() {
           />
           <HeroKpi
             label="إجمالي المساهمات"
-            value={`${fmt(totalAmount)} ر.س`}
+            value={fmtSAR(totalAmount)}
             hint="تاريخية ومؤكدة هذا العام"
             icon={Wallet}
             tone="emerald"
@@ -397,20 +399,20 @@ function PublicHome() {
           <DetailCard
             icon={HandHeart}
             label="متوسط المساهمة"
-            value={`${fmt(avgContribution)} ر.س`}
+            value={fmtSAR(avgContribution)}
             sub="لكلِّ مساهمٍ عبر السنين"
           />
           <DetailCard
             icon={Wallet}
             label="اشتراكاتُ هذا العام"
             value={fmt(s.confirmedSubs)}
-            sub={`بقيمة ${fmt(s.confirmedAmount)} ر.س`}
+            sub={`بقيمة ${fmtSAR(s.confirmedAmount)}`}
           />
           <DetailCard
             icon={Star}
             label="المساهمات التاريخية"
             value={fmt(s.historicalShareholders)}
-            sub={`بإجمالي ${fmt(s.historicalAmount)} ر.س`}
+            sub={`بإجمالي ${fmtSAR(s.historicalAmount)}`}
           />
           <DetailCard
             icon={Gift}
