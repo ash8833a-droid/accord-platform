@@ -49,39 +49,42 @@ const HERO_PILLARS = [
     key: "athar",
     icon: Crown,
     title: "ويبقى الأثر",
-    verse: "بِفضلِ اللهِ ثُمَّ بِكم",
+    kicker: "الفصل الأول",
+    verse: "تَنقضي الليلةُ… ويَبقى الأَثَر",
     subtitle:
-      "تنقضي الليلةُ وتُطوى الأضواء، ويبقى ما زرعتموه دعاءً في بيتٍ جديد، وذكرى لا تُمحى في وجدانِ كلِّ عريس.",
+      "ما تَبذُلونَهُ اليومَ يَتحوَّلُ غداً إلى بيتٍ يَعمُرُ بالسَّكينة، ودعاءٍ صالحٍ لا يَنقطع، وذكرى طيِّبةٍ في وِجدانِ كلِّ عَريس.",
     badges: [
-      { icon: Heart, label: "محبّة باقية" },
-      { icon: HomeIcon, label: "بيوتٌ تُبنى" },
-      { icon: BookOpen, label: "سيرةٌ تُروى" },
+      { icon: HomeIcon, label: "بيوتٌ تَعمُر" },
+      { icon: Heart, label: "مَودَّةٌ تَدوم" },
+      { icon: BookOpen, label: "ذِكرى طيِّبة" },
     ],
   },
   {
     key: "ataa",
     icon: HandHeart,
     title: "العطاء",
-    verse: "يدٌ تَمتدُّ في صمت",
+    kicker: "الفصل الثاني",
+    verse: "يَدٌ كريمةٌ… تَصنعُ فَرَحاً",
     subtitle:
-      "ريالٌ يُبذلُ بصدق، ووقتٌ يُقدَّمُ بإخلاص؛ جداولُ كرمٍ صغيرةٌ تجتمعُ فتصيرُ نهراً يَروي فرحَ العائلة.",
+      "بكلِّ مُساهَمةٍ تُؤازِرونَ شاباً على بناءِ بيتِه، وتُشارِكونَ في فَرحةِ أُسرةٍ تَنتظرُ يومَها. هكذا يَجتمعُ الكَرَمُ فيُثمِرُ سَعادةً مُشترَكة.",
     badges: [
-      { icon: HandHeart, label: "كفالةُ عريس" },
-      { icon: Users2, label: "تكافلٌ عائلي" },
-      { icon: Gift, label: "هديةُ فرح" },
+      { icon: HandHeart, label: "كَفالةُ عَريس" },
+      { icon: Users2, label: "تَكافُلُ العائلة" },
+      { icon: Gift, label: "هَديَّةُ فَرَح" },
     ],
   },
   {
     key: "niyya",
     icon: Moon,
     title: "النيّة",
-    verse: "قَبلَ أنْ تُعطي… طَهِّرِ القَصْد",
+    kicker: "الفصل الثالث",
+    verse: "قَبلَ العَطاءِ… قَلبٌ نَقيّ",
     subtitle:
-      "النيّةُ الصادقةُ روحُ العمل؛ بها يُبارَكُ القليل، ويَعظُمُ الأجر، وتُكتَبُ المساهمةُ صدقةً جاريةً تَمتدُّ ما امتدَّ بيتٌ أُسِّسَ على فرحٍ نقيّ.",
+      "بالنيَّةِ الصادقةِ يُبارَكُ القليلُ ويَعظُمُ الأَجر؛ فتُكتَبُ المُساهمةُ صَدقةً جاريةً، ويَبقى أثرُها في ميزانِ صاحبِها ما دامَ بيتٌ قائمٌ على فَرَح.",
     badges: [
-      { icon: Moon, label: "إخلاصٌ في السرّ" },
-      { icon: Sparkles, label: "بركةٌ في القليل" },
-      { icon: Star, label: "أجرٌ يتجدَّد" },
+      { icon: Moon, label: "إخلاصٌ خَفيّ" },
+      { icon: Sparkles, label: "بَرَكةٌ نازلة" },
+      { icon: Star, label: "أَجرٌ مُمتَدّ" },
     ],
   },
 ] as const;
@@ -179,11 +182,15 @@ function PublicHome() {
 
       {/* Hero — wide banner slider (inspired layout): pills on the right, big title in center, side arrows */}
       <section className="relative">
-        <div className="relative w-full min-h-[460px] md:min-h-[500px] lg:min-h-[540px] overflow-hidden bg-gradient-to-br from-[oklch(0.985_0.01_85)] via-[oklch(0.97_0.02_80)] to-[oklch(0.94_0.04_75)]">
-          {/* Decorative ornamental rings — like reference */}
-          <div className="absolute -bottom-32 -left-24 w-[420px] h-[420px] rounded-full border-[14px] border-gold/15 pointer-events-none" />
-          <div className="absolute -bottom-20 -left-12 w-[260px] h-[260px] rounded-full border-[10px] border-primary/15 pointer-events-none" />
-          <div className="absolute -top-32 -right-32 w-[360px] h-[360px] rounded-full border-[12px] border-gold/10 pointer-events-none" />
+        <div className="relative w-full min-h-[480px] md:min-h-[520px] lg:min-h-[560px] overflow-hidden bg-gradient-hero text-primary-foreground">
+          {/* Brand-aligned ornamental rings (gold + primary glow) */}
+          <div className="absolute -bottom-40 -left-32 w-[460px] h-[460px] rounded-full border-[14px] border-gold/20 pointer-events-none" />
+          <div className="absolute -bottom-24 -left-16 w-[280px] h-[280px] rounded-full border-[10px] border-gold/15 pointer-events-none" />
+          <div className="absolute -top-40 -right-40 w-[420px] h-[420px] rounded-full border-[12px] border-primary-glow/30 pointer-events-none" />
+          <div className="absolute top-1/3 right-10 w-2 h-2 rounded-full bg-gold/70 animate-pulse pointer-events-none" />
+          <div className="absolute bottom-24 right-1/3 w-1.5 h-1.5 rounded-full bg-gold/60 animate-pulse pointer-events-none" />
+          {/* Soft gold halo behind content */}
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,oklch(0.78_0.13_85/0.18),transparent_60%)] pointer-events-none" />
 
           {/* Sliding track */}
           <div
@@ -196,12 +203,22 @@ function PublicHome() {
               return (
                 <div key={p.key} className="relative w-full h-full shrink-0 overflow-hidden">
                   {/* Two-column composition: text right (RTL leading) + giant gold icon left */}
-                  <div className="relative h-full max-w-7xl mx-auto px-12 sm:px-14 md:px-20 lg:px-24 pt-8 pb-16 grid grid-cols-1 md:grid-cols-[1.2fr,1fr] items-center gap-6 md:gap-10">
+                  <div className="relative h-full max-w-7xl mx-auto px-12 sm:px-14 md:px-20 lg:px-24 pt-10 pb-20 grid grid-cols-1 md:grid-cols-[1.2fr,1fr] items-center gap-6 md:gap-10">
                     {/* RIGHT — Text column */}
                     <div className="text-right order-1 min-w-0 max-w-full">
-                      {/* Verse — small italic gold preface */}
+                      {/* Kicker — chapter label */}
+                      <div
+                        className={`inline-flex items-center gap-2 rounded-full border border-gold/40 bg-gold/10 backdrop-blur px-3 py-1 mb-4 text-[11px] md:text-xs font-bold text-gold tracking-wider transition-all duration-700 ${
+                          isActive ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-2"
+                        }`}
+                      >
+                        <Sparkles className="h-3 w-3" />
+                        {p.kicker}
+                      </div>
+
+                      {/* Verse — gold preface */}
                       <p
-                        className={`text-sm md:text-base lg:text-lg text-primary/80 font-semibold mb-2 md:mb-3 transition-all duration-700 ${
+                        className={`text-sm md:text-base lg:text-lg text-gold/90 font-semibold mb-3 md:mb-4 transition-all duration-700 ${
                           isActive ? "opacity-100 translate-y-0" : "opacity-0 translate-y-3"
                         }`}
                       >
@@ -215,19 +232,30 @@ function PublicHome() {
                         }`}
                         style={{
                           background:
-                            "linear-gradient(180deg, oklch(0.85 0.16 85) 0%, oklch(0.72 0.18 75) 45%, oklch(0.55 0.16 70) 100%)",
+                            "linear-gradient(180deg, oklch(0.92 0.14 90) 0%, oklch(0.82 0.15 85) 45%, oklch(0.68 0.14 80) 100%)",
                           WebkitBackgroundClip: "text",
                           WebkitTextFillColor: "transparent",
                           backgroundClip: "text",
-                          filter: "drop-shadow(0 4px 8px oklch(0.6 0.18 75 / 0.25))",
+                          filter: "drop-shadow(0 6px 14px oklch(0.6 0.18 75 / 0.45))",
                         }}
                       >
                         {p.title}
                       </h1>
 
+                      {/* Decorative divider */}
+                      <div
+                        className={`mt-5 mb-4 flex items-center gap-3 transition-all duration-700 delay-150 ${
+                          isActive ? "opacity-100" : "opacity-0"
+                        }`}
+                      >
+                        <span className="h-px w-16 bg-gradient-to-l from-transparent via-gold/70 to-gold" />
+                        <span className="h-1.5 w-1.5 rounded-full bg-gold" />
+                        <span className="h-px w-8 bg-gradient-to-r from-gold/70 to-transparent" />
+                      </div>
+
                       {/* Subtitle */}
                       <p
-                        className={`mt-4 md:mt-5 max-w-xl text-sm md:text-base text-foreground/75 leading-loose transition-all duration-1000 delay-200 ${
+                        className={`max-w-xl text-sm md:text-base lg:text-[17px] text-primary-foreground/85 leading-loose transition-all duration-1000 delay-200 ${
                           isActive ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
                         }`}
                       >
@@ -245,10 +273,10 @@ function PublicHome() {
                           return (
                             <span
                               key={b.label}
-                              className="inline-flex items-center gap-2 rounded-full bg-white/80 backdrop-blur border border-gold/30 px-3 md:px-4 py-1.5 md:py-2 text-xs md:text-sm font-bold text-foreground shadow-sm"
+                              className="inline-flex items-center gap-2 rounded-full bg-white/10 hover:bg-white/15 backdrop-blur-md border border-gold/40 px-3 md:px-4 py-1.5 md:py-2 text-xs md:text-sm font-bold text-primary-foreground shadow-soft transition-colors"
                             >
-                              <span className="inline-flex h-6 w-6 md:h-7 md:w-7 items-center justify-center rounded-full bg-gradient-to-br from-gold to-[oklch(0.6_0.18_70)] text-white shadow-gold">
-                                <BIcon className="h-3.5 w-3.5 md:h-4 md:w-4" strokeWidth={2.2} />
+                              <span className="inline-flex h-6 w-6 md:h-7 md:w-7 items-center justify-center rounded-full bg-gradient-gold text-gold-foreground shadow-gold">
+                                <BIcon className="h-3.5 w-3.5 md:h-4 md:w-4" strokeWidth={2.4} />
                               </span>
                               {b.label}
                             </span>
@@ -265,20 +293,22 @@ function PublicHome() {
                         }`}
                       >
                         {/* Outer glow ring */}
-                        <div className="absolute inset-0 rounded-full bg-gradient-to-br from-gold/30 via-gold/10 to-transparent blur-2xl scale-110" />
+                        <div className="absolute inset-0 rounded-full bg-gradient-to-br from-gold/50 via-gold/20 to-transparent blur-3xl scale-125" />
                         {/* Concentric medallion */}
-                        <div className="relative h-40 w-40 lg:h-56 lg:w-56 rounded-full bg-gradient-to-br from-[oklch(0.95_0.05_85)] to-[oklch(0.85_0.1_80)] border-[6px] border-gold/40 shadow-elegant flex items-center justify-center">
-                          <div className="h-28 w-28 lg:h-40 lg:w-40 rounded-full bg-gradient-to-br from-gold via-[oklch(0.72_0.18_75)] to-[oklch(0.55_0.16_70)] flex items-center justify-center shadow-[inset_0_4px_16px_rgba(0,0,0,0.2),0_12px_30px_oklch(0.6_0.18_75/0.4)]">
+                        <div className="relative h-44 w-44 lg:h-60 lg:w-60 rounded-full bg-white/5 backdrop-blur-md border-[6px] border-gold/50 shadow-elegant flex items-center justify-center">
+                          {/* rotating dashed ring */}
+                          <div className="absolute inset-2 rounded-full border-2 border-dashed border-gold/30 animate-[spin_30s_linear_infinite]" />
+                          <div className="h-28 w-28 lg:h-40 lg:w-40 rounded-full bg-gradient-gold flex items-center justify-center shadow-[inset_0_4px_16px_rgba(0,0,0,0.25),0_14px_36px_oklch(0.6_0.18_75/0.5)]">
                             <Icon
-                              className="h-14 w-14 lg:h-20 lg:w-20 text-white drop-shadow-[0_4px_8px_rgba(0,0,0,0.3)]"
+                              className="h-14 w-14 lg:h-20 lg:w-20 text-gold-foreground drop-shadow-[0_4px_8px_rgba(0,0,0,0.25)]"
                               strokeWidth={1.4}
                             />
                           </div>
                           {/* Decorative dots around medallion */}
-                          <span className="absolute top-2 right-1/2 translate-x-1/2 h-2 w-2 rounded-full bg-gold animate-pulse" />
-                          <span className="absolute bottom-2 right-1/2 translate-x-1/2 h-2 w-2 rounded-full bg-gold animate-pulse" />
-                          <span className="absolute right-2 top-1/2 -translate-y-1/2 h-2 w-2 rounded-full bg-gold animate-pulse" />
-                          <span className="absolute left-2 top-1/2 -translate-y-1/2 h-2 w-2 rounded-full bg-gold animate-pulse" />
+                          <span className="absolute top-1 right-1/2 translate-x-1/2 h-2 w-2 rounded-full bg-gold shadow-gold" />
+                          <span className="absolute bottom-1 right-1/2 translate-x-1/2 h-2 w-2 rounded-full bg-gold shadow-gold" />
+                          <span className="absolute right-1 top-1/2 -translate-y-1/2 h-2 w-2 rounded-full bg-gold shadow-gold" />
+                          <span className="absolute left-1 top-1/2 -translate-y-1/2 h-2 w-2 rounded-full bg-gold shadow-gold" />
                         </div>
                       </div>
                     </div>
@@ -294,20 +324,20 @@ function PublicHome() {
               setPillarIdx((i) => (i - 1 + HERO_PILLARS.length) % HERO_PILLARS.length)
             }
             aria-label="السابق"
-            className="absolute right-1 md:right-3 top-1/2 -translate-y-1/2 z-20 h-9 w-9 md:h-11 md:w-11 rounded-full bg-white/80 border border-gold/30 backdrop-blur text-primary hover:bg-gold hover:text-white hover:border-gold transition-all flex items-center justify-center shadow-md"
+            className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 z-20 h-10 w-10 md:h-12 md:w-12 rounded-full bg-white/10 border border-gold/40 backdrop-blur-md text-gold hover:bg-gold hover:text-gold-foreground hover:border-gold transition-all flex items-center justify-center shadow-soft"
           >
-            <ChevronRight className="h-5 w-5" />
+            <ChevronRight className="h-5 w-5 md:h-6 md:w-6" />
           </button>
           <button
             onClick={() => setPillarIdx((i) => (i + 1) % HERO_PILLARS.length)}
             aria-label="التالي"
-            className="absolute left-1 md:left-3 top-1/2 -translate-y-1/2 z-20 h-9 w-9 md:h-11 md:w-11 rounded-full bg-white/80 border border-gold/30 backdrop-blur text-primary hover:bg-gold hover:text-white hover:border-gold transition-all flex items-center justify-center shadow-md"
+            className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 z-20 h-10 w-10 md:h-12 md:w-12 rounded-full bg-white/10 border border-gold/40 backdrop-blur-md text-gold hover:bg-gold hover:text-gold-foreground hover:border-gold transition-all flex items-center justify-center shadow-soft"
           >
-            <ChevronLeft className="h-5 w-5" />
+            <ChevronLeft className="h-5 w-5 md:h-6 md:w-6" />
           </button>
 
           {/* Bottom dot indicators — like reference */}
-          <div className="absolute bottom-4 md:bottom-6 inset-x-0 flex items-center justify-center gap-2.5 z-10">
+          <div className="absolute bottom-5 md:bottom-7 inset-x-0 flex items-center justify-center gap-2.5 z-10">
             {HERO_PILLARS.map((p, i) => (
               <button
                 key={p.key}
@@ -315,8 +345,8 @@ function PublicHome() {
                 aria-label={`الانتقال إلى ${p.title}`}
                 className={`transition-all duration-500 rounded-full ${
                   i === pillarIdx
-                    ? "h-2.5 w-8 bg-gradient-to-r from-gold to-[oklch(0.6_0.18_70)] shadow-[0_0_10px_oklch(var(--gold)/0.6)]"
-                    : "h-2.5 w-2.5 bg-foreground/20 hover:bg-foreground/40"
+                    ? "h-2.5 w-10 bg-gradient-gold shadow-gold"
+                    : "h-2.5 w-2.5 bg-primary-foreground/30 hover:bg-primary-foreground/50"
                 }`}
               />
             ))}
