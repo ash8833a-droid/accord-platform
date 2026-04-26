@@ -492,7 +492,7 @@ function TaskResponsesPage() {
                         <span>تنفيذ: {r.execution_date ?? "—"}</span>
                         <span>رد: {fmtDate(r.created_at)}</span>
                       </div>
-                      {(isAdmin || r.user_id === user?.id) && (
+                      {canDelete(r) && (
                         <div className="flex justify-end pt-1">
                           <Button
                             size="sm"
@@ -586,7 +586,7 @@ function TaskResponsesPage() {
                             {fmtDate(r.created_at)}
                           </TableCell>
                           <TableCell className="text-right">
-                            {(isAdmin || r.user_id === user?.id) && (
+                            {canDelete(r) && (
                               <Button
                                 size="icon"
                                 variant="ghost"
