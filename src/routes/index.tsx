@@ -14,7 +14,6 @@ import {
   ShieldCheck,
   HandHeart,
   GitBranch,
-  Coins,
 } from "lucide-react";
 
 export const Route = createFileRoute("/")({
