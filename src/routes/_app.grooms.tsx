@@ -111,8 +111,8 @@ function GroomsPage() {
   };
 
   const uploadOne = async (file: File, folder: string) => {
-    const ext = file.name.split(".").pop() || "jpg";
-    const path = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+    const { safeStorageKey } = await import("@/lib/uploads");
+    const path = safeStorageKey(file.name, folder);
     const { error } = await sb.storage.from("groom-docs").upload(path, file, { upsert: false, contentType: file.type });
     if (error) throw error;
     return path;

@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Paperclip, Upload, FileText, Image as ImageIcon, Trash2, Download, Loader2, Eye } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { ACCEPT_ANY_FILE, MAX_UPLOAD_SIZE, MAX_UPLOAD_SIZE_LABEL, safeStorageKey } from "@/lib/uploads";
 
 interface Attachment {
   id: string;
@@ -21,7 +22,7 @@ interface Props {
   compact?: boolean;
 }
 
-const MAX_SIZE = 15 * 1024 * 1024; // 15 MB
+const MAX_SIZE = MAX_UPLOAD_SIZE;
 
 export function TaskAttachments({ taskId, committeeId, compact = false }: Props) {
   const [items, setItems] = useState<Attachment[]>([]);
@@ -64,12 +65,11 @@ export function TaskAttachments({ taskId, committeeId, compact = false }: Props)
 
   const uploadFile = async (file: File) => {
     if (file.size > MAX_SIZE) {
-      return toast.error("حجم الملف أكبر من 15 ميجابايت");
+      return toast.error(`حجم الملف أكبر من ${MAX_UPLOAD_SIZE_LABEL}`);
     }
     setUploading(true);
     try {
-      const safeName = file.name.replace(/[^\p{L}\p{N}._-]+/gu, "_");
-      const path = `${committeeId}/${taskId}/${Date.now()}-${safeName}`;
+      const path = safeStorageKey(file.name, `${committeeId}/${taskId}`);
       const { error: upErr } = await supabase.storage
         .from("task-attachments")
         .upload(path, file, { contentType: file.type || "application/octet-stream", upsert: false });
@@ -293,7 +293,7 @@ export function TaskAttachments({ taskId, committeeId, compact = false }: Props)
           type="file"
           multiple
           className="hidden"
-          accept="image/*,application/pdf,.doc,.docx,.xls,.xlsx,.txt"
+          accept={ACCEPT_ANY_FILE}
           onChange={onUpload}
           disabled={uploading}
         />

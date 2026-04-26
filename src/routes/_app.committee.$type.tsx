@@ -727,7 +727,8 @@ function CommitteePage() {
     if (!committee) return;
     const amount = Number(prAmount);
     if (!amount || amount <= 0) return toast.error("المبلغ غير صحيح");
-    if (prFile && prFile.size > 10 * 1024 * 1024) return toast.error("حجم الملف أكبر من 10 ميجابايت");
+    const { MAX_UPLOAD_SIZE, MAX_UPLOAD_SIZE_LABEL, safeStorageKey } = await import("@/lib/uploads");
+    if (prFile && prFile.size > MAX_UPLOAD_SIZE) return toast.error(`حجم الملف أكبر من ${MAX_UPLOAD_SIZE_LABEL}`);
 
     setPrSubmitting(true);
     try {
@@ -735,8 +736,7 @@ function CommitteePage() {
 
       let invoice_url: string | null = null;
       if (prFile) {
-        const ext = prFile.name.split(".").pop() || "pdf";
-        const path = `${committee.id}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+        const path = safeStorageKey(prFile.name, committee.id);
         const { error: upErr } = await supabase.storage.from("invoices").upload(path, prFile, {
           contentType: prFile.type || "application/pdf",
           upsert: false,

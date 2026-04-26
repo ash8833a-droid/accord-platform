@@ -10,6 +10,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
+import { MAX_UPLOAD_SIZE, MAX_UPLOAD_SIZE_LABEL, safeStorageKey } from "@/lib/uploads";
 
 interface Attachment {
   id: string;
@@ -31,7 +32,7 @@ interface Props {
   canUpload: boolean;
 }
 
-const MAX_SIZE = 15 * 1024 * 1024; // 15 MB
+const MAX_SIZE = MAX_UPLOAD_SIZE;
 const BUCKET = "task-response-attachments";
 
 export function TaskResponseAttachments({
@@ -63,13 +64,12 @@ export function TaskResponseAttachments({
     const file = e.target.files?.[0];
     e.target.value = "";
     if (!file) return;
-    if (file.size > MAX_SIZE) return toast.error("حجم الملف أكبر من 15 ميجابايت");
+    if (file.size > MAX_SIZE) return toast.error(`حجم الملف أكبر من ${MAX_UPLOAD_SIZE_LABEL}`);
     if (!currentUserId) return toast.error("سجّل الدخول أولاً");
     setUploading(true);
     try {
-      const safe = file.name.replace(/[^\p{L}\p{N}._-]+/gu, "_");
       // First folder MUST be committee_id (storage RLS checks it)
-      const path = `${committeeId}/${taskId}/${responseId}/${Date.now()}-${safe}`;
+      const path = safeStorageKey(file.name, `${committeeId}/${taskId}/${responseId}`);
       const { error: upErr } = await supabase.storage
         .from(BUCKET)
         .upload(path, file, {
