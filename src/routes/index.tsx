@@ -177,7 +177,7 @@ function PublicHome() {
 
       {/* Hero — wide banner slider (inspired layout): pills on the right, big title in center, side arrows */}
       <section className="relative">
-        <div className="relative w-full h-[400px] md:h-[460px] lg:h-[500px] overflow-hidden bg-gradient-to-br from-[oklch(0.985_0.01_85)] via-[oklch(0.97_0.02_80)] to-[oklch(0.94_0.04_75)]">
+        <div className="relative w-full h-[440px] md:h-[480px] lg:h-[520px] overflow-hidden bg-gradient-to-br from-[oklch(0.985_0.01_85)] via-[oklch(0.97_0.02_80)] to-[oklch(0.94_0.04_75)]">
           {/* Decorative ornamental rings — like reference */}
           <div className="absolute -bottom-32 -left-24 w-[420px] h-[420px] rounded-full border-[14px] border-gold/15 pointer-events-none" />
           <div className="absolute -bottom-20 -left-12 w-[260px] h-[260px] rounded-full border-[10px] border-primary/15 pointer-events-none" />
@@ -194,9 +194,9 @@ function PublicHome() {
               return (
                 <div key={p.key} className="relative w-full h-full shrink-0 overflow-hidden">
                   {/* Two-column composition: text right (RTL leading) + giant gold icon left */}
-                  <div className="relative h-full max-w-7xl mx-auto px-8 md:px-16 lg:px-24 grid grid-cols-1 md:grid-cols-[1.2fr,1fr] items-center gap-6">
+                  <div className="relative h-full max-w-7xl mx-auto px-14 md:px-20 lg:px-28 pb-14 grid grid-cols-1 md:grid-cols-[1.2fr,1fr] items-center gap-6 md:gap-10">
                     {/* RIGHT — Text column */}
-                    <div className="text-right order-1">
+                    <div className="text-right order-1 min-w-0">
                       {/* Verse — small italic gold preface */}
                       <p
                         className={`text-sm md:text-base lg:text-lg text-primary/80 font-semibold mb-2 md:mb-3 transition-all duration-700 ${
@@ -208,7 +208,7 @@ function PublicHome() {
 
                       {/* Monumental gold title */}
                       <h1
-                        className={`font-extrabold leading-[0.95] tracking-tight text-5xl md:text-6xl lg:text-8xl transition-all duration-1000 delay-100 ${
+                        className={`font-extrabold leading-[1.05] tracking-tight text-5xl md:text-6xl lg:text-7xl transition-all duration-1000 delay-100 ${
                           isActive ? "opacity-100 translate-x-0" : "opacity-0 translate-x-10"
                         }`}
                         style={{
@@ -217,7 +217,6 @@ function PublicHome() {
                           WebkitBackgroundClip: "text",
                           WebkitTextFillColor: "transparent",
                           backgroundClip: "text",
-                          textShadow: "0 6px 24px oklch(0.7 0.18 75 / 0.25)",
                           filter: "drop-shadow(0 4px 8px oklch(0.6 0.18 75 / 0.25))",
                         }}
                       >
@@ -226,7 +225,7 @@ function PublicHome() {
 
                       {/* Subtitle */}
                       <p
-                        className={`mt-3 md:mt-4 max-w-xl text-xs md:text-sm lg:text-base text-foreground/75 leading-relaxed transition-all duration-1000 delay-200 ${
+                        className={`mt-4 md:mt-5 max-w-xl text-sm md:text-base text-foreground/75 leading-loose transition-all duration-1000 delay-200 ${
                           isActive ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
                         }`}
                       >
@@ -235,7 +234,7 @@ function PublicHome() {
 
                       {/* Icon badges row — like reference */}
                       <div
-                        className={`mt-5 md:mt-7 flex flex-wrap gap-2 md:gap-3 transition-all duration-1000 delay-300 ${
+                        className={`mt-5 md:mt-6 flex flex-wrap gap-2 md:gap-3 transition-all duration-1000 delay-300 ${
                           isActive ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
                         }`}
                       >
@@ -266,10 +265,10 @@ function PublicHome() {
                         {/* Outer glow ring */}
                         <div className="absolute inset-0 rounded-full bg-gradient-to-br from-gold/30 via-gold/10 to-transparent blur-2xl scale-110" />
                         {/* Concentric medallion */}
-                        <div className="relative h-44 w-44 lg:h-64 lg:w-64 rounded-full bg-gradient-to-br from-[oklch(0.95_0.05_85)] to-[oklch(0.85_0.1_80)] border-[6px] border-gold/40 shadow-elegant flex items-center justify-center">
-                          <div className="h-32 w-32 lg:h-48 lg:w-48 rounded-full bg-gradient-to-br from-gold via-[oklch(0.72_0.18_75)] to-[oklch(0.55_0.16_70)] flex items-center justify-center shadow-[inset_0_4px_16px_rgba(0,0,0,0.2),0_12px_30px_oklch(0.6_0.18_75/0.4)]">
+                        <div className="relative h-40 w-40 lg:h-56 lg:w-56 rounded-full bg-gradient-to-br from-[oklch(0.95_0.05_85)] to-[oklch(0.85_0.1_80)] border-[6px] border-gold/40 shadow-elegant flex items-center justify-center">
+                          <div className="h-28 w-28 lg:h-40 lg:w-40 rounded-full bg-gradient-to-br from-gold via-[oklch(0.72_0.18_75)] to-[oklch(0.55_0.16_70)] flex items-center justify-center shadow-[inset_0_4px_16px_rgba(0,0,0,0.2),0_12px_30px_oklch(0.6_0.18_75/0.4)]">
                             <Icon
-                              className="h-16 w-16 lg:h-24 lg:w-24 text-white drop-shadow-[0_4px_8px_rgba(0,0,0,0.3)]"
+                              className="h-14 w-14 lg:h-20 lg:w-20 text-white drop-shadow-[0_4px_8px_rgba(0,0,0,0.3)]"
                               strokeWidth={1.4}
                             />
                           </div>
@@ -293,14 +292,14 @@ function PublicHome() {
               setPillarIdx((i) => (i - 1 + HERO_PILLARS.length) % HERO_PILLARS.length)
             }
             aria-label="السابق"
-            className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 z-20 h-10 w-10 md:h-12 md:w-12 rounded-full bg-white/70 border border-gold/30 backdrop-blur text-primary hover:bg-gold hover:text-white hover:border-gold transition-all flex items-center justify-center shadow-md"
+            className="absolute right-1 md:right-3 top-1/2 -translate-y-1/2 z-20 h-9 w-9 md:h-11 md:w-11 rounded-full bg-white/80 border border-gold/30 backdrop-blur text-primary hover:bg-gold hover:text-white hover:border-gold transition-all flex items-center justify-center shadow-md"
           >
             <ChevronRight className="h-5 w-5" />
           </button>
           <button
             onClick={() => setPillarIdx((i) => (i + 1) % HERO_PILLARS.length)}
             aria-label="التالي"
-            className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 z-20 h-10 w-10 md:h-12 md:w-12 rounded-full bg-white/70 border border-gold/30 backdrop-blur text-primary hover:bg-gold hover:text-white hover:border-gold transition-all flex items-center justify-center shadow-md"
+            className="absolute left-1 md:left-3 top-1/2 -translate-y-1/2 z-20 h-9 w-9 md:h-11 md:w-11 rounded-full bg-white/80 border border-gold/30 backdrop-blur text-primary hover:bg-gold hover:text-white hover:border-gold transition-all flex items-center justify-center shadow-md"
           >
             <ChevronLeft className="h-5 w-5" />
           </button>
@@ -324,7 +323,7 @@ function PublicHome() {
       </section>
 
       {/* Hero KPIs — the 4 headline numbers (the only place these 4 appear) */}
-      <section className="max-w-7xl mx-auto px-4 lg:px-8 -mt-10 lg:-mt-14 relative z-10">
+      <section className="max-w-7xl mx-auto px-4 lg:px-8 mt-8 lg:mt-12 relative z-10">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-5">
           <HeroKpi
             label="إجمالي العرسان"
@@ -336,7 +335,7 @@ function PublicHome() {
             delay="0s"
           />
           <HeroKpi
-            label="المساهمون عبر السنوات"
+            label="المساهمون عبر السنين"
             value={fmt(totalContributors)}
             hint={s.firstYear ? `منذ عام ${s.firstYear}هـ` : "سجلّ تاريخي"}
             icon={Users}
@@ -345,16 +344,16 @@ function PublicHome() {
             delay="0.1s"
           />
           <HeroKpi
-            label="إجمالي المبالغ المجموعة"
+            label="إجمالي المساهمات"
             value={`${fmt(totalAmount)} ر.س`}
-            hint="مساهمات وأقساط مؤكدة"
+            hint="تاريخية ومؤكدة هذا العام"
             icon={Wallet}
             tone="emerald"
             loading={!loaded}
             delay="0.2s"
           />
           <HeroKpi
-            label="اللجان العاملة"
+            label="اللجان المُشاركة"
             value={fmt(s.committees)}
             hint="فريق يعمل بروح واحدة"
             icon={Building2}
@@ -366,17 +365,17 @@ function PublicHome() {
       </section>
 
       {/* Detailed grid — DIFFERENT metrics only (no overlap with hero KPIs) */}
-      <section className="max-w-7xl mx-auto px-4 lg:px-8 py-14 lg:py-20">
+      <section className="max-w-7xl mx-auto px-4 lg:px-8 pt-14 lg:pt-20 pb-10">
         <div className="flex items-end justify-between mb-8">
           <div>
             <p className="text-xs font-semibold text-primary uppercase tracking-wider mb-1">
-              تفاصيل أعمق
+              قراءةٌ أعمق
             </p>
             <h2 className="text-2xl lg:text-3xl font-bold">
-              ما وراء الأرقام الكبرى
+              تفاصيلُ تكشفُ امتدادَ المسيرة
             </h2>
             <p className="text-sm text-muted-foreground mt-2 max-w-xl">
-              مؤشرات مكمِّلة تُظهر امتداد البرنامج عبر الزمن والفروع.
+              مؤشّراتٌ مكمِّلةٌ تُبرزُ عُمقَ التراكم عبر السنين وتوزّعَ الجهد بين الفروع.
             </p>
           </div>
           <TrendingUp className="hidden md:block h-8 w-8 text-gold" />
@@ -387,39 +386,39 @@ function PublicHome() {
             icon={CalendarRange}
             label="سنوات هجرية موثّقة"
             value={fmt(s.historicalYears)}
-            sub={s.firstYear ? `أقدمها عام ${s.firstYear}هـ` : "سجلّ ينمو"}
+            sub={s.firstYear ? `بدأت من عام ${s.firstYear}هـ` : "سجلٌّ ينمو"}
           />
           <DetailCard
             icon={Building2}
             label="فروع العائلة المساهمة"
             value={fmt(s.branches)}
-            sub="موزَّعة عبر السجل التاريخي"
+            sub="موزَّعةٌ على امتدادِ السجل التاريخي"
           />
           <DetailCard
             icon={HandHeart}
             label="متوسط المساهمة"
             value={`${fmt(avgContribution)} ر.س`}
-            sub="لكل مساهم على مرّ السنوات"
+            sub="لكلِّ مساهمٍ عبر السنين"
           />
           <DetailCard
             icon={Wallet}
-            label="اشتراكات سنوية مؤكدة"
+            label="اشتراكاتُ هذا العام"
             value={fmt(s.confirmedSubs)}
             sub={`بقيمة ${fmt(s.confirmedAmount)} ر.س`}
           />
           <DetailCard
             icon={Star}
-            label="مساهمات تاريخية"
+            label="المساهمات التاريخية"
             value={fmt(s.historicalShareholders)}
             sub={`بإجمالي ${fmt(s.historicalAmount)} ر.س`}
           />
           <DetailCard
             icon={Gift}
-            label="معدّل العرسان لكل لجنة"
+            label="معدّل العرسان لكلِّ لجنة"
             value={
               s.committees ? fmt(Math.round((s.grooms / s.committees) * 10) / 10) : "—"
             }
-            sub="مؤشر توزيع الجهد بين اللجان"
+            sub="يعكسُ توزُّعَ الجهد بين اللجان"
           />
         </div>
       </section>
@@ -432,17 +431,33 @@ function PublicHome() {
           <div className="relative text-center max-w-2xl mx-auto">
             <div className="inline-flex items-center gap-2 rounded-full bg-gold/15 text-gold-foreground px-4 py-1.5 text-xs font-bold mb-4">
               <Sparkles className="h-3.5 w-3.5" />
-              ويبقى الأثر
+              دعوةٌ كريمة
             </div>
             <h3 className="text-2xl lg:text-3xl font-bold leading-tight">
-              تنقضي الليلةُ… ويبقى الأثرُ شاهداً على نُبلِكم
+              كُنْ شريكاً في صناعةِ الفرح
             </h3>
-            <p className="text-sm lg:text-base text-muted-foreground mt-3 leading-relaxed">
-              ما تُقدّمونه اليوم من جُهدٍ خفيٍّ، أو دعمٍ صادق، أو دعوةٍ في ظهرِ الغيب —
-              يَعبرُ حدودَ الحفل ليصير ذكرى راسخةً في وجدانِ كلِّ عريسٍ، ودعاءً مستجاباً
-              في بيتٍ جديد. <span className="font-bold text-foreground">أثرُكم باقٍ ما بقيت الفرحةُ تُروى</span>،
-              وأجرُكم عند الله أوفى وأبقى.
+            <p className="text-sm lg:text-base text-muted-foreground mt-3 leading-loose">
+              مساهمتُك — مهما صغرت — تُسهمُ في تأسيسِ بيتٍ جديد، وتُكتبُ في ميزانِ
+              <span className="font-bold text-foreground"> صدقةٍ جارية</span> ما دامتِ
+              الذرّيةُ تُولَدُ والفرحةُ تتجدَّد. سجِّلْ مساهمتَك، أو رشِّحْ عريساً من
+              ذوي الحاجة، فالعطاءُ يبدأُ من خطوةٍ واحدة.
             </p>
+            <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+              <Link
+                to="/auth"
+                className="inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold bg-gradient-hero text-primary-foreground shadow-elegant hover:opacity-90 transition-opacity"
+              >
+                <HandHeart className="h-4 w-4" />
+                ساهِمْ معنا
+              </Link>
+              <Link
+                to="/register-groom"
+                className="inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold border border-gold/40 bg-gold/10 text-foreground hover:bg-gold/20 transition-colors"
+              >
+                <HeartHandshake className="h-4 w-4" />
+                ترشيح عريس
+              </Link>
+            </div>
           </div>
         </div>
       </section>
@@ -452,7 +467,7 @@ function PublicHome() {
           <p>© {new Date().getFullYear()} لجنة الزواج الجماعي · جميع الحقوق محفوظة</p>
           <p className="flex items-center gap-1.5">
             <HandHeart className="h-3.5 w-3.5 text-gold" />
-            صُنع بمحبة لخدمة العائلة
+            صُنِعَ بمحبّةٍ لخدمةِ العائلة
           </p>
         </div>
       </footer>
