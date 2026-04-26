@@ -181,8 +181,8 @@ function PublicHome() {
       </section>
 
       {/* Hero KPIs — the 4 headline numbers (the only place these 4 appear) */}
-      <section className="max-w-7xl mx-auto px-4 lg:px-8 mt-8 lg:mt-12 relative z-10">
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-5">
+      <section className="max-w-7xl mx-auto px-4 lg:px-8 mt-10 lg:mt-14 relative z-10">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-5">
           <HeroKpi
             label="إجمالي العرسان"
             value={fmt(s.grooms)}
@@ -206,7 +206,7 @@ function PublicHome() {
             value={fmtSAR(totalAmount)}
             hint="تاريخية ومؤكدة هذا العام"
             icon={Wallet}
-            tone="emerald"
+            tone="gold"
             loading={!loaded}
             delay="0.2s"
           />
@@ -215,7 +215,7 @@ function PublicHome() {
             value={fmt(s.committees)}
             hint="فريق يعمل بروح واحدة"
             icon={Building2}
-            tone="violet"
+            tone="teal"
             loading={!loaded}
             delay="0.3s"
           />
@@ -346,36 +346,54 @@ function HeroKpi({
   value: string;
   hint: string;
   icon: React.ComponentType<{ className?: string }>;
-  tone: "gold" | "teal" | "emerald" | "violet";
+  tone: "gold" | "teal";
   loading: boolean;
   delay?: string;
 }) {
-  const tones: Record<string, string> = {
-    gold: "from-gold/20 to-gold/5 border-gold/30",
-    teal: "from-primary/20 to-primary-glow/5 border-primary/30",
-    emerald: "from-emerald-500/20 to-emerald-500/5 border-emerald-500/30",
-    violet: "from-violet-500/20 to-violet-500/5 border-violet-500/30",
+  // هوية واحدة: تركواز + ذهبي فقط
+  const accent: Record<string, { bar: string; iconWrap: string; valueText: string }> = {
+    gold: {
+      bar: "bg-gradient-to-l from-gold to-gold/40",
+      iconWrap: "bg-gold/15 text-gold border border-gold/30",
+      valueText: "text-foreground",
+    },
+    teal: {
+      bar: "bg-gradient-to-l from-primary to-primary-glow/40",
+      iconWrap: "bg-primary/10 text-primary border border-primary/20",
+      valueText: "text-foreground",
+    },
   };
-  const iconBg: Record<string, string> = {
-    gold: "bg-gradient-gold text-gold-foreground shadow-gold",
-    teal: "bg-gradient-hero text-primary-foreground shadow-elegant",
-    emerald: "bg-emerald-500 text-white",
-    violet: "bg-violet-500 text-white",
-  };
+  const a = accent[tone];
   return (
     <div
-      className={`relative overflow-hidden rounded-2xl border bg-gradient-to-br ${tones[tone]} backdrop-blur-md bg-card/90 p-4 lg:p-5 shadow-elegant animate-fade-up hover:-translate-y-1 transition-transform duration-300`}
+      className="group relative overflow-hidden rounded-2xl border border-border bg-card p-5 lg:p-6 shadow-soft hover:shadow-elegant hover:-translate-y-0.5 transition-all duration-300 animate-fade-up"
       style={{ animationDelay: delay }}
     >
+      {/* شريط لوني علوي يمثّل الهوية */}
+      <div className={`absolute top-0 inset-x-0 h-1 ${a.bar}`} />
+
       <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="text-[11px] font-semibold text-muted-foreground mb-1">{label}</p>
-          <p className="text-xl lg:text-3xl font-extrabold tracking-tight truncate" title={value}>
-            {loading ? "…" : value}
+        <div className="min-w-0 flex-1">
+          <p className="text-xs font-semibold text-muted-foreground mb-2 leading-snug">
+            {label}
           </p>
-          <p className="text-[10px] lg:text-xs text-muted-foreground mt-1">{hint}</p>
+          <p
+            className={`text-2xl lg:text-[2rem] font-extrabold tracking-tight tabular-nums ${a.valueText} truncate`}
+            title={value}
+          >
+            {loading ? (
+              <span className="inline-block h-7 w-20 rounded-md bg-muted animate-pulse align-middle" />
+            ) : (
+              value
+            )}
+          </p>
+          <p className="text-[11px] lg:text-xs text-muted-foreground mt-1.5 leading-snug">
+            {hint}
+          </p>
         </div>
-        <div className={`h-10 w-10 lg:h-12 lg:w-12 rounded-xl flex items-center justify-center shrink-0 ${iconBg[tone]}`}>
+        <div
+          className={`h-11 w-11 lg:h-12 lg:w-12 rounded-xl flex items-center justify-center shrink-0 transition-transform group-hover:scale-105 ${a.iconWrap}`}
+        >
           <Icon className="h-5 w-5 lg:h-6 lg:w-6" />
         </div>
       </div>
@@ -395,15 +413,17 @@ function DetailCard({
   sub: string;
 }) {
   return (
-    <div className="rounded-2xl border bg-card p-5 shadow-soft hover:shadow-elegant transition-all hover:-translate-y-0.5 animate-fade-up">
-      <div className="flex items-center gap-3 mb-3">
-        <span className="h-10 w-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+    <div className="group relative rounded-2xl border border-border bg-card p-5 lg:p-6 shadow-soft hover:shadow-elegant hover:-translate-y-0.5 transition-all duration-300 animate-fade-up">
+      <div className="flex items-center gap-3 mb-4">
+        <span className="h-10 w-10 rounded-xl bg-primary/10 text-primary border border-primary/15 flex items-center justify-center transition-transform group-hover:scale-105">
           <Icon className="h-5 w-5" />
         </span>
-        <p className="text-sm font-semibold text-muted-foreground">{label}</p>
+        <p className="text-sm font-semibold text-muted-foreground leading-snug">{label}</p>
       </div>
-      <p className="text-3xl font-extrabold tracking-tight">{value}</p>
-      <p className="text-xs text-muted-foreground mt-1">{sub}</p>
+      <p className="text-2xl lg:text-3xl font-extrabold tracking-tight tabular-nums text-foreground truncate" title={value}>
+        {value}
+      </p>
+      <p className="text-xs text-muted-foreground mt-1.5 leading-snug">{sub}</p>
     </div>
   );
 }
