@@ -75,13 +75,13 @@ const HERO_PILLARS = [
     key: "niyya",
     icon: Moon,
     title: "النيّة",
-    verse: "قَبلَ العطاءِ… قَلبٌ نقيّ",
+    verse: "قَبلَ أنْ تُعطي… طَهِّرِ القَصْد",
     subtitle:
-      "نيّةٌ خالصةٌ للهِ تُبارِكُ الجُهدَ القليل، فتُحوِّلُ المساهماتِ الصغيرةَ إلى صدقةٍ جاريةٍ وأجرٍ ممتد.",
+      "النيّةُ الصادقةُ روحُ العمل؛ بها يُبارَكُ القليل، ويَعظُمُ الأجر، وتُكتَبُ المساهمةُ صدقةً جاريةً تَمتدُّ ما امتدَّ بيتٌ أُسِّسَ على فرحٍ نقيّ.",
     badges: [
-      { icon: Moon, label: "إخلاصٌ خفيّ" },
-      { icon: Sparkles, label: "بركةٌ نازلة" },
-      { icon: Star, label: "أجرٌ مضاعف" },
+      { icon: Moon, label: "إخلاصٌ في السرّ" },
+      { icon: Sparkles, label: "بركةٌ في القليل" },
+      { icon: Star, label: "أجرٌ يتجدَّد" },
     ],
   },
 ] as const;
@@ -128,6 +128,8 @@ function PublicHome() {
   }, []);
 
   const fmt = (n: number) => new Intl.NumberFormat("ar-SA").format(n);
+  // Format currency with bidi isolation so digits + "ر.س" render correctly in RTL
+  const fmtSAR = (n: number) => `\u2066${fmt(n)}\u2069\u00A0ر.س`;
   const totalContributors = s.historicalShareholders + s.confirmedSubs;
   const totalAmount = s.historicalAmount + s.confirmedAmount;
   const avgContribution = totalContributors
@@ -177,7 +179,7 @@ function PublicHome() {
 
       {/* Hero — wide banner slider (inspired layout): pills on the right, big title in center, side arrows */}
       <section className="relative">
-        <div className="relative w-full h-[440px] md:h-[480px] lg:h-[520px] overflow-hidden bg-gradient-to-br from-[oklch(0.985_0.01_85)] via-[oklch(0.97_0.02_80)] to-[oklch(0.94_0.04_75)]">
+        <div className="relative w-full min-h-[460px] md:min-h-[500px] lg:min-h-[540px] overflow-hidden bg-gradient-to-br from-[oklch(0.985_0.01_85)] via-[oklch(0.97_0.02_80)] to-[oklch(0.94_0.04_75)]">
           {/* Decorative ornamental rings — like reference */}
           <div className="absolute -bottom-32 -left-24 w-[420px] h-[420px] rounded-full border-[14px] border-gold/15 pointer-events-none" />
           <div className="absolute -bottom-20 -left-12 w-[260px] h-[260px] rounded-full border-[10px] border-primary/15 pointer-events-none" />
@@ -194,9 +196,9 @@ function PublicHome() {
               return (
                 <div key={p.key} className="relative w-full h-full shrink-0 overflow-hidden">
                   {/* Two-column composition: text right (RTL leading) + giant gold icon left */}
-                  <div className="relative h-full max-w-7xl mx-auto px-14 md:px-20 lg:px-28 pb-14 grid grid-cols-1 md:grid-cols-[1.2fr,1fr] items-center gap-6 md:gap-10">
+                  <div className="relative h-full max-w-7xl mx-auto px-12 sm:px-14 md:px-20 lg:px-24 pt-8 pb-16 grid grid-cols-1 md:grid-cols-[1.2fr,1fr] items-center gap-6 md:gap-10">
                     {/* RIGHT — Text column */}
-                    <div className="text-right order-1 min-w-0">
+                    <div className="text-right order-1 min-w-0 max-w-full">
                       {/* Verse — small italic gold preface */}
                       <p
                         className={`text-sm md:text-base lg:text-lg text-primary/80 font-semibold mb-2 md:mb-3 transition-all duration-700 ${
@@ -208,7 +210,7 @@ function PublicHome() {
 
                       {/* Monumental gold title */}
                       <h1
-                        className={`font-extrabold leading-[1.05] tracking-tight text-5xl md:text-6xl lg:text-7xl transition-all duration-1000 delay-100 ${
+                        className={`font-extrabold leading-[1.1] tracking-tight text-4xl sm:text-5xl md:text-6xl lg:text-7xl break-words transition-all duration-1000 delay-100 ${
                           isActive ? "opacity-100 translate-x-0" : "opacity-0 translate-x-10"
                         }`}
                         style={{
@@ -345,7 +347,7 @@ function PublicHome() {
           />
           <HeroKpi
             label="إجمالي المساهمات"
-            value={`${fmt(totalAmount)} ر.س`}
+            value={fmtSAR(totalAmount)}
             hint="تاريخية ومؤكدة هذا العام"
             icon={Wallet}
             tone="emerald"
@@ -397,20 +399,20 @@ function PublicHome() {
           <DetailCard
             icon={HandHeart}
             label="متوسط المساهمة"
-            value={`${fmt(avgContribution)} ر.س`}
+            value={fmtSAR(avgContribution)}
             sub="لكلِّ مساهمٍ عبر السنين"
           />
           <DetailCard
             icon={Wallet}
             label="اشتراكاتُ هذا العام"
             value={fmt(s.confirmedSubs)}
-            sub={`بقيمة ${fmt(s.confirmedAmount)} ر.س`}
+            sub={`بقيمة ${fmtSAR(s.confirmedAmount)}`}
           />
           <DetailCard
             icon={Star}
             label="المساهمات التاريخية"
             value={fmt(s.historicalShareholders)}
-            sub={`بإجمالي ${fmt(s.historicalAmount)} ر.س`}
+            sub={`بإجمالي ${fmtSAR(s.historicalAmount)}`}
           />
           <DetailCard
             icon={Gift}
