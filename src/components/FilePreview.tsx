@@ -19,6 +19,7 @@ interface FilePreviewProps {
 export function FilePreview({ url, name, type, className = "", onDownload }: FilePreviewProps) {
   const [objectFailed, setObjectFailed] = useState(false);
   const [viewerFailed, setViewerFailed] = useState(false);
+  const [downloading, setDownloading] = useState(false);
 
   const isImage = (type ?? "").startsWith("image/") || /\.(png|jpe?g|gif|webp|bmp|svg)(\?|$)/i.test(url);
   const isPdf = type === "application/pdf" || /\.pdf(\?|$)/i.test(url);
@@ -26,30 +27,54 @@ export function FilePreview({ url, name, type, className = "", onDownload }: Fil
   // Google Docs Viewer كبديل احترافي يتجاوز قيود X-Frame-Options
   const gviewUrl = `https://docs.google.com/gview?embedded=true&url=${encodeURIComponent(url)}`;
 
+  // تحميل افتراضي عبر fetch — يعمل دائماً حتى دون تمرير onDownload
+  const handleFallbackDownload = async () => {
+    if (downloading) return;
+    setDownloading(true);
+    try {
+      const res = await fetch(url);
+      const blob = await res.blob();
+      const objectUrl = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = objectUrl;
+      link.download = name || "file";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(objectUrl);
+    } catch {
+      // كحل أخير، فتح الرابط مباشرة
+      window.open(url, "_blank", "noopener,noreferrer");
+    } finally {
+      setDownloading(false);
+    }
+  };
+
+  const triggerDownload = onDownload ?? handleFallbackDownload;
+
   return (
     <div className={`flex flex-col h-full bg-background ${className}`}>
-      <div className="flex items-center justify-between gap-2 px-4 py-2 border-b bg-muted/40 shrink-0">
-        <p className="text-sm font-bold truncate flex items-center gap-2">
+      <div className="flex items-center justify-between gap-2 px-4 py-2.5 border-b bg-gradient-to-l from-primary/5 to-transparent shrink-0">
+        <p className="text-sm font-bold truncate flex items-center gap-2 min-w-0">
           <FileText className="h-4 w-4 text-primary shrink-0" />
           <span className="truncate">{name ?? "معاينة الملف"}</span>
         </p>
-        <div className="flex items-center gap-1 shrink-0">
+        <div className="flex items-center gap-1.5 shrink-0">
           <a
             href={url}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-[11px] inline-flex items-center gap-1 px-2 py-1 rounded-md hover:bg-muted transition-colors"
+            className="text-[11px] inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border bg-background hover:bg-muted transition-colors"
           >
-            <ExternalLink className="h-3 w-3" /> فتح في تبويب جديد
+            <ExternalLink className="h-3.5 w-3.5" /> فتح في تبويب جديد
           </a>
-          {onDownload && (
-            <button
-              onClick={onDownload}
-              className="text-[11px] inline-flex items-center gap-1 px-2 py-1 rounded-md hover:bg-muted transition-colors"
-            >
-              <Download className="h-3 w-3" /> تحميل
-            </button>
-          )}
+          <button
+            onClick={triggerDownload}
+            disabled={downloading}
+            className="text-[11px] inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-gradient-to-r from-primary to-primary/85 text-primary-foreground font-bold hover:opacity-90 transition shadow-sm disabled:opacity-60"
+          >
+            <Download className="h-3.5 w-3.5" /> {downloading ? "جاري التحميل..." : "تحميل"}
+          </button>
         </div>
       </div>
 
@@ -72,7 +97,7 @@ export function FilePreview({ url, name, type, className = "", onDownload }: Fil
                   onError={() => setViewerFailed(true)}
                 />
               ) : (
-                <FallbackBlocked url={url} onDownload={onDownload} />
+                <FallbackBlocked url={url} onDownload={triggerDownload} />
               )}
             </object>
           ) : !viewerFailed ? (
@@ -83,10 +108,10 @@ export function FilePreview({ url, name, type, className = "", onDownload }: Fil
               onError={() => setViewerFailed(true)}
             />
           ) : (
-            <FallbackBlocked url={url} onDownload={onDownload} />
+            <FallbackBlocked url={url} onDownload={triggerDownload} />
           )
         ) : (
-          <FallbackBlocked url={url} onDownload={onDownload} message="هذا النوع من الملفات غير قابل للمعاينة المباشرة." />
+          <FallbackBlocked url={url} onDownload={triggerDownload} message="هذا النوع من الملفات غير قابل للمعاينة المباشرة." />
         )}
       </div>
     </div>
