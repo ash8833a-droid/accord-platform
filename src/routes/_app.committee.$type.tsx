@@ -1,4 +1,4 @@
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { createFileRoute, Link, notFound, useRouter } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -43,6 +43,33 @@ export const Route = createFileRoute("/_app/committee/$type")({
       <Link to="/admin" className="text-primary underline mt-4 inline-block">العودة</Link>
     </div>
   ),
+  errorComponent: ({ error, reset }) => {
+    const router = useRouter();
+    const isChunkError = /Failed to fetch dynamically imported module|Loading chunk|ChunkLoadError/i.test(
+      error?.message ?? "",
+    );
+    // Auto-retry stale chunk errors once (occurs after a deploy/HMR refresh)
+    if (isChunkError && typeof window !== "undefined") {
+      const flag = "__committee_chunk_retry__";
+      if (!sessionStorage.getItem(flag)) {
+        sessionStorage.setItem(flag, "1");
+        window.location.reload();
+        return null;
+      }
+    }
+    return (
+      <div className="max-w-md mx-auto text-center py-20 space-y-4">
+        <p className="text-lg font-bold">تعذّر تحميل صفحة اللجنة</p>
+        <p className="text-sm text-muted-foreground">{error?.message ?? "خطأ غير متوقع"}</p>
+        <div className="flex gap-2 justify-center">
+          <Button variant="outline" onClick={() => { sessionStorage.removeItem("__committee_chunk_retry__"); router.invalidate(); reset(); }}>
+            إعادة المحاولة
+          </Button>
+          <Link to="/admin"><Button>العودة للرئيسية</Button></Link>
+        </div>
+      </div>
+    );
+  },
 });
 
 interface Task {
