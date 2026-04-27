@@ -314,7 +314,7 @@ export function exportRequestsPDF(
     <div class="header-pattern"></div>
     <div class="h-row">
       <div class="brand">
-        <div class="logo-img"><img src="${exportLogoSrc}" alt="${escapeHtml(exportBrand.name)}" crossorigin="anonymous"/></div>
+        <div class="logo-img"><img id="brand-logo" src="${exportLogoSrc}" alt="${escapeHtml(exportBrand.name)}"/></div>
         <div>
           <h1>${escapeHtml(exportBrand.name)}</h1>
           <p>تقرير اللجنة المالية — طلبات الصرف والاشتراكات</p>
@@ -408,7 +408,12 @@ export function exportRequestsPDF(
   </div>
 
   <script>
-    window.addEventListener('load', () => setTimeout(() => window.print(), 600));
+    window.addEventListener('load', function(){
+      var img = document.getElementById('brand-logo');
+      var go = function(){ setTimeout(function(){ window.print(); }, 400); };
+      if (img && !img.complete) { img.onload = go; img.onerror = go; }
+      else { go(); }
+    });
   </script>
 </body>
 </html>`;
