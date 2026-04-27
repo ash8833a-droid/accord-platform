@@ -17,6 +17,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppTeamRouteImport } from './routes/_app.team'
 import { Route as AppTaskResponsesRouteImport } from './routes/_app.task-responses'
 import { Route as AppReportsRouteImport } from './routes/_app.reports'
+import { Route as AppProcurementRequestsRouteImport } from './routes/_app.procurement-requests'
 import { Route as AppPaymentRequestsRouteImport } from './routes/_app.payment-requests'
 import { Route as AppIdeasRouteImport } from './routes/_app.ideas'
 import { Route as AppGroomsRouteImport } from './routes/_app.grooms'
@@ -63,6 +64,11 @@ const AppTaskResponsesRoute = AppTaskResponsesRouteImport.update({
 const AppReportsRoute = AppReportsRouteImport.update({
   id: '/reports',
   path: '/reports',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppProcurementRequestsRoute = AppProcurementRequestsRouteImport.update({
+  id: '/procurement-requests',
+  path: '/procurement-requests',
   getParentRoute: () => AppRoute,
 } as any)
 const AppPaymentRequestsRoute = AppPaymentRequestsRouteImport.update({
@@ -118,6 +124,7 @@ export interface FileRoutesByFullPath {
   '/grooms': typeof AppGroomsRoute
   '/ideas': typeof AppIdeasRoute
   '/payment-requests': typeof AppPaymentRequestsRoute
+  '/procurement-requests': typeof AppProcurementRequestsRoute
   '/reports': typeof AppReportsRoute
   '/task-responses': typeof AppTaskResponsesRoute
   '/team': typeof AppTeamRoute
@@ -135,6 +142,7 @@ export interface FileRoutesByTo {
   '/grooms': typeof AppGroomsRoute
   '/ideas': typeof AppIdeasRoute
   '/payment-requests': typeof AppPaymentRequestsRoute
+  '/procurement-requests': typeof AppProcurementRequestsRoute
   '/reports': typeof AppReportsRoute
   '/task-responses': typeof AppTaskResponsesRoute
   '/team': typeof AppTeamRoute
@@ -154,6 +162,7 @@ export interface FileRoutesById {
   '/_app/grooms': typeof AppGroomsRoute
   '/_app/ideas': typeof AppIdeasRoute
   '/_app/payment-requests': typeof AppPaymentRequestsRoute
+  '/_app/procurement-requests': typeof AppProcurementRequestsRoute
   '/_app/reports': typeof AppReportsRoute
   '/_app/task-responses': typeof AppTaskResponsesRoute
   '/_app/team': typeof AppTeamRoute
@@ -173,6 +182,7 @@ export interface FileRouteTypes {
     | '/grooms'
     | '/ideas'
     | '/payment-requests'
+    | '/procurement-requests'
     | '/reports'
     | '/task-responses'
     | '/team'
@@ -190,6 +200,7 @@ export interface FileRouteTypes {
     | '/grooms'
     | '/ideas'
     | '/payment-requests'
+    | '/procurement-requests'
     | '/reports'
     | '/task-responses'
     | '/team'
@@ -208,6 +219,7 @@ export interface FileRouteTypes {
     | '/_app/grooms'
     | '/_app/ideas'
     | '/_app/payment-requests'
+    | '/_app/procurement-requests'
     | '/_app/reports'
     | '/_app/task-responses'
     | '/_app/team'
@@ -280,6 +292,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppReportsRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/procurement-requests': {
+      id: '/_app/procurement-requests'
+      path: '/procurement-requests'
+      fullPath: '/procurement-requests'
+      preLoaderRoute: typeof AppProcurementRequestsRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/payment-requests': {
       id: '/_app/payment-requests'
       path: '/payment-requests'
@@ -347,6 +366,7 @@ interface AppRouteChildren {
   AppGroomsRoute: typeof AppGroomsRoute
   AppIdeasRoute: typeof AppIdeasRoute
   AppPaymentRequestsRoute: typeof AppPaymentRequestsRoute
+  AppProcurementRequestsRoute: typeof AppProcurementRequestsRoute
   AppReportsRoute: typeof AppReportsRoute
   AppTaskResponsesRoute: typeof AppTaskResponsesRoute
   AppTeamRoute: typeof AppTeamRoute
@@ -361,6 +381,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppGroomsRoute: AppGroomsRoute,
   AppIdeasRoute: AppIdeasRoute,
   AppPaymentRequestsRoute: AppPaymentRequestsRoute,
+  AppProcurementRequestsRoute: AppProcurementRequestsRoute,
   AppReportsRoute: AppReportsRoute,
   AppTaskResponsesRoute: AppTaskResponsesRoute,
   AppTeamRoute: AppTeamRoute,
