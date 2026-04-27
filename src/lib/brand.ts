@@ -38,7 +38,10 @@ export async function fetchBrand(): Promise<BrandIdentity> {
 export async function saveBrand(b: BrandIdentity): Promise<void> {
   const { error } = await supabase
     .from("app_settings")
-    .upsert({ key: "brand_identity", value: b as unknown as Record<string, unknown>, updated_at: new Date().toISOString() }, { onConflict: "key" });
+    .upsert(
+      [{ key: "brand_identity", value: b as unknown as Record<string, unknown>, updated_at: new Date().toISOString() }],
+      { onConflict: "key" },
+    );
   if (error) throw error;
   cached = b;
   listeners.forEach((l) => l(b));
