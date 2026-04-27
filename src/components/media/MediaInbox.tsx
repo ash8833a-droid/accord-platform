@@ -59,6 +59,8 @@ export function MediaInbox() {
 
   const signedUrl = async (path: string | null) => {
     if (!path) return null;
+    // If already a full URL (e.g. public bucket), return as-is
+    if (/^https?:\/\//i.test(path)) return path;
     const { data } = await supabase.storage.from("groom-docs").createSignedUrl(path, 3600);
     return data?.signedUrl ?? null;
   };
