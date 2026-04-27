@@ -1,9 +1,18 @@
 import * as XLSX from "xlsx";
 import { BRAND_LOGO_DATA_URI } from "@/assets/brand-logo";
-import { DEFAULT_BRAND, BrandIdentity } from "@/lib/brand";
+import type { BrandIdentity } from "@/lib/brand";
+
+// Local default to avoid circular import with brand.ts (which imports setExportBrand from this file).
+const FALLBACK_BRAND: BrandIdentity = {
+  name: "منصة عمل لجنة الزواج الجماعي",
+  subtitle: "لقبيلة الهملة من قريش",
+  logo_url: null,
+  primary_color: "#1B4F58",
+  gold_color: "#C4A25C",
+};
 
 // Runtime brand cache used by exports. Updated by initBrandForExports().
-let exportBrand: BrandIdentity = DEFAULT_BRAND;
+let exportBrand: BrandIdentity = FALLBACK_BRAND;
 let exportLogoSrc: string = BRAND_LOGO_DATA_URI;
 
 export function setExportBrand(b: BrandIdentity, logoDataUri?: string) {
