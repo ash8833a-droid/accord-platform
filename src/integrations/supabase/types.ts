@@ -649,6 +649,74 @@ export type Database = {
           },
         ]
       }
+      procurement_requests: {
+        Row: {
+          created_at: string
+          decision_notes: string | null
+          description: string | null
+          id: string
+          item_name: string
+          needed_by: string | null
+          notes: string | null
+          priority: Database["public"]["Enums"]["procurement_priority"]
+          quantity: number
+          requested_by: string | null
+          requester_name: string
+          requesting_committee_id: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: Database["public"]["Enums"]["procurement_request_status"]
+          unit: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          decision_notes?: string | null
+          description?: string | null
+          id?: string
+          item_name: string
+          needed_by?: string | null
+          notes?: string | null
+          priority?: Database["public"]["Enums"]["procurement_priority"]
+          quantity?: number
+          requested_by?: string | null
+          requester_name: string
+          requesting_committee_id: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["procurement_request_status"]
+          unit?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          decision_notes?: string | null
+          description?: string | null
+          id?: string
+          item_name?: string
+          needed_by?: string | null
+          notes?: string | null
+          priority?: Database["public"]["Enums"]["procurement_priority"]
+          quantity?: number
+          requested_by?: string | null
+          requester_name?: string
+          requesting_committee_id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["procurement_request_status"]
+          unit?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "procurement_requests_requesting_committee_id_fkey"
+            columns: ["requesting_committee_id"]
+            isOneToOne: false
+            referencedRelation: "committees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -1181,6 +1249,14 @@ export type Database = {
         | "implemented"
         | "archived"
       payment_request_status: "pending" | "approved" | "rejected" | "paid"
+      procurement_priority: "low" | "medium" | "high" | "urgent"
+      procurement_request_status:
+        | "new"
+        | "under_review"
+        | "approved"
+        | "rejected"
+        | "purchasing"
+        | "delivered"
       subscription_status: "pending" | "confirmed" | "rejected"
       task_priority: "low" | "medium" | "high" | "urgent"
       task_status: "todo" | "in_progress" | "completed"
@@ -1340,6 +1416,15 @@ export const Constants = {
         "archived",
       ],
       payment_request_status: ["pending", "approved", "rejected", "paid"],
+      procurement_priority: ["low", "medium", "high", "urgent"],
+      procurement_request_status: [
+        "new",
+        "under_review",
+        "approved",
+        "rejected",
+        "purchasing",
+        "delivered",
+      ],
       subscription_status: ["pending", "confirmed", "rejected"],
       task_priority: ["low", "medium", "high", "urgent"],
       task_status: ["todo", "in_progress", "completed"],
