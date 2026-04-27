@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
-import { Upload, Image as ImageIcon, IdCard, Loader2, Save, Eye, Download, Trash2 } from "lucide-react";
+import { Upload, Image as ImageIcon, IdCard, Loader2, Save, Eye, Trash2, Globe2 } from "lucide-react";
 import { toast } from "sonner";
 import { GroomTimeline } from "./GroomTimeline";
 import { AttachmentPreviewDialog } from "@/components/AttachmentPreviewDialog";
@@ -214,7 +214,7 @@ export function GroomDetailsDialog({ groomId, open, onOpenChange, onSaved }: Pro
               <div className="rounded-xl border bg-card p-4 space-y-3">
                 <div className="flex items-center justify-between">
                   <Label className="flex items-center gap-2 cursor-pointer">
-                    <ExternalLink className="h-4 w-4 text-primary" />
+                    <Globe2 className="h-4 w-4 text-primary" />
                     مشاركة خارجية خاصة
                   </Label>
                   <Switch
