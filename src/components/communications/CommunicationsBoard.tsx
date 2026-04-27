@@ -275,6 +275,53 @@ export function CommunicationsBoard() {
   );
 }
 
+function PostPreview({
+  type, scope, title, body, authorName, sourceName, targetName,
+}: {
+  type: PostType; scope: PostScope;
+  title: string; body: string; authorName: string;
+  sourceName?: string; targetName?: string;
+}) {
+  const meta = TYPE_META[type];
+  const scopeMeta = SCOPE_META[scope];
+  const Icon = meta.icon;
+  const ScopeIcon = scopeMeta.icon;
+  const hasContent = title.trim() || body.trim();
+
+  return (
+    <div className="border rounded-xl p-4 bg-muted/30 sticky top-2">
+      <div className="flex items-start gap-3 mb-3">
+        <div className={`p-2 rounded-lg border ${meta.color} shrink-0`}>
+          <Icon className="h-5 w-5" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-1.5 flex-wrap mb-1.5">
+            <Badge variant="outline" className={meta.color}>{meta.label}</Badge>
+            <Badge variant="secondary" className="gap-1 text-[11px]">
+              <ScopeIcon className="h-3 w-3" />
+              {scopeMeta.label}{targetName ? ` → ${targetName}` : ""}
+            </Badge>
+          </div>
+          <h3 className="font-bold text-base break-words">
+            {title.trim() || <span className="text-muted-foreground font-normal">عنوان المنشور...</span>}
+          </h3>
+          <p className="text-[11px] text-muted-foreground mt-0.5">
+            {authorName || "—"} · {sourceName || <span className="text-amber-600">لم تُحدَّد لجنة المصدر</span>} · الآن
+          </p>
+        </div>
+      </div>
+      <p className="text-sm whitespace-pre-wrap text-foreground/90 min-h-[3rem]">
+        {body.trim() || <span className="text-muted-foreground">سيظهر محتوى المنشور هنا أثناء الكتابة...</span>}
+      </p>
+      {!hasContent && (
+        <div className="mt-3 text-[11px] text-muted-foreground border-t pt-2 flex items-center gap-1.5">
+          <Info className="h-3 w-3" /> هذه معاينة فورية — لن يتم النشر حتى تضغط "نشر".
+        </div>
+      )}
+    </div>
+  );
+}
+
 function PostCard({ post, committees, currentUserId, authorName, onDeleted }: {
   post: Post; committees: Committee[]; currentUserId: string; authorName: string; onDeleted: () => void;
 }) {
