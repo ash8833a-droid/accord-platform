@@ -537,6 +537,47 @@ function PreviewSection({ icon, title, children }: { icon: React.ReactNode; titl
   );
 }
 
+type YesNo = "" | "yes" | "no";
+function YesNoChoice({
+  label, value, onChange,
+}: {
+  label: string;
+  value: YesNo;
+  onChange: (v: YesNo) => void;
+}) {
+  return (
+    <div className="space-y-2">
+      <p className="text-sm font-medium flex items-center gap-1">
+        {label} <span className="text-destructive">*</span>
+      </p>
+      <div className="grid grid-cols-2 gap-2">
+        <button
+          type="button"
+          onClick={() => onChange("yes")}
+          className={`flex items-center justify-center gap-2 h-11 rounded-xl border-2 text-sm font-bold transition ${
+            value === "yes"
+              ? "border-emerald-500 bg-emerald-500/10 text-emerald-700"
+              : "border-border bg-card hover:bg-muted/50 text-muted-foreground"
+          }`}
+        >
+          <Check className="h-4 w-4" /> نعم
+        </button>
+        <button
+          type="button"
+          onClick={() => onChange("no")}
+          className={`flex items-center justify-center gap-2 h-11 rounded-xl border-2 text-sm font-bold transition ${
+            value === "no"
+              ? "border-rose-500 bg-rose-500/10 text-rose-700"
+              : "border-border bg-card hover:bg-muted/50 text-muted-foreground"
+          }`}
+        >
+          <X className="h-4 w-4" /> لا
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function PreviewDialog({
   open, onOpenChange, busy, onConfirm, data,
 }: {
