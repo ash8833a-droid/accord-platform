@@ -68,8 +68,8 @@ export function GroomDetailsDialog({ groomId, open, onOpenChange, onSaved }: Pro
         resolveUrl(g.national_id_url),
       ]);
       if (cancelled) return;
-      setPhotoPreview((p.data as any)?.signedUrl ?? null);
-      setIdPreview((i.data as any)?.signedUrl ?? null);
+      setPhotoPreview((p as any)?.data?.signedUrl ?? null);
+      setIdPreview((i as any)?.data?.signedUrl ?? null);
       setLoading(false);
     })();
     return () => { cancelled = true; };
