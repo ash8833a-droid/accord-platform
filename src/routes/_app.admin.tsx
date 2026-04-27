@@ -122,7 +122,8 @@ function AdminCenter() {
         <TabsContent value="news" className="mt-6">
           <NewsManager isAdmin={isAdmin} />
         </TabsContent>
-        <TabsContent value="settings" className="mt-6">
+        <TabsContent value="settings" className="mt-6 space-y-4">
+          <BrandIdentityCard />
           <UrgentAlertSettings isAdmin={isAdmin} />
         </TabsContent>
       </Tabs>
