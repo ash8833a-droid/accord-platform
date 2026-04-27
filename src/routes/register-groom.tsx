@@ -379,7 +379,8 @@ function RegisterGroomPage() {
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {extraChoice === "yes" && (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 animate-fade-up">
               <div className="space-y-2">
                 <Label htmlFor="sheep">عدد الذبائح الزيادة (بحدٍّ أقصى {MAX_EXTRA_SHEEP})</Label>
                 <Input
@@ -412,6 +413,7 @@ function RegisterGroomPage() {
                 <p className="text-[10px] text-muted-foreground">الأساسيُّ {BASE_CARDS_WOMEN} كرتاً</p>
               </div>
             </div>
+            )}
           </section>
 
           {/* External participations */}
@@ -423,16 +425,13 @@ function RegisterGroomPage() {
               المقصود بها: <span className="font-semibold text-foreground">القصائد، الشيلات، الكلمات الترحيبية</span> أو ما شابهها مما يُقدَّم للعريس في الحفل.
             </p>
 
-            <label className="flex items-center gap-3 rounded-xl border bg-card/50 p-3 cursor-pointer">
-              <Checkbox
-                id="ext"
-                checked={externalParticipation}
-                onCheckedChange={(v) => setExternalParticipation(v === true)}
-              />
-              <span className="text-sm font-medium">يوجد قصائد / شيلات / كلمات مقدّمة للعريس</span>
-            </label>
+            <YesNoChoice
+              label="هل يوجد قصائد / شيلات / كلمات ستُقدَّم للعريس؟"
+              value={externalChoice}
+              onChange={(v) => { setExternalChoice(v); setExternalParticipation(v === "yes"); }}
+            />
 
-            {externalParticipation && (
+            {externalChoice === "yes" && (
               <div className="space-y-2 animate-fade-up">
                 <Label htmlFor="extd">تفاصيل المشاركات الخارجية <span className="text-destructive">*</span></Label>
                 <Textarea id="extd" value={externalDetails} onChange={(e) => setExternalDetails(e.target.value)} rows={3} placeholder="اذكر نوع المشاركة، اسم مقدّمها، والمدة المتوقعة..." />
@@ -445,10 +444,19 @@ function RegisterGroomPage() {
             <div className="flex items-center gap-2 text-primary font-bold text-lg">
               <Crown className="h-5 w-5" /> ضيوف الشخصيات الاعتبارية
             </div>
-            <Label htmlFor="vip" className="flex items-center gap-2 text-sm">
-              <Crown className="h-4 w-4" /> أسماء وألقاب الضيوف (سعادة، شيخ، معالي، ...)
-            </Label>
-            <Textarea id="vip" value={vipGuests} onChange={(e) => setVipGuests(e.target.value)} rows={3} placeholder="مثال: سعادة الأستاذ ... — الشيخ ... — معالي الدكتور ..." />
+            <YesNoChoice
+              label="هل لديك ضيوف من الشخصيات الاعتبارية؟"
+              value={vipChoice}
+              onChange={setVipChoice}
+            />
+            {vipChoice === "yes" && (
+              <div className="space-y-2 animate-fade-up">
+                <Label htmlFor="vip" className="flex items-center gap-2 text-sm">
+                  <Crown className="h-4 w-4" /> أسماء وألقاب الضيوف (سعادة، شيخ، معالي، ...) <span className="text-destructive">*</span>
+                </Label>
+                <Textarea id="vip" value={vipGuests} onChange={(e) => setVipGuests(e.target.value)} rows={3} placeholder="مثال: سعادة الأستاذ ... — الشيخ ... — معالي الدكتور ..." />
+              </div>
+            )}
           </section>
 
           {/* Notes */}
@@ -456,7 +464,14 @@ function RegisterGroomPage() {
             <div className="flex items-center gap-2 text-primary font-bold text-lg">
               <StickyNote className="h-5 w-5" /> ملاحظات إضافية
             </div>
-            <Textarea id="notes" value={notes} onChange={(e) => setNotes(e.target.value)} rows={4} placeholder="أي ملاحظات أو طلبات خاصة..." />
+            <YesNoChoice
+              label="هل لديك ملاحظات أو طلبات خاصة؟"
+              value={notesChoice}
+              onChange={setNotesChoice}
+            />
+            {notesChoice === "yes" && (
+              <Textarea id="notes" value={notes} onChange={(e) => setNotes(e.target.value)} rows={4} placeholder="اكتب ملاحظاتك أو طلباتك الخاصة..." className="animate-fade-up" />
+            )}
           </section>
 
           <Button type="submit" className="w-full bg-gradient-hero text-primary-foreground hover:opacity-90 shadow-elegant h-12 text-base font-semibold">
