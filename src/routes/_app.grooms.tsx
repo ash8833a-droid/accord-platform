@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,7 +17,6 @@ import { toast } from "sonner";
 import { GroomDetailsDialog } from "@/components/grooms/GroomDetailsDialog";
 import { supabase as sb } from "@/integrations/supabase/client";
 import { useAppSetting } from "@/hooks/use-app-setting";
-import { useMemo } from "react";
 
 const REGISTER_LINK_KEY = "groom_registration_url";
 const DEFAULT_REGISTRATION_URL = "https://lajnat-zawaj.org";
