@@ -18,6 +18,7 @@ import { CommitteeBudgetLimits } from "@/components/finance/CommitteeBudgetLimit
 import { Pencil, Trash2 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { Textarea } from "@/components/ui/textarea";
+import { FilePreview } from "@/components/FilePreview";
 
 interface Delegate {
   id: string;
@@ -533,7 +534,12 @@ export function FinanceModule() {
               <div className="h-full flex items-center justify-center text-sm text-muted-foreground">جاري تحميل الفاتورة...</div>
             )}
             {invoiceUrl && (
-              <iframe src={invoiceUrl} title="معاينة الفاتورة" className="w-full h-full border-0" />
+              <FilePreview
+                url={invoiceUrl}
+                name={`فاتورة — ${invoiceTitle}`}
+                type={/\.pdf(\?|$)/i.test(invoiceUrl) ? "application/pdf" : undefined}
+                onDownload={invoicePath ? downloadInvoice : undefined}
+              />
             )}
           </div>
           <div className="px-5 py-3 border-t flex items-center justify-between gap-2 shrink-0 bg-card flex-wrap">
