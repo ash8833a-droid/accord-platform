@@ -700,3 +700,169 @@ function QuickWhatsAppShare({ url }: { url: string }) {
     </Button>
   );
 }
+
+// ============ قاعدة بيانات العرسان (مرجع شامل) ============
+function GroomsDatabaseDialog({ grooms }: { grooms: Groom[] }) {
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const [yearFilter, setYearFilter] = useState<string>("all");
+
+  type Row = { year: number | string; full_name: string; phone: string; family_branch: string; status: string };
+
+  const rows: Row[] = useMemo(() => {
+    return grooms.map((g) => {
+      const ge = g as any;
+      const dateStr: string | null = ge.wedding_date || ge.created_at || null;
+      const year = dateStr ? new Date(dateStr).getFullYear() : "—";
+      return {
+        year,
+        full_name: g.full_name,
+        phone: g.phone,
+        family_branch: g.family_branch,
+        status: STATUS_BADGE[g.status]?.label ?? g.status,
+      };
+    });
+  }, [grooms]);
+
+  const years = useMemo(() => {
+    const set = new Set<string>();
+    rows.forEach((r) => set.add(String(r.year)));
+    return Array.from(set).sort((a, b) => b.localeCompare(a));
+  }, [rows]);
+
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return rows.filter((r) => {
+      if (yearFilter !== "all" && String(r.year) !== yearFilter) return false;
+      if (!q) return true;
+      return (
+        r.full_name.toLowerCase().includes(q) ||
+        r.phone.toLowerCase().includes(q) ||
+        r.family_branch.toLowerCase().includes(q) ||
+        String(r.year).includes(q)
+      );
+    });
+  }, [rows, search, yearFilter]);
+
+  const sorted = useMemo(() => {
+    return [...filtered].sort((a, b) => {
+      const ay = String(a.year);
+      const by = String(b.year);
+      if (ay !== by) return by.localeCompare(ay);
+      return a.full_name.localeCompare(b.full_name, "ar");
+    });
+  }, [filtered]);
+
+  const exportCSV = () => {
+    if (sorted.length === 0) { toast.error("لا توجد بيانات للتصدير"); return; }
+    const headers = ["#", "السنة", "الاسم الرباعي", "رقم الجوال", "الفرع العائلي", "الحالة"];
+    const escape = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+    const lines = [
+      headers.map(escape).join(","),
+      ...sorted.map((r, i) =>
+        [i + 1, r.year, r.full_name, r.phone, r.family_branch, r.status].map(escape).join(","),
+      ),
+    ];
+    const blob = new Blob(["\ufeff" + lines.join("\n")], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `قاعدة-بيانات-العرسان-${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(url);
+    toast.success("تم تصدير CSV");
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="outline" className="border-primary/30 gap-2">
+          <Database className="h-4 w-4" /> قاعدة بيانات العرسان
+        </Button>
+      </DialogTrigger>
+      <DialogContent dir="rtl" className="max-w-[95vw] lg:max-w-5xl max-h-[90vh] overflow-hidden flex flex-col">
+        <DialogHeader className="space-y-3">
+          <DialogTitle className="flex items-center gap-2 text-xl">
+            <span className="h-10 w-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+              <Database className="h-5 w-5" />
+            </span>
+            <div className="flex-1">
+              <div>قاعدة بيانات العرسان (مرجع شامل)</div>
+              <p className="text-xs text-muted-foreground font-normal mt-0.5">
+                سجل تاريخي بكل العرسان حسب السنة — الاسم الرباعي ورقم الجوال
+              </p>
+            </div>
+          </DialogTitle>
+
+          <div className="flex flex-wrap items-center gap-2 pt-2">
+            <div className="relative flex-1 min-w-[200px]">
+              <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="ابحث بالاسم، الجوال، الفرع، السنة…"
+                className="pr-9"
+              />
+            </div>
+            <Select value={yearFilter} onValueChange={setYearFilter}>
+              <SelectTrigger className="w-[140px]"><SelectValue placeholder="السنة" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">كل السنوات</SelectItem>
+                {years.map((y) => (
+                  <SelectItem key={y} value={y}>{y}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button onClick={exportCSV} className="gap-2 bg-primary hover:bg-primary/90">
+              <Download className="h-4 w-4" /> تصدير CSV
+            </Button>
+          </div>
+
+          <div className="flex flex-wrap gap-2 text-xs">
+            <Badge variant="secondary" className="gap-1">
+              <Database className="h-3 w-3" /> {sorted.length} عريس
+            </Badge>
+            <Badge variant="secondary">{years.length} سنة</Badge>
+          </div>
+        </DialogHeader>
+
+        <div className="flex-1 overflow-auto rounded-lg border bg-card">
+          <table className="w-full text-sm">
+            <thead className="sticky top-0 bg-muted/80 backdrop-blur z-10">
+              <tr>
+                <th className="px-3 py-2.5 text-center text-xs font-bold text-muted-foreground w-12">#</th>
+                <th className="px-3 py-2.5 text-center text-xs font-bold text-muted-foreground w-24">السنة</th>
+                <th className="px-3 py-2.5 text-right text-xs font-bold text-muted-foreground">الاسم الرباعي</th>
+                <th className="px-3 py-2.5 text-right text-xs font-bold text-muted-foreground">رقم الجوال</th>
+                <th className="px-3 py-2.5 text-right text-xs font-bold text-muted-foreground">الفرع العائلي</th>
+                <th className="px-3 py-2.5 text-center text-xs font-bold text-muted-foreground">الحالة</th>
+              </tr>
+            </thead>
+            <tbody>
+              {sorted.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="text-center py-12 text-muted-foreground text-sm">
+                    لا توجد سجلات مطابقة
+                  </td>
+                </tr>
+              ) : (
+                sorted.map((r, i) => (
+                  <tr key={i} className="border-t hover:bg-muted/30 transition-colors">
+                    <td className="px-3 py-2 text-center text-muted-foreground tabular-nums">{i + 1}</td>
+                    <td className="px-3 py-2 text-center">
+                      <Badge variant="outline" className="tabular-nums">{r.year}</Badge>
+                    </td>
+                    <td className="px-3 py-2 font-semibold">{r.full_name}</td>
+                    <td className="px-3 py-2 tabular-nums text-muted-foreground" dir="ltr">{r.phone}</td>
+                    <td className="px-3 py-2 text-muted-foreground">{r.family_branch}</td>
+                    <td className="px-3 py-2 text-center text-xs text-muted-foreground">{r.status}</td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
