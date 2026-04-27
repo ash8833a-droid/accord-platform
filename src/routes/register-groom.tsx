@@ -358,11 +358,7 @@ function RegisterGroomPage() {
             {/* بطاقة المخصّص الأساسي */}
             <div className="rounded-2xl border border-primary/20 bg-primary/5 p-4">
               <div className="text-[11px] font-bold text-primary mb-2">المخصَّصُ الأساسيُّ لكلِّ عريسٍ ابتداءً</div>
-              <div className="grid grid-cols-3 gap-2 text-center">
-                <div className="rounded-xl bg-card border p-2">
-                  <div className="text-[10px] text-muted-foreground">ذبيحة</div>
-                  <div className="font-extrabold text-lg text-primary">1</div>
-                </div>
+              <div className="grid grid-cols-2 gap-2 text-center">
                 <div className="rounded-xl bg-card border p-2">
                   <div className="text-[10px] text-muted-foreground">كروت رجال</div>
                   <div className="font-extrabold text-lg text-primary">{BASE_CARDS_MEN}</div>
