@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import defaultLogo from "@/assets/logo.jpeg";
+import { setExportBrand } from "@/lib/exporters";
 
 export interface BrandIdentity {
   name: string;
@@ -31,6 +32,14 @@ export async function fetchBrand(): Promise<BrandIdentity> {
     .maybeSingle();
   const merged = { ...DEFAULT_BRAND, ...((data?.value as Partial<BrandIdentity>) ?? {}) };
   cached = merged;
+  // Push to exporters (will use logo_url directly; PDF prints in same browser session so cross-origin OK for public bucket).
+  try {
+    let dataUri: string | undefined;
+    if (merged.logo_url) {
+      dataUri = await urlToDataUri(merged.logo_url);
+    }
+    setExportBrand(merged, dataUri);
+  } catch { /* non-fatal */ }
   listeners.forEach((l) => l(merged));
   return merged;
 }
@@ -44,6 +53,11 @@ export async function saveBrand(b: BrandIdentity): Promise<void> {
     );
   if (error) throw error;
   cached = b;
+  try {
+    let dataUri: string | undefined;
+    if (b.logo_url) dataUri = await urlToDataUri(b.logo_url);
+    setExportBrand(b, dataUri);
+  } catch { /* non-fatal */ }
   listeners.forEach((l) => l(b));
 }
 
