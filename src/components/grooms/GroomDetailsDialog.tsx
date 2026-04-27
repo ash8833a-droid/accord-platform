@@ -58,9 +58,14 @@ export function GroomDetailsDialog({ groomId, open, onOpenChange, onSaved }: Pro
       }
       setData(g as GroomDetails);
       // Load signed URLs for previews
+      const resolveUrl = async (p: string | null) => {
+        if (!p) return null;
+        if (/^https?:\/\//i.test(p)) return { data: { signedUrl: p } };
+        return await supabase.storage.from("groom-docs").createSignedUrl(p, 3600);
+      };
       const [p, i] = await Promise.all([
-        g.photo_url ? supabase.storage.from("groom-docs").createSignedUrl(g.photo_url, 3600) : Promise.resolve({ data: null }),
-        g.national_id_url ? supabase.storage.from("groom-docs").createSignedUrl(g.national_id_url, 3600) : Promise.resolve({ data: null }),
+        resolveUrl(g.photo_url),
+        resolveUrl(g.national_id_url),
       ]);
       if (cancelled) return;
       setPhotoPreview((p.data as any)?.signedUrl ?? null);
