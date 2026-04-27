@@ -39,7 +39,7 @@ export async function saveBrand(b: BrandIdentity): Promise<void> {
   const { error } = await supabase
     .from("app_settings")
     .upsert(
-      [{ key: "brand_identity", value: b as unknown as Record<string, unknown>, updated_at: new Date().toISOString() }],
+      [{ key: "brand_identity", value: b as unknown as never, updated_at: new Date().toISOString() }],
       { onConflict: "key" },
     );
   if (error) throw error;
