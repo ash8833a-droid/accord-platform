@@ -53,7 +53,8 @@ const SCOPE_META: Record<PostScope, { label: string; icon: any }> = {
 };
 
 export function CommunicationsBoard() {
-  const { user, committeeId } = useAuth();
+  const { user, committeeId, hasRole } = useAuth();
+  const isAdmin = hasRole("admin");
   const [posts, setPosts] = useState<Post[]>([]);
   const [committees, setCommittees] = useState<Committee[]>([]);
   const [authorName, setAuthorName] = useState("");
@@ -64,6 +65,7 @@ export function CommunicationsBoard() {
   const [fType, setFType] = useState<PostType>("news");
   const [fScope, setFScope] = useState<PostScope>("committee");
   const [fTarget, setFTarget] = useState<string>("");
+  const [fSource, setFSource] = useState<string>("");
   const [fTitle, setFTitle] = useState("");
   const [fBody, setFBody] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -100,14 +102,21 @@ export function CommunicationsBoard() {
 
   const submit = async () => {
     if (!user) return;
-    if (!committeeId) return toast.error("يجب أن تكون عضواً في لجنة لتنشر منشور");
+    const sourceId = committeeId || (isAdmin ? fSource : "");
+    if (!sourceId) {
+      return toast.error(
+        isAdmin
+          ? "اختر اللجنة التي ستنشر باسمها"
+          : "يجب أن تكون عضواً في لجنة لتنشر منشور",
+      );
+    }
     if (!fTitle.trim() || !fBody.trim()) return toast.error("العنوان والنص مطلوبان");
     if (fScope === "targeted" && !fTarget) return toast.error("اختر اللجنة المستهدفة");
     setSubmitting(true);
     const { error } = await supabase.from("committee_posts").insert({
       author_id: user.id,
       author_name: authorName || "عضو",
-      source_committee_id: committeeId,
+      source_committee_id: sourceId,
       target_committee_id: fScope === "targeted" ? fTarget : null,
       scope: fScope,
       post_type: fType,
@@ -118,7 +127,7 @@ export function CommunicationsBoard() {
     if (error) return toast.error(error.message);
     toast.success("تم نشر المنشور وإرسال الإشعارات");
     setOpenNew(false);
-    setFTitle(""); setFBody(""); setFTarget("");
+    setFTitle(""); setFBody(""); setFTarget(""); setFSource("");
   };
 
   return (
@@ -165,11 +174,27 @@ export function CommunicationsBoard() {
                   <Select value={fTarget} onValueChange={setFTarget}>
                     <SelectTrigger><SelectValue placeholder="اختر اللجنة" /></SelectTrigger>
                     <SelectContent>
-                      {committees.filter(c => c.id !== committeeId).map(c => (
+                      {committees.filter(c => c.id !== (committeeId || fSource)).map(c => (
                         <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
+                </div>
+              )}
+              {!committeeId && isAdmin && (
+                <div>
+                  <label className="text-sm font-bold mb-1 block">النشر باسم لجنة</label>
+                  <Select value={fSource} onValueChange={setFSource}>
+                    <SelectTrigger><SelectValue placeholder="اختر اللجنة المصدر" /></SelectTrigger>
+                    <SelectContent>
+                      {committees.map(c => (
+                        <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-[11px] text-muted-foreground mt-1">
+                    أنت مدير غير مرتبط بلجنة محددة — اختر اللجنة التي سيظهر المنشور باسمها.
+                  </p>
                 </div>
               )}
               <div>
