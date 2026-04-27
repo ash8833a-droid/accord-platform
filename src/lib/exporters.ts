@@ -90,7 +90,8 @@ export function exportRequestsXLSX(
   const wb = XLSX.utils.book_new();
 
   const summaryData = [
-    ["تقرير اللجنة المالية — برنامج الزواج الجماعي"],
+    [`${exportBrand.name} — تقرير اللجنة المالية`],
+    [exportBrand.subtitle],
     [`تاريخ التصدير: ${todayAr()}`],
     [],
     ["البند", "القيمة"],
