@@ -15,7 +15,7 @@ import {
   ClipboardCheck,
   Home,
 } from "lucide-react";
-import { ShoppingCart, MessageSquareText } from "lucide-react";
+import { ShoppingCart, MessagesSquare } from "lucide-react";
 import { Logo } from "./Logo";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
@@ -36,13 +36,13 @@ const ADMIN_BOTTOM = [
   { to: "/grooms", label: "سجل العرسان", icon: HeartHandshake },
   { to: "/reports", label: "التقارير والجودة", icon: FileBarChart },
   { to: "/procurement-requests", label: "طلبات الشراء", icon: ShoppingCart },
-  { to: "/posts", label: "لوحة المنشورات", icon: MessageSquareText },
+  { to: "/communications", label: "التواصل", icon: MessagesSquare },
 ] as const;
 
 const RESTRICTED_EXTRA = [
   { to: "/ideas", label: "بنك الأفكار", icon: Lightbulb },
   { to: "/procurement-requests", label: "طلبات الشراء", icon: ShoppingCart },
-  { to: "/posts", label: "لوحة المنشورات", icon: MessageSquareText },
+  { to: "/communications", label: "التواصل", icon: MessagesSquare },
 ] as const;
 
 interface AppShellProps {

@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { GroomTimeline } from "@/components/grooms/GroomTimeline";
+import { AttachmentItem } from "@/components/AttachmentItem";
 
 interface GroomRow {
   id: string;
@@ -242,19 +243,21 @@ export function MediaInbox() {
                 <Info icon={Phone} label="الجوال" value={selected.phone} dir="ltr" />
               </div>
 
-              {(photoUrl || idUrl) && (
-                <div className="grid grid-cols-2 gap-3">
-                  {photoUrl && (
-                    <a href={photoUrl} target="_blank" rel="noopener" className="block rounded-lg border overflow-hidden hover:ring-2 ring-primary transition">
-                      <div className="px-3 py-2 text-[11px] font-bold bg-muted/40 flex items-center gap-1"><ImageIcon className="h-3.5 w-3.5" /> الصورة الشخصية</div>
-                      <img src={photoUrl} alt="صورة العريس" className="w-full h-44 object-cover" />
-                    </a>
+              {(selected.photo_url || selected.national_id_url) && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {selected.photo_url && (
+                    <AttachmentItem
+                      bucket="groom-docs"
+                      pathOrUrl={selected.photo_url}
+                      fileName="الصورة الشخصية"
+                    />
                   )}
-                  {idUrl && (
-                    <a href={idUrl} target="_blank" rel="noopener" className="block rounded-lg border overflow-hidden hover:ring-2 ring-primary transition">
-                      <div className="px-3 py-2 text-[11px] font-bold bg-muted/40 flex items-center gap-1"><IdCard className="h-3.5 w-3.5" /> الهوية الوطنية</div>
-                      <img src={idUrl} alt="الهوية الوطنية" className="w-full h-44 object-cover" />
-                    </a>
+                  {selected.national_id_url && (
+                    <AttachmentItem
+                      bucket="groom-docs"
+                      pathOrUrl={selected.national_id_url}
+                      fileName="الهوية الوطنية"
+                    />
                   )}
                 </div>
               )}

@@ -52,7 +52,7 @@ const SCOPE_META: Record<PostScope, { label: string; icon: any }> = {
   all: { label: "لكل اللجان", icon: Globe2 },
 };
 
-export function PostsBoard() {
+export function CommunicationsBoard() {
   const { user, committeeId } = useAuth();
   const [posts, setPosts] = useState<Post[]>([]);
   const [committees, setCommittees] = useState<Committee[]>([]);
@@ -125,7 +125,7 @@ export function PostsBoard() {
     <div className="space-y-4">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h2 className="text-2xl font-bold">لوحة المنشورات</h2>
+          <h2 className="text-2xl font-bold">مركز التواصل</h2>
           <p className="text-sm text-muted-foreground">منجزات · أخبار · استفسارات · إعلانات داخلية بين اللجان</p>
         </div>
         <Dialog open={openNew} onOpenChange={setOpenNew}>
