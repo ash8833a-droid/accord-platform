@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import {
   Inbox, CheckCircle2, AlertCircle, User, Phone, Users as UsersIcon, Heart,
-  Calendar, ClipboardList, Globe2, Crown, ImageIcon, IdCard, Loader2, Eye,
+  ClipboardList, Globe2, Crown, ImageIcon, IdCard, Loader2, Eye,
 } from "lucide-react";
 import { toast } from "sonner";
 import { GroomTimeline } from "@/components/grooms/GroomTimeline";
