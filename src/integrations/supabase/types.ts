@@ -1146,7 +1146,12 @@ export type Database = {
         Args: { _committee_id: string; _user_id: string }
         Returns: boolean
       }
+      is_supreme_member: { Args: { _user_id: string }; Returns: boolean }
       is_user_approved: { Args: { _user_id: string }; Returns: boolean }
+      shares_committee_with: {
+        Args: { _target: string; _viewer: string }
+        Returns: boolean
+      }
       user_id_for_team_member: { Args: { _member_id: string }; Returns: string }
     }
     Enums: {
