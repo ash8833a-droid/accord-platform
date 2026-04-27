@@ -291,14 +291,19 @@ export function AppShell({ children, restricted = false, restrictedToCommitteeTy
         <nav className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-background border-t border-border shadow-[0_-2px_10px_rgba(0,0,0,0.04)]">
           <div className="grid grid-cols-5 h-16">
             {[
-              ...(canSeeDashboard ? [{ to: "/admin", label: "الإدارة", icon: ShieldCheck }] : []),
+              ...(isAdminUser && canSeeDashboard
+                ? [{ to: "/admin", label: "الإدارة", icon: ShieldCheck }]
+                : []),
               { to: "/ideas", label: "الأفكار", icon: Lightbulb },
-              { to: "/grooms", label: "العرسان", icon: HeartHandshake },
-              { to: "/team", label: "الفريق", icon: Users },
+              ...(committeeId
+                ? [{ to: "__purchase", label: "طلب شراء", icon: ShoppingCart }]
+                : [{ to: "/grooms", label: "العرسان", icon: HeartHandshake }]),
+              { to: "/communications", label: "التواصل", icon: MessagesSquare },
               { to: "__menu", label: "القائمة", icon: Menu },
             ].map((item) => {
               const isMenu = item.to === "__menu";
-              const active = !isMenu && (path === item.to || path.startsWith(item.to + "/"));
+              const isPurchase = item.to === "__purchase";
+              const active = !isMenu && !isPurchase && (path === item.to || path.startsWith(item.to + "/"));
               const Icon = item.icon;
               const inner = (
                 <>
@@ -311,6 +316,17 @@ export function AppShell({ children, restricted = false, restrictedToCommitteeTy
                   <button
                     key="menu"
                     onClick={() => setOpen(true)}
+                    className="flex flex-col items-center justify-center gap-0"
+                  >
+                    {inner}
+                  </button>
+                );
+              }
+              if (isPurchase) {
+                return (
+                  <button
+                    key="purchase"
+                    onClick={() => setPurchaseOpen(true)}
                     className="flex flex-col items-center justify-center gap-0"
                   >
                     {inner}
