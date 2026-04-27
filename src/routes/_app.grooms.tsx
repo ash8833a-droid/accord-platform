@@ -739,6 +739,21 @@ function GroomsDatabaseDialog({ grooms }: { grooms: Groom[] }) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [yearFilter, setYearFilter] = useState<string>("all");
+  const { brand } = useBrand();
+  const [logoDataUri, setLogoDataUri] = useState<string>("");
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const src = brandLogoSrc(brand);
+      try {
+        const uri = await urlToDataUri(src);
+        if (!cancelled) setLogoDataUri(uri);
+      } catch {
+        if (!cancelled) setLogoDataUri(src);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [brand]);
 
   type Row = {
     seq: number;
