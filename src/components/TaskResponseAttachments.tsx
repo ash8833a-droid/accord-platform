@@ -8,9 +8,12 @@ import {
   Trash2,
   Download,
   Loader2,
+  Eye,
 } from "lucide-react";
 import { toast } from "sonner";
 import { MAX_UPLOAD_SIZE, MAX_UPLOAD_SIZE_LABEL, safeStorageKey } from "@/lib/uploads";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { FilePreview } from "@/components/FilePreview";
 
 interface Attachment {
   id: string;
@@ -45,6 +48,7 @@ export function TaskResponseAttachments({
 }: Props) {
   const [items, setItems] = useState<Attachment[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [preview, setPreview] = useState<{ url: string; name: string; type: string } | null>(null);
 
   const load = async () => {
     const { data } = await supabase
@@ -109,7 +113,7 @@ export function TaskResponseAttachments({
       .createSignedUrl(a.file_path, 60 * 10);
     if (error || !data?.signedUrl)
       return toast.error("تعذّر فتح الملف", { description: error?.message });
-    window.open(data.signedUrl, "_blank", "noopener,noreferrer");
+    setPreview({ url: data.signedUrl, name: a.file_name, type: a.file_type ?? "" });
   };
 
   const download = async (a: Attachment) => {
@@ -123,6 +127,7 @@ export function TaskResponseAttachments({
     link.click();
     link.remove();
     URL.revokeObjectURL(url);
+    toast.success("بدأ التحميل");
   };
 
   const remove = async (a: Attachment) => {
@@ -179,9 +184,19 @@ export function TaskResponseAttachments({
               </button>
               <button
                 type="button"
+                onClick={() => open(a)}
+                className="h-4 w-4 rounded hover:bg-primary/10 hover:text-primary flex items-center justify-center"
+                aria-label="معاينة"
+                title="معاينة"
+              >
+                <Eye className="h-3 w-3" />
+              </button>
+              <button
+                type="button"
                 onClick={() => download(a)}
                 className="h-4 w-4 rounded hover:bg-primary/10 hover:text-primary flex items-center justify-center"
                 aria-label="تحميل"
+                title="تحميل"
               >
                 <Download className="h-3 w-3" />
               </button>
@@ -216,6 +231,23 @@ export function TaskResponseAttachments({
           </label>
         )}
       </div>
+
+      <Dialog open={!!preview} onOpenChange={(o) => !o && setPreview(null)}>
+        <DialogContent dir="rtl" className="max-w-5xl w-[95vw] h-[88vh] p-0 overflow-hidden flex flex-col">
+          <DialogTitle className="sr-only">{preview?.name ?? "معاينة"}</DialogTitle>
+          {preview && (
+            <FilePreview
+              url={preview.url}
+              name={preview.name}
+              type={preview.type}
+              onDownload={() => {
+                const a = items.find((x) => x.file_name === preview.name);
+                if (a) download(a);
+              }}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
