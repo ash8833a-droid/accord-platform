@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Paperclip, Upload, FileText, Image as ImageIcon, Trash2, Download, Loader2, Eye } from "lucide-react";
+import { Paperclip, Upload, FileText, Image as ImageIcon, Trash2, Download, Loader2 } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { ACCEPT_ANY_FILE, MAX_UPLOAD_SIZE, MAX_UPLOAD_SIZE_LABEL, safeStorageKey } from "@/lib/uploads";
+import { FilePreview } from "@/components/FilePreview";
 
 interface Attachment {
   id: string;
@@ -301,31 +302,10 @@ export function TaskAttachments({ taskId, committeeId, compact = false }: Props)
 
       {/* Quick preview dialog (images + PDFs) */}
       <Dialog open={!!preview} onOpenChange={(o) => !o && setPreview(null)}>
-        <DialogContent dir="rtl" className="max-w-4xl p-0 overflow-hidden">
+        <DialogContent dir="rtl" className="max-w-5xl w-[95vw] h-[88vh] p-0 overflow-hidden flex flex-col">
           <DialogTitle className="sr-only">{preview?.name ?? "معاينة"}</DialogTitle>
           {preview && (
-            <div className="bg-background">
-              <div className="flex items-center justify-between px-4 py-2 border-b bg-muted/40">
-                <p className="text-sm font-bold truncate">{preview.name}</p>
-                <div className="flex items-center gap-1">
-                  <a
-                    href={preview.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-[11px] inline-flex items-center gap-1 px-2 py-1 rounded-md hover:bg-muted"
-                  >
-                    <Eye className="h-3 w-3" /> فتح كامل
-                  </a>
-                </div>
-              </div>
-              <div className="bg-black/5 max-h-[75vh] overflow-auto flex items-center justify-center">
-                {preview.type.startsWith("image/") ? (
-                  <img src={preview.url} alt={preview.name} className="max-h-[75vh] object-contain" />
-                ) : (
-                  <iframe src={preview.url} title={preview.name} className="w-full h-[75vh]" />
-                )}
-              </div>
-            </div>
+            <FilePreview url={preview.url} name={preview.name} type={preview.type} />
           )}
         </DialogContent>
       </Dialog>
