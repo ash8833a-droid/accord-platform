@@ -6,10 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Loader2, CheckCircle2, Upload, User, Phone, IdCard, Camera, FileImage, StickyNote, ClipboardList, Globe2, Crown, Eye, Pencil, Send } from "lucide-react";
+import { Loader2, CheckCircle2, Upload, User, Phone, IdCard, Camera, FileImage, StickyNote, ClipboardList, Globe2, Crown, Eye, Pencil, Send, Check, X } from "lucide-react";
 
 export const Route = createFileRoute("/register-groom")({
   component: RegisterGroomPage,
@@ -160,6 +159,11 @@ function RegisterGroomPage() {
   const [extraSheep, setExtraSheep] = useState("");
   const [extraCardsMen, setExtraCardsMen] = useState("");
   const [extraCardsWomen, setExtraCardsWomen] = useState("");
+  // Explicit yes/no acknowledgement for optional sections
+  const [extraChoice, setExtraChoice] = useState<"" | "yes" | "no">("");
+  const [externalChoice, setExternalChoice] = useState<"" | "yes" | "no">("");
+  const [vipChoice, setVipChoice] = useState<"" | "yes" | "no">("");
+  const [notesChoice, setNotesChoice] = useState<"" | "yes" | "no">("");
   const [externalParticipation, setExternalParticipation] = useState(false);
   const [externalDetails, setExternalDetails] = useState("");
   const [vipGuests, setVipGuests] = useState("");
@@ -174,6 +178,7 @@ function RegisterGroomPage() {
     setFullName(""); setPhone(""); setNationalId("");
     setIdFile(null); setPhotoFile(null);
     setExtraSheep(""); setExtraCardsMen(""); setExtraCardsWomen("");
+    setExtraChoice(""); setExternalChoice(""); setVipChoice(""); setNotesChoice("");
     setExternalParticipation(false); setExternalDetails("");
     setVipGuests(""); setNotes("");
   };
@@ -184,7 +189,21 @@ function RegisterGroomPage() {
     if (!/^\d{10}$/.test(nationalId.trim())) { toast.error("رقم الهوية يجب أن يكون 10 أرقام"); return false; }
     if (!photoFile) { toast.error("الرجاء رفع الصورة الشخصية للعريس"); return false; }
     if (!idFile) { toast.error("الرجاء رفع صورة الهوية الوطنية"); return false; }
-    if (externalParticipation && !externalDetails.trim()) { toast.error("الرجاء كتابة تفاصيل المشاركات الخارجية"); return false; }
+
+    // Explicit acknowledgements (must choose yes/no)
+    if (!extraChoice) { toast.error("حدد: هل ترغب في ذبائح/كروت إضافية؟"); return false; }
+    if (extraChoice === "yes") {
+      if (!extraSheep && !extraCardsMen && !extraCardsWomen) {
+        toast.error("أدخل قيمة في حقل واحد على الأقل من الذبائح أو الكروت الإضافية"); return false;
+      }
+    }
+    if (!externalChoice) { toast.error("حدد: هل توجد مشاركات خارجية (قصائد/شيلات/كلمات)؟"); return false; }
+    if (externalChoice === "yes" && !externalDetails.trim()) { toast.error("الرجاء كتابة تفاصيل المشاركات الخارجية"); return false; }
+    if (!vipChoice) { toast.error("حدد: هل لديك ضيوف من الشخصيات الاعتبارية؟"); return false; }
+    if (vipChoice === "yes" && !vipGuests.trim()) { toast.error("الرجاء كتابة أسماء وألقاب الضيوف"); return false; }
+    if (!notesChoice) { toast.error("حدد: هل لديك ملاحظات إضافية؟"); return false; }
+    if (notesChoice === "yes" && !notes.trim()) { toast.error("الرجاء كتابة الملاحظات الإضافية"); return false; }
+
     const sheep = Number(extraSheep) || 0;
     if (sheep < 0 || !Number.isFinite(sheep) || !Number.isInteger(sheep)) {
       toast.error("عدد الذبائح غير صحيح"); return false;
@@ -220,13 +239,13 @@ function RegisterGroomPage() {
         national_id: nationalId.trim(),
         national_id_url,
         photo_url,
-        extra_sheep: Number(extraSheep) || 0,
-        extra_cards_men: Number(extraCardsMen) || 0,
-        extra_cards_women: Number(extraCardsWomen) || 0,
-        external_participation: externalParticipation,
-        external_participation_details: externalParticipation ? externalDetails.trim() : null,
-        vip_guests: vipGuests.trim() || null,
-        notes: notes.trim() || null,
+        extra_sheep: extraChoice === "yes" ? (Number(extraSheep) || 0) : 0,
+        extra_cards_men: extraChoice === "yes" ? (Number(extraCardsMen) || 0) : 0,
+        extra_cards_women: extraChoice === "yes" ? (Number(extraCardsWomen) || 0) : 0,
+        external_participation: externalChoice === "yes",
+        external_participation_details: externalChoice === "yes" ? externalDetails.trim() : null,
+        vip_guests: vipChoice === "yes" ? vipGuests.trim() : null,
+        notes: notesChoice === "yes" ? notes.trim() : null,
         status: "new",
         created_by: null,
       });
@@ -330,6 +349,12 @@ function RegisterGroomPage() {
             </div>
             <p className="text-xs text-muted-foreground">العدد الإضافي فوق المخصّص الأساسي للعريس.</p>
 
+            <YesNoChoice
+              label="هل ترغب في طلب ذبائح أو كروت إضافية؟"
+              value={extraChoice}
+              onChange={setExtraChoice}
+            />
+
             {/* بطاقة المخصّص الأساسي */}
             <div className="rounded-2xl border border-primary/20 bg-primary/5 p-4">
               <div className="text-[11px] font-bold text-primary mb-2">المخصَّصُ الأساسيُّ لكلِّ عريسٍ ابتداءً</div>
@@ -353,7 +378,8 @@ function RegisterGroomPage() {
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {extraChoice === "yes" && (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 animate-fade-up">
               <div className="space-y-2">
                 <Label htmlFor="sheep">عدد الذبائح الزيادة (بحدٍّ أقصى {MAX_EXTRA_SHEEP})</Label>
                 <Input
@@ -386,6 +412,7 @@ function RegisterGroomPage() {
                 <p className="text-[10px] text-muted-foreground">الأساسيُّ {BASE_CARDS_WOMEN} كرتاً</p>
               </div>
             </div>
+            )}
           </section>
 
           {/* External participations */}
@@ -397,16 +424,13 @@ function RegisterGroomPage() {
               المقصود بها: <span className="font-semibold text-foreground">القصائد، الشيلات، الكلمات الترحيبية</span> أو ما شابهها مما يُقدَّم للعريس في الحفل.
             </p>
 
-            <label className="flex items-center gap-3 rounded-xl border bg-card/50 p-3 cursor-pointer">
-              <Checkbox
-                id="ext"
-                checked={externalParticipation}
-                onCheckedChange={(v) => setExternalParticipation(v === true)}
-              />
-              <span className="text-sm font-medium">يوجد قصائد / شيلات / كلمات مقدّمة للعريس</span>
-            </label>
+            <YesNoChoice
+              label="هل يوجد قصائد / شيلات / كلمات ستُقدَّم للعريس؟"
+              value={externalChoice}
+              onChange={(v) => { setExternalChoice(v); setExternalParticipation(v === "yes"); }}
+            />
 
-            {externalParticipation && (
+            {externalChoice === "yes" && (
               <div className="space-y-2 animate-fade-up">
                 <Label htmlFor="extd">تفاصيل المشاركات الخارجية <span className="text-destructive">*</span></Label>
                 <Textarea id="extd" value={externalDetails} onChange={(e) => setExternalDetails(e.target.value)} rows={3} placeholder="اذكر نوع المشاركة، اسم مقدّمها، والمدة المتوقعة..." />
@@ -419,10 +443,19 @@ function RegisterGroomPage() {
             <div className="flex items-center gap-2 text-primary font-bold text-lg">
               <Crown className="h-5 w-5" /> ضيوف الشخصيات الاعتبارية
             </div>
-            <Label htmlFor="vip" className="flex items-center gap-2 text-sm">
-              <Crown className="h-4 w-4" /> أسماء وألقاب الضيوف (سعادة، شيخ، معالي، ...)
-            </Label>
-            <Textarea id="vip" value={vipGuests} onChange={(e) => setVipGuests(e.target.value)} rows={3} placeholder="مثال: سعادة الأستاذ ... — الشيخ ... — معالي الدكتور ..." />
+            <YesNoChoice
+              label="هل لديك ضيوف من الشخصيات الاعتبارية؟"
+              value={vipChoice}
+              onChange={setVipChoice}
+            />
+            {vipChoice === "yes" && (
+              <div className="space-y-2 animate-fade-up">
+                <Label htmlFor="vip" className="flex items-center gap-2 text-sm">
+                  <Crown className="h-4 w-4" /> أسماء وألقاب الضيوف (سعادة، شيخ، معالي، ...) <span className="text-destructive">*</span>
+                </Label>
+                <Textarea id="vip" value={vipGuests} onChange={(e) => setVipGuests(e.target.value)} rows={3} placeholder="مثال: سعادة الأستاذ ... — الشيخ ... — معالي الدكتور ..." />
+              </div>
+            )}
           </section>
 
           {/* Notes */}
@@ -430,7 +463,14 @@ function RegisterGroomPage() {
             <div className="flex items-center gap-2 text-primary font-bold text-lg">
               <StickyNote className="h-5 w-5" /> ملاحظات إضافية
             </div>
-            <Textarea id="notes" value={notes} onChange={(e) => setNotes(e.target.value)} rows={4} placeholder="أي ملاحظات أو طلبات خاصة..." />
+            <YesNoChoice
+              label="هل لديك ملاحظات أو طلبات خاصة؟"
+              value={notesChoice}
+              onChange={setNotesChoice}
+            />
+            {notesChoice === "yes" && (
+              <Textarea id="notes" value={notes} onChange={(e) => setNotes(e.target.value)} rows={4} placeholder="اكتب ملاحظاتك أو طلباتك الخاصة..." className="animate-fade-up" />
+            )}
           </section>
 
           <Button type="submit" className="w-full bg-gradient-hero text-primary-foreground hover:opacity-90 shadow-elegant h-12 text-base font-semibold">
@@ -493,6 +533,47 @@ function PreviewSection({ icon, title, children }: { icon: React.ReactNode; titl
         {icon} {title}
       </div>
       {children}
+    </div>
+  );
+}
+
+type YesNo = "" | "yes" | "no";
+function YesNoChoice({
+  label, value, onChange,
+}: {
+  label: string;
+  value: YesNo;
+  onChange: (v: YesNo) => void;
+}) {
+  return (
+    <div className="space-y-2">
+      <p className="text-sm font-medium flex items-center gap-1">
+        {label} <span className="text-destructive">*</span>
+      </p>
+      <div className="grid grid-cols-2 gap-2">
+        <button
+          type="button"
+          onClick={() => onChange("yes")}
+          className={`flex items-center justify-center gap-2 h-11 rounded-xl border-2 text-sm font-bold transition ${
+            value === "yes"
+              ? "border-emerald-500 bg-emerald-500/10 text-emerald-700"
+              : "border-border bg-card hover:bg-muted/50 text-muted-foreground"
+          }`}
+        >
+          <Check className="h-4 w-4" /> نعم
+        </button>
+        <button
+          type="button"
+          onClick={() => onChange("no")}
+          className={`flex items-center justify-center gap-2 h-11 rounded-xl border-2 text-sm font-bold transition ${
+            value === "no"
+              ? "border-rose-500 bg-rose-500/10 text-rose-700"
+              : "border-border bg-card hover:bg-muted/50 text-muted-foreground"
+          }`}
+        >
+          <X className="h-4 w-4" /> لا
+        </button>
+      </div>
     </div>
   );
 }
