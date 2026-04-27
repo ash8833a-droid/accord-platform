@@ -7,9 +7,11 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
-import { Upload, Image as ImageIcon, IdCard, Loader2, Save, ExternalLink, Trash2 } from "lucide-react";
+import { Upload, Image as ImageIcon, IdCard, Loader2, Save, Eye, Download, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { GroomTimeline } from "./GroomTimeline";
+import { AttachmentPreviewDialog } from "@/components/AttachmentPreviewDialog";
+import { useState as useStateLocal } from "react";
 
 interface Props {
   groomId: string;
@@ -279,6 +281,7 @@ function FileSlot({
   onRemove: () => void;
 }) {
   const isImage = preview && !preview.toLowerCase().includes(".pdf");
+  const [previewOpen, setPreviewOpen] = useStateLocal(false);
   return (
     <div className="rounded-2xl border-2 border-dashed border-primary/30 bg-card p-4 space-y-3">
       <div className="flex items-center justify-between">
@@ -288,19 +291,31 @@ function FileSlot({
         )}
       </div>
 
-      <div className="relative h-36 rounded-xl bg-muted/30 border overflow-hidden flex items-center justify-center">
+      <button
+        type="button"
+        onClick={() => preview && setPreviewOpen(true)}
+        disabled={!preview}
+        className="relative h-36 w-full rounded-xl bg-muted/30 border overflow-hidden flex items-center justify-center group disabled:cursor-default"
+      >
         {preview ? (
-          isImage ? (
-            <img src={preview} alt={title} className="h-full w-full object-cover" />
-          ) : (
-            <a href={preview} target="_blank" rel="noreferrer" className="text-xs text-primary underline flex items-center gap-1">
-              <ExternalLink className="h-3 w-3" /> فتح الملف
-            </a>
-          )
+          <>
+            {isImage ? (
+              <img src={preview} alt={title} className="h-full w-full object-cover" />
+            ) : (
+              <div className="text-xs text-muted-foreground flex flex-col items-center gap-1">
+                <Eye className="h-5 w-5" /> اضغط للمعاينة
+              </div>
+            )}
+            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition flex items-center justify-center opacity-0 group-hover:opacity-100">
+              <span className="text-white text-xs font-bold flex items-center gap-1.5 bg-black/60 px-3 py-1.5 rounded-full">
+                <Eye className="h-3.5 w-3.5" /> معاينة
+              </span>
+            </div>
+          </>
         ) : (
           <p className="text-xs text-muted-foreground">لم يُرفع بعد</p>
         )}
-      </div>
+      </button>
 
       <div className="flex items-center gap-2">
         <label className="flex-1">
@@ -320,12 +335,23 @@ function FileSlot({
             {hasFile ? "استبدال" : "رفع"}
           </span>
         </label>
+        {preview && (
+          <Button type="button" variant="outline" size="sm" className="h-9 px-2" onClick={() => setPreviewOpen(true)} title="معاينة">
+            <Eye className="h-3.5 w-3.5" />
+          </Button>
+        )}
         {hasFile && (
           <Button type="button" variant="outline" size="sm" className="h-9 px-2 text-destructive" onClick={onRemove}>
             <Trash2 className="h-3.5 w-3.5" />
           </Button>
         )}
       </div>
+      <AttachmentPreviewDialog
+        open={previewOpen}
+        onOpenChange={setPreviewOpen}
+        url={preview}
+        name={title}
+      />
     </div>
   );
 }
