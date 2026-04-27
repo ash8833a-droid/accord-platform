@@ -238,9 +238,8 @@ export function MediaInbox() {
           </DialogHeader>
           {selected && (
             <div className="space-y-4 pt-2">
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 gap-3">
                 <Info icon={Phone} label="الجوال" value={selected.phone} dir="ltr" />
-                <Info icon={UsersIcon} label="الفرع العائلي" value={selected.family_branch} />
               </div>
 
               {(photoUrl || idUrl) && (
