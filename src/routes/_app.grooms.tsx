@@ -1087,7 +1087,7 @@ function GroomsDatabaseDialog({ grooms }: { grooms: Groom[] }) {
 
   <div class="brand-bar">
     <div class="brand-left">
-      <div class="seal"><img id="brand-logo" src="${logoDataUri}" alt="logo"/></div>
+      <div class="seal"><img id="brand-logo" src="${logoDataUri || brandLogoSrc(brand)}" alt="logo" crossorigin="anonymous"/></div>
       <div class="brand-title">
         <h1>${escapeHtml(COMMITTEE_NAME)}</h1>
         <p>${escapeHtml(COMMITTEE_TAGLINE)}</p>
