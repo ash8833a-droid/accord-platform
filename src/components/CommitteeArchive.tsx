@@ -4,12 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Archive, Upload, FileText, Image as ImageIcon, Download, Loader2, Calendar } from "lucide-react";
+import { Archive, Upload, FileText, Image as ImageIcon, Download, Loader2, Calendar, Eye } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
 import { ACCEPT_ANY_FILE, MAX_UPLOAD_SIZE, MAX_UPLOAD_SIZE_LABEL, safeStorageKey } from "@/lib/uploads";
+import { FilePreview } from "@/components/FilePreview";
 
 interface Report {
   id: string;
@@ -36,6 +37,7 @@ export function CommitteeArchive({ committeeId, committeeName }: Props) {
   const [desc, setDesc] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [preview, setPreview] = useState<{ url: string; name: string; type: string; path: string } | null>(null);
 
   const load = async () => {
     const { data } = await supabase
@@ -81,8 +83,37 @@ export function CommitteeArchive({ committeeId, committeeName }: Props) {
 
   const open = async (r: Report) => {
     if (!r.file_url) return;
-    const { data } = await supabase.storage.from("reports").createSignedUrl(r.file_url, 60 * 30);
-    if (data?.signedUrl) window.open(data.signedUrl, "_blank");
+    const { data, error } = await supabase.storage.from("reports").createSignedUrl(r.file_url, 60 * 30);
+    if (error || !data?.signedUrl) return toast.error("تعذّر فتح الملف", { description: error?.message });
+    setPreview({ url: data.signedUrl, name: r.title, type: r.file_type ?? "", path: r.file_url });
+  };
+
+  const download = async (r: Report) => {
+    if (!r.file_url) return;
+    const { data, error } = await supabase.storage.from("reports").download(r.file_url);
+    if (error || !data) return toast.error("تعذّر التحميل", { description: error?.message });
+    const url = URL.createObjectURL(data);
+    const ext = r.file_url.split(".").pop() || "";
+    const safeName = r.title.replace(/[^\p{L}\p{N} _-]/gu, "");
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = ext ? `${safeName}.${ext}` : safeName;
+    document.body.appendChild(link); link.click(); link.remove();
+    URL.revokeObjectURL(url);
+    toast.success("بدأ التحميل");
+  };
+
+  const downloadByPath = async (path: string, name: string) => {
+    const { data, error } = await supabase.storage.from("reports").download(path);
+    if (error || !data) return toast.error("تعذّر التحميل", { description: error?.message });
+    const url = URL.createObjectURL(data);
+    const ext = path.split(".").pop() || "";
+    const safe = name.replace(/[^\p{L}\p{N} _-]/gu, "");
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = ext ? `${safe}.${ext}` : safe;
+    document.body.appendChild(link); link.click(); link.remove();
+    URL.revokeObjectURL(url);
   };
 
   const isImg = (t: string | null) => !!t && t.startsWith("image/");
@@ -178,13 +209,32 @@ export function CommitteeArchive({ committeeId, committeeName }: Props) {
                   {r.is_archived && <Badge variant="secondary" className="text-[10px]">مُسكَّن</Badge>}
                 </p>
               </div>
-              <Button size="sm" variant="outline" onClick={() => open(r)}>
-                <Download className="h-3.5 w-3.5 ms-1" /> فتح
-              </Button>
+              <div className="flex items-center gap-1.5 shrink-0">
+                <Button size="sm" variant="outline" onClick={() => open(r)} title="معاينة">
+                  <Eye className="h-3.5 w-3.5 ms-1" /> معاينة
+                </Button>
+                <Button size="sm" onClick={() => download(r)} title="تحميل" className="bg-gradient-gold text-gold-foreground">
+                  <Download className="h-3.5 w-3.5 ms-1" /> تحميل
+                </Button>
+              </div>
             </div>
           ))}
         </div>
       </DialogContent>
+
+      <Dialog open={!!preview} onOpenChange={(o) => !o && setPreview(null)}>
+        <DialogContent dir="rtl" className="max-w-5xl w-[95vw] h-[88vh] p-0 overflow-hidden flex flex-col">
+          <DialogTitle className="sr-only">{preview?.name ?? "معاينة"}</DialogTitle>
+          {preview && (
+            <FilePreview
+              url={preview.url}
+              name={preview.name}
+              type={preview.type}
+              onDownload={() => downloadByPath(preview.path, preview.name)}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </Dialog>
   );
 }
