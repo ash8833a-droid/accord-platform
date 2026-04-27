@@ -1,6 +1,8 @@
-import logo from "@/assets/logo.jpeg";
+import { useBrand, brandLogoSrc } from "@/lib/brand";
 
 export function Logo({ size = 40, withText = true }: { size?: number; withText?: boolean }) {
+  const { brand } = useBrand();
+  const logo = brandLogoSrc(brand);
   // Outer ring (الدبلة) is noticeably larger than the inner logo disc to read clearly
   const ringSize = Math.round(size * 1.45);
   const ringStroke = Math.max(3, Math.round(size * 0.11));
@@ -55,13 +57,15 @@ export function Logo({ size = 40, withText = true }: { size?: number; withText?:
           className="relative rounded-full overflow-hidden bg-background ring-1 ring-gold/20"
           style={{ width: size, height: size }}
         >
-          <img src={logo} alt="شعار البرنامج" className="w-full h-full object-cover" />
+          <img src={logo} alt={brand.name} className="w-full h-full object-cover" />
         </div>
       </div>
       {withText && (
         <div className="flex flex-col leading-tight">
-          <span className="text-shimmer-gold font-bold text-base">منصة عمل لجنة الزواج الجماعي</span>
-          <span className="text-[10px] text-sidebar-foreground/70">لقبيلة الهملة من قريش</span>
+          <span className="text-shimmer-gold font-bold text-base">{brand.name}</span>
+          {brand.subtitle && (
+            <span className="text-[10px] text-sidebar-foreground/70">{brand.subtitle}</span>
+          )}
         </div>
       )}
     </div>
