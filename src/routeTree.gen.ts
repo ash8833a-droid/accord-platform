@@ -18,12 +18,12 @@ import { Route as AppTeamRouteImport } from './routes/_app.team'
 import { Route as AppTaskResponsesRouteImport } from './routes/_app.task-responses'
 import { Route as AppReportsRouteImport } from './routes/_app.reports'
 import { Route as AppProcurementRequestsRouteImport } from './routes/_app.procurement-requests'
-import { Route as AppPostsRouteImport } from './routes/_app.posts'
 import { Route as AppPaymentRequestsRouteImport } from './routes/_app.payment-requests'
 import { Route as AppIdeasRouteImport } from './routes/_app.ideas'
 import { Route as AppGroomsRouteImport } from './routes/_app.grooms'
 import { Route as AppFinanceRouteImport } from './routes/_app.finance'
 import { Route as AppDashboardRouteImport } from './routes/_app.dashboard'
+import { Route as AppCommunicationsRouteImport } from './routes/_app.communications'
 import { Route as AppBrandRouteImport } from './routes/_app.brand'
 import { Route as AppAdminRouteImport } from './routes/_app.admin'
 import { Route as AppCommitteeTypeRouteImport } from './routes/_app.committee.$type'
@@ -72,11 +72,6 @@ const AppProcurementRequestsRoute = AppProcurementRequestsRouteImport.update({
   path: '/procurement-requests',
   getParentRoute: () => AppRoute,
 } as any)
-const AppPostsRoute = AppPostsRouteImport.update({
-  id: '/posts',
-  path: '/posts',
-  getParentRoute: () => AppRoute,
-} as any)
 const AppPaymentRequestsRoute = AppPaymentRequestsRouteImport.update({
   id: '/payment-requests',
   path: '/payment-requests',
@@ -102,6 +97,11 @@ const AppDashboardRoute = AppDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AppRoute,
 } as any)
+const AppCommunicationsRoute = AppCommunicationsRouteImport.update({
+  id: '/communications',
+  path: '/communications',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppBrandRoute = AppBrandRouteImport.update({
   id: '/brand',
   path: '/brand',
@@ -125,12 +125,12 @@ export interface FileRoutesByFullPath {
   '/register-groom': typeof RegisterGroomRoute
   '/admin': typeof AppAdminRoute
   '/brand': typeof AppBrandRoute
+  '/communications': typeof AppCommunicationsRoute
   '/dashboard': typeof AppDashboardRoute
   '/finance': typeof AppFinanceRoute
   '/grooms': typeof AppGroomsRoute
   '/ideas': typeof AppIdeasRoute
   '/payment-requests': typeof AppPaymentRequestsRoute
-  '/posts': typeof AppPostsRoute
   '/procurement-requests': typeof AppProcurementRequestsRoute
   '/reports': typeof AppReportsRoute
   '/task-responses': typeof AppTaskResponsesRoute
@@ -144,12 +144,12 @@ export interface FileRoutesByTo {
   '/register-groom': typeof RegisterGroomRoute
   '/admin': typeof AppAdminRoute
   '/brand': typeof AppBrandRoute
+  '/communications': typeof AppCommunicationsRoute
   '/dashboard': typeof AppDashboardRoute
   '/finance': typeof AppFinanceRoute
   '/grooms': typeof AppGroomsRoute
   '/ideas': typeof AppIdeasRoute
   '/payment-requests': typeof AppPaymentRequestsRoute
-  '/posts': typeof AppPostsRoute
   '/procurement-requests': typeof AppProcurementRequestsRoute
   '/reports': typeof AppReportsRoute
   '/task-responses': typeof AppTaskResponsesRoute
@@ -165,12 +165,12 @@ export interface FileRoutesById {
   '/register-groom': typeof RegisterGroomRoute
   '/_app/admin': typeof AppAdminRoute
   '/_app/brand': typeof AppBrandRoute
+  '/_app/communications': typeof AppCommunicationsRoute
   '/_app/dashboard': typeof AppDashboardRoute
   '/_app/finance': typeof AppFinanceRoute
   '/_app/grooms': typeof AppGroomsRoute
   '/_app/ideas': typeof AppIdeasRoute
   '/_app/payment-requests': typeof AppPaymentRequestsRoute
-  '/_app/posts': typeof AppPostsRoute
   '/_app/procurement-requests': typeof AppProcurementRequestsRoute
   '/_app/reports': typeof AppReportsRoute
   '/_app/task-responses': typeof AppTaskResponsesRoute
@@ -186,12 +186,12 @@ export interface FileRouteTypes {
     | '/register-groom'
     | '/admin'
     | '/brand'
+    | '/communications'
     | '/dashboard'
     | '/finance'
     | '/grooms'
     | '/ideas'
     | '/payment-requests'
-    | '/posts'
     | '/procurement-requests'
     | '/reports'
     | '/task-responses'
@@ -205,12 +205,12 @@ export interface FileRouteTypes {
     | '/register-groom'
     | '/admin'
     | '/brand'
+    | '/communications'
     | '/dashboard'
     | '/finance'
     | '/grooms'
     | '/ideas'
     | '/payment-requests'
-    | '/posts'
     | '/procurement-requests'
     | '/reports'
     | '/task-responses'
@@ -225,12 +225,12 @@ export interface FileRouteTypes {
     | '/register-groom'
     | '/_app/admin'
     | '/_app/brand'
+    | '/_app/communications'
     | '/_app/dashboard'
     | '/_app/finance'
     | '/_app/grooms'
     | '/_app/ideas'
     | '/_app/payment-requests'
-    | '/_app/posts'
     | '/_app/procurement-requests'
     | '/_app/reports'
     | '/_app/task-responses'
@@ -311,13 +311,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppProcurementRequestsRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/posts': {
-      id: '/_app/posts'
-      path: '/posts'
-      fullPath: '/posts'
-      preLoaderRoute: typeof AppPostsRouteImport
-      parentRoute: typeof AppRoute
-    }
     '/_app/payment-requests': {
       id: '/_app/payment-requests'
       path: '/payment-requests'
@@ -353,6 +346,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppDashboardRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/communications': {
+      id: '/_app/communications'
+      path: '/communications'
+      fullPath: '/communications'
+      preLoaderRoute: typeof AppCommunicationsRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/brand': {
       id: '/_app/brand'
       path: '/brand'
@@ -380,12 +380,12 @@ declare module '@tanstack/react-router' {
 interface AppRouteChildren {
   AppAdminRoute: typeof AppAdminRoute
   AppBrandRoute: typeof AppBrandRoute
+  AppCommunicationsRoute: typeof AppCommunicationsRoute
   AppDashboardRoute: typeof AppDashboardRoute
   AppFinanceRoute: typeof AppFinanceRoute
   AppGroomsRoute: typeof AppGroomsRoute
   AppIdeasRoute: typeof AppIdeasRoute
   AppPaymentRequestsRoute: typeof AppPaymentRequestsRoute
-  AppPostsRoute: typeof AppPostsRoute
   AppProcurementRequestsRoute: typeof AppProcurementRequestsRoute
   AppReportsRoute: typeof AppReportsRoute
   AppTaskResponsesRoute: typeof AppTaskResponsesRoute
@@ -396,12 +396,12 @@ interface AppRouteChildren {
 const AppRouteChildren: AppRouteChildren = {
   AppAdminRoute: AppAdminRoute,
   AppBrandRoute: AppBrandRoute,
+  AppCommunicationsRoute: AppCommunicationsRoute,
   AppDashboardRoute: AppDashboardRoute,
   AppFinanceRoute: AppFinanceRoute,
   AppGroomsRoute: AppGroomsRoute,
   AppIdeasRoute: AppIdeasRoute,
   AppPaymentRequestsRoute: AppPaymentRequestsRoute,
-  AppPostsRoute: AppPostsRoute,
   AppProcurementRequestsRoute: AppProcurementRequestsRoute,
   AppReportsRoute: AppReportsRoute,
   AppTaskResponsesRoute: AppTaskResponsesRoute,
