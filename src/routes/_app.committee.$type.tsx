@@ -924,17 +924,17 @@ function CommitteePage() {
         </>
       )}
 
-      {/* Procurement committee: cross-committee purchase requests inbox */}
-      {type === "procurement" && (
-        <QualitySection
-          storageKey={`committee:${type}:requests`}
-          title="طلبات الشراء الواردة من اللجان"
-          icon={Inbox}
-          defaultOpen
-        >
-          <ProcurementRequestsBoard procurementOnly />
-        </QualitySection>
-      )}
+      {/* Purchase requests — embedded in every committee page as a professional dropdown.
+          Procurement committee sees the inbox (review/approve/reject); other committees
+          see the create + my-requests view (edit / cancel / track status). */}
+      <QualitySection
+        storageKey={`committee:${type}:requests`}
+        title={type === "procurement" ? "طلبات الشراء الواردة من اللجان" : "طلبات الشراء الخاصة بلجنتنا"}
+        icon={Inbox}
+        defaultOpen={type === "procurement"}
+      >
+        <ProcurementRequestsBoard procurementOnly={type === "procurement"} />
+      </QualitySection>
 
       <Dialog open={prOpen} onOpenChange={setPrOpen}>
         <DialogTrigger asChild>

@@ -35,13 +35,11 @@ const ADMIN_BOTTOM = [
   { to: "/ideas", label: "بنك الأفكار", icon: Lightbulb },
   { to: "/grooms", label: "سجل العرسان", icon: HeartHandshake },
   { to: "/reports", label: "التقارير والجودة", icon: FileBarChart },
-  { to: "/procurement-requests", label: "طلبات الشراء", icon: ShoppingCart },
   { to: "/communications", label: "التواصل", icon: MessagesSquare },
 ] as const;
 
 const RESTRICTED_EXTRA = [
   { to: "/ideas", label: "بنك الأفكار", icon: Lightbulb },
-  { to: "/procurement-requests", label: "طلبات الشراء", icon: ShoppingCart },
   { to: "/communications", label: "التواصل", icon: MessagesSquare },
 ] as const;
 

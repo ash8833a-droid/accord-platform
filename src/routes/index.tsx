@@ -189,9 +189,9 @@ function PublicHome() {
         </div>
       </section>
 
-      {/* Hero KPIs — the 4 headline numbers (the only place these 4 appear) */}
+      {/* Hero KPIs — the headline numbers */}
       <section className="max-w-7xl mx-auto px-4 lg:px-8 mt-10 lg:mt-14 relative z-10">
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 lg:gap-5">
           <HeroKpi
             label="إجمالي العرسان"
             value={fmt(s.grooms)}
@@ -209,15 +209,6 @@ function PublicHome() {
             tone="teal"
             loading={!loaded}
             delay="0.1s"
-          />
-          <HeroKpi
-            label="إجمالي المساهمات"
-            value={fmtSAR(totalAmount)}
-            hint="تاريخية ومؤكدة هذا العام"
-            icon={Wallet}
-            tone="gold"
-            loading={!loaded}
-            delay="0.2s"
           />
           <HeroKpi
             label="اللجان المنظِّمة"
