@@ -214,6 +214,7 @@ function GroomsPage() {
           <p className="text-muted-foreground mt-1">قاعدة بيانات شاملة لطلبات العرسان والمستندات</p>
         </div>
         <div className="flex gap-2">
+        <GroomsDatabaseDialog grooms={grooms} />
         <ShareRegistrationLink url={registrationUrl} />
         <QuickWhatsAppShare url={registrationUrl} />
         <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) resetForm(); }}>
