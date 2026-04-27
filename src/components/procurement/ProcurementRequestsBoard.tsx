@@ -587,7 +587,7 @@ export function ProcurementRequestsBoard({
                   toast.error("يرجى ذكر سبب الرفض");
                   return;
                 }
-                updateStatus(decisionFor, decisionTarget, decisionNotes.trim() || null);
+                updateStatus(decisionFor, decisionTarget, decisionNotes.trim() || undefined);
               }}
               className={
                 decisionTarget === "approved"
