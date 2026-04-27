@@ -1,14 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { PostsBoard } from "@/components/posts/PostsBoard";
+import { CommunicationsBoard } from "@/components/communications/CommunicationsBoard";
 
 export const Route = createFileRoute("/_app/communications")({
-  component: PostsPage,
+  component: CommunicationsPage,
 });
 
-function PostsPage() {
+function CommunicationsPage() {
   return (
     <div className="container mx-auto py-6 px-4">
-      <PostsBoard />
+      <CommunicationsBoard />
     </div>
   );
 }
