@@ -30,6 +30,8 @@ import { ApprovedMembers } from "@/components/admin/ApprovedMembers";
 import { CommitteeHeads } from "@/components/admin/CommitteeHeads";
 import { CreateMemberDialog } from "@/components/admin/CreateMemberDialog";
 import { UrgentAlertSettings } from "@/components/admin/UrgentAlertSettings";
+import { Link } from "@tanstack/react-router";
+import { Palette } from "lucide-react";
 import { DashboardOverview } from "@/components/DashboardOverview";
 import { toast } from "sonner";
 
@@ -132,6 +134,26 @@ function AdminCenter() {
 }
 
 /* ───────────── Tasks ───────────── */
+
+function BrandIdentityCard() {
+  return (
+    <Link
+      to="/brand"
+      className="block group rounded-2xl border-2 border-gold/40 bg-gradient-to-br from-gold/5 to-primary/5 p-5 hover:border-gold/70 transition-all hover:shadow-gold"
+    >
+      <div className="flex items-center gap-4">
+        <div className="h-12 w-12 rounded-xl bg-gradient-gold flex items-center justify-center shrink-0">
+          <Palette className="h-6 w-6 text-gold-foreground" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <h3 className="font-bold text-base">هوية اللجنة</h3>
+          <p className="text-xs text-muted-foreground">رفع الشعار، اسم اللجنة، الألوان الرسمية — تنعكس فوراً على رأس النظام وتقارير PDF و Excel.</p>
+        </div>
+        <span className="text-xs font-bold text-primary opacity-0 group-hover:opacity-100 transition-opacity">فتح ←</span>
+      </div>
+    </Link>
+  );
+}
 
 interface CommitteeRow {
   id: string;
