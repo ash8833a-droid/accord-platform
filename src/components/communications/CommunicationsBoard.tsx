@@ -14,7 +14,7 @@ import {
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Trophy, Newspaper, HelpCircle, Megaphone, Plus, Trash2, Send, MessageCircle,
-  Building2, Globe2, Users2, Loader2,
+  Building2, Globe2, Users2, Loader2, Eye, Info,
 } from "lucide-react";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
