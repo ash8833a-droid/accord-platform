@@ -1017,12 +1017,14 @@ function GroomsDatabaseDialog({ grooms }: { grooms: Groom[] }) {
   }
   .brand-left { display: flex; align-items: center; gap: 14px; }
   .seal {
-    width: 56px; height: 56px; border-radius: 50%;
-    background: radial-gradient(circle at 30% 30%, #fff 0%, #FBF7EE 60%, #C4A25C 100%);
-    color: #1B4F58; font-family: 'Amiri', serif; font-weight: 700;
+    width: 64px; height: 64px; border-radius: 14px;
+    background: #fff;
+    padding: 4px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.18), inset 0 0 0 2px rgba(196,162,92,0.55);
     display: flex; align-items: center; justify-content: center;
-    font-size: 22px; box-shadow: inset 0 0 0 2px rgba(196,162,92,0.7);
+    overflow: hidden; flex-shrink: 0;
   }
+  .seal img { width: 100%; height: 100%; object-fit: contain; display: block; }
   .brand-title h1 { margin: 0; font-size: 16pt; font-weight: 800; letter-spacing: 0.2px; }
   .brand-title p { margin: 3px 0 0; font-size: 9pt; opacity: 0.92; }
   .brand-right { text-align: left; font-size: 9pt; line-height: 1.7; }
@@ -1085,7 +1087,7 @@ function GroomsDatabaseDialog({ grooms }: { grooms: Groom[] }) {
 
   <div class="brand-bar">
     <div class="brand-left">
-      <div class="seal">ز.ج</div>
+      <div class="seal"><img id="brand-logo" src="${logoDataUri}" alt="logo"/></div>
       <div class="brand-title">
         <h1>${escapeHtml(COMMITTEE_NAME)}</h1>
         <p>${escapeHtml(COMMITTEE_TAGLINE)}</p>
@@ -1143,7 +1145,14 @@ function GroomsDatabaseDialog({ grooms }: { grooms: Groom[] }) {
     <div class="left">© ${new Date().getFullYear()}</div>
   </div>
 
-  <script>window.addEventListener('load', () => setTimeout(() => window.print(), 600));</script>
+  <script>
+    window.addEventListener('load', () => {
+      var img = document.getElementById('brand-logo');
+      var go = function(){ setTimeout(function(){ window.print(); }, 350); };
+      if (img && !img.complete) { img.onload = go; img.onerror = go; }
+      else { go(); }
+    });
+  </script>
 </body>
 </html>`;
 
