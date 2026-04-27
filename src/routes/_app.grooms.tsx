@@ -706,24 +706,62 @@ function QuickWhatsAppShare({ url }: { url: string }) {
   );
 }
 
-// ============ قاعدة بيانات العرسان (مرجع شامل) ============
+// ============ قاعدة بيانات العرسان (مرجع مؤسسي شامل) ============
+const COMMITTEE_NAME = "لجنة الزواج الجماعي العائلي — قبيلة الهملة من قريش";
+const COMMITTEE_TAGLINE = "مرجع رسمي · سجل العرسان عبر السنوات";
+
+// تنسيق هجري + ميلادي
+function formatHijri(d: Date) {
+  try {
+    return new Intl.DateTimeFormat("ar-SA-u-ca-islamic-umalqura", {
+      day: "numeric", month: "long", year: "numeric",
+    }).format(d) + " هـ";
+  } catch {
+    return "";
+  }
+}
+function formatGregorian(d: Date) {
+  return new Intl.DateTimeFormat("ar", {
+    day: "2-digit", month: "long", year: "numeric",
+  }).format(d) + " م";
+}
+function hijriYearOf(d: Date): string {
+  try {
+    const parts = new Intl.DateTimeFormat("en-u-ca-islamic-umalqura", { year: "numeric" }).formatToParts(d);
+    const y = parts.find((p) => p.type === "year")?.value ?? "";
+    return y ? `${y}هـ` : "";
+  } catch {
+    return "";
+  }
+}
+
 function GroomsDatabaseDialog({ grooms }: { grooms: Groom[] }) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [yearFilter, setYearFilter] = useState<string>("all");
 
-  type Row = { year: number | string; full_name: string; phone: string; family_branch: string; status: string };
+  type Row = {
+    seq: number;
+    yearG: string; // ميلادي
+    yearH: string; // هجري
+    full_name: string;
+    phone: string;
+    family_branch: string;
+    status: string;
+  };
 
   const rows: Row[] = useMemo(() => {
-    return grooms.map((g) => {
+    return grooms.map((g, i) => {
       const ge = g as any;
       const dateStr: string | null = ge.wedding_date || ge.created_at || null;
-      const year = dateStr ? new Date(dateStr).getFullYear() : "—";
+      const d = dateStr ? new Date(dateStr) : null;
       return {
-        year,
+        seq: i + 1,
+        yearG: d ? String(d.getFullYear()) + "م" : "—",
+        yearH: d ? hijriYearOf(d) : "—",
         full_name: g.full_name,
-        phone: g.phone,
-        family_branch: g.family_branch,
+        phone: g.phone || "—",
+        family_branch: g.family_branch || "—",
         status: STATUS_BADGE[g.status]?.label ?? g.status,
       };
     });
@@ -731,51 +769,372 @@ function GroomsDatabaseDialog({ grooms }: { grooms: Groom[] }) {
 
   const years = useMemo(() => {
     const set = new Set<string>();
-    rows.forEach((r) => set.add(String(r.year)));
+    rows.forEach((r) => set.add(r.yearG));
     return Array.from(set).sort((a, b) => b.localeCompare(a));
   }, [rows]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     return rows.filter((r) => {
-      if (yearFilter !== "all" && String(r.year) !== yearFilter) return false;
+      if (yearFilter !== "all" && r.yearG !== yearFilter) return false;
       if (!q) return true;
       return (
         r.full_name.toLowerCase().includes(q) ||
         r.phone.toLowerCase().includes(q) ||
         r.family_branch.toLowerCase().includes(q) ||
-        String(r.year).includes(q)
+        r.yearG.includes(q) || r.yearH.includes(q)
       );
     });
   }, [rows, search, yearFilter]);
 
   const sorted = useMemo(() => {
     return [...filtered].sort((a, b) => {
-      const ay = String(a.year);
-      const by = String(b.year);
-      if (ay !== by) return by.localeCompare(ay);
+      if (a.yearG !== b.yearG) return b.yearG.localeCompare(a.yearG);
       return a.full_name.localeCompare(b.full_name, "ar");
-    });
+    }).map((r, i) => ({ ...r, seq: i + 1 }));
   }, [filtered]);
 
+  // ===== تصدير: تواريخ ووسوم =====
+  const now = new Date();
+  const stampG = now.toISOString().slice(0, 10);
+  const baseName = `قاعدة-بيانات-العرسان-${stampG}`;
+  const hijriToday = formatHijri(now);
+  const gregToday = formatGregorian(now);
+
+  const headers = ["م", "السنة الهجرية", "السنة الميلادية", "الاسم الرباعي", "رقم الجوال", "الفرع العائلي", "الحالة"];
+
+  const dataRows = () =>
+    sorted.map((r) => [r.seq, r.yearH, r.yearG, r.full_name, r.phone, r.family_branch, r.status]);
+
+  const guard = () => {
+    if (sorted.length === 0) {
+      toast.error("لا توجد بيانات للتصدير");
+      return false;
+    }
+    return true;
+  };
+
+  // ===== Excel (XLSX) — منسّق بالكامل، RTL =====
+  const exportXLSX = () => {
+    if (!guard()) return;
+
+    const aoa: (string | number)[][] = [
+      [COMMITTEE_NAME],
+      [COMMITTEE_TAGLINE],
+      [`تاريخ التصدير: ${hijriToday}  ·  ${gregToday}`],
+      [`إجمالي السجلات: ${sorted.length}  ·  عدد السنوات: ${years.length}`],
+      [],
+      headers,
+      ...dataRows(),
+    ];
+
+    const ws = XLSX.utils.aoa_to_sheet(aoa);
+    ws["!views"] = [{ RTL: true }];
+    ws["!cols"] = [
+      { wch: 5 },   // م
+      { wch: 16 },  // هجري
+      { wch: 14 },  // ميلادي
+      { wch: 32 },  // الاسم
+      { wch: 16 },  // الجوال
+      { wch: 22 },  // الفرع
+      { wch: 14 },  // الحالة
+    ];
+    ws["!merges"] = [
+      { s: { r: 0, c: 0 }, e: { r: 0, c: 6 } },
+      { s: { r: 1, c: 0 }, e: { r: 1, c: 6 } },
+      { s: { r: 2, c: 0 }, e: { r: 2, c: 6 } },
+      { s: { r: 3, c: 0 }, e: { r: 3, c: 6 } },
+    ];
+
+    // تنسيقات (cell-by-cell — مدعومة من xlsx CE في الكتابة)
+    const setStyle = (addr: string, style: any) => {
+      const c = ws[addr];
+      if (c) c.s = style;
+    };
+    const titleStyle = {
+      font: { bold: true, sz: 16, color: { rgb: "FFFFFF" }, name: "Tajawal" },
+      fill: { patternType: "solid", fgColor: { rgb: "1B4F58" } },
+      alignment: { horizontal: "center", vertical: "center", readingOrder: 2 },
+    };
+    const subStyle = {
+      font: { bold: true, sz: 11, color: { rgb: "1B4F58" }, name: "Tajawal" },
+      fill: { patternType: "solid", fgColor: { rgb: "FBF7EE" } },
+      alignment: { horizontal: "center", vertical: "center", readingOrder: 2 },
+    };
+    const metaStyle = {
+      font: { sz: 10, color: { rgb: "374151" }, name: "Tajawal" },
+      fill: { patternType: "solid", fgColor: { rgb: "F3F4F6" } },
+      alignment: { horizontal: "center", vertical: "center", readingOrder: 2 },
+    };
+    const headStyle = {
+      font: { bold: true, sz: 11, color: { rgb: "FFFFFF" }, name: "Tajawal" },
+      fill: { patternType: "solid", fgColor: { rgb: "1B4F58" } },
+      alignment: { horizontal: "center", vertical: "center", readingOrder: 2, wrapText: true },
+      border: {
+        top: { style: "thin", color: { rgb: "0F3138" } },
+        bottom: { style: "thin", color: { rgb: "0F3138" } },
+        left: { style: "thin", color: { rgb: "0F3138" } },
+        right: { style: "thin", color: { rgb: "0F3138" } },
+      },
+    };
+    const cellBase = {
+      font: { sz: 10, name: "Tajawal", color: { rgb: "1F2937" } },
+      alignment: { horizontal: "center", vertical: "center", readingOrder: 2, wrapText: true },
+      border: {
+        top: { style: "thin", color: { rgb: "E5E7EB" } },
+        bottom: { style: "thin", color: { rgb: "E5E7EB" } },
+        left: { style: "thin", color: { rgb: "E5E7EB" } },
+        right: { style: "thin", color: { rgb: "E5E7EB" } },
+      },
+    };
+    const cellAlt = { ...cellBase, fill: { patternType: "solid", fgColor: { rgb: "FBF7EE" } } };
+    const nameCell = { ...cellBase, alignment: { ...cellBase.alignment, horizontal: "right" }, font: { ...cellBase.font, bold: true } };
+    const nameCellAlt = { ...cellAlt, alignment: { ...cellAlt.alignment, horizontal: "right" }, font: { ...cellAlt.font, bold: true } };
+
+    setStyle("A1", titleStyle);
+    setStyle("A2", subStyle);
+    setStyle("A3", metaStyle);
+    setStyle("A4", metaStyle);
+    ws["!rows"] = [
+      { hpt: 28 }, { hpt: 20 }, { hpt: 18 }, { hpt: 18 }, { hpt: 6 }, { hpt: 22 },
+    ];
+
+    // header row = index 5 (row 6)
+    headers.forEach((_, idx) => {
+      const addr = XLSX.utils.encode_cell({ r: 5, c: idx });
+      setStyle(addr, headStyle);
+    });
+    // body rows
+    sorted.forEach((_, rIdx) => {
+      const r = 6 + rIdx;
+      const isAlt = rIdx % 2 === 1;
+      headers.forEach((_, cIdx) => {
+        const addr = XLSX.utils.encode_cell({ r, c: cIdx });
+        if (cIdx === 3) setStyle(addr, isAlt ? nameCellAlt : nameCell);
+        else setStyle(addr, isAlt ? cellAlt : cellBase);
+      });
+    });
+
+    // Freeze pane تحت الترويسة
+    (ws as any)["!freeze"] = { xSplit: 0, ySplit: 6 };
+    ws["!autofilter"] = { ref: XLSX.utils.encode_range({ s: { r: 5, c: 0 }, e: { r: 5 + sorted.length, c: 6 } }) };
+
+    const wb = XLSX.utils.book_new();
+    (wb as any).Props = {
+      Title: "قاعدة بيانات العرسان",
+      Subject: COMMITTEE_NAME,
+      Author: COMMITTEE_NAME,
+      CreatedDate: now,
+    };
+    XLSX.utils.book_append_sheet(wb, ws, "سجل العرسان");
+    XLSX.writeFile(wb, `${baseName}.xlsx`);
+    toast.success("تم تصدير ملف Excel منسّق");
+  };
+
+  // ===== CSV — مع UTF-8 BOM وعنوان توضيحي =====
   const exportCSV = () => {
-    if (sorted.length === 0) { toast.error("لا توجد بيانات للتصدير"); return; }
-    const headers = ["#", "السنة", "الاسم الرباعي", "رقم الجوال", "الفرع العائلي", "الحالة"];
+    if (!guard()) return;
     const escape = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`;
     const lines = [
+      escape(COMMITTEE_NAME),
+      escape(`${COMMITTEE_TAGLINE} — ${hijriToday} · ${gregToday}`),
+      "",
       headers.map(escape).join(","),
-      ...sorted.map((r, i) =>
-        [i + 1, r.year, r.full_name, r.phone, r.family_branch, r.status].map(escape).join(","),
-      ),
+      ...dataRows().map((r) => r.map(escape).join(",")),
     ];
     const blob = new Blob(["\ufeff" + lines.join("\n")], { type: "text/csv;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `قاعدة-بيانات-العرسان-${new Date().toISOString().slice(0, 10)}.csv`;
-    document.body.appendChild(a); a.click(); a.remove();
-    URL.revokeObjectURL(url);
+    triggerDownload(blob, `${baseName}.csv`);
     toast.success("تم تصدير CSV");
+  };
+
+  // ===== JSON =====
+  const exportJSON = () => {
+    if (!guard()) return;
+    const payload = {
+      committee: COMMITTEE_NAME,
+      tagline: COMMITTEE_TAGLINE,
+      exported_at: { hijri: hijriToday, gregorian: gregToday, iso: now.toISOString() },
+      total_records: sorted.length,
+      total_years: years.length,
+      records: sorted.map((r) => ({
+        seq: r.seq,
+        hijri_year: r.yearH,
+        gregorian_year: r.yearG,
+        full_name: r.full_name,
+        phone: r.phone,
+        family_branch: r.family_branch,
+        status: r.status,
+      })),
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json;charset=utf-8" });
+    triggerDownload(blob, `${baseName}.json`);
+    toast.success("تم تصدير JSON");
+  };
+
+  // ===== PDF احترافي بهوية اللجنة =====
+  const exportPDF = () => {
+    if (!guard()) return;
+    const escapeHtml = (s: string) =>
+      String(s ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+
+    const html = `<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8"/>
+<title>${escapeHtml(baseName)}</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&family=Amiri:wght@700&display=swap" rel="stylesheet">
+<style>
+  @page { size: A4; margin: 14mm 12mm 18mm; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body { font-family: 'Tajawal', Arial, sans-serif; color: #1f2937; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+  .brand-bar {
+    background: linear-gradient(135deg, #1B4F58 0%, #2A6B75 60%, #C4A25C 140%);
+    color: #fff; padding: 18px 22px; border-radius: 14px;
+    display: flex; justify-content: space-between; align-items: center;
+    box-shadow: 0 6px 18px rgba(27,79,88,0.18);
+  }
+  .brand-left { display: flex; align-items: center; gap: 14px; }
+  .seal {
+    width: 56px; height: 56px; border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, #fff 0%, #FBF7EE 60%, #C4A25C 100%);
+    color: #1B4F58; font-family: 'Amiri', serif; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; box-shadow: inset 0 0 0 2px rgba(196,162,92,0.7);
+  }
+  .brand-title h1 { margin: 0; font-size: 16pt; font-weight: 800; letter-spacing: 0.2px; }
+  .brand-title p { margin: 3px 0 0; font-size: 9pt; opacity: 0.92; }
+  .brand-right { text-align: left; font-size: 9pt; line-height: 1.7; }
+  .brand-right .lbl { opacity: 0.85; margin-inline-end: 4px; }
+  .brand-right b { color: #FBF7EE; }
+
+  .meta-strip {
+    margin-top: 12px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
+  }
+  .stat {
+    border: 1px solid #E5E7EB; background: #FBF7EE; border-radius: 10px;
+    padding: 10px 12px; text-align: center;
+  }
+  .stat .v { font-size: 14pt; font-weight: 800; color: #1B4F58; }
+  .stat .k { font-size: 8pt; color: #6B7280; margin-top: 2px; }
+
+  table { width: 100%; border-collapse: collapse; margin-top: 14px; font-size: 9.5pt; }
+  thead th {
+    background: #1B4F58; color: #fff; padding: 9px 6px;
+    text-align: center; font-weight: 700; border: 1px solid #0F3138;
+    font-size: 9pt;
+  }
+  tbody td {
+    padding: 7px 6px; text-align: center; border: 1px solid #E5E7EB;
+    vertical-align: middle;
+  }
+  tbody tr:nth-child(even) td { background: #FBF7EE; }
+  td.name { text-align: right; font-weight: 700; color: #111827; }
+  td.phone { direction: ltr; font-variant-numeric: tabular-nums; color: #374151; }
+  td.seq { color: #6B7280; font-variant-numeric: tabular-nums; width: 36px; }
+  .status-pill {
+    display: inline-block; padding: 2px 8px; border-radius: 999px;
+    background: #E8F1F2; color: #1B4F58; font-size: 8pt; font-weight: 700;
+  }
+
+  .footer-band {
+    position: fixed; bottom: 6mm; right: 12mm; left: 12mm;
+    border-top: 1.5px solid #C4A25C; padding-top: 6px;
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 8pt; color: #6B7280;
+  }
+  .footer-band .right b { color: #1B4F58; }
+  .footer-band .center { font-style: italic; }
+
+  .toolbar { position: fixed; top: 10px; left: 10px; display: flex; gap: 6px; z-index: 9999; }
+  .toolbar button {
+    background: #1B4F58; color: #fff; border: 0; padding: 9px 16px;
+    border-radius: 8px; font-family: inherit; font-weight: 700; cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+  }
+  .toolbar .ghost { background: #C4A25C; color: #1B4F58; }
+  @media print { .toolbar { display: none; } }
+</style>
+</head>
+<body>
+  <div class="toolbar">
+    <button onclick="window.print()">🖨️ طباعة / حفظ PDF</button>
+    <button class="ghost" onclick="window.close()">إغلاق</button>
+  </div>
+
+  <div class="brand-bar">
+    <div class="brand-left">
+      <div class="seal">ز.ج</div>
+      <div class="brand-title">
+        <h1>${escapeHtml(COMMITTEE_NAME)}</h1>
+        <p>${escapeHtml(COMMITTEE_TAGLINE)}</p>
+      </div>
+    </div>
+    <div class="brand-right">
+      <div><span class="lbl">التاريخ الهجري:</span> <b>${escapeHtml(hijriToday)}</b></div>
+      <div><span class="lbl">التاريخ الميلادي:</span> <b>${escapeHtml(gregToday)}</b></div>
+      <div><span class="lbl">المرجع:</span> <b>GRM-${stampG}</b></div>
+    </div>
+  </div>
+
+  <div class="meta-strip">
+    <div class="stat"><div class="v">${sorted.length}</div><div class="k">إجمالي العرسان</div></div>
+    <div class="stat"><div class="v">${years.length}</div><div class="k">عدد السنوات</div></div>
+    <div class="stat"><div class="v">${escapeHtml(years[years.length - 1] ?? "—")}</div><div class="k">أقدم سنة</div></div>
+    <div class="stat"><div class="v">${escapeHtml(years[0] ?? "—")}</div><div class="k">أحدث سنة</div></div>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="width:6%">م</th>
+        <th style="width:13%">السنة الهجرية</th>
+        <th style="width:13%">السنة الميلادية</th>
+        <th style="width:32%">الاسم الرباعي</th>
+        <th style="width:14%">رقم الجوال</th>
+        <th style="width:14%">الفرع العائلي</th>
+        <th style="width:8%">الحالة</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${sorted
+        .map(
+          (r) => `
+        <tr>
+          <td class="seq">${r.seq}</td>
+          <td>${escapeHtml(r.yearH)}</td>
+          <td>${escapeHtml(r.yearG)}</td>
+          <td class="name">${escapeHtml(r.full_name)}</td>
+          <td class="phone">${escapeHtml(r.phone)}</td>
+          <td>${escapeHtml(r.family_branch)}</td>
+          <td><span class="status-pill">${escapeHtml(r.status)}</span></td>
+        </tr>`,
+        )
+        .join("")}
+    </tbody>
+  </table>
+
+  <div class="footer-band">
+    <div class="right">
+      <b>${escapeHtml(COMMITTEE_NAME)}</b> — وثيقة رسمية معتمدة
+    </div>
+    <div class="center">صدر آلياً من نظام إدارة اللجنة</div>
+    <div class="left">© ${new Date().getFullYear()}</div>
+  </div>
+
+  <script>window.addEventListener('load', () => setTimeout(() => window.print(), 600));</script>
+</body>
+</html>`;
+
+    const win = window.open("", "_blank", "width=1100,height=800");
+    if (!win) { toast.error("يرجى السماح بالنوافذ المنبثقة"); return; }
+    win.document.open(); win.document.write(html); win.document.close();
+    toast.success("جارٍ تجهيز ملف PDF");
   };
 
   return (
@@ -787,14 +1146,14 @@ function GroomsDatabaseDialog({ grooms }: { grooms: Groom[] }) {
       </DialogTrigger>
       <DialogContent dir="rtl" className="max-w-[95vw] lg:max-w-5xl max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader className="space-y-3">
-          <DialogTitle className="flex items-center gap-2 text-xl">
-            <span className="h-10 w-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
-              <Database className="h-5 w-5" />
+          <DialogTitle className="flex items-center gap-3 text-xl">
+            <span className="h-12 w-12 rounded-xl bg-gradient-to-br from-primary to-primary/70 text-primary-foreground flex items-center justify-center shadow-elegant">
+              <Database className="h-6 w-6" />
             </span>
             <div className="flex-1">
-              <div>قاعدة بيانات العرسان (مرجع شامل)</div>
+              <div>قاعدة بيانات العرسان</div>
               <p className="text-xs text-muted-foreground font-normal mt-0.5">
-                سجل تاريخي بكل العرسان حسب السنة — الاسم الرباعي ورقم الجوال
+                مرجع رسمي · {hijriToday} · {gregToday}
               </p>
             </div>
           </DialogTitle>
@@ -810,7 +1169,7 @@ function GroomsDatabaseDialog({ grooms }: { grooms: Groom[] }) {
               />
             </div>
             <Select value={yearFilter} onValueChange={setYearFilter}>
-              <SelectTrigger className="w-[140px]"><SelectValue placeholder="السنة" /></SelectTrigger>
+              <SelectTrigger className="w-[160px]"><SelectValue placeholder="السنة" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">كل السنوات</SelectItem>
                 {years.map((y) => (
@@ -818,9 +1177,29 @@ function GroomsDatabaseDialog({ grooms }: { grooms: Groom[] }) {
                 ))}
               </SelectContent>
             </Select>
-            <Button onClick={exportCSV} className="gap-2 bg-primary hover:bg-primary/90">
-              <Download className="h-4 w-4" /> تصدير CSV
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button className="gap-2 bg-primary hover:bg-primary/90">
+                  <Download className="h-4 w-4" /> تصدير
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel>اختر صيغة التصدير</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={exportXLSX} className="gap-2 cursor-pointer">
+                  <FileSpreadsheet className="h-4 w-4 text-emerald-600" /> Excel (.xlsx) منسّق
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={exportPDF} className="gap-2 cursor-pointer">
+                  <Printer className="h-4 w-4 text-rose-600" /> PDF بهوية اللجنة
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={exportCSV} className="gap-2 cursor-pointer">
+                  <FileText className="h-4 w-4 text-blue-600" /> CSV
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={exportJSON} className="gap-2 cursor-pointer">
+                  <FileJson className="h-4 w-4 text-amber-600" /> JSON
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
 
           <div className="flex flex-wrap gap-2 text-xs">
@@ -833,34 +1212,40 @@ function GroomsDatabaseDialog({ grooms }: { grooms: Groom[] }) {
 
         <div className="flex-1 overflow-auto rounded-lg border bg-card">
           <table className="w-full text-sm">
-            <thead className="sticky top-0 bg-muted/80 backdrop-blur z-10">
+            <thead className="sticky top-0 bg-primary text-primary-foreground z-10">
               <tr>
-                <th className="px-3 py-2.5 text-center text-xs font-bold text-muted-foreground w-12">#</th>
-                <th className="px-3 py-2.5 text-center text-xs font-bold text-muted-foreground w-24">السنة</th>
-                <th className="px-3 py-2.5 text-right text-xs font-bold text-muted-foreground">الاسم الرباعي</th>
-                <th className="px-3 py-2.5 text-right text-xs font-bold text-muted-foreground">رقم الجوال</th>
-                <th className="px-3 py-2.5 text-right text-xs font-bold text-muted-foreground">الفرع العائلي</th>
-                <th className="px-3 py-2.5 text-center text-xs font-bold text-muted-foreground">الحالة</th>
+                <th className="px-3 py-2.5 text-center text-xs font-bold w-12">م</th>
+                <th className="px-3 py-2.5 text-center text-xs font-bold w-28">السنة الهجرية</th>
+                <th className="px-3 py-2.5 text-center text-xs font-bold w-28">السنة الميلادية</th>
+                <th className="px-3 py-2.5 text-right text-xs font-bold">الاسم الرباعي</th>
+                <th className="px-3 py-2.5 text-right text-xs font-bold">رقم الجوال</th>
+                <th className="px-3 py-2.5 text-right text-xs font-bold">الفرع العائلي</th>
+                <th className="px-3 py-2.5 text-center text-xs font-bold">الحالة</th>
               </tr>
             </thead>
             <tbody>
               {sorted.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="text-center py-12 text-muted-foreground text-sm">
+                  <td colSpan={7} className="text-center py-12 text-muted-foreground text-sm">
                     لا توجد سجلات مطابقة
                   </td>
                 </tr>
               ) : (
                 sorted.map((r, i) => (
-                  <tr key={i} className="border-t hover:bg-muted/30 transition-colors">
-                    <td className="px-3 py-2 text-center text-muted-foreground tabular-nums">{i + 1}</td>
+                  <tr key={i} className={`border-t hover:bg-primary/5 transition-colors ${i % 2 === 1 ? "bg-muted/30" : ""}`}>
+                    <td className="px-3 py-2 text-center text-muted-foreground tabular-nums">{r.seq}</td>
                     <td className="px-3 py-2 text-center">
-                      <Badge variant="outline" className="tabular-nums">{r.year}</Badge>
+                      <Badge variant="outline" className="tabular-nums border-primary/30">{r.yearH}</Badge>
+                    </td>
+                    <td className="px-3 py-2 text-center">
+                      <Badge variant="outline" className="tabular-nums">{r.yearG}</Badge>
                     </td>
                     <td className="px-3 py-2 font-semibold">{r.full_name}</td>
                     <td className="px-3 py-2 tabular-nums text-muted-foreground" dir="ltr">{r.phone}</td>
                     <td className="px-3 py-2 text-muted-foreground">{r.family_branch}</td>
-                    <td className="px-3 py-2 text-center text-xs text-muted-foreground">{r.status}</td>
+                    <td className="px-3 py-2 text-center text-xs">
+                      <span className="inline-block px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium">{r.status}</span>
+                    </td>
                   </tr>
                 ))
               )}
@@ -870,4 +1255,12 @@ function GroomsDatabaseDialog({ grooms }: { grooms: Groom[] }) {
       </DialogContent>
     </Dialog>
   );
+}
+
+function triggerDownload(blob: Blob, filename: string) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
 }
