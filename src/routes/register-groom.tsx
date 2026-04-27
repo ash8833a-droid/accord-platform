@@ -160,6 +160,11 @@ function RegisterGroomPage() {
   const [extraSheep, setExtraSheep] = useState("");
   const [extraCardsMen, setExtraCardsMen] = useState("");
   const [extraCardsWomen, setExtraCardsWomen] = useState("");
+  // Explicit yes/no acknowledgement for optional sections
+  const [extraChoice, setExtraChoice] = useState<"" | "yes" | "no">("");
+  const [externalChoice, setExternalChoice] = useState<"" | "yes" | "no">("");
+  const [vipChoice, setVipChoice] = useState<"" | "yes" | "no">("");
+  const [notesChoice, setNotesChoice] = useState<"" | "yes" | "no">("");
   const [externalParticipation, setExternalParticipation] = useState(false);
   const [externalDetails, setExternalDetails] = useState("");
   const [vipGuests, setVipGuests] = useState("");
@@ -174,6 +179,7 @@ function RegisterGroomPage() {
     setFullName(""); setPhone(""); setNationalId("");
     setIdFile(null); setPhotoFile(null);
     setExtraSheep(""); setExtraCardsMen(""); setExtraCardsWomen("");
+    setExtraChoice(""); setExternalChoice(""); setVipChoice(""); setNotesChoice("");
     setExternalParticipation(false); setExternalDetails("");
     setVipGuests(""); setNotes("");
   };
@@ -184,7 +190,21 @@ function RegisterGroomPage() {
     if (!/^\d{10}$/.test(nationalId.trim())) { toast.error("رقم الهوية يجب أن يكون 10 أرقام"); return false; }
     if (!photoFile) { toast.error("الرجاء رفع الصورة الشخصية للعريس"); return false; }
     if (!idFile) { toast.error("الرجاء رفع صورة الهوية الوطنية"); return false; }
-    if (externalParticipation && !externalDetails.trim()) { toast.error("الرجاء كتابة تفاصيل المشاركات الخارجية"); return false; }
+
+    // Explicit acknowledgements (must choose yes/no)
+    if (!extraChoice) { toast.error("حدد: هل ترغب في ذبائح/كروت إضافية؟"); return false; }
+    if (extraChoice === "yes") {
+      if (!extraSheep && !extraCardsMen && !extraCardsWomen) {
+        toast.error("أدخل قيمة في حقل واحد على الأقل من الذبائح أو الكروت الإضافية"); return false;
+      }
+    }
+    if (!externalChoice) { toast.error("حدد: هل توجد مشاركات خارجية (قصائد/شيلات/كلمات)؟"); return false; }
+    if (externalChoice === "yes" && !externalDetails.trim()) { toast.error("الرجاء كتابة تفاصيل المشاركات الخارجية"); return false; }
+    if (!vipChoice) { toast.error("حدد: هل لديك ضيوف من الشخصيات الاعتبارية؟"); return false; }
+    if (vipChoice === "yes" && !vipGuests.trim()) { toast.error("الرجاء كتابة أسماء وألقاب الضيوف"); return false; }
+    if (!notesChoice) { toast.error("حدد: هل لديك ملاحظات إضافية؟"); return false; }
+    if (notesChoice === "yes" && !notes.trim()) { toast.error("الرجاء كتابة الملاحظات الإضافية"); return false; }
+
     const sheep = Number(extraSheep) || 0;
     if (sheep < 0 || !Number.isFinite(sheep) || !Number.isInteger(sheep)) {
       toast.error("عدد الذبائح غير صحيح"); return false;
