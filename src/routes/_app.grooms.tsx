@@ -11,12 +11,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import {
   HeartHandshake, Plus, FileCheck2, FolderOpen, User, Phone, Users, Heart,
   StickyNote, IdCard, Camera, ClipboardList, Globe2, Crown, Upload, X, ImageIcon, FileImage,
-  Pencil, Trash2, Share2, Copy, MessageCircle,
+  Pencil, Trash2, Share2, Copy, MessageCircle, Database, Search, Download,
 } from "lucide-react";
 import { toast } from "sonner";
 import { GroomDetailsDialog } from "@/components/grooms/GroomDetailsDialog";
 import { supabase as sb } from "@/integrations/supabase/client";
 import { useAppSetting } from "@/hooks/use-app-setting";
+import { useMemo } from "react";
 
 const REGISTER_LINK_KEY = "groom_registration_url";
 const DEFAULT_REGISTRATION_URL = "https://lajnat-zawaj.org";
