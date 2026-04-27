@@ -62,6 +62,92 @@ export type Database = {
         }
         Relationships: []
       }
+      committee_post_comments: {
+        Row: {
+          author_name: string
+          body: string
+          created_at: string
+          id: string
+          post_id: string
+          user_id: string
+        }
+        Insert: {
+          author_name: string
+          body: string
+          created_at?: string
+          id?: string
+          post_id: string
+          user_id: string
+        }
+        Update: {
+          author_name?: string
+          body?: string
+          created_at?: string
+          id?: string
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "committee_post_comments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "committee_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      committee_posts: {
+        Row: {
+          attachment_name: string | null
+          attachment_url: string | null
+          author_id: string
+          author_name: string
+          body: string
+          created_at: string
+          id: string
+          is_pinned: boolean
+          post_type: Database["public"]["Enums"]["post_type"]
+          scope: Database["public"]["Enums"]["post_scope"]
+          source_committee_id: string
+          target_committee_id: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          attachment_name?: string | null
+          attachment_url?: string | null
+          author_id: string
+          author_name: string
+          body: string
+          created_at?: string
+          id?: string
+          is_pinned?: boolean
+          post_type?: Database["public"]["Enums"]["post_type"]
+          scope?: Database["public"]["Enums"]["post_scope"]
+          source_committee_id: string
+          target_committee_id?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          attachment_name?: string | null
+          attachment_url?: string | null
+          author_id?: string
+          author_name?: string
+          body?: string
+          created_at?: string
+          id?: string
+          is_pinned?: boolean
+          post_type?: Database["public"]["Enums"]["post_type"]
+          scope?: Database["public"]["Enums"]["post_scope"]
+          source_committee_id?: string
+          target_committee_id?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       committee_tasks: {
         Row: {
           assigned_to: string | null
@@ -1249,6 +1335,8 @@ export type Database = {
         | "implemented"
         | "archived"
       payment_request_status: "pending" | "approved" | "rejected" | "paid"
+      post_scope: "committee" | "targeted" | "all"
+      post_type: "achievement" | "news" | "inquiry" | "internal_announcement"
       procurement_priority: "low" | "medium" | "high" | "urgent"
       procurement_request_status:
         | "new"
@@ -1416,6 +1504,8 @@ export const Constants = {
         "archived",
       ],
       payment_request_status: ["pending", "approved", "rejected", "paid"],
+      post_scope: ["committee", "targeted", "all"],
+      post_type: ["achievement", "news", "inquiry", "internal_announcement"],
       procurement_priority: ["low", "medium", "high", "urgent"],
       procurement_request_status: [
         "new",
