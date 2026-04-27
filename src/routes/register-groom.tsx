@@ -350,6 +350,12 @@ function RegisterGroomPage() {
             </div>
             <p className="text-xs text-muted-foreground">العدد الإضافي فوق المخصّص الأساسي للعريس.</p>
 
+            <YesNoChoice
+              label="هل ترغب في طلب ذبائح أو كروت إضافية؟"
+              value={extraChoice}
+              onChange={setExtraChoice}
+            />
+
             {/* بطاقة المخصّص الأساسي */}
             <div className="rounded-2xl border border-primary/20 bg-primary/5 p-4">
               <div className="text-[11px] font-bold text-primary mb-2">المخصَّصُ الأساسيُّ لكلِّ عريسٍ ابتداءً</div>
