@@ -18,6 +18,7 @@ import { FinanceModule } from "@/components/FinanceModule";
 import { PmpCharter } from "@/components/committee/PmpCharter";
 import { InvitationCards } from "@/components/media/InvitationCards";
 import { MediaInbox } from "@/components/media/MediaInbox";
+import { ProcurementRequestsBoard } from "@/components/procurement/ProcurementRequestsBoard";
 import { TaskAttachments } from "@/components/TaskAttachments";
 import { TaskComments } from "@/components/TaskComments";
 import { CommitteeArchive } from "@/components/CommitteeArchive";
@@ -894,6 +895,18 @@ function CommitteePage() {
             </div>
           </QualitySection>
         </>
+      )}
+
+      {/* Procurement committee: cross-committee purchase requests inbox */}
+      {type === "procurement" && (
+        <QualitySection
+          storageKey={`committee:${type}:requests`}
+          title="طلبات الشراء الواردة من اللجان"
+          icon={Inbox}
+          defaultOpen
+        >
+          <ProcurementRequestsBoard procurementOnly />
+        </QualitySection>
       )}
 
       <Dialog open={prOpen} onOpenChange={setPrOpen}>
