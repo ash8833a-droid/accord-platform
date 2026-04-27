@@ -8,7 +8,6 @@ import {
   LogOut,
   Menu,
   X,
-  Megaphone,
   ChevronDown,
   ShieldCheck,
   Users,
@@ -22,6 +21,7 @@ import { Button } from "@/components/ui/button";
 import { COMMITTEES } from "@/lib/committees";
 import { supabase } from "@/integrations/supabase/client";
 import { NotificationBell } from "@/components/NotificationBell";
+import { useBrand, brandLogoSrc, applyBrandCssVars } from "@/lib/brand";
 
 
 const ADMIN_TOP = [
@@ -52,6 +52,8 @@ export function AppShell({ children, restricted = false, restrictedToCommitteeTy
   const nav = useNavigate();
   const path = useRouterState({ select: (s) => s.location.pathname });
   const [open, setOpen] = useState(false);
+  const { brand } = useBrand();
+  useEffect(() => { applyBrandCssVars(brand); }, [brand]);
   const [committeesOpen, setCommitteesOpen] = useState(
     path.startsWith("/committee"),
   );
@@ -220,6 +222,13 @@ export function AppShell({ children, restricted = false, restrictedToCommitteeTy
 
       <div className="flex-1 flex flex-col min-w-0">
         <header className="sticky top-0 z-30 bg-background border-b">
+          {/* Brand identity strip */}
+          <div
+            className="h-1.5 w-full"
+            style={{
+              background: `linear-gradient(90deg, ${brand.primary_color} 0%, ${brand.gold_color} 50%, ${brand.primary_color} 100%)`,
+            }}
+          />
           <div className="flex items-center justify-between px-4 lg:px-8 h-16">
             <button
               className="lg:hidden p-2 rounded-lg hover:bg-accent"
@@ -228,9 +237,20 @@ export function AppShell({ children, restricted = false, restrictedToCommitteeTy
             >
               {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </button>
-            <div className="hidden lg:flex items-center gap-2 text-sm text-muted-foreground">
-              <Megaphone className="h-4 w-4 text-gold" />
-              مرحباً بك في منصة البرنامج
+            <div className="flex items-center gap-3 min-w-0">
+              <img
+                src={brandLogoSrc(brand)}
+                alt={brand.name}
+                className="h-9 w-9 rounded-full ring-1 ring-gold/30 object-cover shrink-0"
+              />
+              <div className="hidden sm:flex flex-col leading-tight min-w-0">
+                <span className="text-sm font-bold truncate" style={{ color: brand.primary_color }}>
+                  {brand.name}
+                </span>
+                {brand.subtitle && (
+                  <span className="text-[10px] text-muted-foreground truncate">{brand.subtitle}</span>
+                )}
+              </div>
             </div>
             <div className="flex items-center gap-2">
               <Link

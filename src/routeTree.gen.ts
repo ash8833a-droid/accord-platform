@@ -22,6 +22,7 @@ import { Route as AppIdeasRouteImport } from './routes/_app.ideas'
 import { Route as AppGroomsRouteImport } from './routes/_app.grooms'
 import { Route as AppFinanceRouteImport } from './routes/_app.finance'
 import { Route as AppDashboardRouteImport } from './routes/_app.dashboard'
+import { Route as AppBrandRouteImport } from './routes/_app.brand'
 import { Route as AppAdminRouteImport } from './routes/_app.admin'
 import { Route as AppCommitteeTypeRouteImport } from './routes/_app.committee.$type'
 
@@ -89,6 +90,11 @@ const AppDashboardRoute = AppDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AppRoute,
 } as any)
+const AppBrandRoute = AppBrandRouteImport.update({
+  id: '/brand',
+  path: '/brand',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppAdminRoute = AppAdminRouteImport.update({
   id: '/admin',
   path: '/admin',
@@ -106,6 +112,7 @@ export interface FileRoutesByFullPath {
   '/pending': typeof PendingRoute
   '/register-groom': typeof RegisterGroomRoute
   '/admin': typeof AppAdminRoute
+  '/brand': typeof AppBrandRoute
   '/dashboard': typeof AppDashboardRoute
   '/finance': typeof AppFinanceRoute
   '/grooms': typeof AppGroomsRoute
@@ -122,6 +129,7 @@ export interface FileRoutesByTo {
   '/pending': typeof PendingRoute
   '/register-groom': typeof RegisterGroomRoute
   '/admin': typeof AppAdminRoute
+  '/brand': typeof AppBrandRoute
   '/dashboard': typeof AppDashboardRoute
   '/finance': typeof AppFinanceRoute
   '/grooms': typeof AppGroomsRoute
@@ -140,6 +148,7 @@ export interface FileRoutesById {
   '/pending': typeof PendingRoute
   '/register-groom': typeof RegisterGroomRoute
   '/_app/admin': typeof AppAdminRoute
+  '/_app/brand': typeof AppBrandRoute
   '/_app/dashboard': typeof AppDashboardRoute
   '/_app/finance': typeof AppFinanceRoute
   '/_app/grooms': typeof AppGroomsRoute
@@ -158,6 +167,7 @@ export interface FileRouteTypes {
     | '/pending'
     | '/register-groom'
     | '/admin'
+    | '/brand'
     | '/dashboard'
     | '/finance'
     | '/grooms'
@@ -174,6 +184,7 @@ export interface FileRouteTypes {
     | '/pending'
     | '/register-groom'
     | '/admin'
+    | '/brand'
     | '/dashboard'
     | '/finance'
     | '/grooms'
@@ -191,6 +202,7 @@ export interface FileRouteTypes {
     | '/pending'
     | '/register-groom'
     | '/_app/admin'
+    | '/_app/brand'
     | '/_app/dashboard'
     | '/_app/finance'
     | '/_app/grooms'
@@ -303,6 +315,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppDashboardRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/brand': {
+      id: '/_app/brand'
+      path: '/brand'
+      fullPath: '/brand'
+      preLoaderRoute: typeof AppBrandRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/admin': {
       id: '/_app/admin'
       path: '/admin'
@@ -322,6 +341,7 @@ declare module '@tanstack/react-router' {
 
 interface AppRouteChildren {
   AppAdminRoute: typeof AppAdminRoute
+  AppBrandRoute: typeof AppBrandRoute
   AppDashboardRoute: typeof AppDashboardRoute
   AppFinanceRoute: typeof AppFinanceRoute
   AppGroomsRoute: typeof AppGroomsRoute
@@ -335,6 +355,7 @@ interface AppRouteChildren {
 
 const AppRouteChildren: AppRouteChildren = {
   AppAdminRoute: AppAdminRoute,
+  AppBrandRoute: AppBrandRoute,
   AppDashboardRoute: AppDashboardRoute,
   AppFinanceRoute: AppFinanceRoute,
   AppGroomsRoute: AppGroomsRoute,

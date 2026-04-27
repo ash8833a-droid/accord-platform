@@ -1,5 +1,15 @@
 import * as XLSX from "xlsx";
 import { BRAND_LOGO_DATA_URI } from "@/assets/brand-logo";
+import { DEFAULT_BRAND, BrandIdentity } from "@/lib/brand";
+
+// Runtime brand cache used by exports. Updated by initBrandForExports().
+let exportBrand: BrandIdentity = DEFAULT_BRAND;
+let exportLogoSrc: string = BRAND_LOGO_DATA_URI;
+
+export function setExportBrand(b: BrandIdentity, logoDataUri?: string) {
+  exportBrand = b;
+  exportLogoSrc = logoDataUri || b.logo_url || BRAND_LOGO_DATA_URI;
+}
 
 export interface ReportSignature {
   name: string;        // اسم رئيس اللجنة
@@ -80,7 +90,8 @@ export function exportRequestsXLSX(
   const wb = XLSX.utils.book_new();
 
   const summaryData = [
-    ["تقرير اللجنة المالية — برنامج الزواج الجماعي"],
+    [`${exportBrand.name} — تقرير اللجنة المالية`],
+    [exportBrand.subtitle],
     [`تاريخ التصدير: ${todayAr()}`],
     [],
     ["البند", "القيمة"],
@@ -175,20 +186,20 @@ export function exportRequestsPDF(
   }
   .header {
     position: relative; overflow: hidden; border-radius: 18px;
-    background: linear-gradient(135deg, #1B4F58 0%, #2A6B75 50%, #1B4F58 100%);
+    background: linear-gradient(135deg, ${exportBrand.primary_color} 0%, ${shade(exportBrand.primary_color, 0.15)} 50%, ${exportBrand.primary_color} 100%);
     color: #fff; padding: 22px 26px; margin-bottom: 18px;
-    box-shadow: 0 10px 30px -10px rgba(27,79,88,0.4);
+    box-shadow: 0 10px 30px -10px ${hexToRgba(exportBrand.primary_color, 0.4)};
   }
   .header::after {
     content: ""; position: absolute; left: -40px; top: -40px; width: 200px; height: 200px;
-    background: radial-gradient(circle, rgba(196,162,92,0.35), transparent 70%);
+    background: radial-gradient(circle, ${hexToRgba(exportBrand.gold_color, 0.35)}, transparent 70%);
     border-radius: 50%;
   }
   .header-pattern {
     position: absolute; inset: 0; opacity: 0.12;
     background-image:
-      repeating-linear-gradient(45deg, #C4A25C 0 1px, transparent 1px 14px),
-      repeating-linear-gradient(-45deg, #C4A25C 0 1px, transparent 1px 14px);
+      repeating-linear-gradient(45deg, ${exportBrand.gold_color} 0 1px, transparent 1px 14px),
+      repeating-linear-gradient(-45deg, ${exportBrand.gold_color} 0 1px, transparent 1px 14px);
   }
   .h-row { display: flex; justify-content: space-between; align-items: center; position: relative; }
   .brand { display: flex; align-items: center; gap: 14px; }
@@ -202,21 +213,21 @@ export function exportRequestsPDF(
   .brand h1 { margin: 0; font-size: 18pt; font-weight: 900; letter-spacing: 0.3px; }
   .brand p  { margin: 2px 0 0; font-size: 10pt; opacity: 0.85; }
   .h-meta { text-align: left; font-size: 9pt; opacity: 0.9; line-height: 1.6; }
-  .h-meta b { display: block; font-size: 11pt; color: #F4D88A; margin-bottom: 2px; }
+  .h-meta b { display: block; font-size: 11pt; color: ${exportBrand.gold_color}; margin-bottom: 2px; }
 
   .title-bar {
     display: flex; align-items: center; gap: 10px; margin: 14px 0 10px;
   }
-  .title-bar .bar { width: 5px; height: 28px; background: linear-gradient(180deg, #C4A25C, #1B4F58); border-radius: 3px; }
-  .title-bar h2 { margin: 0; font-size: 14pt; font-weight: 800; color: #1B4F58; }
+  .title-bar .bar { width: 5px; height: 28px; background: linear-gradient(180deg, ${exportBrand.gold_color}, ${exportBrand.primary_color}); border-radius: 3px; }
+  .title-bar h2 { margin: 0; font-size: 14pt; font-weight: 800; color: ${exportBrand.primary_color}; }
 
   .cards { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 16px; }
   .card {
     border-radius: 12px; padding: 12px 10px; position: relative; overflow: hidden;
     border: 1px solid #E5E7EB; background: #fff;
   }
-  .card.teal { background: linear-gradient(135deg, #1B4F58 0%, #2A6B75 100%); color: #fff; }
-  .card.gold { background: linear-gradient(135deg, #C4A25C 0%, #E0C784 100%); color: #2A1F0A; }
+  .card.teal { background: linear-gradient(135deg, ${exportBrand.primary_color} 0%, ${shade(exportBrand.primary_color, 0.15)} 100%); color: #fff; }
+  .card.gold { background: linear-gradient(135deg, ${exportBrand.gold_color} 0%, ${shade(exportBrand.gold_color, 0.18)} 100%); color: #2A1F0A; }
   .card .label { font-size: 9pt; opacity: 0.85; margin-bottom: 6px; font-weight: 500; }
   .card .value { font-size: 14pt; font-weight: 900; }
   .card::after {
@@ -226,7 +237,7 @@ export function exportRequestsPDF(
 
   table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 9.5pt; margin-top: 6px; }
   thead th {
-    background: linear-gradient(135deg, #1B4F58, #2A6B75); color: #fff;
+    background: linear-gradient(135deg, ${exportBrand.primary_color}, ${shade(exportBrand.primary_color, 0.15)}); color: #fff;
     padding: 10px 8px; text-align: center; font-weight: 700; font-size: 10pt;
     border: none;
   }
@@ -238,35 +249,35 @@ export function exportRequestsPDF(
   }
   tbody tr:nth-child(even) td { background: #FBF7EE; }
   tbody tr:hover td { background: #F4ECD9; }
-  td.ttl { text-align: right; font-weight: 600; color: #1B4F58; }
-  td.amt { font-weight: 700; color: #1B4F58; font-variant-numeric: tabular-nums; }
+  td.ttl { text-align: right; font-weight: 600; color: ${exportBrand.primary_color}; }
+  td.amt { font-weight: 700; color: ${exportBrand.primary_color}; font-variant-numeric: tabular-nums; }
 
   .footer {
     margin-top: 20px; padding-top: 12px; border-top: 2px dashed #C4A25C;
     font-size: 8.5pt; color: #6B7280;
   }
-  .footer .stamp { color: #1B4F58; font-weight: 700; }
+  .footer .stamp { color: ${exportBrand.primary_color}; font-weight: 700; }
   .signatures {
     display: grid; grid-template-columns: 1fr 1fr; gap: 18px;
     margin-top: 18px;
   }
   .sig-box {
-    border: 1px solid #E5D6AC; border-radius: 12px; padding: 14px 16px;
-    background: linear-gradient(135deg, rgba(196,162,92,0.06), rgba(27,79,88,0.04));
+    border: 1px solid ${hexToRgba(exportBrand.gold_color, 0.45)}; border-radius: 12px; padding: 14px 16px;
+    background: linear-gradient(135deg, ${hexToRgba(exportBrand.gold_color, 0.06)}, ${hexToRgba(exportBrand.primary_color, 0.04)});
     position: relative;
   }
   .sig-box .sig-label { font-size: 9pt; color: #6B7280; margin-bottom: 4px; }
-  .sig-box .sig-name { font-size: 12pt; font-weight: 800; color: #1B4F58; margin-bottom: 2px; }
+  .sig-box .sig-name { font-size: 12pt; font-weight: 800; color: ${exportBrand.primary_color}; margin-bottom: 2px; }
   .sig-box .sig-title { font-size: 9pt; color: #8C6E2E; font-weight: 600; margin-bottom: 36px; }
   .sig-line {
-    border-top: 1.5px dotted #1B4F58; padding-top: 4px;
+    border-top: 1.5px dotted ${exportBrand.primary_color}; padding-top: 4px;
     text-align: center; font-size: 8pt; color: #9CA3AF;
   }
   .sig-stamp {
     position: absolute; left: 16px; bottom: 18px;
-    width: 70px; height: 70px; border: 2px solid #C4A25C; border-radius: 50%;
+    width: 70px; height: 70px; border: 2px solid ${exportBrand.gold_color}; border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
-    color: #C4A25C; font-weight: 900; font-size: 7pt; text-align: center;
+    color: ${exportBrand.gold_color}; font-weight: 900; font-size: 7pt; text-align: center;
     transform: rotate(-12deg); opacity: 0.55;
   }
   .footer-bottom {
@@ -286,11 +297,11 @@ export function exportRequestsPDF(
     display: flex; gap: 8px;
   }
   .toolbar button {
-    background: #1B4F58; color: #fff; border: 0; padding: 10px 18px;
+    background: ${exportBrand.primary_color}; color: #fff; border: 0; padding: 10px 18px;
     border-radius: 10px; font-family: inherit; font-weight: 700; cursor: pointer;
     box-shadow: 0 4px 12px rgba(0,0,0,0.15); font-size: 11pt;
   }
-  .toolbar button.gold { background: #C4A25C; color: #1B4F58; }
+  .toolbar button.gold { background: ${exportBrand.gold_color}; color: ${exportBrand.primary_color}; }
 </style>
 </head>
 <body>
@@ -303,9 +314,9 @@ export function exportRequestsPDF(
     <div class="header-pattern"></div>
     <div class="h-row">
       <div class="brand">
-        <div class="logo-img"><img src="${BRAND_LOGO_DATA_URI}" alt="شعار البرنامج"/></div>
+        <div class="logo-img"><img src="${exportLogoSrc}" alt="${escapeHtml(exportBrand.name)}" crossorigin="anonymous"/></div>
         <div>
-          <h1>منصة الزواج الجماعي العائلي</h1>
+          <h1>${escapeHtml(exportBrand.name)}</h1>
           <p>تقرير اللجنة المالية — طلبات الصرف والاشتراكات</p>
         </div>
       </div>
@@ -390,7 +401,7 @@ export function exportRequestsPDF(
     </div>
     <div class="footer-bottom">
       <div>
-        <span class="stamp">منصة الزواج الجماعي العائلي</span> — وثيقة رسمية تمثل بيانات اللحظة وقت التصدير
+        <span class="stamp">${escapeHtml(exportBrand.name)}</span> — وثيقة رسمية تمثل بيانات اللحظة وقت التصدير
       </div>
       <div>صفحة ١ — جودة وشفافية</div>
     </div>
@@ -419,4 +430,21 @@ function escapeHtml(s: string) {
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;");
+}
+
+/* ---------- color helpers ---------- */
+function hexToRgba(hex: string, alpha: number): string {
+  const m = /^#?([a-f\d]{6})$/i.exec(hex.trim());
+  if (!m) return `rgba(27,79,88,${alpha})`;
+  const n = parseInt(m[1], 16);
+  return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${alpha})`;
+}
+function shade(hex: string, amount: number): string {
+  const m = /^#?([a-f\d]{6})$/i.exec(hex.trim());
+  if (!m) return hex;
+  const n = parseInt(m[1], 16);
+  const r = Math.min(255, Math.round(((n >> 16) & 255) + 255 * amount));
+  const g = Math.min(255, Math.round(((n >> 8) & 255) + 255 * amount));
+  const b = Math.min(255, Math.round((n & 255) + 255 * amount));
+  return `#${[r, g, b].map((v) => v.toString(16).padStart(2, "0")).join("")}`;
 }
