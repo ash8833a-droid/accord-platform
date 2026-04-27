@@ -18,6 +18,7 @@ import { Route as AppTeamRouteImport } from './routes/_app.team'
 import { Route as AppTaskResponsesRouteImport } from './routes/_app.task-responses'
 import { Route as AppReportsRouteImport } from './routes/_app.reports'
 import { Route as AppProcurementRequestsRouteImport } from './routes/_app.procurement-requests'
+import { Route as AppPostsRouteImport } from './routes/_app.posts'
 import { Route as AppPaymentRequestsRouteImport } from './routes/_app.payment-requests'
 import { Route as AppIdeasRouteImport } from './routes/_app.ideas'
 import { Route as AppGroomsRouteImport } from './routes/_app.grooms'
@@ -69,6 +70,11 @@ const AppReportsRoute = AppReportsRouteImport.update({
 const AppProcurementRequestsRoute = AppProcurementRequestsRouteImport.update({
   id: '/procurement-requests',
   path: '/procurement-requests',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppPostsRoute = AppPostsRouteImport.update({
+  id: '/posts',
+  path: '/posts',
   getParentRoute: () => AppRoute,
 } as any)
 const AppPaymentRequestsRoute = AppPaymentRequestsRouteImport.update({
@@ -124,6 +130,7 @@ export interface FileRoutesByFullPath {
   '/grooms': typeof AppGroomsRoute
   '/ideas': typeof AppIdeasRoute
   '/payment-requests': typeof AppPaymentRequestsRoute
+  '/posts': typeof AppPostsRoute
   '/procurement-requests': typeof AppProcurementRequestsRoute
   '/reports': typeof AppReportsRoute
   '/task-responses': typeof AppTaskResponsesRoute
@@ -142,6 +149,7 @@ export interface FileRoutesByTo {
   '/grooms': typeof AppGroomsRoute
   '/ideas': typeof AppIdeasRoute
   '/payment-requests': typeof AppPaymentRequestsRoute
+  '/posts': typeof AppPostsRoute
   '/procurement-requests': typeof AppProcurementRequestsRoute
   '/reports': typeof AppReportsRoute
   '/task-responses': typeof AppTaskResponsesRoute
@@ -162,6 +170,7 @@ export interface FileRoutesById {
   '/_app/grooms': typeof AppGroomsRoute
   '/_app/ideas': typeof AppIdeasRoute
   '/_app/payment-requests': typeof AppPaymentRequestsRoute
+  '/_app/posts': typeof AppPostsRoute
   '/_app/procurement-requests': typeof AppProcurementRequestsRoute
   '/_app/reports': typeof AppReportsRoute
   '/_app/task-responses': typeof AppTaskResponsesRoute
@@ -182,6 +191,7 @@ export interface FileRouteTypes {
     | '/grooms'
     | '/ideas'
     | '/payment-requests'
+    | '/posts'
     | '/procurement-requests'
     | '/reports'
     | '/task-responses'
@@ -200,6 +210,7 @@ export interface FileRouteTypes {
     | '/grooms'
     | '/ideas'
     | '/payment-requests'
+    | '/posts'
     | '/procurement-requests'
     | '/reports'
     | '/task-responses'
@@ -219,6 +230,7 @@ export interface FileRouteTypes {
     | '/_app/grooms'
     | '/_app/ideas'
     | '/_app/payment-requests'
+    | '/_app/posts'
     | '/_app/procurement-requests'
     | '/_app/reports'
     | '/_app/task-responses'
@@ -299,6 +311,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppProcurementRequestsRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/posts': {
+      id: '/_app/posts'
+      path: '/posts'
+      fullPath: '/posts'
+      preLoaderRoute: typeof AppPostsRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/payment-requests': {
       id: '/_app/payment-requests'
       path: '/payment-requests'
@@ -366,6 +385,7 @@ interface AppRouteChildren {
   AppGroomsRoute: typeof AppGroomsRoute
   AppIdeasRoute: typeof AppIdeasRoute
   AppPaymentRequestsRoute: typeof AppPaymentRequestsRoute
+  AppPostsRoute: typeof AppPostsRoute
   AppProcurementRequestsRoute: typeof AppProcurementRequestsRoute
   AppReportsRoute: typeof AppReportsRoute
   AppTaskResponsesRoute: typeof AppTaskResponsesRoute
@@ -381,6 +401,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppGroomsRoute: AppGroomsRoute,
   AppIdeasRoute: AppIdeasRoute,
   AppPaymentRequestsRoute: AppPaymentRequestsRoute,
+  AppPostsRoute: AppPostsRoute,
   AppProcurementRequestsRoute: AppProcurementRequestsRoute,
   AppReportsRoute: AppReportsRoute,
   AppTaskResponsesRoute: AppTaskResponsesRoute,
