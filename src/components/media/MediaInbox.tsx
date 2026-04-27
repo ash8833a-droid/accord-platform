@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import {
   Inbox, CheckCircle2, AlertCircle, User, Phone, Users as UsersIcon, Heart,
-  Calendar, ClipboardList, Globe2, Crown, ImageIcon, IdCard, Loader2, Eye,
+  ClipboardList, Globe2, Crown, ImageIcon, IdCard, Loader2, Eye,
 } from "lucide-react";
 import { toast } from "sonner";
 import { GroomTimeline } from "@/components/grooms/GroomTimeline";
@@ -239,8 +239,6 @@ export function MediaInbox() {
               <div className="grid grid-cols-2 gap-3">
                 <Info icon={Phone} label="الجوال" value={selected.phone} dir="ltr" />
                 <Info icon={UsersIcon} label="الفرع العائلي" value={selected.family_branch} />
-                <Info label="العروس" value={selected.bride_name ?? "—"} />
-                <Info icon={Calendar} label="تاريخ الزفاف" value={selected.wedding_date ? new Date(selected.wedding_date).toLocaleDateString("ar-SA") : "—"} />
               </div>
 
               {(photoUrl || idUrl) && (
