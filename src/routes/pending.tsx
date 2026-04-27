@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Clock, LogOut, RefreshCw, Sparkles, HeartHandshake, BookOpen } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/pending")({
   component: PendingPage,
@@ -15,6 +16,7 @@ function PendingPage() {
   const { user, approved, loading, signOut, refreshAccess } = useAuth();
   const nav = useNavigate();
   const [status, setStatus] = useState<string>("pending");
+  const [checking, setChecking] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) nav({ to: "/auth" });
@@ -32,14 +34,35 @@ function PendingPage() {
   }, [user]);
 
   const recheck = async () => {
-    await refreshAccess();
-    if (user) {
-      const { data } = await supabase
-        .from("membership_requests")
-        .select("status")
-        .eq("user_id", user.id)
-        .maybeSingle();
-      if (data?.status) setStatus(data.status);
+    if (checking) return;
+    setChecking(true);
+    try {
+      await refreshAccess();
+      let newStatus = status;
+      if (user) {
+        const { data, error } = await supabase
+          .from("membership_requests")
+          .select("status")
+          .eq("user_id", user.id)
+          .maybeSingle();
+        if (error) throw error;
+        if (data?.status) {
+          newStatus = data.status;
+          setStatus(data.status);
+        }
+      }
+      if (newStatus === "approved") {
+        toast.success("تم اعتماد حسابك! جارِ توجيهك...");
+        nav({ to: "/admin" });
+      } else if (newStatus === "rejected") {
+        toast.error("تم رفض طلبك من قِبَل الإدارة.");
+      } else {
+        toast.info("لا تزال حالتك قيد المراجعة. سنُعلمك فور الاعتماد.");
+      }
+    } catch (e: any) {
+      toast.error(e?.message || "تعذّر تحديث الحالة، حاول مجدداً.");
+    } finally {
+      setChecking(false);
     }
   };
 
@@ -140,9 +163,11 @@ function PendingPage() {
           <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
             <Button
               onClick={recheck}
+              disabled={checking}
               className="gap-2 bg-gradient-to-l from-primary to-gold text-primary-foreground shadow-soft hover:shadow-elegant transition-all"
             >
-              <RefreshCw className="h-4 w-4" /> تحديث الحالة
+              <RefreshCw className={`h-4 w-4 ${checking ? "animate-spin" : ""}`} />
+              {checking ? "جارٍ التحديث..." : "تحديث الحالة"}
             </Button>
             <Button onClick={() => signOut()} variant="ghost" className="gap-2">
               <LogOut className="h-4 w-4" /> تسجيل خروج
