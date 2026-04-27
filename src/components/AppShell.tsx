@@ -23,6 +23,8 @@ import { COMMITTEES } from "@/lib/committees";
 import { supabase } from "@/integrations/supabase/client";
 import { NotificationBell } from "@/components/NotificationBell";
 import { useBrand, brandLogoSrc, applyBrandCssVars } from "@/lib/brand";
+import { QuickPurchaseRequestDialog } from "@/components/QuickPurchaseRequestDialog";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 
 
 const ADMIN_TOP = [
@@ -51,10 +53,11 @@ interface AppShellProps {
 }
 
 export function AppShell({ children, restricted = false, restrictedToCommitteeType = null, canSeeDashboard = true }: AppShellProps) {
-  const { user, signOut, hasRole } = useAuth();
+  const { user, signOut, hasRole, committeeId } = useAuth();
   const nav = useNavigate();
   const path = useRouterState({ select: (s) => s.location.pathname });
   const [open, setOpen] = useState(false);
+  const [purchaseOpen, setPurchaseOpen] = useState(false);
   const { brand } = useBrand();
   useEffect(() => { applyBrandCssVars(brand); }, [brand]);
   const [committeesOpen, setCommitteesOpen] = useState(
@@ -256,6 +259,17 @@ export function AppShell({ children, restricted = false, restrictedToCommitteeTy
               </div>
             </div>
             <div className="flex items-center gap-2">
+              {committeeId && (
+                <Button
+                  size="sm"
+                  onClick={() => setPurchaseOpen(true)}
+                  className="bg-gradient-gold text-gold-foreground hover:opacity-95 shadow-md gap-1.5 h-9"
+                  title="طلب شراء جديد"
+                >
+                  <ShoppingCart className="h-4 w-4" />
+                  <span className="hidden sm:inline text-xs font-bold">طلب شراء جديد</span>
+                </Button>
+              )}
               <Link
                 to="/"
                 className="inline-flex items-center gap-1.5 rounded-lg border border-gold/30 bg-gold/5 px-3 py-1.5 text-xs font-bold text-foreground hover:bg-gold/15 hover:border-gold/50 transition-colors"
@@ -267,6 +281,7 @@ export function AppShell({ children, restricted = false, restrictedToCommitteeTy
               <NotificationBell />
             </div>
           </div>
+          <Breadcrumbs />
         </header>
 
         <main className="flex-1 px-4 lg:px-8 py-6 lg:py-8 pb-24 lg:pb-8 max-w-7xl w-full me-auto">
@@ -315,6 +330,7 @@ export function AppShell({ children, restricted = false, restrictedToCommitteeTy
           </div>
         </nav>
       </div>
+      <QuickPurchaseRequestDialog open={purchaseOpen} onOpenChange={setPurchaseOpen} />
     </div>
   );
 }
