@@ -1,6 +1,5 @@
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { FilePreview } from "@/components/FilePreview";
-import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 
 interface Props {
   open: boolean;
@@ -19,9 +18,7 @@ export function AttachmentPreviewDialog({ open, onOpenChange, url, name, type, o
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-5xl w-[95vw] h-[90vh] p-0 overflow-hidden flex flex-col">
-        <VisuallyHidden>
-          <DialogTitle>{name ?? "معاينة الملف"}</DialogTitle>
-        </VisuallyHidden>
+        <DialogTitle className="sr-only">{name ?? "معاينة الملف"}</DialogTitle>
         {url ? (
           <FilePreview url={url} name={name} type={type} onDownload={onDownload} className="h-full" />
         ) : (
