@@ -14,7 +14,7 @@ import {
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Trophy, Newspaper, HelpCircle, Megaphone, Plus, Trash2, Send, MessageCircle,
-  Building2, Globe2, Users2, Loader2,
+  Building2, Globe2, Users2, Loader2, Eye, Info,
 } from "lucide-react";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
@@ -132,18 +132,32 @@ export function CommunicationsBoard() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between flex-wrap gap-3">
-        <div>
-          <h2 className="text-2xl font-bold">مركز التواصل</h2>
-          <p className="text-sm text-muted-foreground">منجزات · أخبار · استفسارات · إعلانات داخلية بين اللجان</p>
-        </div>
+      <div className="rounded-xl border bg-gradient-to-l from-primary/5 via-background to-background p-5">
+        <div className="flex items-start justify-between flex-wrap gap-4">
+          <div className="space-y-2 max-w-3xl">
+            <div className="flex items-center gap-2">
+              <div className="p-2 rounded-lg bg-primary/10 text-primary"><MessageCircle className="h-5 w-5" /></div>
+              <h2 className="text-2xl font-bold">مركز التواصل</h2>
+            </div>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              قناة رسمية موحّدة بين اللجان لمشاركة <strong className="text-foreground">المنجزات</strong>،
+              نشر <strong className="text-foreground">الأخبار</strong>، توجيه <strong className="text-foreground">الاستفسارات</strong>،
+              وإصدار <strong className="text-foreground">الإعلانات الداخلية</strong> — مع تنبيهات تلقائية للأعضاء المعنيين
+              حسب نطاق المنشور (داخل اللجنة · لجنة محددة · جميع اللجان).
+            </p>
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <Info className="h-3.5 w-3.5" />
+              يحلّ هذا المركز محل المحادثات الجانبية ويوثّق التواصل الرسمي بين اللجان.
+            </div>
+          </div>
         <Dialog open={openNew} onOpenChange={setOpenNew}>
           <DialogTrigger asChild>
-            <Button className="gap-2"><Plus className="h-4 w-4" /> منشور جديد</Button>
+            <Button size="lg" className="gap-2 shadow-md"><Plus className="h-4 w-4" /> منشور جديد</Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader><DialogTitle>منشور جديد</DialogTitle></DialogHeader>
-            <div className="space-y-4 py-2">
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader><DialogTitle>إنشاء منشور جديد</DialogTitle></DialogHeader>
+            <div className="grid md:grid-cols-2 gap-5 py-2">
+              <div className="space-y-4">
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="text-sm font-bold mb-1 block">نوع المنشور</label>
@@ -200,10 +214,29 @@ export function CommunicationsBoard() {
               <div>
                 <label className="text-sm font-bold mb-1 block">العنوان</label>
                 <Input value={fTitle} onChange={(e) => setFTitle(e.target.value)} maxLength={200} placeholder="عنوان مختصر..." />
+                <p className="text-[11px] text-muted-foreground mt-1 text-left ltr">{fTitle.length}/200</p>
               </div>
               <div>
                 <label className="text-sm font-bold mb-1 block">المحتوى</label>
-                <Textarea value={fBody} onChange={(e) => setFBody(e.target.value)} rows={6} maxLength={4000} placeholder="اكتب التفاصيل هنا..." />
+                <Textarea value={fBody} onChange={(e) => setFBody(e.target.value)} rows={8} maxLength={4000} placeholder="اكتب التفاصيل هنا..." />
+                <p className="text-[11px] text-muted-foreground mt-1 text-left ltr">{fBody.length}/4000</p>
+              </div>
+              </div>
+
+              {/* Live preview panel */}
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-sm font-bold text-muted-foreground">
+                  <Eye className="h-4 w-4" /> معاينة فورية
+                </div>
+                <PostPreview
+                  type={fType}
+                  scope={fScope}
+                  title={fTitle}
+                  body={fBody}
+                  authorName={authorName}
+                  sourceName={committees.find(c => c.id === (committeeId || fSource))?.name}
+                  targetName={fScope === "targeted" ? committees.find(c => c.id === fTarget)?.name : undefined}
+                />
               </div>
             </div>
             <DialogFooter>
@@ -215,6 +248,7 @@ export function CommunicationsBoard() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       <Tabs value={filter} onValueChange={(v) => setFilter(v as any)}>
@@ -235,6 +269,53 @@ export function CommunicationsBoard() {
           {filtered.map(p => (
             <PostCard key={p.id} post={p} committees={committees} currentUserId={user?.id ?? ""} authorName={authorName} onDeleted={load} />
           ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function PostPreview({
+  type, scope, title, body, authorName, sourceName, targetName,
+}: {
+  type: PostType; scope: PostScope;
+  title: string; body: string; authorName: string;
+  sourceName?: string; targetName?: string;
+}) {
+  const meta = TYPE_META[type];
+  const scopeMeta = SCOPE_META[scope];
+  const Icon = meta.icon;
+  const ScopeIcon = scopeMeta.icon;
+  const hasContent = title.trim() || body.trim();
+
+  return (
+    <div className="border rounded-xl p-4 bg-muted/30 sticky top-2">
+      <div className="flex items-start gap-3 mb-3">
+        <div className={`p-2 rounded-lg border ${meta.color} shrink-0`}>
+          <Icon className="h-5 w-5" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-1.5 flex-wrap mb-1.5">
+            <Badge variant="outline" className={meta.color}>{meta.label}</Badge>
+            <Badge variant="secondary" className="gap-1 text-[11px]">
+              <ScopeIcon className="h-3 w-3" />
+              {scopeMeta.label}{targetName ? ` → ${targetName}` : ""}
+            </Badge>
+          </div>
+          <h3 className="font-bold text-base break-words">
+            {title.trim() || <span className="text-muted-foreground font-normal">عنوان المنشور...</span>}
+          </h3>
+          <p className="text-[11px] text-muted-foreground mt-0.5">
+            {authorName || "—"} · {sourceName || <span className="text-amber-600">لم تُحدَّد لجنة المصدر</span>} · الآن
+          </p>
+        </div>
+      </div>
+      <p className="text-sm whitespace-pre-wrap text-foreground/90 min-h-[3rem]">
+        {body.trim() || <span className="text-muted-foreground">سيظهر محتوى المنشور هنا أثناء الكتابة...</span>}
+      </p>
+      {!hasContent && (
+        <div className="mt-3 text-[11px] text-muted-foreground border-t pt-2 flex items-center gap-1.5">
+          <Info className="h-3 w-3" /> هذه معاينة فورية — لن يتم النشر حتى تضغط "نشر".
         </div>
       )}
     </div>
