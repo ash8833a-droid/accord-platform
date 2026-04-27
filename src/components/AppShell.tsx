@@ -8,7 +8,6 @@ import {
   LogOut,
   Menu,
   X,
-  Megaphone,
   ChevronDown,
   ShieldCheck,
   Users,
