@@ -31,6 +31,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { Search, UserX, Save, Users } from "lucide-react";
+import { COMMITTEE_HEAD_LABEL, COMMITTEE_MEMBER_LABEL } from "@/lib/committee-member-labels";
 
 type Role = "admin" | "committee" | "delegate" | "quality";
 
@@ -51,10 +52,10 @@ interface Member {
 }
 
 const ROLE_LABELS: Record<Role, string> = {
-  admin: "مدير النظام",
-  committee: "رئيس اللجنة",
-  delegate: "عضو اللجنة",
-  quality: "متعاون",
+  admin: COMMITTEE_MEMBER_LABEL,
+  committee: COMMITTEE_HEAD_LABEL,
+  delegate: COMMITTEE_MEMBER_LABEL,
+  quality: COMMITTEE_MEMBER_LABEL,
 };
 
 const ROLE_TONES: Record<Role, string> = {
