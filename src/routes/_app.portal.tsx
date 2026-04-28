@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { PortalReportDialog } from "@/components/portal/PortalReportDialog";
 import {
   LayoutGrid,
   ListTodo,
@@ -265,6 +266,12 @@ function PortalPage() {
           </p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
+          <PortalReportDialog
+            userName={user?.email ?? "عضو"}
+            committeesCount={myCommittees.length}
+            tasks={tasks}
+            payments={payments}
+          />
           <div className="relative">
             <Search className="absolute right-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
