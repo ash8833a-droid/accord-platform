@@ -297,7 +297,7 @@ function TeamPage() {
                       }
                     />
                   </div>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 gap-3">
                     <div>
                       <Label>اللجنة *</Label>
                       <Select
@@ -328,16 +328,6 @@ function TeamPage() {
                           })}
                         </SelectContent>
                       </Select>
-                    </div>
-                    <div>
-                      <Label>المسمى الوظيفي</Label>
-                      <Input
-                        value={form.role_title}
-                        onChange={(e) =>
-                          setForm({ ...form, role_title: e.target.value })
-                        }
-                        placeholder="مثال: محاسب"
-                      />
                     </div>
                   </div>
                   <div>
@@ -406,8 +396,6 @@ function TeamPage() {
           <div className="flex items-center gap-1.5 flex-wrap">
             {([
               { v: "all", label: "الكل" },
-              { v: "committee", label: COMMITTEE_MEMBER_LABEL },
-              { v: "team", label: COMMITTEE_MEMBER_LABEL },
             ] as { v: RoleFilter; label: string }[]).map((opt) => {
               const count =
                 opt.v === "all"
