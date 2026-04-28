@@ -29,6 +29,7 @@ import { Breadcrumbs } from "@/components/Breadcrumbs";
 
 const ADMIN_TOP = [
   { to: "/admin", label: "الإدارة العليا", icon: ShieldCheck },
+  { to: "/portal", label: "بوابتي", icon: LayoutGrid },
   { to: "/team", label: "فريق العمل", icon: Users },
   { to: "/task-responses", label: "ردود اللجان", icon: ClipboardCheck },
 ] as const;
