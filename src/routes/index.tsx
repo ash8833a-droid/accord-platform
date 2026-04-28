@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Logo } from "@/components/Logo";
-import heroBanner from "@/assets/hero-banner.jpg";
+import heroLogo from "@/assets/logo.png";
 import {
   HeartHandshake,
   Users,
