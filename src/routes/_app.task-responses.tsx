@@ -352,10 +352,10 @@ function TaskResponsesPage() {
             <ClipboardCheck className="h-6 w-6" />
           </span>
           <div>
-            <h1 className="text-2xl lg:text-3xl font-bold">ردود اللجان على المهام</h1>
+            <h1 className="text-2xl lg:text-3xl font-bold">متابعة أداء اللجان</h1>
             <p className="text-xs opacity-90 mt-0.5 flex items-center gap-1.5">
               <ShieldCheck className="h-3.5 w-3.5" />
-              عرض رقابي مخصص للجنة العليا · مدير النظام · لجنة الجودة
+              لوحة الإدارة والجودة · للرقابة على ردود اللجان ونسب الإنجاز
             </p>
           </div>
         </div>

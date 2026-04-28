@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PortalReportDialog } from "@/components/portal/PortalReportDialog";
+import { QuickCreateTask } from "@/components/portal/QuickCreateTask";
+import { QuickCreatePayment } from "@/components/portal/QuickCreatePayment";
 import {
   LayoutGrid,
   ListTodo,
@@ -100,6 +102,7 @@ function PortalPage() {
   const [reportsCount, setReportsCount] = useState(0);
   const [committeeFilter, setCommitteeFilter] = useState<string>("all");
   const [search, setSearch] = useState("");
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     if (!user) return;
@@ -201,7 +204,7 @@ function PortalPage() {
       (window as any).__portal_member_ids__ = memberIds;
     })();
     return () => { cancelled = true; };
-  }, [user, isAdmin, isQuality]);
+  }, [user, isAdmin, isQuality, reloadKey]);
 
   const filteredTasks = useMemo(() => {
     let list = tasks;
@@ -247,8 +250,13 @@ function PortalPage() {
     return (
       <Card className="p-10 text-center max-w-xl mx-auto">
         <LayoutGrid className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-        <h2 className="text-lg font-bold mb-2">لا تنتمي لأي لجنة بعد</h2>
-        <p className="text-sm text-muted-foreground">سيتم تفعيل بوابتك تلقائياً بمجرد اعتماد عضويتك في لجنة.</p>
+        <h2 className="text-lg font-bold mb-2">هذه شاشتك الشخصية</h2>
+        <p className="text-sm text-muted-foreground mb-4">
+          ستظهر هنا مهامك ومؤشرات إنجازك وطلبات صرفك حال اعتماد عضويتك في لجنة.
+        </p>
+        <p className="text-xs text-muted-foreground">
+          بوابتي = شاشة العرض الشخصية · اللجنة = ورشة العمل التنفيذية
+        </p>
       </Card>
     );
   }
@@ -261,11 +269,18 @@ function PortalPage() {
           <h1 className="text-2xl md:text-3xl font-bold flex items-center gap-2">
             <LayoutGrid className="h-7 w-7 text-primary" /> بوابتي
           </h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            نظرة موحّدة على مهامك وطلباتك عبر {myCommittees.length} لجنة
-          </p>
+          <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+            <Badge variant="secondary" className="bg-primary/10 text-primary border-0 text-[10px] px-2">
+              شاشتي الشخصية · عرض موحّد
+            </Badge>
+            <p className="text-xs text-muted-foreground">
+              اضغط أي مهمة للانتقال إلى لجنتها وتنفيذ الإجراء
+            </p>
+          </div>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
+          <QuickCreateTask committees={myCommittees} onCreated={() => setReloadKey((k) => k + 1)} />
+          <QuickCreatePayment committees={myCommittees} onCreated={() => setReloadKey((k) => k + 1)} />
           <PortalReportDialog
             userName={user?.email ?? "عضو"}
             committeesCount={myCommittees.length}
