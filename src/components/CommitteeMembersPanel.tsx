@@ -47,7 +47,7 @@ const ROLE_LABEL: Record<Role, string> = {
   admin: "مدير نظام",
   committee: "عضو لجنة",
   quality: "الجودة",
-  delegate: "مندوب",
+  delegate: "عضو لجنة",
 };
 
 const initials = (name: string) =>
