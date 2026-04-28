@@ -406,10 +406,8 @@ function TeamPage() {
           <div className="flex items-center gap-1.5 flex-wrap">
             {([
               { v: "all", label: "الكل" },
-              { v: "admin", label: "مدير نظام" },
-              { v: "committee", label: "عضو لجنة" },
-              { v: "quality", label: "الجودة" },
-              { v: "team", label: "فريق العمل" },
+              { v: "committee", label: COMMITTEE_MEMBER_LABEL },
+              { v: "team", label: COMMITTEE_MEMBER_LABEL },
             ] as { v: RoleFilter; label: string }[]).map((opt) => {
               const count =
                 opt.v === "all"
@@ -520,13 +518,13 @@ function TeamPage() {
                                 variant="secondary"
                                 className="bg-gold/15 text-gold-foreground gap-1 h-5 text-[10px]"
                               >
-                                <Crown className="h-3 w-3" /> رئيس اللجنة
+                                <Crown className="h-3 w-3" /> {COMMITTEE_HEAD_LABEL}
                               </Badge>
                             )}
                           </div>
                           {m.role_title && (
                             <p className="text-[11px] text-muted-foreground">
-                              {m.role_title}
+                              {committeeMemberLabel(m)}
                             </p>
                           )}
                           {m.specialty && (
