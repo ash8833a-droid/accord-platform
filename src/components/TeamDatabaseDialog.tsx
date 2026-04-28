@@ -54,14 +54,6 @@ export interface TeamDbRow {
   is_head: boolean;
 }
 
-const ROLE_LABEL: Record<string, string> = {
-  admin: COMMITTEE_MEMBER_LABEL,
-  committee: COMMITTEE_MEMBER_LABEL,
-  quality: COMMITTEE_MEMBER_LABEL,
-  delegate: COMMITTEE_MEMBER_LABEL,
-  team: COMMITTEE_MEMBER_LABEL,
-};
-
 type SortKey =
   | "full_name"
   | "committee_name"
@@ -80,7 +72,7 @@ interface ColumnDef {
 const COLUMNS: ColumnDef[] = [
   { key: "full_name", label: "الاسم الكامل", width: "min-w-[180px]" },
   { key: "committee_name", label: "اللجنة", width: "min-w-[160px]" },
-  { key: "role_title", label: "المسمى الوظيفي", width: "min-w-[140px]" },
+  { key: "role_title", label: "صفة العضو", width: "min-w-[140px]" },
   { key: "role_key", label: "نوع الدور", width: "min-w-[110px]" },
   { key: "phone", label: "الجوال", width: "min-w-[120px]" },
   { key: "specialty", label: "التخصص", width: "min-w-[140px]" },
@@ -176,7 +168,7 @@ export function TeamDatabaseDialog({ rows }: { rows: TeamDbRow[] }) {
     "#": i + 1,
     "الاسم الكامل": r.full_name,
     اللجنة: r.committee_name,
-    "المسمى الوظيفي": committeeMemberLabel(r),
+    "صفة العضو": committeeMemberLabel(r),
     "نوع الدور": committeeMemberLabel(r),
     الجوال: r.phone ?? "",
     "البريد الإلكتروني": r.email ?? "",
