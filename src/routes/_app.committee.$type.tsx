@@ -388,7 +388,7 @@ function CommitteePage() {
           .insert({
             committee_id: committeeId,
             full_name: fullName,
-            role_title: target?.role_title ?? "عضو لجنة",
+            role_title: COMMITTEE_MEMBER_LABEL,
             is_head: false,
           })
           .select("id")
@@ -466,7 +466,7 @@ function CommitteePage() {
           .insert({
             committee_id: committeeId,
             full_name: fullName,
-            role_title: target?.role_title ?? "عضو لجنة",
+            role_title: COMMITTEE_MEMBER_LABEL,
             is_head: false,
           })
           .select("id")
