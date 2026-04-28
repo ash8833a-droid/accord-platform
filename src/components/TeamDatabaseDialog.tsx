@@ -482,11 +482,11 @@ export function TeamDatabaseDialog({ rows }: { rows: TeamDbRow[] }) {
                     </td>
                     <td className="px-3 py-2">{r.committee_name}</td>
                     <td className="px-3 py-2 text-muted-foreground">
-                      {r.role_title ?? "—"}
+                      {committeeMemberLabel(r)}
                     </td>
                     <td className="px-3 py-2">
                       <Badge variant="outline" className="text-[10px]">
-                        {ROLE_LABEL[r.role_key] ?? r.role_key}
+                        {committeeMemberLabel(r)}
                       </Badge>
                     </td>
                     <td className="px-3 py-2 tabular-nums" dir="ltr">
