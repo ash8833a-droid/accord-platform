@@ -34,6 +34,7 @@ import { ClipboardList, ClipboardCheck, CalendarRange, ShieldCheck, UsersRound, 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth } from "@/lib/auth";
 import { useAppSetting } from "@/hooks/use-app-setting";
+import { COMMITTEE_HEAD_LABEL, COMMITTEE_MEMBER_LABEL, committeeMemberLabel } from "@/lib/committee-member-labels";
 
 export const Route = createFileRoute("/_app/committee/$type")({
   component: CommitteePage,
@@ -267,7 +268,7 @@ function CommitteePage() {
       virtualFromRoles.push({
         id: `role::${r.user_id}::${r.committee_id}`,
         full_name: name,
-        role_title: r.role === "committee" ? "عضو لجنة" : r.role === "quality" ? "الجودة" : r.role === "admin" ? "مدير نظام" : r.role,
+        role_title: COMMITTEE_MEMBER_LABEL,
         is_head: false,
         committee_id: r.committee_id,
         committee_name: committeeNameById.get(r.committee_id) ?? "",
