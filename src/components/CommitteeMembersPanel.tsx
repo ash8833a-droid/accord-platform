@@ -368,7 +368,7 @@ function AssignMemberDialog({
                     }`}
                     onClick={() => {
                       setSelectedId(c.user_id);
-                      setNewRole(c.role);
+                      setNewRole("committee");
                     }}
                   >
                     <input
@@ -409,9 +409,6 @@ function AssignMemberDialog({
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="committee">{COMMITTEE_MEMBER_LABEL}</SelectItem>
-                      <SelectItem value="quality">{COMMITTEE_MEMBER_LABEL}</SelectItem>
-                      <SelectItem value="admin">{COMMITTEE_MEMBER_LABEL}</SelectItem>
-                      <SelectItem value="delegate">{COMMITTEE_MEMBER_LABEL}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
