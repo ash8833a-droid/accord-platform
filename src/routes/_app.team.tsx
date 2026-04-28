@@ -38,6 +38,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { TeamDatabaseDialog, type TeamDbRow } from "@/components/TeamDatabaseDialog";
+import { COMMITTEE_HEAD_LABEL, COMMITTEE_MEMBER_LABEL, committeeMemberLabel } from "@/lib/committee-member-labels";
 
 export const Route = createFileRoute("/_app/team")({
   component: TeamPage,
@@ -128,9 +129,10 @@ function TeamPage() {
     const profMap = new Map(profiles.map((p) => [p.user_id, p]));
 
     const ROLE_LABEL: Record<string, string> = {
-      admin: "مدير نظام",
-      committee: "عضو لجنة",
-      quality: "الجودة",
+      admin: COMMITTEE_MEMBER_LABEL,
+      committee: COMMITTEE_MEMBER_LABEL,
+      quality: COMMITTEE_MEMBER_LABEL,
+      delegate: COMMITTEE_MEMBER_LABEL,
     };
 
     const teamKeySet = new Set(
@@ -155,7 +157,7 @@ function TeamPage() {
         id: `role-${r.user_id}-${r.committee_id}`,
         committee_id: r.committee_id,
         full_name: fullName,
-        role_title: ROLE_LABEL[r.role] ?? r.role,
+      role_title: ROLE_LABEL[r.role] ?? COMMITTEE_MEMBER_LABEL,
         phone: p?.phone ?? null,
         email: null,
         specialty: null,
@@ -191,7 +193,7 @@ function TeamPage() {
       committee_id: m.committee_id,
       committee_name: cMap.get(m.committee_id) ?? "—",
       full_name: m.full_name,
-      role_title: m.role_title,
+      role_title: committeeMemberLabel(m),
       role_key: m.role_key,
       phone: m.phone,
       email: m.email,
@@ -208,7 +210,7 @@ function TeamPage() {
     const { error } = await supabase.from("team_members").insert({
       committee_id: form.committee_id,
       full_name: form.full_name,
-      role_title: form.role_title || null,
+      role_title: committeeMemberLabel({ is_head: form.is_head }),
       phone: form.phone || null,
       email: form.email || null,
       specialty: form.specialty || null,
@@ -295,7 +297,7 @@ function TeamPage() {
                       }
                     />
                   </div>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 gap-3">
                     <div>
                       <Label>اللجنة *</Label>
                       <Select
@@ -326,16 +328,6 @@ function TeamPage() {
                           })}
                         </SelectContent>
                       </Select>
-                    </div>
-                    <div>
-                      <Label>المسمى الوظيفي</Label>
-                      <Input
-                        value={form.role_title}
-                        onChange={(e) =>
-                          setForm({ ...form, role_title: e.target.value })
-                        }
-                        placeholder="مثال: محاسب"
-                      />
                     </div>
                   </div>
                   <div>
@@ -404,10 +396,6 @@ function TeamPage() {
           <div className="flex items-center gap-1.5 flex-wrap">
             {([
               { v: "all", label: "الكل" },
-              { v: "admin", label: "مدير نظام" },
-              { v: "committee", label: "عضو لجنة" },
-              { v: "quality", label: "الجودة" },
-              { v: "team", label: "فريق العمل" },
             ] as { v: RoleFilter; label: string }[]).map((opt) => {
               const count =
                 opt.v === "all"
@@ -518,13 +506,13 @@ function TeamPage() {
                                 variant="secondary"
                                 className="bg-gold/15 text-gold-foreground gap-1 h-5 text-[10px]"
                               >
-                                <Crown className="h-3 w-3" /> رئيس اللجنة
+                                <Crown className="h-3 w-3" /> {COMMITTEE_HEAD_LABEL}
                               </Badge>
                             )}
                           </div>
                           {m.role_title && (
                             <p className="text-[11px] text-muted-foreground">
-                              {m.role_title}
+                              {committeeMemberLabel(m)}
                             </p>
                           )}
                           {m.specialty && (

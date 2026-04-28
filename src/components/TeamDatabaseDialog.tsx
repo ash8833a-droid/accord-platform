@@ -39,6 +39,7 @@ import {
   DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
+import { COMMITTEE_HEAD_LABEL, COMMITTEE_MEMBER_LABEL, committeeMemberLabel } from "@/lib/committee-member-labels";
 
 export interface TeamDbRow {
   id: string;
@@ -52,14 +53,6 @@ export interface TeamDbRow {
   specialty: string | null;
   is_head: boolean;
 }
-
-const ROLE_LABEL: Record<string, string> = {
-  admin: "مدير نظام",
-  committee: "عضو لجنة",
-  quality: "الجودة",
-  delegate: "مندوب",
-  team: "عضو فريق",
-};
 
 type SortKey =
   | "full_name"
@@ -79,7 +72,7 @@ interface ColumnDef {
 const COLUMNS: ColumnDef[] = [
   { key: "full_name", label: "الاسم الكامل", width: "min-w-[180px]" },
   { key: "committee_name", label: "اللجنة", width: "min-w-[160px]" },
-  { key: "role_title", label: "المسمى الوظيفي", width: "min-w-[140px]" },
+  { key: "role_title", label: "صفة العضو", width: "min-w-[140px]" },
   { key: "role_key", label: "نوع الدور", width: "min-w-[110px]" },
   { key: "phone", label: "الجوال", width: "min-w-[120px]" },
   { key: "specialty", label: "التخصص", width: "min-w-[140px]" },
@@ -120,7 +113,8 @@ export function TeamDatabaseDialog({ rows }: { rows: TeamDbRow[] }) {
     const q = search.trim().toLowerCase();
     return rows.filter((r) => {
       if (committeeFilter !== "all" && r.committee_id !== committeeFilter) return false;
-      if (roleFilter !== "all" && r.role_key !== roleFilter) return false;
+      if (roleFilter === "head" && !r.is_head) return false;
+      if (roleFilter === "member" && r.is_head) return false;
       if (!q) return true;
       return (
         r.full_name.toLowerCase().includes(q) ||
@@ -174,8 +168,8 @@ export function TeamDatabaseDialog({ rows }: { rows: TeamDbRow[] }) {
     "#": i + 1,
     "الاسم الكامل": r.full_name,
     اللجنة: r.committee_name,
-    "المسمى الوظيفي": r.role_title ?? "",
-    "نوع الدور": ROLE_LABEL[r.role_key] ?? r.role_key,
+    "صفة العضو": committeeMemberLabel(r),
+    "نوع الدور": committeeMemberLabel(r),
     الجوال: r.phone ?? "",
     "البريد الإلكتروني": r.email ?? "",
     التخصص: r.specialty ?? "",
@@ -383,12 +377,9 @@ export function TeamDatabaseDialog({ rows }: { rows: TeamDbRow[] }) {
                 <SelectValue placeholder="الدور" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">كل الأدوار</SelectItem>
-                <SelectItem value="admin">مدير نظام</SelectItem>
-                <SelectItem value="committee">عضو لجنة</SelectItem>
-                <SelectItem value="quality">الجودة</SelectItem>
-                <SelectItem value="delegate">مندوب</SelectItem>
-                <SelectItem value="team">عضو فريق</SelectItem>
+                <SelectItem value="all">كل الأعضاء</SelectItem>
+                <SelectItem value="head">{COMMITTEE_HEAD_LABEL}</SelectItem>
+                <SelectItem value="member">{COMMITTEE_MEMBER_LABEL}</SelectItem>
               </SelectContent>
             </Select>
             <DropdownMenu>
@@ -483,11 +474,11 @@ export function TeamDatabaseDialog({ rows }: { rows: TeamDbRow[] }) {
                     </td>
                     <td className="px-3 py-2">{r.committee_name}</td>
                     <td className="px-3 py-2 text-muted-foreground">
-                      {r.role_title ?? "—"}
+                      {committeeMemberLabel(r)}
                     </td>
                     <td className="px-3 py-2">
                       <Badge variant="outline" className="text-[10px]">
-                        {ROLE_LABEL[r.role_key] ?? r.role_key}
+                        {committeeMemberLabel(r)}
                       </Badge>
                     </td>
                     <td className="px-3 py-2 tabular-nums" dir="ltr">

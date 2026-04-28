@@ -34,6 +34,7 @@ import { ClipboardList, ClipboardCheck, CalendarRange, ShieldCheck, UsersRound, 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth } from "@/lib/auth";
 import { useAppSetting } from "@/hooks/use-app-setting";
+import { COMMITTEE_MEMBER_LABEL, committeeMemberLabel } from "@/lib/committee-member-labels";
 
 export const Route = createFileRoute("/_app/committee/$type")({
   component: CommitteePage,
@@ -267,7 +268,7 @@ function CommitteePage() {
       virtualFromRoles.push({
         id: `role::${r.user_id}::${r.committee_id}`,
         full_name: name,
-        role_title: r.role === "committee" ? "عضو لجنة" : r.role === "quality" ? "الجودة" : r.role === "admin" ? "مدير نظام" : r.role,
+        role_title: COMMITTEE_MEMBER_LABEL,
         is_head: false,
         committee_id: r.committee_id,
         committee_name: committeeNameById.get(r.committee_id) ?? "",
@@ -387,7 +388,7 @@ function CommitteePage() {
           .insert({
             committee_id: committeeId,
             full_name: fullName,
-            role_title: target?.role_title ?? "عضو لجنة",
+            role_title: COMMITTEE_MEMBER_LABEL,
             is_head: false,
           })
           .select("id")
@@ -465,7 +466,7 @@ function CommitteePage() {
           .insert({
             committee_id: committeeId,
             full_name: fullName,
-            role_title: target?.role_title ?? "عضو لجنة",
+            role_title: COMMITTEE_MEMBER_LABEL,
             is_head: false,
           })
           .select("id")
@@ -982,7 +983,7 @@ function CommitteePage() {
                         <div className="px-2 py-1 text-[10px] font-bold text-muted-foreground bg-muted/40 mt-1">{cm.label}</div>
                         {list.map((m) => (
                           <SelectItem key={m.id} value={m.id}>
-                            {m.full_name}{m.role_title ? ` · ${m.role_title}` : ""}{m.is_head ? " (رئيس)" : ""}
+                            {m.full_name} · {committeeMemberLabel(m)}
                           </SelectItem>
                         ))}
                       </div>
@@ -1179,7 +1180,7 @@ function CommitteePage() {
                             </div>
                             {members.map((m) => (
                               <SelectItem key={`own-${m.id}`} value={m.id}>
-                                {m.full_name}{m.role_title ? ` · ${m.role_title}` : ""}{m.is_head ? " (رئيس)" : ""}
+                                {m.full_name} · {committeeMemberLabel(m)}
                               </SelectItem>
                             ))}
                           </div>
@@ -1192,7 +1193,7 @@ function CommitteePage() {
                               <div className="px-2 py-1 text-[10px] font-bold text-muted-foreground bg-muted/40 mt-1">{cm.label} (لجنة أخرى)</div>
                               {list.map((m) => (
                                 <SelectItem key={m.id} value={m.id}>
-                                  {m.full_name}{m.role_title ? ` · ${m.role_title}` : ""}{m.is_head ? " (رئيس)" : ""}
+                                  {m.full_name} · {committeeMemberLabel(m)}
                                 </SelectItem>
                               ))}
                             </div>
@@ -1598,9 +1599,9 @@ function QuickAssignPopover({
                       </AvatarFallback>
                     </Avatar>
                     <span className="truncate">{m.full_name}</span>
-                    {m.is_head && (
-                      <Badge className="bg-gold/15 text-gold-foreground border border-gold/40 text-[9px] h-4 px-1">رئيس</Badge>
-                    )}
+                    <Badge className="bg-gold/15 text-gold-foreground border border-gold/40 text-[9px] h-4 px-1">
+                      {committeeMemberLabel(m)}
+                    </Badge>
                     {task.assigned_to === m.id && (
                       <CheckCircle2 className="h-3.5 w-3.5 text-primary ms-auto shrink-0" />
                     )}
