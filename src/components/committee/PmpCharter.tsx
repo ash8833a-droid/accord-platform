@@ -1,4 +1,4 @@
-import { Target, Lightbulb, Flag, ListChecks, Compass } from "lucide-react";
+import { Target, Lightbulb, Flag, ListChecks, Compass, Eye } from "lucide-react";
 import type { CommitteeMeta } from "@/lib/committees";
 import { PHASE_LABELS } from "@/lib/pmp-tasks";
 
@@ -58,6 +58,32 @@ const COMMITTEE_TARGETS: Record<string, string[]> = {
   ],
 };
 
+// Vision statement per committee — a concise aspirational sentence.
+const COMMITTEE_VISION: Record<string, string> = {
+  supreme: "قيادة مرجعية تُحوّل مبادرة الزواج الجماعي إلى نموذج مؤسسي مستدام ومُلهِم.",
+  finance: "إدارة مالية شفافة تضمن استدامة المبادرة وثقة الداعمين والمستفيدين.",
+  media: "صورة إعلامية مشرّفة تعكس قيم المبادرة وتُلهم المجتمع للمشاركة والدعم.",
+  quality: "جودة تنفيذية متميزة تجعل تجربة كل عريس وضيف لا تُنسى.",
+  programs: "برامج وفقرات مُحكمة الإخراج تليق بفرحة العرسان ومكانة الحفل.",
+  dinner: "ضيافة كريمة بمعايير صحية عالية تليق بمقام الضيوف والعرسان.",
+  procurement: "سلسلة إمداد منضبطة تُسلّم المستلزمات في الوقت والجودة المطلوبة.",
+  reception: "استقبال راقٍ ومنظّم يعكس حُسن الضيافة منذ اللحظة الأولى.",
+  women: "قسم نسائي متكامل يوفّر بيئة آمنة ومريحة لأمهات وأخوات العرسان.",
+};
+
+// Mission statement per committee — what the committee does, day-to-day.
+const COMMITTEE_MISSION: Record<string, string> = {
+  supreme: "اعتماد الخطط، متابعة الأداء، اتخاذ القرارات الاستراتيجية، وحوكمة عمل اللجان.",
+  finance: "إعداد الموازنة، تحصيل الاشتراكات، صرف المستحقات، وإصدار التقارير المالية الدورية.",
+  media: "التغطية الإعلامية، إدارة المحتوى الرقمي، أرشفة الحفل، والتواصل مع الجمهور.",
+  quality: "وضع المعايير، تدقيق أعمال اللجان، قياس الرضا، وضمان التحسين المستمر.",
+  programs: "تصميم الفقرات، إدارة الجدول الزمني، تنسيق البروفات، وإخراج الحفل بسلاسة.",
+  dinner: "تخطيط قائمة الطعام، اختيار المورّد، ضمان السلامة الغذائية، وإدارة التقديم.",
+  procurement: "تحديد الاحتياجات، التفاوض مع المورّدين، الشراء، والتسليم في الموعد.",
+  reception: "تنظيم بروتوكول الاستقبال، إدارة كبار الضيوف، والتنسيق مع الأمن.",
+  women: "تجهيز القسم النسائي، التنسيق مع اللجان، وضمان راحة الحاضرات.",
+};
+
 const PHASE_DESC: Record<string, string> = {
   initiating: "اعتماد ميثاق اللجنة وتحديد أصحاب المصلحة",
   planning: "إعداد خطة النطاق والجدول والموازنة والمخاطر",
@@ -78,6 +104,8 @@ export function PmpCharter({ meta }: { meta: CommitteeMeta }) {
   const Icon = meta.icon;
   const targets = COMMITTEE_TARGETS[meta.type] ?? [];
   const goals = meta.goals ?? [];
+  const vision = COMMITTEE_VISION[meta.type] ?? meta.description;
+  const mission = COMMITTEE_MISSION[meta.type] ?? meta.description;
   const phases: Array<keyof typeof PHASE_LABELS> = [
     "initiating",
     "planning",
@@ -110,65 +138,70 @@ export function PmpCharter({ meta }: { meta: CommitteeMeta }) {
           </div>
         </div>
 
-        {/* 2) Idea / Mission banner */}
-        <div className="rounded-2xl border bg-gradient-to-bl from-primary/5 to-transparent p-4">
-          <div className="flex items-start gap-3">
-            <span className="h-8 w-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
-              <Lightbulb className="h-4 w-4" />
-            </span>
-            <div className="min-w-0">
-              <h3 className="text-sm font-bold mb-1">فكرة اللجنة ورسالتها</h3>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                {meta.description} — تعمل اللجنة ضمن منظومة الزواج الجماعي وفق منهجية إدارة المشاريع
-                الاحترافية (PMP) لضمان تسليم مخرجات عالية الجودة في الوقت والتكلفة المحددين.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* 3) Goals + 4) Targets (two-column grid, goals first) */}
-        <div className="grid gap-4 md:grid-cols-2">
-          <div className="rounded-2xl border bg-background/70 backdrop-blur-sm p-4">
-            <div className="flex items-center gap-2 mb-3">
-              <span className="h-8 w-8 rounded-lg bg-emerald-500/10 text-emerald-600 flex items-center justify-center">
-                <Flag className="h-4 w-4" />
+        {/* Identity hero: Vision · Mission · Goals */}
+        <div className="grid gap-3 md:grid-cols-3">
+          <div className="rounded-2xl border bg-gradient-to-bl from-violet-500/10 via-card to-card p-4 shadow-sm">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="h-9 w-9 rounded-xl bg-violet-500/15 text-violet-600 dark:text-violet-300 flex items-center justify-center">
+                <Eye className="h-4.5 w-4.5" />
               </span>
-              <h3 className="text-sm font-bold">الأهداف الاستراتيجية</h3>
+              <h3 className="text-sm font-extrabold">الرؤية</h3>
+            </div>
+            <p className="text-sm leading-relaxed text-foreground/90">{vision}</p>
+          </div>
+
+          <div className="rounded-2xl border bg-gradient-to-bl from-primary/10 via-card to-card p-4 shadow-sm">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="h-9 w-9 rounded-xl bg-primary/15 text-primary flex items-center justify-center">
+                <Lightbulb className="h-4.5 w-4.5" />
+              </span>
+              <h3 className="text-sm font-extrabold">الرسالة</h3>
+            </div>
+            <p className="text-sm leading-relaxed text-foreground/90">{mission}</p>
+          </div>
+
+          <div className="rounded-2xl border bg-gradient-to-bl from-emerald-500/10 via-card to-card p-4 shadow-sm">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="h-9 w-9 rounded-xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 flex items-center justify-center">
+                <Flag className="h-4.5 w-4.5" />
+              </span>
+              <h3 className="text-sm font-extrabold">الأهداف الاستراتيجية</h3>
             </div>
             {goals.length === 0 ? (
               <p className="text-xs text-muted-foreground">لم تُحدَّد أهداف بعد.</p>
             ) : (
-              <ul className="space-y-2">
-                {goals.map((g, i) => (
-                  <li key={i} className="flex items-start gap-2 text-sm leading-relaxed">
-                    <span className="mt-1 h-1.5 w-1.5 rounded-full bg-emerald-500 shrink-0" />
+              <ul className="space-y-1.5">
+                {goals.slice(0, 4).map((g, i) => (
+                  <li key={i} className="flex items-start gap-2 text-[13px] leading-relaxed">
+                    <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-emerald-500 shrink-0" />
                     <span>{g}</span>
                   </li>
                 ))}
               </ul>
             )}
           </div>
+        </div>
 
-          <div className="rounded-2xl border bg-background/70 backdrop-blur-sm p-4">
-            <div className="flex items-center gap-2 mb-3">
-              <span className="h-8 w-8 rounded-lg bg-sky-500/10 text-sky-600 flex items-center justify-center">
-                <Target className="h-4 w-4" />
-              </span>
-              <h3 className="text-sm font-bold">المستهدفات ومؤشرات النجاح</h3>
-            </div>
-            {targets.length === 0 ? (
-              <p className="text-xs text-muted-foreground">لم تُحدَّد مستهدفات بعد.</p>
-            ) : (
-              <ul className="space-y-2">
-                {targets.map((t, i) => (
-                  <li key={i} className="flex items-start gap-2 text-sm leading-relaxed">
-                    <span className="mt-1 h-1.5 w-1.5 rounded-full bg-sky-500 shrink-0" />
-                    <span>{t}</span>
-                  </li>
-                ))}
-              </ul>
-            )}
+        {/* Targets / KPIs */}
+        <div className="rounded-2xl border bg-background/70 backdrop-blur-sm p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <span className="h-8 w-8 rounded-lg bg-sky-500/10 text-sky-600 flex items-center justify-center">
+              <Target className="h-4 w-4" />
+            </span>
+            <h3 className="text-sm font-bold">المستهدفات ومؤشرات النجاح</h3>
           </div>
+          {targets.length === 0 ? (
+            <p className="text-xs text-muted-foreground">لم تُحدَّد مستهدفات بعد.</p>
+          ) : (
+            <ul className="grid gap-2 md:grid-cols-2">
+              {targets.map((t, i) => (
+                <li key={i} className="flex items-start gap-2 text-sm leading-relaxed">
+                  <span className="mt-1 h-1.5 w-1.5 rounded-full bg-sky-500 shrink-0" />
+                  <span>{t}</span>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
 
         {/* 5) PMP Phases lifecycle */}
