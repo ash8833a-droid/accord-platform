@@ -76,32 +76,34 @@ function AdminCenter() {
       )}
 
       <Tabs defaultValue="dashboard" className="w-full">
-        <TabsList dir="rtl" className="grid w-full grid-cols-8 max-w-6xl ms-auto">
-          <TabsTrigger value="dashboard" className="gap-2">
-            <LayoutDashboard className="h-4 w-4" /> لوحة التحكم
-          </TabsTrigger>
-          <TabsTrigger value="members" className="gap-2">
-            <UserCheck className="h-4 w-4" /> طلبات الانضمام
-          </TabsTrigger>
-          <TabsTrigger value="approved" className="gap-2">
-            <Users className="h-4 w-4" /> الأعضاء
-          </TabsTrigger>
-          <TabsTrigger value="heads" className="gap-2">
-            <Crown className="h-4 w-4" /> رؤساء اللجان
-          </TabsTrigger>
-          <TabsTrigger value="tasks" className="gap-2">
-            <ListTodo className="h-4 w-4" /> المهام
-          </TabsTrigger>
-          <TabsTrigger value="meetings" className="gap-2">
-            <CalendarRange className="h-4 w-4" /> الاجتماعات
-          </TabsTrigger>
-          <TabsTrigger value="news" className="gap-2">
-            <Megaphone className="h-4 w-4" /> الأخبار
-          </TabsTrigger>
-          <TabsTrigger value="settings" className="gap-2">
-            <Settings className="h-4 w-4" /> الإعدادات
-          </TabsTrigger>
-        </TabsList>
+        <div className="w-full overflow-x-auto -mx-2 px-2 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <TabsList dir="rtl" className="inline-flex w-max min-w-full lg:grid lg:grid-cols-8 lg:max-w-6xl lg:ms-auto">
+            <TabsTrigger value="dashboard" className="gap-2 whitespace-nowrap shrink-0">
+              <LayoutDashboard className="h-4 w-4" /> لوحة التحكم
+            </TabsTrigger>
+            <TabsTrigger value="members" className="gap-2 whitespace-nowrap shrink-0">
+              <UserCheck className="h-4 w-4" /> طلبات الانضمام
+            </TabsTrigger>
+            <TabsTrigger value="approved" className="gap-2 whitespace-nowrap shrink-0">
+              <Users className="h-4 w-4" /> الأعضاء
+            </TabsTrigger>
+            <TabsTrigger value="heads" className="gap-2 whitespace-nowrap shrink-0">
+              <Crown className="h-4 w-4" /> رؤساء اللجان
+            </TabsTrigger>
+            <TabsTrigger value="tasks" className="gap-2 whitespace-nowrap shrink-0">
+              <ListTodo className="h-4 w-4" /> المهام
+            </TabsTrigger>
+            <TabsTrigger value="meetings" className="gap-2 whitespace-nowrap shrink-0">
+              <CalendarRange className="h-4 w-4" /> الاجتماعات
+            </TabsTrigger>
+            <TabsTrigger value="news" className="gap-2 whitespace-nowrap shrink-0">
+              <Megaphone className="h-4 w-4" /> الأخبار
+            </TabsTrigger>
+            <TabsTrigger value="settings" className="gap-2 whitespace-nowrap shrink-0">
+              <Settings className="h-4 w-4" /> الإعدادات
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
         <TabsContent value="dashboard" className="mt-6">
           <DashboardOverview showHero={false} />
