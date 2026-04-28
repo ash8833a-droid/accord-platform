@@ -252,12 +252,14 @@ export function CommunicationsBoard() {
       </div>
 
       <Tabs value={filter} onValueChange={(v) => setFilter(v as any)}>
-        <TabsList className="grid grid-cols-5 w-full max-w-2xl">
-          <TabsTrigger value="all">الكل</TabsTrigger>
-          {(Object.keys(TYPE_META) as PostType[]).map(k => (
-            <TabsTrigger key={k} value={k}>{TYPE_META[k].label}</TabsTrigger>
-          ))}
-        </TabsList>
+        <div className="w-full overflow-x-auto -mx-2 px-2 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <TabsList className="inline-flex w-max min-w-full sm:grid sm:grid-cols-5 sm:w-full sm:max-w-2xl">
+            <TabsTrigger value="all" className="whitespace-nowrap shrink-0">الكل</TabsTrigger>
+            {(Object.keys(TYPE_META) as PostType[]).map(k => (
+              <TabsTrigger key={k} value={k} className="whitespace-nowrap shrink-0">{TYPE_META[k].label}</TabsTrigger>
+            ))}
+          </TabsList>
+        </div>
       </Tabs>
 
       {loading ? (
