@@ -39,6 +39,7 @@ import {
   DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
+import { COMMITTEE_HEAD_LABEL, COMMITTEE_MEMBER_LABEL, committeeMemberLabel } from "@/lib/committee-member-labels";
 
 export interface TeamDbRow {
   id: string;
@@ -54,11 +55,11 @@ export interface TeamDbRow {
 }
 
 const ROLE_LABEL: Record<string, string> = {
-  admin: "مدير نظام",
-  committee: "عضو لجنة",
-  quality: "الجودة",
-  delegate: "مندوب",
-  team: "عضو فريق",
+  admin: COMMITTEE_MEMBER_LABEL,
+  committee: COMMITTEE_MEMBER_LABEL,
+  quality: COMMITTEE_MEMBER_LABEL,
+  delegate: COMMITTEE_MEMBER_LABEL,
+  team: COMMITTEE_MEMBER_LABEL,
 };
 
 type SortKey =
@@ -120,7 +121,8 @@ export function TeamDatabaseDialog({ rows }: { rows: TeamDbRow[] }) {
     const q = search.trim().toLowerCase();
     return rows.filter((r) => {
       if (committeeFilter !== "all" && r.committee_id !== committeeFilter) return false;
-      if (roleFilter !== "all" && r.role_key !== roleFilter) return false;
+      if (roleFilter === "head" && !r.is_head) return false;
+      if (roleFilter === "member" && r.is_head) return false;
       if (!q) return true;
       return (
         r.full_name.toLowerCase().includes(q) ||
@@ -174,8 +176,8 @@ export function TeamDatabaseDialog({ rows }: { rows: TeamDbRow[] }) {
     "#": i + 1,
     "الاسم الكامل": r.full_name,
     اللجنة: r.committee_name,
-    "المسمى الوظيفي": r.role_title ?? "",
-    "نوع الدور": ROLE_LABEL[r.role_key] ?? r.role_key,
+    "المسمى الوظيفي": committeeMemberLabel(r),
+    "نوع الدور": committeeMemberLabel(r),
     الجوال: r.phone ?? "",
     "البريد الإلكتروني": r.email ?? "",
     التخصص: r.specialty ?? "",
@@ -383,12 +385,9 @@ export function TeamDatabaseDialog({ rows }: { rows: TeamDbRow[] }) {
                 <SelectValue placeholder="الدور" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">كل الأدوار</SelectItem>
-                <SelectItem value="admin">مدير نظام</SelectItem>
-                <SelectItem value="committee">عضو لجنة</SelectItem>
-                <SelectItem value="quality">الجودة</SelectItem>
-                <SelectItem value="delegate">مندوب</SelectItem>
-                <SelectItem value="team">عضو فريق</SelectItem>
+                <SelectItem value="all">كل الأعضاء</SelectItem>
+                <SelectItem value="head">{COMMITTEE_HEAD_LABEL}</SelectItem>
+                <SelectItem value="member">{COMMITTEE_MEMBER_LABEL}</SelectItem>
               </SelectContent>
             </Select>
             <DropdownMenu>
