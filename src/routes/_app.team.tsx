@@ -38,6 +38,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { TeamDatabaseDialog, type TeamDbRow } from "@/components/TeamDatabaseDialog";
+import { COMMITTEE_HEAD_LABEL, COMMITTEE_MEMBER_LABEL, committeeMemberLabel } from "@/lib/committee-member-labels";
 
 export const Route = createFileRoute("/_app/team")({
   component: TeamPage,
@@ -128,9 +129,10 @@ function TeamPage() {
     const profMap = new Map(profiles.map((p) => [p.user_id, p]));
 
     const ROLE_LABEL: Record<string, string> = {
-      admin: "مدير نظام",
-      committee: "عضو لجنة",
-      quality: "الجودة",
+      admin: COMMITTEE_MEMBER_LABEL,
+      committee: COMMITTEE_MEMBER_LABEL,
+      quality: COMMITTEE_MEMBER_LABEL,
+      delegate: COMMITTEE_MEMBER_LABEL,
     };
 
     const teamKeySet = new Set(
@@ -155,7 +157,7 @@ function TeamPage() {
         id: `role-${r.user_id}-${r.committee_id}`,
         committee_id: r.committee_id,
         full_name: fullName,
-        role_title: ROLE_LABEL[r.role] ?? r.role,
+      role_title: ROLE_LABEL[r.role] ?? COMMITTEE_MEMBER_LABEL,
         phone: p?.phone ?? null,
         email: null,
         specialty: null,
