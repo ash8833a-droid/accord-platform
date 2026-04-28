@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import defaultLogo from "@/assets/brand-logo.png";
+import defaultLogo from "@/assets/logo.jpeg";
 import { setExportBrand } from "@/lib/exporters";
 
 export interface BrandIdentity {
