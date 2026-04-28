@@ -983,7 +983,7 @@ function CommitteePage() {
                         <div className="px-2 py-1 text-[10px] font-bold text-muted-foreground bg-muted/40 mt-1">{cm.label}</div>
                         {list.map((m) => (
                           <SelectItem key={m.id} value={m.id}>
-                            {m.full_name}{m.role_title ? ` · ${m.role_title}` : ""}{m.is_head ? " (رئيس)" : ""}
+                            {m.full_name} · {committeeMemberLabel(m)}
                           </SelectItem>
                         ))}
                       </div>
@@ -1180,7 +1180,7 @@ function CommitteePage() {
                             </div>
                             {members.map((m) => (
                               <SelectItem key={`own-${m.id}`} value={m.id}>
-                                {m.full_name}{m.role_title ? ` · ${m.role_title}` : ""}{m.is_head ? " (رئيس)" : ""}
+                                {m.full_name} · {committeeMemberLabel(m)}
                               </SelectItem>
                             ))}
                           </div>
@@ -1193,7 +1193,7 @@ function CommitteePage() {
                               <div className="px-2 py-1 text-[10px] font-bold text-muted-foreground bg-muted/40 mt-1">{cm.label} (لجنة أخرى)</div>
                               {list.map((m) => (
                                 <SelectItem key={m.id} value={m.id}>
-                                  {m.full_name}{m.role_title ? ` · ${m.role_title}` : ""}{m.is_head ? " (رئيس)" : ""}
+                                  {m.full_name} · {committeeMemberLabel(m)}
                                 </SelectItem>
                               ))}
                             </div>
