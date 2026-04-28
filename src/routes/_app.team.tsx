@@ -131,7 +131,6 @@ function TeamPage() {
       admin: "مدير نظام",
       committee: "عضو لجنة",
       quality: "الجودة",
-      delegate: "مندوب",
     };
 
     const teamKeySet = new Set(
@@ -408,7 +407,6 @@ function TeamPage() {
               { v: "admin", label: "مدير نظام" },
               { v: "committee", label: "عضو لجنة" },
               { v: "quality", label: "الجودة" },
-              { v: "delegate", label: "مندوب" },
               { v: "team", label: "فريق العمل" },
             ] as { v: RoleFilter; label: string }[]).map((opt) => {
               const count =
