@@ -1480,11 +1480,16 @@ function Header({ meta }: { meta: typeof COMMITTEES[number] }) {
         </span>
         <div>
           <h1 className="text-2xl lg:text-3xl font-bold">{meta.label}</h1>
-          <p className="text-xs text-muted-foreground">{meta.description}</p>
+          <div className="flex items-center gap-2 mt-1 flex-wrap">
+            <Badge variant="secondary" className="bg-amber-500/10 text-amber-700 dark:text-amber-300 border-0 text-[10px] px-2">
+              ورشة العمل التنفيذية
+            </Badge>
+            <p className="text-xs text-muted-foreground">{meta.description}</p>
+          </div>
         </div>
       </div>
-      <Link to="/admin" className="text-xs text-muted-foreground hover:text-primary inline-flex items-center gap-1">
-        <ArrowLeft className="h-3 w-3" /> العودة للإدارة العليا
+      <Link to="/portal" className="text-xs text-muted-foreground hover:text-primary inline-flex items-center gap-1">
+        <ArrowLeft className="h-3 w-3" /> العودة لبوابتي
       </Link>
     </div>
   );
