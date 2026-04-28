@@ -34,7 +34,7 @@ import { ClipboardList, ClipboardCheck, CalendarRange, ShieldCheck, UsersRound, 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth } from "@/lib/auth";
 import { useAppSetting } from "@/hooks/use-app-setting";
-import { COMMITTEE_HEAD_LABEL, COMMITTEE_MEMBER_LABEL, committeeMemberLabel } from "@/lib/committee-member-labels";
+import { COMMITTEE_MEMBER_LABEL, committeeMemberLabel } from "@/lib/committee-member-labels";
 
 export const Route = createFileRoute("/_app/committee/$type")({
   component: CommitteePage,
