@@ -130,8 +130,8 @@ function TeamPage() {
     const ROLE_LABEL: Record<string, string> = {
       admin: "مدير نظام",
       committee: "عضو لجنة",
-      quality: "الجودة",
-      delegate: "مندوب",
+      quality: "عضو لجنة",
+      delegate: "عضو لجنة",
     };
 
     const teamKeySet = new Set(
@@ -149,14 +149,18 @@ function TeamPage() {
       const key = `${r.committee_id}::${fullName.trim()}`;
       if (teamKeySet.has(key)) return;
       teamKeySet.add(key);
-      const roleKey = (["admin", "committee", "quality", "delegate"].includes(r.role)
-        ? r.role
+      // Normalize legacy roles (delegate / quality) into "committee" for display & filtering
+      const normalizedRole = r.role === "delegate" || r.role === "quality" ? "committee" : r.role;
+      const roleKey = (["admin", "committee"].includes(normalizedRole)
+        ? normalizedRole
         : "committee") as Exclude<RoleFilter, "all" | "team">;
       assignedMembers.push({
         id: `role-${r.user_id}-${r.committee_id}`,
         committee_id: r.committee_id,
         full_name: fullName,
-        role_title: ROLE_LABEL[r.role] ?? r.role,
+        role_title: headByCommittee.get(r.committee_id) === r.user_id
+          ? "رئيس لجنة"
+          : (ROLE_LABEL[r.role] ?? "عضو لجنة"),
         phone: p?.phone ?? null,
         email: null,
         specialty: null,
@@ -407,8 +411,6 @@ function TeamPage() {
               { v: "all", label: "الكل" },
               { v: "admin", label: "مدير نظام" },
               { v: "committee", label: "عضو لجنة" },
-              { v: "quality", label: "الجودة" },
-              { v: "delegate", label: "مندوب" },
               { v: "team", label: "فريق العمل" },
             ] as { v: RoleFilter; label: string }[]).map((opt) => {
               const count =

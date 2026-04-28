@@ -32,8 +32,7 @@ type AppRole = "admin" | "committee" | "delegate" | "quality";
 
 const ROLES: { value: AppRole; label: string }[] = [
   { value: "committee", label: "رئيس لجنة" },
-  { value: "quality", label: "عضو" },
-  { value: "delegate", label: "متعاون" },
+  { value: "delegate", label: "عضو لجنة" },
   { value: "admin", label: "مدير نظام" },
 ];
 
