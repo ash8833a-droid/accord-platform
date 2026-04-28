@@ -168,22 +168,27 @@ function PublicHome() {
             </div>
           </div>
 
-          {/* LEFT — Logo mockup card (balanced on mobile + desktop) */}
-          <div className="order-1 lg:order-2 animate-fade-up" style={{ animationDelay: "0.15s" }}>
-            <div className="relative mx-auto w-full max-w-[320px] sm:max-w-[380px] lg:max-w-[460px]">
-              {/* Single thin gold frame for elegance */}
-              <div className="absolute -inset-2 rounded-[1.25rem] border border-gold/30 pointer-events-none" />
-
-              <div className="relative aspect-[4/5] rounded-2xl overflow-hidden shadow-soft border border-border bg-card">
-                <img
-                  src={heroBanner}
-                  alt="لجنة الزواج الجماعي — حيث تجتمع الهِمَم على صناعة الفرح"
-                  width={1024}
-                  height={1280}
-                  loading="eager"
-                  className="w-full h-full object-contain"
-                />
-              </div>
+          {/* LEFT — Transparent logo (no frame, balanced for mobile + desktop) */}
+          <div className="order-1 lg:order-2 animate-fade-up flex justify-center" style={{ animationDelay: "0.15s" }}>
+            <div className="relative mx-auto w-full max-w-[260px] sm:max-w-[340px] lg:max-w-[440px]">
+              {/* Soft radial glow behind the logo for depth on light backgrounds */}
+              <div
+                className="absolute inset-0 -z-10 blur-3xl opacity-60 pointer-events-none"
+                style={{
+                  background:
+                    "radial-gradient(circle at 50% 50%, rgba(196,162,92,0.25), rgba(27,79,88,0.10) 55%, transparent 75%)",
+                }}
+                aria-hidden="true"
+              />
+              <img
+                src={heroLogo}
+                alt="لجنة الزواج الجماعي — حيث تجتمع الهِمَم على صناعة الفرح"
+                width={512}
+                height={512}
+                loading="eager"
+                className="w-full h-auto object-contain drop-shadow-[0_10px_30px_rgba(196,162,92,0.35)] select-none"
+                draggable={false}
+              />
             </div>
           </div>
         </div>
