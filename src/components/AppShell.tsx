@@ -15,7 +15,7 @@ import {
   ClipboardCheck,
   Home,
 } from "lucide-react";
-import { ShoppingCart, MessagesSquare } from "lucide-react";
+import { ShoppingCart, MessagesSquare, LayoutGrid } from "lucide-react";
 import { Logo } from "./Logo";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
@@ -29,6 +29,7 @@ import { Breadcrumbs } from "@/components/Breadcrumbs";
 
 const ADMIN_TOP = [
   { to: "/admin", label: "الإدارة العليا", icon: ShieldCheck },
+  { to: "/portal", label: "بوابتي", icon: LayoutGrid },
   { to: "/team", label: "فريق العمل", icon: Users },
   { to: "/task-responses", label: "ردود اللجان", icon: ClipboardCheck },
 ] as const;
@@ -41,6 +42,7 @@ const ADMIN_BOTTOM = [
 ] as const;
 
 const RESTRICTED_EXTRA = [
+  { to: "/portal", label: "بوابتي", icon: LayoutGrid },
   { to: "/ideas", label: "بنك الأفكار", icon: Lightbulb },
   { to: "/communications", label: "التواصل", icon: MessagesSquare },
 ] as const;
