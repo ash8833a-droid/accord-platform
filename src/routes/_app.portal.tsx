@@ -499,6 +499,7 @@ function PortalPage() {
           </div>
         )}
       </Card>
+      <QuickPurchaseRequestDialog open={purchaseOpen} onOpenChange={setPurchaseOpen} />
     </div>
   );
 }
