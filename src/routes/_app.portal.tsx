@@ -250,8 +250,13 @@ function PortalPage() {
     return (
       <Card className="p-10 text-center max-w-xl mx-auto">
         <LayoutGrid className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-        <h2 className="text-lg font-bold mb-2">لا تنتمي لأي لجنة بعد</h2>
-        <p className="text-sm text-muted-foreground">سيتم تفعيل بوابتك تلقائياً بمجرد اعتماد عضويتك في لجنة.</p>
+        <h2 className="text-lg font-bold mb-2">هذه شاشتك الشخصية</h2>
+        <p className="text-sm text-muted-foreground mb-4">
+          ستظهر هنا مهامك ومؤشرات إنجازك وطلبات صرفك حال اعتماد عضويتك في لجنة.
+        </p>
+        <p className="text-xs text-muted-foreground">
+          بوابتي = شاشة العرض الشخصية · اللجنة = ورشة العمل التنفيذية
+        </p>
       </Card>
     );
   }
