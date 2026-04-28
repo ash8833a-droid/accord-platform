@@ -64,7 +64,7 @@ function AppLayout() {
     }
 
     // Allowed paths for restricted users
-    const allowed: string[] = ["/ideas", "/procurement-requests", "/communications"];
+    const allowed: string[] = ["/ideas", "/procurement-requests", "/communications", "/portal"];
     if (isSupreme) allowed.push("/admin");
     if (myCommitteeType) allowed.push(`/committee/${myCommitteeType}`);
     const ok = allowed.some((p) => path === p || path.startsWith(p + "/"));
