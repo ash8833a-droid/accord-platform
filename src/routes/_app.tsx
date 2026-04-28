@@ -63,14 +63,14 @@ function AppLayout() {
       }
     }
 
-    // Allowed paths for restricted users
-    const allowed: string[] = ["/ideas", "/procurement-requests", "/communications", "/portal"];
+    // المسارات المسموحة للأعضاء العاديين — تركيز على بوابتي + لجنتهم فقط
+    const allowed: string[] = ["/portal", "/payment-requests", "/procurement-requests"];
     if (isSupreme) allowed.push("/admin");
     if (myCommitteeType) allowed.push(`/committee/${myCommitteeType}`);
     const ok = allowed.some((p) => path === p || path.startsWith(p + "/"));
     if (!ok) {
-      if (myCommitteeType) nav({ to: "/committee/$type", params: { type: myCommitteeType } });
-      else nav({ to: "/ideas" });
+      // الافتراضي: بوابتي هي المدخل الموحّد
+      nav({ to: "/portal" });
     }
   }, [user, loading, approved, nav, path, restricted, typeLoaded, myCommitteeType]);
 
