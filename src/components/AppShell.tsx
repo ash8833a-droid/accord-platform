@@ -41,10 +41,10 @@ const ADMIN_BOTTOM = [
   { to: "/communications", label: "التواصل", icon: MessagesSquare },
 ] as const;
 
-const RESTRICTED_EXTRA = [
+// للأعضاء العاديين: بوابتي هي المدخل الوحيد + قائمة "لجاني" المنسدلة
+// (نخفي بنك الأفكار والتواصل وغيرها لتقليل التشتت)
+const RESTRICTED_TOP = [
   { to: "/portal", label: "بوابتي", icon: LayoutGrid },
-  { to: "/ideas", label: "بنك الأفكار", icon: Lightbulb },
-  { to: "/communications", label: "التواصل", icon: MessagesSquare },
 ] as const;
 
 interface AppShellProps {
@@ -76,10 +76,13 @@ export function AppShell({ children, restricted = false, restrictedToCommitteeTy
   const isAdminUser = hasRole("admin");
   const TOP_NAV = restricted
     ? (canSeeDashboard
-        ? [{ to: "/admin", label: "الإدارة العليا", icon: ShieldCheck } as const]
-        : [])
+        ? [
+            { to: "/admin", label: "الإدارة العليا", icon: ShieldCheck } as const,
+            ...RESTRICTED_TOP,
+          ]
+        : RESTRICTED_TOP)
     : ADMIN_TOP;
-  const BOTTOM_NAV = restricted ? RESTRICTED_EXTRA : ADMIN_BOTTOM;
+  const BOTTOM_NAV = restricted ? [] : ADMIN_BOTTOM;
   const visibleCommittees = restricted
     ? COMMITTEES.filter((c) => c.type === restrictedToCommitteeType)
     : COMMITTEES;
