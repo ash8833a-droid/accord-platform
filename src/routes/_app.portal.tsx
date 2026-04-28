@@ -261,9 +261,14 @@ function PortalPage() {
           <h1 className="text-2xl md:text-3xl font-bold flex items-center gap-2">
             <LayoutGrid className="h-7 w-7 text-primary" /> بوابتي
           </h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            نظرة موحّدة على مهامك وطلباتك عبر {myCommittees.length} لجنة
-          </p>
+          <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+            <Badge variant="secondary" className="bg-primary/10 text-primary border-0 text-[10px] px-2">
+              شاشتي الشخصية · عرض موحّد
+            </Badge>
+            <p className="text-xs text-muted-foreground">
+              اضغط أي مهمة للانتقال إلى لجنتها وتنفيذ الإجراء
+            </p>
+          </div>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           <PortalReportDialog
