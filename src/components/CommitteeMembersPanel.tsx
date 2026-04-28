@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/select";
 import { Crown, Users, Loader2, UserPlus, Search, X } from "lucide-react";
 import { toast } from "sonner";
-import { COMMITTEE_HEAD_LABEL, COMMITTEE_MEMBER_LABEL, committeeMemberLabel } from "@/lib/committee-member-labels";
+import { COMMITTEE_MEMBER_LABEL, committeeMemberLabel } from "@/lib/committee-member-labels";
 
 type Role = "admin" | "committee" | "delegate" | "quality";
 
