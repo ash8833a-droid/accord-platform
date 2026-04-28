@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/select";
 import { Crown, Users, Loader2, UserPlus, Search, X } from "lucide-react";
 import { toast } from "sonner";
+import { COMMITTEE_HEAD_LABEL, COMMITTEE_MEMBER_LABEL, committeeMemberLabel } from "@/lib/committee-member-labels";
 
 type Role = "admin" | "committee" | "delegate" | "quality";
 
@@ -44,10 +45,10 @@ interface CandidateRow {
 }
 
 const ROLE_LABEL: Record<Role, string> = {
-  admin: "مدير نظام",
-  committee: "عضو لجنة",
-  quality: "الجودة",
-  delegate: "عضو لجنة",
+  admin: COMMITTEE_MEMBER_LABEL,
+  committee: COMMITTEE_MEMBER_LABEL,
+  quality: COMMITTEE_MEMBER_LABEL,
+  delegate: COMMITTEE_MEMBER_LABEL,
 };
 
 const initials = (name: string) =>
@@ -171,7 +172,7 @@ export function CommitteeMembersPanel({ committeeId }: { committeeId: string }) 
                   {m.is_head && <Crown className="h-3.5 w-3.5 text-gold shrink-0" />}
                 </div>
                 <p className="text-[11px] text-muted-foreground mt-0.5 truncate">
-                  {m.is_head ? "رئيس اللجنة" : ROLE_LABEL[m.role]}
+                  {committeeMemberLabel(m)}
                   {m.phone ? ` · ${m.phone}` : ""}
                 </p>
               </div>
@@ -407,10 +408,10 @@ function AssignMemberDialog({
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="committee">عضو/منسق لجنة</SelectItem>
-                      <SelectItem value="quality">الجودة</SelectItem>
-                      <SelectItem value="admin">مدير نظام</SelectItem>
-                      <SelectItem value="delegate">مندوب اشتراكات</SelectItem>
+                      <SelectItem value="committee">{COMMITTEE_MEMBER_LABEL}</SelectItem>
+                      <SelectItem value="quality">{COMMITTEE_MEMBER_LABEL}</SelectItem>
+                      <SelectItem value="admin">{COMMITTEE_MEMBER_LABEL}</SelectItem>
+                      <SelectItem value="delegate">{COMMITTEE_MEMBER_LABEL}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
