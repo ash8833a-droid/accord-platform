@@ -1599,9 +1599,9 @@ function QuickAssignPopover({
                       </AvatarFallback>
                     </Avatar>
                     <span className="truncate">{m.full_name}</span>
-                    {m.is_head && (
-                      <Badge className="bg-gold/15 text-gold-foreground border border-gold/40 text-[9px] h-4 px-1">رئيس</Badge>
-                    )}
+                    <Badge className="bg-gold/15 text-gold-foreground border border-gold/40 text-[9px] h-4 px-1">
+                      {committeeMemberLabel(m)}
+                    </Badge>
                     {task.assigned_to === m.id && (
                       <CheckCircle2 className="h-3.5 w-3.5 text-primary ms-auto shrink-0" />
                     )}
