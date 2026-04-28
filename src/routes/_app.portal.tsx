@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { PortalReportDialog } from "@/components/portal/PortalReportDialog";
 import { QuickCreateTask } from "@/components/portal/QuickCreateTask";
 import { QuickCreatePayment } from "@/components/portal/QuickCreatePayment";
+import { QuickPurchaseRequestDialog } from "@/components/QuickPurchaseRequestDialog";
 import {
   LayoutGrid,
   ListTodo,
@@ -25,6 +26,7 @@ import {
   PlayCircle,
   Wallet,
   TrendingUp,
+  ShoppingCart,
 } from "lucide-react";
 
 export const Route = createFileRoute("/_app/portal")({
@@ -103,6 +105,7 @@ function PortalPage() {
   const [committeeFilter, setCommitteeFilter] = useState<string>("all");
   const [search, setSearch] = useState("");
   const [reloadKey, setReloadKey] = useState(0);
+  const [purchaseOpen, setPurchaseOpen] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -281,6 +284,15 @@ function PortalPage() {
         <div className="flex items-center gap-2 flex-wrap">
           <QuickCreateTask committees={myCommittees} onCreated={() => setReloadKey((k) => k + 1)} />
           <QuickCreatePayment committees={myCommittees} onCreated={() => setReloadKey((k) => k + 1)} />
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => setPurchaseOpen(true)}
+            className="gap-1.5 border-orange-500/40 text-orange-700 hover:bg-orange-500/10"
+          >
+            <ShoppingCart className="h-4 w-4" />
+            طلب شراء
+          </Button>
           <PortalReportDialog
             userName={user?.email ?? "عضو"}
             committeesCount={myCommittees.length}
@@ -487,6 +499,7 @@ function PortalPage() {
           </div>
         )}
       </Card>
+      <QuickPurchaseRequestDialog open={purchaseOpen} onOpenChange={setPurchaseOpen} />
     </div>
   );
 }

@@ -1,8 +1,9 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 
-// لوحة التحكم مدمجة الآن داخل صفحة الإدارة العليا — نحوّل أي زيارة لها إلى /admin
+// لوحة التحكم لم تعد تستخدم — نُحوّل دائماً إلى بوابتي
+// (الأدوار العليا توجَّه لصفحاتها الخاصة من شاشة الدخول مباشرة)
 export const Route = createFileRoute("/_app/dashboard")({
   beforeLoad: () => {
-    throw redirect({ to: "/admin" });
+    throw redirect({ to: "/portal" });
   },
 });

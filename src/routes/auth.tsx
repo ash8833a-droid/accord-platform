@@ -19,7 +19,7 @@ export const Route = createFileRoute("/auth")({
 const isValidSaPhone = (p: string) => /^05\d{8}$/.test(p.trim());
 
 function AuthPage() {
-  const { user, signIn, signUp, loading } = useAuth();
+  const { user, signIn, signUp, loading, hasRole } = useAuth();
   const nav = useNavigate();
   const [mode, setMode] = useState<"in" | "up">("in");
   const [phone, setPhone] = useState("");
@@ -31,8 +31,13 @@ function AuthPage() {
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    if (user && !loading) nav({ to: "/dashboard" });
-  }, [user, loading, nav]);
+    if (user && !loading) {
+      // التوجيه بعد الدخول حسب الدور
+      if (hasRole("admin")) nav({ to: "/admin" });
+      else if (hasRole("quality")) nav({ to: "/task-responses" });
+      else nav({ to: "/portal" });
+    }
+  }, [user, loading, nav, hasRole]);
 
   useEffect(() => {
     supabase
