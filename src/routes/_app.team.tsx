@@ -193,7 +193,7 @@ function TeamPage() {
       committee_id: m.committee_id,
       committee_name: cMap.get(m.committee_id) ?? "—",
       full_name: m.full_name,
-      role_title: m.role_title,
+      role_title: committeeMemberLabel(m),
       role_key: m.role_key,
       phone: m.phone,
       email: m.email,
@@ -210,7 +210,7 @@ function TeamPage() {
     const { error } = await supabase.from("team_members").insert({
       committee_id: form.committee_id,
       full_name: form.full_name,
-      role_title: form.role_title || null,
+      role_title: committeeMemberLabel({ is_head: form.is_head }),
       phone: form.phone || null,
       email: form.email || null,
       specialty: form.specialty || null,
