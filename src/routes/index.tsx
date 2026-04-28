@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Logo } from "@/components/Logo";
-import heroBanner from "@/assets/brand-hero.png";
+import heroBanner from "@/assets/hero-banner.jpg";
 import {
   HeartHandshake,
   Users,
@@ -170,13 +170,20 @@ function PublicHome() {
 
           {/* LEFT — Image card */}
           <div className="order-1 lg:order-2 animate-fade-up" style={{ animationDelay: "0.15s" }}>
-            <div className="relative flex items-center justify-center">
-              <img
-                src={heroBanner}
-                alt="لجنة الزواج الجماعي — حيث تجتمع الهِمَم على صناعة الفرح"
-                loading="eager"
-                className="w-full max-w-md lg:max-w-lg h-auto object-contain drop-shadow-xl"
-              />
+            <div className="relative">
+              {/* Single thin gold frame for elegance */}
+              <div className="absolute -inset-2 rounded-[1.25rem] border border-gold/30 pointer-events-none" />
+
+              <div className="relative rounded-2xl overflow-hidden shadow-soft border border-border bg-card">
+                <img
+                  src={heroBanner}
+                  alt="لجنة الزواج الجماعي — حيث تجتمع الهِمَم على صناعة الفرح"
+                  width={1920}
+                  height={1080}
+                  loading="eager"
+                  className="w-full h-[280px] sm:h-[340px] lg:h-[440px] object-cover"
+                />
+              </div>
             </div>
           </div>
         </div>
