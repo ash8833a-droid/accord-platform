@@ -168,20 +168,20 @@ function PublicHome() {
             </div>
           </div>
 
-          {/* LEFT — Image card */}
+          {/* LEFT — Logo mockup card (balanced on mobile + desktop) */}
           <div className="order-1 lg:order-2 animate-fade-up" style={{ animationDelay: "0.15s" }}>
-            <div className="relative">
+            <div className="relative mx-auto w-full max-w-[320px] sm:max-w-[380px] lg:max-w-[460px]">
               {/* Single thin gold frame for elegance */}
               <div className="absolute -inset-2 rounded-[1.25rem] border border-gold/30 pointer-events-none" />
 
-              <div className="relative rounded-2xl overflow-hidden shadow-soft border border-border bg-card">
+              <div className="relative aspect-[4/5] rounded-2xl overflow-hidden shadow-soft border border-border bg-card">
                 <img
                   src={heroBanner}
                   alt="لجنة الزواج الجماعي — حيث تجتمع الهِمَم على صناعة الفرح"
-                  width={1920}
-                  height={1080}
+                  width={1024}
+                  height={1280}
                   loading="eager"
-                  className="w-full h-[280px] sm:h-[340px] lg:h-[440px] object-cover"
+                  className="w-full h-full object-contain"
                 />
               </div>
             </div>
