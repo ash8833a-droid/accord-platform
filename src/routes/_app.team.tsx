@@ -818,7 +818,7 @@ function HierarchyChart({
       {/* Two rows: Tier 2 (Supreme centered with 2 committees on each side) → Tier 3 */}
       <div className="relative flex flex-col items-center">
         {/* Tier 2 row — left 2 + Supreme + right 2 */}
-        <div className="flex items-center justify-center gap-5 lg:gap-8 flex-wrap">
+        <div className="flex items-center justify-center gap-3 lg:gap-6 flex-wrap">
           {/* Right side (RTL ⇒ visually on the right): first 2 committees */}
           {spine.slice(0, 2).map((c, i) => (
             <div
