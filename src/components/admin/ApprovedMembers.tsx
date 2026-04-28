@@ -54,7 +54,7 @@ const ROLE_LABELS: Record<Role, string> = {
   admin: "مدير النظام",
   committee: "رئيس اللجنة",
   delegate: "عضو اللجنة",
-  quality: "عضو اللجنة",
+  quality: "متعاون",
 };
 
 const ROLE_TONES: Record<Role, string> = {
@@ -65,8 +65,7 @@ const ROLE_TONES: Record<Role, string> = {
 };
 
 // Roles selectable from the dropdown (admin is hidden to prevent accidental privilege escalation)
-// "quality" / "متعاون" is intentionally excluded — replaced by رئيس / عضو اللجنة based on tasking.
-const SELECTABLE_ROLES: Role[] = ["committee", "delegate"];
+const SELECTABLE_ROLES: Role[] = ["committee", "delegate", "quality"];
 
 interface Props {
   isAdmin: boolean;
