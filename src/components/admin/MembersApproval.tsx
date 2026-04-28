@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { Check, X, UserCheck, Phone, Building2, Inbox } from "lucide-react";
 import { toast } from "sonner";
+import { COMMITTEE_HEAD_LABEL, COMMITTEE_MEMBER_LABEL } from "@/lib/committee-member-labels";
 
 interface MR {
   id: string;
@@ -31,10 +32,10 @@ interface Committee { id: string; name: string; type: string }
 type AppRole = "admin" | "committee" | "delegate" | "quality";
 
 const ROLES: { value: AppRole; label: string }[] = [
-  { value: "committee", label: "رئيس لجنة" },
-  { value: "quality", label: "عضو" },
-  { value: "delegate", label: "متعاون" },
-  { value: "admin", label: "مدير نظام" },
+  { value: "committee", label: COMMITTEE_HEAD_LABEL },
+  { value: "quality", label: COMMITTEE_MEMBER_LABEL },
+  { value: "delegate", label: COMMITTEE_MEMBER_LABEL },
+  { value: "admin", label: COMMITTEE_MEMBER_LABEL },
 ];
 
 export function MembersApproval({ isAdmin }: { isAdmin: boolean }) {
