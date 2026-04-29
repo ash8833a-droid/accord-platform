@@ -81,9 +81,6 @@ export function AppShell({ children, restricted = false, restrictedToCommitteeTy
   }, [user]);
   const isAdminUser = hasRole("admin");
   const { map: accessMap, isAdmin: isAdminMap } = useAllPageAccess();
-  const pageKeyByPath: Record<string, string> = {};
-  PAGES.forEach((p) => { pageKeyByPath[p.to ? p.to : p.path] = p.key; });
-  // simpler: build from path
   const isPathHidden = (to: string) => {
     if (isAdminMap) return false;
     const page = PAGES.find((p) => p.path === to);
