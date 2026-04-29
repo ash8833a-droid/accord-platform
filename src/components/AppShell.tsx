@@ -33,7 +33,6 @@ import { PAGES } from "@/lib/pages";
 
 const ADMIN_TOP = [
   { to: "/admin", label: "الإدارة العليا", icon: ShieldCheck },
-  { to: "/admin/users", label: "إدارة المستخدمين", icon: UserCog },
   { to: "/portal", label: "بوابتي", icon: LayoutGrid },
   { to: "/team", label: "فريق العمل", icon: Users },
   { to: "/task-responses", label: "متابعة أداء اللجان", icon: ClipboardCheck },
@@ -44,6 +43,7 @@ const ADMIN_BOTTOM = [
   { to: "/grooms", label: "سجل العرسان", icon: HeartHandshake },
   { to: "/reports", label: "التقارير والجودة", icon: FileBarChart },
   { to: "/communications", label: "التواصل", icon: MessagesSquare },
+  { to: "/admin/users", label: "إدارة المستخدمين", icon: UserCog },
 ] as const;
 
 // للأعضاء العاديين: بوابتي هي المدخل الوحيد + قائمة "لجاني" المنسدلة
