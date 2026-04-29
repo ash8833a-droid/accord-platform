@@ -176,32 +176,32 @@ function TaskCenterInner({ canEdit }: { canEdit: boolean }) {
       {/* Filters */}
       <Card>
         <CardContent className="p-3 flex flex-wrap items-center gap-2">
-          <div className="relative flex-1 min-w-[200px]">
-            <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="ابحث في المهام..." className="pr-9" />
+          <div className="inline-flex rounded-lg border bg-background p-0.5 order-1">
+            <button onClick={() => setView("kanban")} className={`px-3 py-1.5 text-xs rounded-md inline-flex items-center gap-1.5 ${view === "kanban" ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}><LayoutGrid className="h-3.5 w-3.5" />كانبان</button>
+            <button onClick={() => setView("list")} className={`px-3 py-1.5 text-xs rounded-md inline-flex items-center gap-1.5 ${view === "list" ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}><Rows3 className="h-3.5 w-3.5" />قائمة</button>
           </div>
-          <Select value={committeeFilter} onValueChange={setCommitteeFilter}>
-            <SelectTrigger className="w-[180px]"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">كل اللجان</SelectItem>
-              {committees.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
-            </SelectContent>
-          </Select>
           <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-            <SelectTrigger className="w-[140px]"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="w-[140px] order-2"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">كل الأولويات</SelectItem>
               {Object.entries(PRIORITY_META).map(([k, v]) => <SelectItem key={k} value={k}>{v.label}</SelectItem>)}
             </SelectContent>
           </Select>
-          <div className="inline-flex rounded-lg border bg-background p-0.5">
-            <button onClick={() => setView("kanban")} className={`px-3 py-1.5 text-xs rounded-md inline-flex items-center gap-1.5 ${view === "kanban" ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}><LayoutGrid className="h-3.5 w-3.5" />كانبان</button>
-            <button onClick={() => setView("list")} className={`px-3 py-1.5 text-xs rounded-md inline-flex items-center gap-1.5 ${view === "list" ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}><Rows3 className="h-3.5 w-3.5" />قائمة</button>
+          <Select value={committeeFilter} onValueChange={setCommitteeFilter}>
+            <SelectTrigger className="w-[180px] order-3"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">كل اللجان</SelectItem>
+              {committees.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          <div className="relative flex-1 min-w-[200px] order-4">
+            <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="ابحث في المهام..." className="pr-9" />
           </div>
         </CardContent>
       </Card>
 
-      <Tabs defaultValue="board" className="w-full">
+      <Tabs defaultValue="board" dir="rtl" className="w-full">
         <TabsList>
           <TabsTrigger value="board">المهام</TabsTrigger>
           <TabsTrigger value="performance">أداء اللجان</TabsTrigger>
