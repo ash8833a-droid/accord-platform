@@ -293,7 +293,7 @@ export function PortalReportDialog({ userName, committeesCount, tasks, payments 
           )}
 
           <p style={{ fontSize: "10px", color: "#94a3b8", marginTop: "20px", textAlign: "center" }}>
-            تم التوليد في {new Date().toLocaleString("ar-SA")} · منصة لجنة الزواج الجماعي
+            تم التوليد في {new Date().toLocaleString("ar-SA")} · منصة القبيلة
           </p>
         </div>
       </DialogContent>
