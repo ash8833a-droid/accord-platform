@@ -222,15 +222,17 @@ function PublicHome() {
             loading={!loaded}
             delay="0.1s"
           />
-          <HeroKpi
-            label="اللجان المنظِّمة"
-            value={fmt(s.committees)}
-            hint="فريق يعمل بروح واحدة"
-            icon={Building2}
-            tone="teal"
-            loading={!loaded}
-            delay="0.3s"
-          />
+          <Link to="/committees" className="block">
+            <HeroKpi
+              label="اللجان المنظِّمة"
+              value={fmt(s.committees)}
+              hint="اضغط لمعرفة دور كل لجنة وأعضائها"
+              icon={Building2}
+              tone="teal"
+              loading={!loaded}
+              delay="0.3s"
+            />
+          </Link>
         </div>
       </section>
 
