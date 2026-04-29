@@ -21,7 +21,6 @@ export const PAGES: PageDef[] = [
   { key: "users",              path: "/admin/users",        label: "إدارة المستخدمين",   icon: Users,          category: "إدارة" },
   { key: "brand",              path: "/brand",              label: "الهوية البصرية",     icon: Palette,        category: "إدارة" },
   { key: "portal",             path: "/portal",             label: "بوابتي",             icon: LayoutGrid,     category: "عمل" },
-  { key: "team",               path: "/team",               label: "فريق العمل",         icon: Users,          category: "عمل" },
   { key: "task-responses",     path: "/task-responses",     label: "متابعة أداء اللجان", icon: ClipboardCheck, category: "عمل" },
   { key: "ideas",              path: "/ideas",              label: "بنك الأفكار",        icon: Lightbulb,      category: "محتوى" },
   { key: "grooms",             path: "/grooms",             label: "سجل العرسان",        icon: HeartHandshake, category: "محتوى" },
