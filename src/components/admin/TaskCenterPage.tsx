@@ -322,7 +322,7 @@ function KanbanBoard({
                       <Badge variant="outline" className={`text-[10px] ${PRIORITY_META[t.priority].cls}`}>{PRIORITY_META[t.priority].label}</Badge>
                       {overdue && (
                         <Badge className="text-[10px] bg-rose-500/15 text-rose-600 border-rose-500/30">
-                          <AlertTriangle className="h-2.5 w-2.5 mr-0.5" />متأخرة
+                          <AlertTriangle className="h-2.5 w-2.5 ms-0.5" />متأخرة
                         </Badge>
                       )}
                     </div>
@@ -377,7 +377,7 @@ function ListView({
               <TableRow key={t.id} className="cursor-pointer" onClick={() => onOpen(t)}>
                 <TableCell className="font-bold">
                   {t.title}
-                  {overdue && <Badge className="mr-2 text-[10px] bg-rose-500/15 text-rose-600 border-rose-500/30">متأخرة</Badge>}
+                  {overdue && <Badge className="ms-2 text-[10px] bg-rose-500/15 text-rose-600 border-rose-500/30">متأخرة</Badge>}
                 </TableCell>
                 <TableCell className="text-sm text-muted-foreground">{cm?.name ?? "—"}</TableCell>
                 <TableCell>
