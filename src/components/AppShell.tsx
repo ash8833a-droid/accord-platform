@@ -134,8 +134,8 @@ export function AppShell({ children, restricted = false, restrictedToCommitteeTy
 
   const SidebarInner = (
     <div className="flex h-full flex-col bg-sidebar text-sidebar-foreground">
-      <div className="px-5 py-6 border-b border-sidebar-border">
-        <Logo size={44} />
+      <div className="px-4 py-3 border-b border-sidebar-border">
+        <Logo size={32} />
       </div>
 
       <nav className="flex-1 px-3 py-5 space-y-1 overflow-y-auto no-scrollbar">
