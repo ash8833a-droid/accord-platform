@@ -7,13 +7,11 @@ import {
   FileBarChart,
   LogOut,
   Menu,
-  X,
   ChevronDown,
   ShieldCheck,
   Users,
   Lightbulb,
   ClipboardCheck,
-  Home,
   UserCog,
   KeyRound,
   Target,
@@ -25,9 +23,8 @@ import { Button } from "@/components/ui/button";
 import { COMMITTEES } from "@/lib/committees";
 import { supabase } from "@/integrations/supabase/client";
 import { NotificationBell } from "@/components/NotificationBell";
-import { useBrand, brandLogoSrc, applyBrandCssVars } from "@/lib/brand";
+import { useBrand, applyBrandCssVars } from "@/lib/brand";
 import { QuickPurchaseRequestDialog } from "@/components/QuickPurchaseRequestDialog";
-import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { useAllPageAccess } from "@/hooks/use-page-access";
 import { PAGES } from "@/lib/pages";
 
