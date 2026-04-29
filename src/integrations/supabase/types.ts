@@ -1420,6 +1420,7 @@ export type Database = {
         Args: { _page_key: string; _user_id: string }
         Returns: Database["public"]["Enums"]["page_access_level"]
       }
+      get_public_committees: { Args: never; Returns: Json }
       get_public_stats: { Args: never; Returns: Json }
       get_user_committee: { Args: { _user_id: string }; Returns: string }
       has_role: {
