@@ -34,7 +34,6 @@ import { PAGES } from "@/lib/pages";
 const ADMIN_TOP = [
   { to: "/admin", label: "الإدارة العليا", icon: ShieldCheck },
   { to: "/admin/users", label: "إدارة المستخدمين", icon: UserCog },
-  { to: "/admin/permissions", label: "إدارة الصلاحيات", icon: KeyRound },
   { to: "/portal", label: "بوابتي", icon: LayoutGrid },
   { to: "/team", label: "فريق العمل", icon: Users },
   { to: "/task-responses", label: "متابعة أداء اللجان", icon: ClipboardCheck },
