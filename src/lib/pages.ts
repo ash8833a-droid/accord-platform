@@ -16,7 +16,7 @@ export interface PageDef {
 // Registry of all controllable pages in the platform.
 // To add a new gated page, add it here AND wrap that route with usePagePermission(key).
 export const PAGES: PageDef[] = [
-  { key: "admin",              path: "/admin",              label: "الإدارة العليا",     icon: ShieldCheck,    category: "إدارة" },
+  { key: "admin",              path: "/admin",              label: "الأداء العام",     icon: ShieldCheck,    category: "إدارة" },
   { key: "admin-tasks",        path: "/admin/tasks",        label: "مركز المهام",         icon: Target,         category: "إدارة" },
   { key: "users",              path: "/admin/users",        label: "إدارة المستخدمين",   icon: Users,          category: "إدارة" },
   { key: "brand",              path: "/brand",              label: "الهوية البصرية",     icon: Palette,        category: "إدارة" },
