@@ -206,24 +206,20 @@ export function AppShell({ children, restricted = false, restrictedToCommitteeTy
         })}
       </nav>
 
-      <div className="border-t border-sidebar-border p-4 space-y-3">
-        <div className="flex items-center gap-3 rounded-lg bg-sidebar-accent/50 px-3 py-2">
-          <div className="h-9 w-9 rounded-full bg-gradient-gold flex items-center justify-center text-gold-foreground font-bold">
-            {(profileName ?? user?.email ?? "?")[0]?.toUpperCase()}
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-xs font-bold truncate">{profileName ?? user?.email}</p>
-            <p className="text-[10px] text-sidebar-foreground/60">عضو في المنصة</p>
-          </div>
+      <div className="border-t border-sidebar-border p-3">
+        <div className="flex items-center justify-between gap-2 rounded-lg bg-sidebar-accent/50 px-3 py-2">
+          <p className="text-sm font-bold truncate flex-1">
+            {(profileName ?? user?.email ?? "").split(" ")[0] || "عضو"}
+          </p>
+          <button
+            onClick={handleLogout}
+            aria-label="تسجيل خروج"
+            title="تسجيل خروج"
+            className="shrink-0 inline-flex items-center justify-center h-8 w-8 rounded-md text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent transition-colors"
+          >
+            <LogOut className="h-4 w-4" />
+          </button>
         </div>
-        <Button
-          onClick={handleLogout}
-          variant="ghost"
-          className="w-full justify-start gap-2 text-sidebar-foreground/80 hover:text-sidebar-foreground hover:bg-sidebar-accent"
-        >
-          <LogOut className="h-4 w-4" />
-          تسجيل خروج
-        </Button>
       </div>
     </div>
   );
