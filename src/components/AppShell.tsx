@@ -36,7 +36,6 @@ const ADMIN_TOP = [
   { to: "/admin", label: "الإدارة العليا", icon: ShieldCheck },
   { to: "/admin/tasks", label: "مركز المهام", icon: Target },
   { to: "/portal", label: "بوابتي", icon: LayoutGrid },
-  { to: "/team", label: "فريق العمل", icon: Users },
   { to: "/task-responses", label: "متابعة أداء اللجان", icon: ClipboardCheck },
 ] as const;
 
