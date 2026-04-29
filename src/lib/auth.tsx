@@ -1,6 +1,10 @@
 import { createContext, useContext, useEffect, useState, ReactNode, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Session, User } from "@supabase/supabase-js";
+import { installServerFnAuth } from "@/lib/server-fn-auth";
+
+// Install global fetch interceptor so server functions receive the auth token
+installServerFnAuth();
 
 type Role = "admin" | "committee" | "delegate" | "quality";
 
