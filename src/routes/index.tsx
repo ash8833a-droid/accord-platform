@@ -100,6 +100,13 @@ function PublicHome() {
           <Logo size={40} />
           <nav className="flex items-center gap-2">
             <Link
+              to="/committees"
+              className="hidden md:inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold border hover:bg-accent transition-colors"
+            >
+              <Building2 className="h-4 w-4" />
+              اللجان
+            </Link>
+            <Link
               to="/register-groom"
               className="hidden sm:inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold border hover:bg-accent transition-colors"
             >
