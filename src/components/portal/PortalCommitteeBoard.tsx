@@ -48,11 +48,13 @@ import {
   ExternalLink,
   Search,
   Filter,
+  History,
 } from "lucide-react";
 import { toast } from "sonner";
 import { TaskComments } from "@/components/TaskComments";
 import { TaskAttachments } from "@/components/TaskAttachments";
 import { TaskResponseForm } from "@/components/TaskResponseForm";
+import { TaskActivityLog } from "@/components/TaskActivityLog";
 
 interface Member {
   id: string;
@@ -727,7 +729,7 @@ export function PortalCommitteeBoard({
               </DialogHeader>
 
               <Tabs defaultValue="comments" className="mt-2">
-                <TabsList className="w-full grid grid-cols-3">
+                <TabsList className="w-full grid grid-cols-4">
                   <TabsTrigger value="comments" className="gap-1 text-xs">
                     <MessageSquare className="h-3.5 w-3.5" /> التعليقات
                   </TabsTrigger>
@@ -736,6 +738,9 @@ export function PortalCommitteeBoard({
                   </TabsTrigger>
                   <TabsTrigger value="response" className="gap-1 text-xs">
                     <Sparkles className="h-3.5 w-3.5" /> استجابة التنفيذ
+                  </TabsTrigger>
+                  <TabsTrigger value="activity" className="gap-1 text-xs">
+                    <History className="h-3.5 w-3.5" /> سجل النشاط
                   </TabsTrigger>
                 </TabsList>
                 <TabsContent value="comments" className="mt-3">
@@ -746,6 +751,9 @@ export function PortalCommitteeBoard({
                 </TabsContent>
                 <TabsContent value="response" className="mt-3">
                   <TaskResponseForm taskId={detailTask.id} committeeId={committeeId} />
+                </TabsContent>
+                <TabsContent value="activity" className="mt-3">
+                  <TaskActivityLog taskId={detailTask.id} />
                 </TabsContent>
               </Tabs>
             </>
