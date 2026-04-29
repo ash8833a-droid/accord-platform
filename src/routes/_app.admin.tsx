@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Outlet, useMatches } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -42,6 +42,14 @@ export const Route = createFileRoute("/_app/admin")({
 function AdminCenter() {
   const { hasRole } = useAuth();
   const isAdmin = hasRole("admin");
+  const matches = useMatches();
+  const hasChildRoute = matches.some(
+    (m) => m.routeId !== "/_app/admin" && m.routeId.startsWith("/_app/admin/")
+  );
+
+  if (hasChildRoute) {
+    return <Outlet />;
+  }
 
   return (
     <div className="space-y-6">
