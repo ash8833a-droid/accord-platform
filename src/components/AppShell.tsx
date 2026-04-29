@@ -239,62 +239,17 @@ export function AppShell({ children, restricted = false, restrictedToCommitteeTy
       )}
 
       <div className="flex-1 flex flex-col min-w-0">
-        <header className="sticky top-0 z-30 bg-background border-b">
-          {/* Brand identity strip */}
-          <div
-            className="h-1.5 w-full"
-            style={{
-              background: `linear-gradient(90deg, ${brand.primary_color} 0%, ${brand.gold_color} 50%, ${brand.primary_color} 100%)`,
-            }}
-          />
-          <div className="flex items-center justify-between px-4 lg:px-8 h-16">
-            <button
-              className="lg:hidden p-2 rounded-lg hover:bg-accent"
-              onClick={() => setOpen(true)}
-              aria-label="فتح القائمة"
-            >
-              {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-            </button>
-            <div className="flex items-center gap-3 min-w-0">
-              <img
-                src={brandLogoSrc(brand)}
-                alt={brand.name}
-                className="h-9 w-9 rounded-full ring-1 ring-gold/30 object-cover shrink-0"
-              />
-              <div className="hidden sm:flex flex-col leading-tight min-w-0">
-                <span className="text-sm font-bold truncate" style={{ color: brand.primary_color }}>
-                  {brand.name}
-                </span>
-                {brand.subtitle && (
-                  <span className="text-[10px] text-muted-foreground truncate">{brand.subtitle}</span>
-                )}
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              {committeeId && (
-                <Button
-                  size="sm"
-                  onClick={() => setPurchaseOpen(true)}
-                  className="bg-gradient-gold text-gold-foreground hover:opacity-95 shadow-md gap-1.5 h-9"
-                  title="طلب شراء جديد"
-                >
-                  <ShoppingCart className="h-4 w-4" />
-                  <span className="hidden sm:inline text-xs font-bold">طلب شراء جديد</span>
-                </Button>
-              )}
-              <Link
-                to="/"
-                className="inline-flex items-center gap-1.5 rounded-lg border border-gold/30 bg-gold/5 px-3 py-1.5 text-xs font-bold text-foreground hover:bg-gold/15 hover:border-gold/50 transition-colors"
-                title="الصفحة الرئيسية العامة"
-              >
-                <Home className="h-4 w-4 text-gold" />
-                <span className="hidden sm:inline">الصفحة الرئيسية</span>
-              </Link>
-              <NotificationBell />
-            </div>
-          </div>
-          <Breadcrumbs />
-        </header>
+        {/* Mobile-only floating menu trigger (top header removed per request) */}
+        <div className="lg:hidden sticky top-0 z-30 bg-background/80 backdrop-blur border-b flex items-center justify-between px-3 h-12">
+          <button
+            className="p-2 rounded-lg hover:bg-accent"
+            onClick={() => setOpen(true)}
+            aria-label="فتح القائمة"
+          >
+            <Menu className="h-5 w-5" />
+          </button>
+          <NotificationBell />
+        </div>
 
         <main className="flex-1 px-4 lg:px-8 py-6 lg:py-8 pb-24 lg:pb-8 max-w-7xl w-full me-auto">
           {children}
