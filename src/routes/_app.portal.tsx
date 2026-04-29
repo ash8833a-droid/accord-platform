@@ -12,6 +12,8 @@ import { PortalReportDialog } from "@/components/portal/PortalReportDialog";
 import { QuickCreateTask } from "@/components/portal/QuickCreateTask";
 import { QuickCreatePayment } from "@/components/portal/QuickCreatePayment";
 import { QuickPurchaseRequestDialog } from "@/components/QuickPurchaseRequestDialog";
+import { PortalCommitteeBoard } from "@/components/portal/PortalCommitteeBoard";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   LayoutGrid,
   ListTodo,
@@ -106,6 +108,7 @@ function PortalPage() {
   const [search, setSearch] = useState("");
   const [reloadKey, setReloadKey] = useState(0);
   const [purchaseOpen, setPurchaseOpen] = useState(false);
+  const [activeBoard, setActiveBoard] = useState<string>("");
 
   useEffect(() => {
     if (!user) return;
