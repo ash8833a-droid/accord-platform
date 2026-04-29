@@ -1,4 +1,4 @@
-import { createFileRoute, Link, redirect } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { adminListUsers, adminDeleteUser, adminResetPassword, adminToggleAccount, adminUpdateUserRole } from "@/server/admin-users";
@@ -15,6 +15,7 @@ import { Users as UsersIcon, ShieldCheck, KeyRound, Ban, CheckCircle2, Trash2, S
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
 import { CreateMemberDialog } from "@/components/admin/CreateMemberDialog";
+import { UserPermissionsPanel } from "@/components/admin/UserPermissionsPanel";
 
 export const Route = createFileRoute("/_app/admin/users")({
   component: UsersPage,
@@ -50,6 +51,7 @@ function UsersPage() {
   const [delUser, setDelUser] = useState<UserRow | null>(null);
   const [activityUser, setActivityUser] = useState<UserRow | null>(null);
   const [activity, setActivity] = useState<any[]>([]);
+  const [permsUser, setPermsUser] = useState<UserRow | null>(null);
   const [newPwd, setNewPwd] = useState("");
   const [newRole, setNewRole] = useState<string>("committee");
   const [newCommittee, setNewCommittee] = useState<string>("");
@@ -149,9 +151,6 @@ function UsersPage() {
             </div>
           </div>
           <div className="flex gap-2 items-center">
-            <Link to="/admin/permissions">
-              <Button variant="secondary" className="gap-2"><ShieldCheck className="h-4 w-4" />إدارة الصلاحيات</Button>
-            </Link>
             <CreateMemberDialog />
           </div>
         </div>
@@ -174,19 +173,28 @@ function UsersPage() {
                 const committee = committees.find((c) => c.id === role?.committee_id);
                 return (
                   <div key={u.user_id} className={`flex flex-wrap items-center gap-3 rounded-xl border p-4 transition-colors ${u.status.is_disabled ? "bg-destructive/5 border-destructive/30" : "hover:bg-accent/40"}`}>
-                    <div className="h-10 w-10 rounded-full bg-gradient-gold flex items-center justify-center text-gold-foreground font-bold shrink-0">
-                      {u.full_name?.[0] || "?"}
-                    </div>
-                    <div className="flex-1 min-w-0">
+                    <button
+                      onClick={() => setPermsUser(u)}
+                      className="flex items-center gap-3 flex-1 min-w-0 text-right group"
+                      title="عرض/تعديل صلاحيات هذا المستخدم"
+                    >
+                      <div className="h-10 w-10 rounded-full bg-gradient-gold flex items-center justify-center text-gold-foreground font-bold shrink-0 group-hover:ring-2 group-hover:ring-gold/50 transition-all">
+                        {u.full_name?.[0] || "?"}
+                      </div>
+                      <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <p className="font-bold truncate">{u.full_name}</p>
+                        <p className="font-bold truncate group-hover:text-primary transition-colors">{u.full_name}</p>
                         {role && <Badge variant="secondary" className="text-[10px]">{ROLE_LABELS[role.role] ?? role.role}</Badge>}
                         {committee && <Badge variant="outline" className="text-[10px]">{committee.name}</Badge>}
                         {u.status.is_disabled && <Badge variant="destructive" className="text-[10px]">معطّل</Badge>}
                       </div>
                       <p className="text-xs text-muted-foreground">{u.phone} · {u.family_branch || "—"}</p>
-                    </div>
+                      </div>
+                    </button>
                     <div className="flex gap-1 flex-wrap">
+                      <Button size="sm" variant="outline" onClick={() => setPermsUser(u)} title="الصلاحيات">
+                        <ShieldCheck className="h-4 w-4" />
+                      </Button>
                       <Button size="sm" variant="outline" onClick={() => { setRoleEdit(u); setNewRole(role?.role ?? "committee"); setNewCommittee(role?.committee_id ?? ""); }} title="تعديل الدور">
                         <Settings2 className="h-4 w-4" />
                       </Button>
@@ -295,6 +303,22 @@ function UsersPage() {
                 </div>
               ))}
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Permissions panel */}
+      <Dialog open={!!permsUser} onOpenChange={(o) => !o && setPermsUser(null)}>
+        <DialogContent dir="rtl" className="max-w-3xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <ShieldCheck className="h-5 w-5 text-primary" />
+              صلاحيات الصفحات — {permsUser?.full_name}
+            </DialogTitle>
+            <DialogDescription>حدد لكل صفحة: مخفي، قراءة فقط، أو تعديل كامل.</DialogDescription>
+          </DialogHeader>
+          {permsUser && (
+            <UserPermissionsPanel userId={permsUser.user_id} fullName={permsUser.full_name} />
+          )}
         </DialogContent>
       </Dialog>
     </div>
