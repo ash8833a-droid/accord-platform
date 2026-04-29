@@ -28,6 +28,7 @@ import { useBrand, brandLogoSrc, applyBrandCssVars } from "@/lib/brand";
 import { QuickPurchaseRequestDialog } from "@/components/QuickPurchaseRequestDialog";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { useAllPageAccess } from "@/hooks/use-page-access";
+import { PAGES } from "@/lib/pages";
 
 
 const ADMIN_TOP = [
@@ -79,6 +80,16 @@ export function AppShell({ children, restricted = false, restrictedToCommitteeTy
       .then(({ data }) => setProfileName(data?.full_name ?? null));
   }, [user]);
   const isAdminUser = hasRole("admin");
+  const { map: accessMap, isAdmin: isAdminMap } = useAllPageAccess();
+  const pageKeyByPath: Record<string, string> = {};
+  PAGES.forEach((p) => { pageKeyByPath[p.to ? p.to : p.path] = p.key; });
+  // simpler: build from path
+  const isPathHidden = (to: string) => {
+    if (isAdminMap) return false;
+    const page = PAGES.find((p) => p.path === to);
+    if (!page) return false;
+    return accessMap[page.key] === "hidden";
+  };
   const TOP_NAV = restricted
     ? (canSeeDashboard
         ? [
@@ -86,8 +97,8 @@ export function AppShell({ children, restricted = false, restrictedToCommitteeTy
             ...RESTRICTED_TOP,
           ]
         : RESTRICTED_TOP)
-    : ADMIN_TOP;
-  const BOTTOM_NAV = restricted ? [] : ADMIN_BOTTOM;
+    : ADMIN_TOP.filter((n) => !isPathHidden(n.to));
+  const BOTTOM_NAV = restricted ? [] : ADMIN_BOTTOM.filter((n) => !isPathHidden(n.to));
   const visibleCommittees = restricted
     ? COMMITTEES.filter((c) => c.type === restrictedToCommitteeType)
     : COMMITTEES;
