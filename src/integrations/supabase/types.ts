@@ -987,6 +987,48 @@ export type Database = {
           },
         ]
       }
+      task_activity_log: {
+        Row: {
+          actor_name: string | null
+          actor_user_id: string | null
+          committee_id: string
+          created_at: string
+          event_type: string
+          from_value: string | null
+          id: string
+          meta: Json
+          note: string | null
+          task_id: string
+          to_value: string | null
+        }
+        Insert: {
+          actor_name?: string | null
+          actor_user_id?: string | null
+          committee_id: string
+          created_at?: string
+          event_type: string
+          from_value?: string | null
+          id?: string
+          meta?: Json
+          note?: string | null
+          task_id: string
+          to_value?: string | null
+        }
+        Update: {
+          actor_name?: string | null
+          actor_user_id?: string | null
+          committee_id?: string
+          created_at?: string
+          event_type?: string
+          from_value?: string | null
+          id?: string
+          meta?: Json
+          note?: string | null
+          task_id?: string
+          to_value?: string | null
+        }
+        Relationships: []
+      }
       task_attachments: {
         Row: {
           created_at: string
@@ -1283,6 +1325,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      current_actor_name: { Args: never; Returns: string }
       get_public_stats: { Args: never; Returns: Json }
       get_user_committee: { Args: { _user_id: string }; Returns: string }
       has_role: {
