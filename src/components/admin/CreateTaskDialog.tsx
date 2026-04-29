@@ -108,7 +108,7 @@ export function CreateTaskDialog({ open, onOpenChange, committees, defaultCommit
             </div>
             <div className="space-y-1.5">
               <Label>تاريخ الاستحقاق</Label>
-              <Input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
+              <Input dir="ltr" type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} className="text-right" />
             </div>
           </div>
           <div className="space-y-1.5">

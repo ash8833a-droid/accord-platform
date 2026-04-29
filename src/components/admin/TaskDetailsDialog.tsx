@@ -82,9 +82,9 @@ export function TaskDetailsDialog({
         <Tabs defaultValue="info" className="w-full">
           <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="info">المعلومات</TabsTrigger>
-            <TabsTrigger value="comments"><MessageSquare className="h-3.5 w-3.5 ml-1" />تعليقات</TabsTrigger>
-            <TabsTrigger value="files"><Paperclip className="h-3.5 w-3.5 ml-1" />مرفقات</TabsTrigger>
-            <TabsTrigger value="log"><HistoryIcon className="h-3.5 w-3.5 ml-1" />السجل</TabsTrigger>
+            <TabsTrigger value="comments"><MessageSquare className="h-3.5 w-3.5 me-1" />تعليقات</TabsTrigger>
+            <TabsTrigger value="files"><Paperclip className="h-3.5 w-3.5 me-1" />مرفقات</TabsTrigger>
+            <TabsTrigger value="log"><HistoryIcon className="h-3.5 w-3.5 me-1" />السجل</TabsTrigger>
           </TabsList>
 
           <TabsContent value="info" className="mt-4 space-y-3">
@@ -123,7 +123,7 @@ export function TaskDetailsDialog({
                 </div>
                 <div className="space-y-1.5">
                   <Label>تاريخ الاستحقاق</Label>
-                  <Input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
+                  <Input dir="ltr" type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} className="text-right" />
                 </div>
                 <div className="space-y-1.5">
                   <Label>المسؤول</Label>
