@@ -16,6 +16,7 @@ import {
   Home,
   UserCog,
   KeyRound,
+  Target,
 } from "lucide-react";
 import { ShoppingCart, MessagesSquare, LayoutGrid } from "lucide-react";
 import { Logo } from "./Logo";
@@ -33,6 +34,7 @@ import { PAGES } from "@/lib/pages";
 
 const ADMIN_TOP = [
   { to: "/admin", label: "الإدارة العليا", icon: ShieldCheck },
+  { to: "/admin/tasks", label: "مركز المهام", icon: Target },
   { to: "/portal", label: "بوابتي", icon: LayoutGrid },
   { to: "/team", label: "فريق العمل", icon: Users },
   { to: "/task-responses", label: "متابعة أداء اللجان", icon: ClipboardCheck },
