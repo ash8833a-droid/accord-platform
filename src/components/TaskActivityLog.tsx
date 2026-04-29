@@ -126,7 +126,7 @@ export function TaskActivityLog({ taskId }: { taskId: string }) {
       .select("id, event_type, actor_name, from_value, to_value, note, meta, created_at")
       .eq("task_id", taskId)
       .order("created_at", { ascending: false });
-    setItems((data ?? []) as Entry[]);
+    setItems(((data ?? []) as unknown) as Entry[]);
     setLoading(false);
   };
 
