@@ -14,6 +14,8 @@ import {
   Lightbulb,
   ClipboardCheck,
   Home,
+  UserCog,
+  KeyRound,
 } from "lucide-react";
 import { ShoppingCart, MessagesSquare, LayoutGrid } from "lucide-react";
 import { Logo } from "./Logo";
@@ -25,10 +27,13 @@ import { NotificationBell } from "@/components/NotificationBell";
 import { useBrand, brandLogoSrc, applyBrandCssVars } from "@/lib/brand";
 import { QuickPurchaseRequestDialog } from "@/components/QuickPurchaseRequestDialog";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
+import { useAllPageAccess } from "@/hooks/use-page-access";
 
 
 const ADMIN_TOP = [
   { to: "/admin", label: "الإدارة العليا", icon: ShieldCheck },
+  { to: "/admin/users", label: "إدارة المستخدمين", icon: UserCog },
+  { to: "/admin/permissions", label: "إدارة الصلاحيات", icon: KeyRound },
   { to: "/portal", label: "بوابتي", icon: LayoutGrid },
   { to: "/team", label: "فريق العمل", icon: Users },
   { to: "/task-responses", label: "متابعة أداء اللجان", icon: ClipboardCheck },
