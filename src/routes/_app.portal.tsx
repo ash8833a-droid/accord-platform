@@ -35,7 +35,7 @@ export const Route = createFileRoute("/_app/portal")({
   component: PortalPage,
   head: () => ({
     meta: [
-      { title: "بوابتي — منصة لجنة الزواج الجماعي" },
+      { title: "بوابتي — منصة القبيلة" },
       { name: "description", content: "بوابة موحّدة لجميع لجانك: مهامك، طلبات الصرف، والتقارير في مكان واحد." },
     ],
   }),

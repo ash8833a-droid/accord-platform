@@ -714,7 +714,7 @@ function CommitteePage() {
   </tr></thead>
   <tbody>${rowsHtml}</tbody>
 </table>
-<div class="footer">منصة لجنة الزواج — تقرير رسمي</div>
+      <div class="footer">منصة القبيلة — تقرير رسمي</div>
 <script>window.onload=()=>setTimeout(()=>window.print(),300)</script>
 </body></html>`);
     w.document.close();

@@ -18,7 +18,7 @@ export const Route = createFileRoute("/register-groom")({
     void match;
     return {
       meta: [
-        { title: "تسجيل العرسان — لجنة الزواج الجماعي" },
+        { title: "تسجيل العرسان — منصة القبيلة" },
         {
           name: "description",
           content:
@@ -26,7 +26,7 @@ export const Route = createFileRoute("/register-groom")({
         },
         { property: "og:type", content: "website" },
         { property: "og:url", content: canonicalUrl },
-        { property: "og:site_name", content: "لجنة الزواج الجماعي" },
+        { property: "og:site_name", content: "منصة القبيلة" },
         { property: "og:title", content: "دعوة لتسجيل بيانات العريس" },
         {
           property: "og:description",
@@ -38,7 +38,7 @@ export const Route = createFileRoute("/register-groom")({
         { property: "og:image:type", content: "image/jpeg" },
         { property: "og:image:width", content: "640" },
         { property: "og:image:height", content: "640" },
-        { property: "og:image:alt", content: "شعار لجنة الزواج الجماعي" },
+        { property: "og:image:alt", content: "شعار منصة القبيلة" },
         { name: "twitter:card", content: "summary_large_image" },
         { name: "twitter:title", content: "دعوة لتسجيل بيانات العريس" },
         {

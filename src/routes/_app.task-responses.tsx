@@ -311,7 +311,7 @@ function TaskResponsesPage() {
         </tr></thead>
         <tbody>${rowsHtml || `<tr><td colspan="11" style="text-align:center;padding:20px;color:#999">لا توجد ردود</td></tr>`}</tbody>
       </table>
-      <div class="footer">منصة لجنة الزواج الجماعي · تقرير رقابي للجنة العليا</div>
+      <div class="footer">منصة القبيلة · تقرير رقابي للجنة العليا</div>
       <script>window.addEventListener('load',()=>setTimeout(()=>window.print(),300))</script>
     </body></html>`);
     w.document.close();

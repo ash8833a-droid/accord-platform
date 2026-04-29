@@ -19,13 +19,13 @@ import {
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "لجنة الزواج الجماعي — لوحة المؤشرات العامة" },
+      { title: "منصة القبيلة — لوحة المؤشرات العامة" },
       {
         name: "description",
         content:
           "أرقام وإحصائيات برنامج الزواج الجماعي العائلي: عدد العرسان، المساهمين، المبالغ المجموعة، واللجان منذ انطلاق البرنامج.",
       },
-      { property: "og:title", content: "لجنة الزواج الجماعي — لوحة المؤشرات" },
+      { property: "og:title", content: "منصة القبيلة — لوحة المؤشرات" },
       {
         property: "og:description",
         content:
@@ -128,7 +128,7 @@ function PublicHome() {
           <div className="text-right order-2 lg:order-1 animate-fade-up">
             <div className="inline-flex items-center gap-2 rounded-full border border-gold/30 bg-gold/10 px-3 py-1 mb-5 text-[11px] sm:text-xs font-semibold text-gold tracking-wider">
               <Sparkles className="h-3 w-3" />
-              منصّة لجنة الزواج الجماعي
+              منصة القبيلة
             </div>
 
             <h1 className="font-extrabold leading-[1.2] tracking-tight text-3xl sm:text-4xl md:text-5xl lg:text-[3.25rem] text-foreground mb-5">
@@ -145,8 +145,8 @@ function PublicHome() {
             </div>
 
             <p className="text-sm sm:text-base lg:text-[17px] text-muted-foreground leading-loose mb-7 max-w-xl">
-              منصّةٌ مؤسَّسيّةٌ راقيةٌ تُنظِّمُ عملَ اللجان وتُديرُ مسيرةَ الزواج الجماعي
-              بكلِّ شفافيّةٍ وإتقان؛ من تسجيلِ العرسان وتوثيقِ المساهمات إلى متابعةِ المهامّ
+              منصةٌ مؤسَّسيّةٌ راقيةٌ تُنظِّمُ شؤون القبيلة وتُديرُ مسيرةَ العطاء
+              بكلِّ شفافيّةٍ وإتقان؛ من تسجيلِ المستفيدين وتوثيقِ المساهمات إلى متابعةِ المهامّ
               وإصدارِ التقارير، ليَبقى الأَثَرُ مُمتدّاً وفَرَحُ العائلةِ مُكتمِلاً.
             </p>
 
@@ -182,7 +182,7 @@ function PublicHome() {
               />
               <img
                 src={heroLogo}
-                alt="لجنة الزواج الجماعي — حيث تجتمع الهِمَم على صناعة الفرح"
+                alt="منصة القبيلة — حيث تجتمع الهِمَم على التميّز"
                 width={512}
                 height={512}
                 loading="eager"
@@ -313,7 +313,7 @@ function PublicHome() {
 
       <footer className="border-t bg-card/50">
         <div className="max-w-7xl mx-auto px-4 lg:px-8 py-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-muted-foreground">
-          <p>© {new Date().getFullYear()} لجنة الزواج الجماعي · جميع الحقوق محفوظة</p>
+          <p>© {new Date().getFullYear()} منصة القبيلة · جميع الحقوق محفوظة</p>
           <p className="flex items-center gap-1.5">
             <HandHeart className="h-3.5 w-3.5 text-gold" />
             صُنِعَ بمحبّةٍ لخدمةِ العائلة
