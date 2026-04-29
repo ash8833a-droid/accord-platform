@@ -18,7 +18,6 @@ export interface PageDef {
 export const PAGES: PageDef[] = [
   { key: "admin",              path: "/admin",              label: "الإدارة العليا",     icon: ShieldCheck,    category: "إدارة" },
   { key: "users",              path: "/admin/users",        label: "إدارة المستخدمين",   icon: Users,          category: "إدارة" },
-  { key: "permissions",        path: "/admin/permissions",  label: "إدارة الصلاحيات",    icon: ShieldCheck,    category: "إدارة" },
   { key: "brand",              path: "/brand",              label: "الهوية البصرية",     icon: Palette,        category: "إدارة" },
   { key: "portal",             path: "/portal",             label: "بوابتي",             icon: LayoutGrid,     category: "عمل" },
   { key: "team",               path: "/team",               label: "فريق العمل",         icon: Users,          category: "عمل" },
