@@ -12,7 +12,7 @@ export interface BrandIdentity {
 }
 
 export const DEFAULT_BRAND: BrandIdentity = {
-  name: "منصة عمل لجنة الزواج الجماعي",
+  name: "منصة القبيلة",
   subtitle: "لقبيلة الهملة من قريش",
   logo_url: null,
   primary_color: "#1B4F58",
