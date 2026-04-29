@@ -12,6 +12,8 @@ import { PortalReportDialog } from "@/components/portal/PortalReportDialog";
 import { QuickCreateTask } from "@/components/portal/QuickCreateTask";
 import { QuickCreatePayment } from "@/components/portal/QuickCreatePayment";
 import { QuickPurchaseRequestDialog } from "@/components/QuickPurchaseRequestDialog";
+import { PortalCommitteeBoard } from "@/components/portal/PortalCommitteeBoard";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   LayoutGrid,
   ListTodo,
@@ -106,6 +108,7 @@ function PortalPage() {
   const [search, setSearch] = useState("");
   const [reloadKey, setReloadKey] = useState(0);
   const [purchaseOpen, setPurchaseOpen] = useState(false);
+  const [activeBoard, setActiveBoard] = useState<string>("");
 
   useEffect(() => {
     if (!user) return;
@@ -385,6 +388,64 @@ function PortalPage() {
           })}
         </div>
       </Card>
+
+      {/* Per-committee workspace tabs — full board for each of my committees */}
+      {myCommittees.length > 0 && (
+        <Card className="p-4">
+          <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+            <h2 className="font-bold flex items-center gap-2">
+              <LayoutGrid className="h-5 w-5 text-primary" /> مساحات لجاني
+            </h2>
+            <p className="text-[11px] text-muted-foreground">
+              ميثاق · مهام · تعليقات · مرفقات · استجابة — كل ذلك دون مغادرة بوابتي
+            </p>
+          </div>
+          <Tabs
+            value={activeBoard || myCommittees[0].id}
+            onValueChange={setActiveBoard}
+            className="w-full"
+          >
+            <div className="overflow-x-auto -mx-1 px-1 mb-4">
+              <TabsList className="inline-flex h-auto p-1 bg-muted/50 gap-1">
+                {myCommittees.map((c) => {
+                  const cmeta = committeeByType(c.type as any);
+                  const CIcon = cmeta?.icon ?? LayoutGrid;
+                  const myTasks = tasks.filter(
+                    (t) => t.committee_id === c.id && t.status !== "completed",
+                  ).length;
+                  return (
+                    <TabsTrigger
+                      key={c.id}
+                      value={c.id}
+                      className="gap-1.5 data-[state=active]:bg-card data-[state=active]:shadow-sm px-3 py-2 text-xs whitespace-nowrap"
+                    >
+                      <CIcon className="h-3.5 w-3.5" />
+                      <span>{c.name}</span>
+                      {myTasks > 0 && (
+                        <Badge
+                          variant="secondary"
+                          className="h-4 min-w-[18px] px-1 text-[9px] tabular-nums"
+                        >
+                          {myTasks}
+                        </Badge>
+                      )}
+                    </TabsTrigger>
+                  );
+                })}
+              </TabsList>
+            </div>
+            {myCommittees.map((c) => (
+              <TabsContent key={c.id} value={c.id} className="mt-0">
+                <PortalCommitteeBoard
+                  committeeId={c.id}
+                  committeeName={c.name}
+                  committeeType={c.type}
+                />
+              </TabsContent>
+            ))}
+          </Tabs>
+        </Card>
+      )}
 
       {/* Unified Kanban */}
       <Card className="p-4">
