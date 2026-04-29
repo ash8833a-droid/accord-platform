@@ -15,7 +15,7 @@ export const Route = createFileRoute("/_app/admin/permissions")({
   component: PermissionsPage,
 });
 
-interface Profile { user_id: string; full_name: string; phone: string; }
+interface Profile { user_id: string; full_name: string; phone: string | null; }
 type Matrix = Record<string, AccessLevel>; // pageKey -> level
 
 const LEVEL_STYLES: Record<AccessLevel, string> = {
