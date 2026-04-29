@@ -124,7 +124,7 @@ function PublicCommitteesPage() {
   useEffect(() => {
     (async () => {
       const { data: rows } = await supabase.rpc("get_public_committees");
-      setData((rows as PublicCommittee[]) ?? []);
+      setData((rows as unknown as PublicCommittee[]) ?? []);
     })();
   }, []);
 
