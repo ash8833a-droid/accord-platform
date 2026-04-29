@@ -21,6 +21,7 @@ import {
 import { toast } from "sonner";
 import { CreateTaskDialog } from "@/components/admin/CreateTaskDialog";
 import { TaskDetailsDialog } from "@/components/admin/TaskDetailsDialog";
+import { PageHeroHeader } from "@/components/PageHeroHeader";
 
 interface CommitteeRow { id: string; name: string; type: string }
 interface TaskRow {
@@ -145,25 +146,21 @@ function TaskCenterInner({ canEdit }: { canEdit: boolean }) {
 
   return (
     <div className="p-4 lg:p-8 space-y-6" dir="rtl">
-      {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <div className="flex items-center gap-2">
-            <div className="h-10 w-10 rounded-xl bg-gradient-gold flex items-center justify-center text-gold-foreground">
-              <Target className="h-5 w-5" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-extrabold">مركز المهام</h1>
-              <p className="text-xs text-muted-foreground">إنشاء ومتابعة مهام جميع اللجان من مكان واحد</p>
-            </div>
-          </div>
-        </div>
-        {canEdit && (
-          <Button onClick={() => setCreateOpen(true)} className="gap-2 bg-gradient-gold text-gold-foreground hover:opacity-90">
+      <PageHeroHeader
+        eyebrow="مركز عمليات اللجان"
+        title="ومتابعة المهام"
+        highlight="إدارة"
+        subtitle="إنشاء ومتابعة مهام جميع اللجان من مكان واحد"
+        icon={Target}
+        actions={canEdit ? (
+          <Button
+            onClick={() => setCreateOpen(true)}
+            className="gap-2 bg-gold text-gold-foreground hover:bg-gold/90"
+          >
             <Plus className="h-4 w-4" /> مهمة جديدة
           </Button>
-        )}
-      </div>
+        ) : null}
+      />
 
       {/* KPI cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
