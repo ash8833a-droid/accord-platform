@@ -30,7 +30,7 @@ import { PAGES } from "@/lib/pages";
 
 
 const ADMIN_TOP = [
-  { to: "/admin", label: "الإدارة العليا", icon: ShieldCheck },
+  { to: "/admin", label: "الأداء العام", icon: ShieldCheck },
   { to: "/admin/tasks", label: "مركز المهام", icon: Target },
   { to: "/portal", label: "بوابتي", icon: LayoutGrid },
   { to: "/task-responses", label: "متابعة أداء اللجان", icon: ClipboardCheck },
@@ -85,7 +85,7 @@ export function AppShell({ children, restricted = false, restrictedToCommitteeTy
   const TOP_NAV = restricted
     ? (canSeeDashboard
         ? [
-            { to: "/admin", label: "الإدارة العليا", icon: ShieldCheck } as const,
+            { to: "/admin", label: "الأداء العام", icon: ShieldCheck } as const,
             ...RESTRICTED_TOP,
           ]
         : RESTRICTED_TOP)
