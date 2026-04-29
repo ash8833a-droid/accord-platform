@@ -179,6 +179,62 @@
   [dir="rtl"] th.text-left, [dir="rtl"] td.text-left { text-align: left; }
 }
 
+/* Global RTL fixes for shadcn primitives that hardcode LTR-side utilities.
+ * Goal: developers should not need to add dir="rtl" or swap mr-/ml- on every
+ * Dialog, Sheet, Select, DropdownMenu, etc. */
+@layer components {
+  /* Dialog / Sheet close buttons: shadcn uses `right-4` which in RTL still
+   * renders on the right (against the start). Mirror to the left. */
+  [dir="rtl"] [data-slot="dialog-content"] > button.absolute.right-4,
+  [dir="rtl"] [role="dialog"] > button.absolute.right-4 {
+    right: auto;
+    left: 1rem;
+  }
+
+  /* Select item check indicator (absolute right-2) — flip to left */
+  [dir="rtl"] [role="option"] > span.absolute.right-2 {
+    right: auto;
+    left: 0.5rem;
+  }
+  /* And reverse the padding so the text isn't crowded */
+  [dir="rtl"] [role="option"].pr-8 { padding-right: 0.5rem; padding-left: 2rem; }
+
+  /* DropdownMenu / ContextMenu items: indicator on left -> right in RTL */
+  [dir="rtl"] [role="menuitem"] > span.absolute.left-2,
+  [dir="rtl"] [role="menuitemcheckbox"] > span.absolute.left-2,
+  [dir="rtl"] [role="menuitemradio"] > span.absolute.left-2 {
+    left: auto;
+    right: 0.5rem;
+  }
+  [dir="rtl"] [role="menuitem"].pl-8,
+  [dir="rtl"] [role="menuitemcheckbox"].pl-8,
+  [dir="rtl"] [role="menuitemradio"].pl-8 {
+    padding-left: 0.5rem;
+    padding-right: 2rem;
+  }
+
+  /* Native date / time inputs render their picker icon and digits LTR even
+   * inside a RTL document — keep the value LTR but align text to the right. */
+  [dir="rtl"] input[type="date"],
+  [dir="rtl"] input[type="time"],
+  [dir="rtl"] input[type="datetime-local"],
+  [dir="rtl"] input[type="month"],
+  [dir="rtl"] input[type="week"] {
+    direction: ltr;
+    text-align: right;
+  }
+
+  /* Tables: default to right-aligned headers/cells in RTL even when the
+   * markup uses Tailwind's `text-left` default from shadcn's <TableHead>. */
+  [dir="rtl"] table th:not(.text-center):not(.text-left),
+  [dir="rtl"] table td:not(.text-center):not(.text-left) {
+    text-align: right;
+  }
+
+  /* Tabs: ensure trigger content lays out RTL (icons before text visually). */
+  [dir="rtl"] [role="tablist"] { direction: rtl; }
+}
+
 /* Animated rings (logo-inspired) */
 @keyframes ring-spin-slow { to { transform: rotate(360deg); } }
 @keyframes ring-spin-rev { to { transform: rotate(-360deg); } }
