@@ -67,9 +67,7 @@ export function AppShell({ children, restricted = false, restrictedToCommitteeTy
   const [purchaseOpen, setPurchaseOpen] = useState(false);
   const { brand } = useBrand();
   useEffect(() => { applyBrandCssVars(brand); }, [brand]);
-  const [committeesOpen, setCommitteesOpen] = useState(
-    true,
-  );
+  const [committeesOpen, setCommitteesOpen] = useState(false);
   const [pendingCount, setPendingCount] = useState(0);
   const [profileName, setProfileName] = useState<string | null>(null);
 
