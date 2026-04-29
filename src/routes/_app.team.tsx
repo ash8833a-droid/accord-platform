@@ -684,7 +684,7 @@ function OrgChart({
 
       <div className="relative px-6 lg:px-10 pb-6 flex items-center justify-center gap-2 text-[10px] text-muted-foreground tracking-wider">
         <span className="h-px w-12 bg-border" />
-        منصة لجنة الزواج الجماعي · قبيلة الهملة من قريش
+        منصة القبيلة · قبيلة الهملة من قريش
         <span className="h-px w-12 bg-border" />
       </div>
     </div>
