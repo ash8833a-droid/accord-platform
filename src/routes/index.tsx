@@ -182,7 +182,7 @@ function PublicHome() {
               />
               <img
                 src={heroLogo}
-                alt="لجنة الزواج الجماعي — حيث تجتمع الهِمَم على صناعة الفرح"
+                alt="منصة القبيلة — حيث تجتمع الهِمَم على التميّز"
                 width={512}
                 height={512}
                 loading="eager"

@@ -38,7 +38,7 @@ export const Route = createFileRoute("/register-groom")({
         { property: "og:image:type", content: "image/jpeg" },
         { property: "og:image:width", content: "640" },
         { property: "og:image:height", content: "640" },
-        { property: "og:image:alt", content: "شعار لجنة الزواج الجماعي" },
+        { property: "og:image:alt", content: "شعار منصة القبيلة" },
         { name: "twitter:card", content: "summary_large_image" },
         { name: "twitter:title", content: "دعوة لتسجيل بيانات العريس" },
         {
