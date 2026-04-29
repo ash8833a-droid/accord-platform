@@ -574,6 +574,78 @@ export type Database = {
         }
         Relationships: []
       }
+      internal_requests: {
+        Row: {
+          attachment_name: string | null
+          attachment_url: string | null
+          category: Database["public"]["Enums"]["internal_request_category"]
+          completed_at: string | null
+          completed_by: string | null
+          completion_note: string | null
+          created_at: string
+          description: string | null
+          due_date: string | null
+          id: string
+          priority: Database["public"]["Enums"]["internal_request_priority"]
+          rejection_reason: string | null
+          requester_committee_id: string | null
+          requester_id: string
+          requester_name: string
+          status: Database["public"]["Enums"]["internal_request_status"]
+          target_committee_id: string | null
+          target_user_id: string | null
+          target_user_name: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          attachment_name?: string | null
+          attachment_url?: string | null
+          category?: Database["public"]["Enums"]["internal_request_category"]
+          completed_at?: string | null
+          completed_by?: string | null
+          completion_note?: string | null
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          priority?: Database["public"]["Enums"]["internal_request_priority"]
+          rejection_reason?: string | null
+          requester_committee_id?: string | null
+          requester_id: string
+          requester_name: string
+          status?: Database["public"]["Enums"]["internal_request_status"]
+          target_committee_id?: string | null
+          target_user_id?: string | null
+          target_user_name?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          attachment_name?: string | null
+          attachment_url?: string | null
+          category?: Database["public"]["Enums"]["internal_request_category"]
+          completed_at?: string | null
+          completed_by?: string | null
+          completion_note?: string | null
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          priority?: Database["public"]["Enums"]["internal_request_priority"]
+          rejection_reason?: string | null
+          requester_committee_id?: string | null
+          requester_id?: string
+          requester_name?: string
+          status?: Database["public"]["Enums"]["internal_request_status"]
+          target_committee_id?: string | null
+          target_user_id?: string | null
+          target_user_name?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       membership_requests: {
         Row: {
           assigned_committee_id: string | null
@@ -1473,6 +1545,21 @@ export type Database = {
         | "approved"
         | "implemented"
         | "archived"
+      internal_request_category:
+        | "financial"
+        | "administrative"
+        | "logistics"
+        | "media"
+        | "consultative"
+        | "urgent"
+      internal_request_priority: "low" | "medium" | "high" | "urgent"
+      internal_request_status:
+        | "new"
+        | "in_progress"
+        | "pending_confirmation"
+        | "completed"
+        | "rejected"
+        | "cancelled"
       page_access_level: "hidden" | "read" | "edit"
       payment_request_status: "pending" | "approved" | "rejected" | "paid"
       post_scope: "committee" | "targeted" | "all"
@@ -1642,6 +1729,23 @@ export const Constants = {
         "approved",
         "implemented",
         "archived",
+      ],
+      internal_request_category: [
+        "financial",
+        "administrative",
+        "logistics",
+        "media",
+        "consultative",
+        "urgent",
+      ],
+      internal_request_priority: ["low", "medium", "high", "urgent"],
+      internal_request_status: [
+        "new",
+        "in_progress",
+        "pending_confirmation",
+        "completed",
+        "rejected",
+        "cancelled",
       ],
       page_access_level: ["hidden", "read", "edit"],
       payment_request_status: ["pending", "approved", "rejected", "paid"],
