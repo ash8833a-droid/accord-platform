@@ -203,7 +203,7 @@ function Inner() {
     return { taskTrend, statusPie, perCommittee, spending, groomPie, paymentTrend };
   }, [data, period]);
 
-  if (loading || !k || !charts) {
+  if (!data || !k || !charts) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -229,7 +229,9 @@ function Inner() {
               <p className="text-primary-foreground/80 text-xs mt-1">إحصائيات لحظية وتحليلات للفترة المحددة</p>
             </div>
           </div>
-          <Tabs value={period} onValueChange={(v) => setPeriod(v as Period)} dir="rtl">
+          <div className="flex items-center gap-2">
+            {loading && <Loader2 className="h-4 w-4 animate-spin text-gold" />}
+            <Tabs value={period} onValueChange={(v) => setPeriod(v as Period)} dir="rtl">
             <TabsList className="bg-white/10 backdrop-blur border border-white/20">
               {(Object.keys(PERIOD_LABEL) as Period[]).map((p) => (
                 <TabsTrigger key={p} value={p}
@@ -238,7 +240,8 @@ function Inner() {
                 </TabsTrigger>
               ))}
             </TabsList>
-          </Tabs>
+            </Tabs>
+          </div>
         </div>
       </div>
 
