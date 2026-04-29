@@ -43,7 +43,7 @@ export const Route = createRootRoute({
       { property: "og:image:type", content: "image/jpeg" },
       { property: "og:image:width", content: "640" },
       { property: "og:image:height", content: "640" },
-      { property: "og:image:alt", content: "شعار لجنة الزواج الجماعي" },
+      { property: "og:image:alt", content: "شعار منصة القبيلة" },
       { name: "twitter:image", content: "https://lajnat-zawaj.org/og-register-groom.jpg" },
       { name: "twitter:card", content: "summary_large_image" },
       { property: "og:type", content: "website" },
@@ -51,7 +51,7 @@ export const Route = createRootRoute({
       { name: "apple-mobile-web-app-capable", content: "yes" },
       { name: "mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
-      { name: "apple-mobile-web-app-title", content: "لجنة الزواج" },
+      { name: "apple-mobile-web-app-title", content: "منصة القبيلة" },
     ],
     links: [
       { rel: "canonical", href: "https://lajnat-zawaj.org" },

@@ -19,13 +19,13 @@ import {
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "لجنة الزواج الجماعي — لوحة المؤشرات العامة" },
+      { title: "منصة القبيلة — لوحة المؤشرات العامة" },
       {
         name: "description",
         content:
           "أرقام وإحصائيات برنامج الزواج الجماعي العائلي: عدد العرسان، المساهمين، المبالغ المجموعة، واللجان منذ انطلاق البرنامج.",
       },
-      { property: "og:title", content: "لجنة الزواج الجماعي — لوحة المؤشرات" },
+      { property: "og:title", content: "منصة القبيلة — لوحة المؤشرات" },
       {
         property: "og:description",
         content:
