@@ -1,6 +1,6 @@
 import {
   ShieldCheck, LayoutGrid, Users, ClipboardCheck, Lightbulb,
-  HeartHandshake, FileBarChart, MessagesSquare, Wallet, ShoppingCart,
+  HeartHandshake, FileBarChart, Inbox, Wallet, ShoppingCart,
   Palette, Target, type LucideIcon,
 } from "lucide-react";
 
@@ -25,7 +25,7 @@ export const PAGES: PageDef[] = [
   { key: "ideas",              path: "/ideas",              label: "بنك الأفكار",        icon: Lightbulb,      category: "محتوى" },
   { key: "grooms",             path: "/grooms",             label: "سجل العرسان",        icon: HeartHandshake, category: "محتوى" },
   { key: "reports",            path: "/reports",            label: "التقارير والجودة",   icon: FileBarChart,   category: "محتوى" },
-  { key: "communications",     path: "/communications",     label: "التواصل",            icon: MessagesSquare, category: "محتوى" },
+  { key: "communications",     path: "/communications",     label: "إدارة الطلبات",      icon: Inbox,          category: "عمل" },
   { key: "finance",            path: "/finance",            label: "المالية",            icon: Wallet,         category: "مالية" },
   { key: "payment-requests",   path: "/payment-requests",   label: "طلبات الصرف",        icon: Wallet,         category: "مالية" },
   { key: "procurement-requests", path: "/procurement-requests", label: "طلبات الشراء",   icon: ShoppingCart,   category: "مالية" },
