@@ -679,6 +679,36 @@ export type Database = {
         }
         Relationships: []
       }
+      page_permissions: {
+        Row: {
+          access_level: Database["public"]["Enums"]["page_access_level"]
+          created_at: string
+          id: string
+          page_key: string
+          updated_at: string
+          updated_by: string | null
+          user_id: string
+        }
+        Insert: {
+          access_level?: Database["public"]["Enums"]["page_access_level"]
+          created_at?: string
+          id?: string
+          page_key: string
+          updated_at?: string
+          updated_by?: string | null
+          user_id: string
+        }
+        Update: {
+          access_level?: Database["public"]["Enums"]["page_access_level"]
+          created_at?: string
+          id?: string
+          page_key?: string
+          updated_at?: string
+          updated_by?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       payment_requests: {
         Row: {
           amount: number
@@ -1288,6 +1318,66 @@ export type Database = {
           },
         ]
       }
+      user_account_status: {
+        Row: {
+          disabled_at: string | null
+          disabled_by: string | null
+          disabled_reason: string | null
+          is_disabled: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          disabled_at?: string | null
+          disabled_by?: string | null
+          disabled_reason?: string | null
+          is_disabled?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          disabled_at?: string | null
+          disabled_by?: string | null
+          disabled_reason?: string | null
+          is_disabled?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_activity_log: {
+        Row: {
+          created_at: string
+          event_label: string | null
+          event_type: string
+          id: string
+          ip_address: string | null
+          meta: Json
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_label?: string | null
+          event_type: string
+          id?: string
+          ip_address?: string | null
+          meta?: Json
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          event_label?: string | null
+          event_type?: string
+          id?: string
+          ip_address?: string | null
+          meta?: Json
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           committee_id: string | null
@@ -1326,6 +1416,10 @@ export type Database = {
     }
     Functions: {
       current_actor_name: { Args: never; Returns: string }
+      get_page_access: {
+        Args: { _page_key: string; _user_id: string }
+        Returns: Database["public"]["Enums"]["page_access_level"]
+      }
       get_public_stats: { Args: never; Returns: Json }
       get_user_committee: { Args: { _user_id: string }; Returns: string }
       has_role: {
@@ -1335,6 +1429,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_account_disabled: { Args: { _user_id: string }; Returns: boolean }
       is_committee_head: {
         Args: { _committee_id: string; _user_id: string }
         Returns: boolean
@@ -1377,6 +1472,7 @@ export type Database = {
         | "approved"
         | "implemented"
         | "archived"
+      page_access_level: "hidden" | "read" | "edit"
       payment_request_status: "pending" | "approved" | "rejected" | "paid"
       post_scope: "committee" | "targeted" | "all"
       post_type: "achievement" | "news" | "inquiry" | "internal_announcement"
@@ -1546,6 +1642,7 @@ export const Constants = {
         "implemented",
         "archived",
       ],
+      page_access_level: ["hidden", "read", "edit"],
       payment_request_status: ["pending", "approved", "rejected", "paid"],
       post_scope: ["committee", "targeted", "all"],
       post_type: ["achievement", "news", "inquiry", "internal_announcement"],
