@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
-import { COMMITTEES, committeeByType } from "@/lib/committees";
+import { committeeByType } from "@/lib/committees";
 import { PageGate } from "@/components/PageGate";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
