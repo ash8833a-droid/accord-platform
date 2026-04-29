@@ -11,6 +11,7 @@ import {
   Bar, BarChart, CartesianGrid, Cell, Legend, Line, LineChart, Pie, PieChart,
   ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from "recharts";
+import { PageHeroHeader } from "@/components/PageHeroHeader";
 
 type Period = "day" | "week" | "month" | "quarter" | "year";
 
@@ -213,37 +214,28 @@ function Inner() {
 
   return (
     <div className="space-y-6" dir="rtl">
-      {/* Header */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-hero p-6 lg:p-8 text-primary-foreground shadow-elegant">
-        <div className="absolute -top-10 -left-10 w-72 h-72 bg-gold/20 rounded-full blur-3xl" />
-        <div className="relative z-10 flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <div className="h-12 w-12 rounded-2xl bg-gold/20 flex items-center justify-center backdrop-blur-sm">
-              <ShieldCheck className="h-6 w-6 text-gold" />
-            </div>
-            <div>
-              <p className="text-xs text-primary-foreground/70">لوحة تقييم الأداء</p>
-              <h1 className="text-xl lg:text-2xl font-extrabold">
-                <span className="text-shimmer-gold">أداء المنصة</span> ومؤشرات اللجان
-              </h1>
-              <p className="text-primary-foreground/80 text-xs mt-1">إحصائيات لحظية وتحليلات للفترة المحددة</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
+      <PageHeroHeader
+        eyebrow="لوحة تقييم الأداء"
+        title="ومؤشرات اللجان"
+        highlight="أداء المنصة"
+        subtitle="إحصائيات لحظية وتحليلات للفترة المحددة"
+        icon={ShieldCheck}
+        actions={
+          <>
             {loading && <Loader2 className="h-4 w-4 animate-spin text-gold" />}
             <Tabs value={period} onValueChange={(v) => setPeriod(v as Period)} dir="rtl">
-            <TabsList className="bg-white/10 backdrop-blur border border-white/20">
-              {(Object.keys(PERIOD_LABEL) as Period[]).map((p) => (
-                <TabsTrigger key={p} value={p}
-                  className="text-primary-foreground data-[state=active]:bg-gold data-[state=active]:text-gold-foreground">
-                  {PERIOD_LABEL[p]}
-                </TabsTrigger>
-              ))}
-            </TabsList>
+              <TabsList className="bg-white/10 backdrop-blur border border-white/20">
+                {(Object.keys(PERIOD_LABEL) as Period[]).map((p) => (
+                  <TabsTrigger key={p} value={p}
+                    className="text-primary-foreground data-[state=active]:bg-gold data-[state=active]:text-gold-foreground">
+                    {PERIOD_LABEL[p]}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
             </Tabs>
-          </div>
-        </div>
-      </div>
+          </>
+        }
+      />
 
       {/* KPI grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
