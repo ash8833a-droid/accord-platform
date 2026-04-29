@@ -140,7 +140,7 @@ export function AppShell({ children, restricted = false, restrictedToCommitteeTy
         <Logo size={44} />
       </div>
 
-      <nav className="flex-1 px-3 py-5 space-y-1 overflow-y-auto">
+      <nav className="flex-1 px-3 py-5 space-y-1 overflow-y-auto no-scrollbar">
         {TOP_NAV.map(({ to, label, icon: Icon }) => {
           const active = path === to || path.startsWith(to + "/");
           const showBadge = to === "/admin" && pendingCount > 0;
