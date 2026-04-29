@@ -98,6 +98,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       email: phoneToEmail(phone),
       password,
     });
+    if (!error) {
+      try {
+        const { data: u } = await supabase.auth.getUser();
+        if (u.user?.id) {
+          await supabase.from("user_activity_log").insert({
+            user_id: u.user.id,
+            event_type: "login",
+            event_label: "تسجيل دخول",
+            user_agent: typeof navigator !== "undefined" ? navigator.userAgent : null,
+          });
+        }
+      } catch { /* ignore */ }
+    }
     return { error: error?.message };
   };
 
