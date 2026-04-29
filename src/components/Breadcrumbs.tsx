@@ -4,6 +4,7 @@ import { COMMITTEES } from "@/lib/committees";
 
 const STATIC_LABELS: Record<string, string> = {
   admin: "الإدارة العليا",
+  tasks: "مركز المهام",
   team: "فريق العمل",
   "task-responses": "ردود اللجان",
   ideas: "بنك الأفكار",
