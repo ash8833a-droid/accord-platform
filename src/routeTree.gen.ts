@@ -29,7 +29,6 @@ import { Route as AppBrandRouteImport } from './routes/_app.brand'
 import { Route as AppAdminRouteImport } from './routes/_app.admin'
 import { Route as AppCommitteeTypeRouteImport } from './routes/_app.committee.$type'
 import { Route as AppAdminUsersRouteImport } from './routes/_app.admin.users'
-import { Route as AppAdminPermissionsRouteImport } from './routes/_app.admin.permissions'
 
 const RegisterGroomRoute = RegisterGroomRouteImport.update({
   id: '/register-groom',
@@ -130,11 +129,6 @@ const AppAdminUsersRoute = AppAdminUsersRouteImport.update({
   path: '/users',
   getParentRoute: () => AppAdminRoute,
 } as any)
-const AppAdminPermissionsRoute = AppAdminPermissionsRouteImport.update({
-  id: '/permissions',
-  path: '/permissions',
-  getParentRoute: () => AppAdminRoute,
-} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -154,7 +148,6 @@ export interface FileRoutesByFullPath {
   '/reports': typeof AppReportsRoute
   '/task-responses': typeof AppTaskResponsesRoute
   '/team': typeof AppTeamRoute
-  '/admin/permissions': typeof AppAdminPermissionsRoute
   '/admin/users': typeof AppAdminUsersRoute
   '/committee/$type': typeof AppCommitteeTypeRoute
 }
@@ -176,7 +169,6 @@ export interface FileRoutesByTo {
   '/reports': typeof AppReportsRoute
   '/task-responses': typeof AppTaskResponsesRoute
   '/team': typeof AppTeamRoute
-  '/admin/permissions': typeof AppAdminPermissionsRoute
   '/admin/users': typeof AppAdminUsersRoute
   '/committee/$type': typeof AppCommitteeTypeRoute
 }
@@ -200,7 +192,6 @@ export interface FileRoutesById {
   '/_app/reports': typeof AppReportsRoute
   '/_app/task-responses': typeof AppTaskResponsesRoute
   '/_app/team': typeof AppTeamRoute
-  '/_app/admin/permissions': typeof AppAdminPermissionsRoute
   '/_app/admin/users': typeof AppAdminUsersRoute
   '/_app/committee/$type': typeof AppCommitteeTypeRoute
 }
@@ -224,7 +215,6 @@ export interface FileRouteTypes {
     | '/reports'
     | '/task-responses'
     | '/team'
-    | '/admin/permissions'
     | '/admin/users'
     | '/committee/$type'
   fileRoutesByTo: FileRoutesByTo
@@ -246,7 +236,6 @@ export interface FileRouteTypes {
     | '/reports'
     | '/task-responses'
     | '/team'
-    | '/admin/permissions'
     | '/admin/users'
     | '/committee/$type'
   id:
@@ -269,7 +258,6 @@ export interface FileRouteTypes {
     | '/_app/reports'
     | '/_app/task-responses'
     | '/_app/team'
-    | '/_app/admin/permissions'
     | '/_app/admin/users'
     | '/_app/committee/$type'
   fileRoutesById: FileRoutesById
@@ -424,23 +412,14 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAdminUsersRouteImport
       parentRoute: typeof AppAdminRoute
     }
-    '/_app/admin/permissions': {
-      id: '/_app/admin/permissions'
-      path: '/permissions'
-      fullPath: '/admin/permissions'
-      preLoaderRoute: typeof AppAdminPermissionsRouteImport
-      parentRoute: typeof AppAdminRoute
-    }
   }
 }
 
 interface AppAdminRouteChildren {
-  AppAdminPermissionsRoute: typeof AppAdminPermissionsRoute
   AppAdminUsersRoute: typeof AppAdminUsersRoute
 }
 
 const AppAdminRouteChildren: AppAdminRouteChildren = {
-  AppAdminPermissionsRoute: AppAdminPermissionsRoute,
   AppAdminUsersRoute: AppAdminUsersRoute,
 }
 
