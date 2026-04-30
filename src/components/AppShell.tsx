@@ -2,12 +2,10 @@ import { ReactNode, useEffect, useState } from "react";
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import {
   Wallet,
-  Users2,
   HeartHandshake,
   FileBarChart,
   LogOut,
   Menu,
-  ChevronDown,
   ShieldCheck,
   Users,
   Lightbulb,
@@ -19,7 +17,6 @@ import { ShoppingCart, Inbox, LayoutGrid } from "lucide-react";
 import { Logo } from "./Logo";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
-import { COMMITTEES } from "@/lib/committees";
 import { supabase } from "@/integrations/supabase/client";
 import { NotificationBell } from "@/components/NotificationBell";
 import { useBrand, applyBrandCssVars } from "@/lib/brand";
@@ -60,7 +57,6 @@ export function AppShell({ children, restricted = false, restrictedToCommitteeTy
   const [purchaseOpen, setPurchaseOpen] = useState(false);
   const { brand } = useBrand();
   useEffect(() => { applyBrandCssVars(brand); }, [brand]);
-  const [committeesOpen, setCommitteesOpen] = useState(false);
   const [pendingCount, setPendingCount] = useState(0);
   const [profileName, setProfileName] = useState<string | null>(null);
 
@@ -86,9 +82,6 @@ export function AppShell({ children, restricted = false, restrictedToCommitteeTy
         : RESTRICTED_TOP)
     : ADMIN_TOP.filter((n) => !isPathHidden(n.to));
   const BOTTOM_NAV = restricted ? [] : ADMIN_BOTTOM.filter((n) => !isPathHidden(n.to));
-  const visibleCommittees = restricted
-    ? COMMITTEES.filter((c) => c.type === restrictedToCommitteeType)
-    : COMMITTEES;
 
   useEffect(() => {
     if (!isAdminUser) return;
