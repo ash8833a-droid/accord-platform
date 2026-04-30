@@ -1520,7 +1520,12 @@ export type Database = {
       user_id_for_team_member: { Args: { _member_id: string }; Returns: string }
     }
     Enums: {
-      app_role: "admin" | "committee" | "delegate" | "quality"
+      app_role:
+        | "admin"
+        | "committee"
+        | "delegate"
+        | "quality"
+        | "committee_head"
       committee_type:
         | "finance"
         | "media"
@@ -1702,7 +1707,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "committee", "delegate", "quality"],
+      app_role: ["admin", "committee", "delegate", "quality", "committee_head"],
       committee_type: [
         "finance",
         "media",
