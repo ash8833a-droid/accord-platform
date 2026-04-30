@@ -471,6 +471,23 @@ function HeroKpi({
   );
 }
 
+function MiniPillar({
+  icon: Icon,
+  label,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+}) {
+  return (
+    <div className="flex flex-col items-center justify-center gap-1.5 rounded-xl border border-border/60 bg-card/70 px-2 py-3 text-center">
+      <Icon className="h-4 w-4 text-gold" />
+      <span className="text-[11px] font-semibold text-foreground leading-snug">
+        {label}
+      </span>
+    </div>
+  );
+}
+
 function DetailCard({
   icon: Icon,
   label,
