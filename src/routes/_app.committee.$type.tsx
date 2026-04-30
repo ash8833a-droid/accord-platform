@@ -1481,6 +1481,15 @@ function CommitteePage() {
           </form>
         </DialogContent>
       </Dialog>
+
+      {/* Unified inline task editor — open from any task card by any committee member */}
+      <TaskEditorDialog
+        task={editorTask}
+        open={!!editorTask}
+        onOpenChange={(o) => { if (!o) setEditorTask(null); }}
+        onSaved={load}
+        canManage={canManageTasks}
+      />
     </div>
   );
 }
