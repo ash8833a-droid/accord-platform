@@ -15,7 +15,6 @@ import {
   HandHeart,
   GitBranch,
   BookOpen,
-  Heart,
   Handshake,
 } from "lucide-react";
 
