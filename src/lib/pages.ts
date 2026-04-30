@@ -1,7 +1,7 @@
 import {
-  ShieldCheck, Users, ClipboardCheck, Lightbulb,
+  ShieldCheck, Users, Lightbulb,
   HeartHandshake, FileBarChart, Inbox, Wallet, ShoppingCart,
-  Palette, Target, type LucideIcon,
+  Palette, Target, Banknote, type LucideIcon,
 } from "lucide-react";
 
 export interface PageDef {
@@ -20,12 +20,12 @@ export const PAGES: PageDef[] = [
   { key: "admin-tasks",        path: "/admin/tasks",        label: "مركز المهام",         icon: Target,         category: "إدارة" },
   { key: "users",              path: "/admin/users",        label: "إدارة المستخدمين",   icon: Users,          category: "إدارة" },
   { key: "brand",              path: "/brand",              label: "الهوية البصرية",     icon: Palette,        category: "إدارة" },
-  { key: "task-responses",     path: "/task-responses",     label: "متابعة أداء اللجان", icon: ClipboardCheck, category: "عمل" },
   { key: "ideas",              path: "/ideas",              label: "بنك الأفكار",        icon: Lightbulb,      category: "محتوى" },
   { key: "grooms",             path: "/grooms",             label: "سجل العرسان",        icon: HeartHandshake, category: "محتوى" },
   { key: "reports",            path: "/reports",            label: "التقارير والجودة",   icon: FileBarChart,   category: "محتوى" },
   { key: "communications",     path: "/communications",     label: "إدارة الطلبات",      icon: Inbox,          category: "عمل" },
   { key: "finance",            path: "/finance",            label: "المالية",            icon: Wallet,         category: "مالية" },
+  { key: "finance-management", path: "/finance-management", label: "إدارة المالية",      icon: Banknote,       category: "مالية" },
   { key: "payment-requests",   path: "/payment-requests",   label: "طلبات الصرف",        icon: Wallet,         category: "مالية" },
   { key: "procurement-requests", path: "/procurement-requests", label: "طلبات الشراء",   icon: ShoppingCart,   category: "مالية" },
 ];

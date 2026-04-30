@@ -17,6 +17,7 @@ import {
 import {
   Plus, Target, Search, Loader2, ListTodo, PlayCircle, CheckCircle2,
   AlertTriangle, Trash2, ExternalLink, LayoutGrid, Rows3, CalendarClock,
+  Banknote, ArrowLeft,
 } from "lucide-react";
 import { toast } from "sonner";
 import { CreateTaskDialog } from "@/components/admin/CreateTaskDialog";
@@ -73,6 +74,7 @@ function TaskCenterInner({ canEdit }: { canEdit: boolean }) {
   const [view, setView] = useState<"kanban" | "list">("kanban");
   const [createOpen, setCreateOpen] = useState(false);
   const [details, setDetails] = useState<TaskRow | null>(null);
+  const [pendingPayments, setPendingPayments] = useState<number>(0);
 
   const load = async () => {
     setLoading(true);
@@ -88,6 +90,22 @@ function TaskCenterInner({ canEdit }: { canEdit: boolean }) {
   };
 
   useEffect(() => { if (user) load(); }, [user]);
+  useEffect(() => {
+    if (!user) return;
+    const fetchCount = async () => {
+      const { count } = await supabase
+        .from("payment_requests")
+        .select("id", { count: "exact", head: true })
+        .eq("status", "pending");
+      setPendingPayments(count ?? 0);
+    };
+    fetchCount();
+    const ch = supabase
+      .channel("task_center_pr_count")
+      .on("postgres_changes", { event: "*", schema: "public", table: "payment_requests" }, fetchCount)
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [user]);
   useEffect(() => {
     if (!user) return;
     const ch = supabase
@@ -161,6 +179,37 @@ function TaskCenterInner({ canEdit }: { canEdit: boolean }) {
           </Button>
         ) : null}
       />
+
+      {/* Finance management shortcut */}
+      <Link
+        to="/finance-management"
+        className="group block relative overflow-hidden rounded-2xl border border-gold/30 bg-gradient-to-l from-gold/5 via-card to-primary/5 p-5 shadow-soft hover:shadow-elegant hover:border-gold/60 transition-all"
+      >
+        <div className="absolute -top-10 -left-10 h-32 w-32 rounded-full bg-gold/10 blur-3xl" />
+        <div className="relative flex items-center justify-between gap-4 flex-wrap">
+          <div className="flex items-center gap-4 min-w-0">
+            <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-gold/30 to-primary/20 flex items-center justify-center ring-1 ring-gold/40 shrink-0">
+              <Banknote className="h-7 w-7 text-gold" />
+            </div>
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h3 className="text-base lg:text-lg font-bold text-foreground">إدارة المالية</h3>
+                {pendingPayments > 0 && (
+                  <Badge className="bg-amber-500/15 text-amber-700 border-amber-500/30 hover:bg-amber-500/15">
+                    {pendingPayments} طلب صرف قيد المراجعة
+                  </Badge>
+                )}
+              </div>
+              <p className="text-xs lg:text-sm text-muted-foreground mt-1">
+                المحفظة والمناديب والاشتراكات وطلبات الصرف الواردة من اللجان — تابعة للجنة المالية
+              </p>
+            </div>
+          </div>
+          <div className="inline-flex items-center gap-1.5 rounded-xl bg-gold/15 px-3 py-2 text-xs font-bold text-gold group-hover:bg-gold group-hover:text-gold-foreground transition-colors">
+            فتح الصفحة <ArrowLeft className="h-3.5 w-3.5" />
+          </div>
+        </div>
+      </Link>
 
       {/* KPI cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
