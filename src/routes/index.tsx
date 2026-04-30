@@ -127,6 +127,54 @@ function PublicHome() {
         </div>
       </header>
 
+      {/* Inspirational intro band — tribe & collective wedding (placed above hero) */}
+      <section className="relative overflow-hidden border-b border-border/60 bg-gradient-to-b from-primary/[0.04] via-background to-background">
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-gold/60 to-transparent" />
+        <div className="absolute -top-24 right-1/3 w-[420px] h-[420px] rounded-full bg-gold/10 blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-24 left-1/3 w-[420px] h-[420px] rounded-full bg-primary/10 blur-3xl pointer-events-none" />
+
+        <div className="relative max-w-5xl mx-auto px-4 sm:px-8 py-12 lg:py-16 text-center">
+          <div className="inline-flex items-center gap-2 rounded-full border border-gold/30 bg-gold/10 px-4 py-1.5 text-[11px] sm:text-xs font-bold text-gold tracking-wider mb-6">
+            <BookOpen className="h-3.5 w-3.5" />
+            تعريفٌ بالعائلةِ ومبادرتِها
+          </div>
+
+          <h2 className="font-extrabold leading-[1.35] tracking-tight text-2xl sm:text-3xl lg:text-[2.4rem] text-foreground mb-6">
+            قبيلةُ <span className="text-primary">الهَملة</span> من
+            <span className="text-gold"> قُريش</span>
+            <span className="block text-base sm:text-lg lg:text-xl font-semibold text-muted-foreground mt-3">
+              عائلةٌ يجمعُها النَّسَبُ، ويُوحِّدُها التكاتفُ، ويُترجِمُها العملُ المؤسَّسي
+            </span>
+          </h2>
+
+          {/* Ornamental divider */}
+          <div className="flex items-center justify-center gap-3 mb-6">
+            <span className="h-px w-16 bg-gradient-to-l from-transparent to-gold/60" />
+            <Sparkles className="h-4 w-4 text-gold" />
+            <span className="h-px w-16 bg-gradient-to-r from-transparent to-gold/60" />
+          </div>
+
+          <p className="text-sm sm:text-base lg:text-[17px] text-muted-foreground leading-loose max-w-3xl mx-auto mb-6">
+            عائلةٌ كريمةٌ ضاربةُ الجذور، تجمعُها وشائجُ النَّسَب، وتُوحِّدُها قِيَمُ
+            <span className="font-bold text-foreground"> التَّرابطِ والتَّكاتفِ والتَّراحمِ والتَّآخي</span>؛
+            ومن رَحِمِ هذه القِيَم وُلِدَتْ
+            <span className="font-bold text-primary"> فكرةُ الزواجِ الجماعي</span>،
+            ثمرةَ اهتمامِ أبناءِ العائلةِ جميعاً برفعِ الكُلفةِ عن شبابِهم،
+            فاجتمعَ الفرحُ في موعدٍ واحدٍ، وتُوزِّعَتِ الأعباء، وتشاركَ الجميعُ
+            <span className="font-bold text-gold"> فرحةً واحدةً </span>
+            تجمعُ القلوبَ قبل أن تجمعَ البيوت — مشروعاً عائليّاً مُستدامًا يَحملُه الكبارُ ويُكمِلُه الصغار.
+          </p>
+
+          {/* Pillars row */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 max-w-3xl mx-auto mt-8">
+            <IntroPillar icon={Handshake} label="ترابطٌ وتكاتف" />
+            <IntroPillar icon={Wallet} label="تخفيفُ الأعباء" />
+            <IntroPillar icon={HeartHandshake} label="فرحةٌ مشتركة" />
+            <IntroPillar icon={Sparkles} label="أَثَرٌ ممتد" />
+          </div>
+        </div>
+      </section>
+
       {/* Hero — split layout: text right, image card left, calm cream background */}
       <section className="relative overflow-hidden bg-background">
         {/* Soft brand-tinted blobs */}
