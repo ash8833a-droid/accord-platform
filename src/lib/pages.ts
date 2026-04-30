@@ -1,5 +1,5 @@
 import {
-  ShieldCheck, LayoutGrid, Users, ClipboardCheck, Lightbulb,
+  ShieldCheck, Users, ClipboardCheck, Lightbulb,
   HeartHandshake, FileBarChart, Inbox, Wallet, ShoppingCart,
   Palette, Target, type LucideIcon,
 } from "lucide-react";
