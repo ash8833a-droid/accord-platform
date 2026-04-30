@@ -89,7 +89,7 @@ function AuthPage() {
           <AnimatedRings className="w-72 h-44 mx-auto" />
           <div className="text-center space-y-3">
             <h1 className="text-4xl font-black leading-tight">
-              <span className="text-shimmer-gold">منصة القبيلة</span>
+              <span className="text-shimmer-gold">لجنة الزواج الجماعي</span>
             </h1>
             <p className="text-sm text-gold/80 font-semibold tracking-wide">لقبيلة الهملة من قريش</p>
             <p className="text-lg text-primary-foreground/85 max-w-md mx-auto leading-relaxed pt-2">

@@ -11,13 +11,13 @@ import {
 export const Route = createFileRoute("/committees")({
   head: () => ({
     meta: [
-      { title: "اللجان وأدوارها — منصة القبيلة" },
+      { title: "اللجان وأدوارها — لجنة الزواج الجماعي" },
       {
         name: "description",
         content:
           "تعرّف على لجان مبادرة الزواج الجماعي: الرؤية والرسالة والأهداف والمستهدفات والمهام وأعضاء كل لجنة.",
       },
-      { property: "og:title", content: "اللجان وأدوارها — منصة القبيلة" },
+      { property: "og:title", content: "اللجان وأدوارها — لجنة الزواج الجماعي" },
       {
         property: "og:description",
         content:
@@ -242,7 +242,7 @@ function PublicCommitteesPage() {
 
       <footer className="border-t bg-card/50">
         <div className="max-w-7xl mx-auto px-4 lg:px-8 py-6 text-center text-xs text-muted-foreground">
-          © {new Date().getFullYear()} منصة القبيلة · جميع الحقوق محفوظة
+          © {new Date().getFullYear()} لجنة الزواج الجماعي · جميع الحقوق محفوظة
         </div>
       </footer>
     </div>

@@ -483,7 +483,7 @@ function buildHTML(rows: EvalRow[]): string {
     <div class="logo">${BRAND_LOGO_SVG}</div>
     <div>
       <h1>تقرير تقييم ومتابعة اللجان</h1>
-      <div class="sub">إعداد: لجنة الجودة — منصة القبيلة</div>
+      <div class="sub">إعداد: لجنة الجودة — لجنة الزواج الجماعي</div>
     </div>
     <div class="org">
       <strong>تقرير أسبوعي</strong>
@@ -505,7 +505,7 @@ function buildHTML(rows: EvalRow[]): string {
       <strong>ملاحظات:</strong><br/>
       • هذا التقرير معتمد من لجنة الجودة ويعكس حالة المتابعة وقت الطباعة.<br/>
       • العلامة <span class="badge done">✓ تمت</span> تعني إنجاز المهمة، و <span class="badge pending">✗ لم تتم</span> تعني عدم الإنجاز.<br/>
-      • مستند داخلي — منصة القبيلة.
+      • مستند داخلي — لجنة الزواج الجماعي.
     </div>
     <div style="display:flex;align-items:flex-end;gap:24px">
       <div class="sig">
