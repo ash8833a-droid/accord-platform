@@ -27,7 +27,7 @@ export function PageGate({ pageKey, children }: Props) {
             </div>
             <h2 className="text-xl font-bold">لا تملك صلاحية الوصول</h2>
             <p className="text-sm text-muted-foreground">هذه الصفحة غير متاحة لحسابك. تواصل مع المدير لطلب الوصول.</p>
-            <Link to="/portal"><Button variant="outline" className="gap-2"><Home className="h-4 w-4" />العودة إلى بوابتي</Button></Link>
+            <Link to="/"><Button variant="outline" className="gap-2"><Home className="h-4 w-4" />العودة للرئيسية</Button></Link>
           </CardContent>
         </Card>
       </div>
