@@ -166,6 +166,8 @@ function CommitteePage() {
 
   const [taskOpen, setTaskOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  // Inline task editor (open from any card — available to all committee members)
+  const [editorTask, setEditorTask] = useState<EditorTask | null>(null);
   const [tTitle, setTTitle] = useState("");
   const [tDesc, setTDesc] = useState("");
   const [tStatus, setTStatus] = useState<Task["status"]>("todo");
