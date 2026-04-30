@@ -15,7 +15,6 @@ import {
   HandHeart,
   GitBranch,
   BookOpen,
-  Heart,
   Handshake,
 } from "lucide-react";
 
@@ -127,6 +126,54 @@ function PublicHome() {
         </div>
       </header>
 
+      {/* Inspirational intro band — tribe & collective wedding (placed above hero) */}
+      <section className="relative overflow-hidden border-b border-border/60 bg-gradient-to-b from-primary/[0.04] via-background to-background">
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-gold/60 to-transparent" />
+        <div className="absolute -top-24 right-1/3 w-[420px] h-[420px] rounded-full bg-gold/10 blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-24 left-1/3 w-[420px] h-[420px] rounded-full bg-primary/10 blur-3xl pointer-events-none" />
+
+        <div className="relative max-w-5xl mx-auto px-4 sm:px-8 py-12 lg:py-16 text-center">
+          <div className="inline-flex items-center gap-2 rounded-full border border-gold/30 bg-gold/10 px-4 py-1.5 text-[11px] sm:text-xs font-bold text-gold tracking-wider mb-6">
+            <BookOpen className="h-3.5 w-3.5" />
+            تعريفٌ بالعائلةِ ومبادرتِها
+          </div>
+
+          <h2 className="font-extrabold leading-[1.35] tracking-tight text-2xl sm:text-3xl lg:text-[2.4rem] text-foreground mb-6">
+            قبيلةُ <span className="text-primary">الهَملة</span> من
+            <span className="text-gold"> قُريش</span>
+            <span className="block text-base sm:text-lg lg:text-xl font-semibold text-muted-foreground mt-3">
+              عائلةٌ يجمعُها النَّسَبُ، ويُوحِّدُها التكاتفُ، ويُترجِمُها العملُ المؤسَّسي
+            </span>
+          </h2>
+
+          {/* Ornamental divider */}
+          <div className="flex items-center justify-center gap-3 mb-6">
+            <span className="h-px w-16 bg-gradient-to-l from-transparent to-gold/60" />
+            <Sparkles className="h-4 w-4 text-gold" />
+            <span className="h-px w-16 bg-gradient-to-r from-transparent to-gold/60" />
+          </div>
+
+          <p className="text-sm sm:text-base lg:text-[17px] text-muted-foreground leading-loose max-w-3xl mx-auto mb-6">
+            عائلةٌ كريمةٌ ضاربةُ الجذور، تجمعُها وشائجُ النَّسَب، وتُوحِّدُها قِيَمُ
+            <span className="font-bold text-foreground"> التَّرابطِ والتَّكاتفِ والتَّراحمِ والتَّآخي</span>؛
+            ومن رَحِمِ هذه القِيَم وُلِدَتْ
+            <span className="font-bold text-primary"> فكرةُ الزواجِ الجماعي</span>،
+            ثمرةَ اهتمامِ أبناءِ العائلةِ جميعاً برفعِ الكُلفةِ عن شبابِهم،
+            فاجتمعَ الفرحُ في موعدٍ واحدٍ، وتُوزِّعَتِ الأعباء، وتشاركَ الجميعُ
+            <span className="font-bold text-gold"> فرحةً واحدةً </span>
+            تجمعُ القلوبَ قبل أن تجمعَ البيوت — مشروعاً عائليّاً مُستدامًا يَحملُه الكبارُ ويُكمِلُه الصغار.
+          </p>
+
+          {/* Pillars row */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 max-w-3xl mx-auto mt-8">
+            <IntroPillar icon={Handshake} label="ترابطٌ وتكاتف" />
+            <IntroPillar icon={Wallet} label="تخفيفُ الأعباء" />
+            <IntroPillar icon={HeartHandshake} label="فرحةٌ مشتركة" />
+            <IntroPillar icon={Sparkles} label="أَثَرٌ ممتد" />
+          </div>
+        </div>
+      </section>
+
       {/* Hero — split layout: text right, image card left, calm cream background */}
       <section className="relative overflow-hidden bg-background">
         {/* Soft brand-tinted blobs */}
@@ -236,79 +283,6 @@ function PublicHome() {
               delay="0.3s"
             />
           </Link>
-        </div>
-      </section>
-
-      {/* About — the family & the collective wedding idea */}
-      <section className="max-w-7xl mx-auto px-4 lg:px-8 pt-16 lg:pt-24">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
-          {/* About the tribe */}
-          <article className="relative overflow-hidden rounded-3xl border border-border/70 bg-card p-7 lg:p-9 shadow-soft">
-            <div className="absolute -top-12 -left-12 h-44 w-44 rounded-full bg-primary/10 blur-3xl" />
-            <div className="relative">
-              <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 text-primary px-3 py-1 text-[11px] font-bold mb-4">
-                <BookOpen className="h-3.5 w-3.5" />
-                تعريفٌ بالقبيلة
-              </div>
-              <h2 className="text-2xl lg:text-3xl font-bold leading-tight mb-4">
-                قبيلةُ <span className="text-primary">الهملة</span> من
-                <span className="text-gold"> قُريش</span>
-              </h2>
-              <p className="text-sm lg:text-[15px] text-muted-foreground leading-loose">
-                قبيلةُ الهَملة من قُريش، عائلةٌ كريمةٌ ضاربةُ الجذور، تجمعُها
-                وشائجُ النسبِ ورباطُ الدم، وتُوحِّدُها قِيَمُ
-                <span className="font-bold text-foreground"> الترابطِ والتكاتف </span>
-                و<span className="font-bold text-foreground">التعاضدِ والتراحم</span>.
-                نسعى أن تكون عائلتُنا نموذجاً في
-                <span className="font-bold text-foreground"> التآخي </span>
-                وصلةِ الرحم، وأن نُترجِمَ هذه القِيَم إلى مبادراتٍ عمليّةٍ
-                تُلامسُ حياةَ كلِّ فردٍ من أبنائِها، فيشتدُّ بنيانُها كالبنيانِ
-                المرصوصِ يَشُدُّ بعضُه بعضاً.
-              </p>
-              <div className="mt-6 flex flex-wrap gap-2">
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/5 border border-primary/20 px-3 py-1 text-xs font-semibold text-primary">
-                  <Handshake className="h-3.5 w-3.5" /> ترابطٌ وتكاتف
-                </span>
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-gold/10 border border-gold/30 px-3 py-1 text-xs font-semibold text-gold">
-                  <Heart className="h-3.5 w-3.5" /> تراحمٌ وتآخٍ
-                </span>
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/5 border border-primary/20 px-3 py-1 text-xs font-semibold text-primary">
-                  <Users className="h-3.5 w-3.5" /> صِلةُ رَحِم
-                </span>
-              </div>
-            </div>
-          </article>
-
-          {/* About the collective wedding idea */}
-          <article className="relative overflow-hidden rounded-3xl border border-border/70 bg-gradient-card p-7 lg:p-9 shadow-soft">
-            <div className="absolute -bottom-12 -right-12 h-44 w-44 rounded-full bg-gold/15 blur-3xl" />
-            <div className="relative">
-              <div className="inline-flex items-center gap-2 rounded-full bg-gold/15 text-gold px-3 py-1 text-[11px] font-bold mb-4">
-                <HeartHandshake className="h-3.5 w-3.5" />
-                فكرةُ الزواجِ الجماعي
-              </div>
-              <h2 className="text-2xl lg:text-3xl font-bold leading-tight mb-4">
-                كيفَ <span className="text-gold">انبثقَتْ</span> الفكرةُ من
-                <span className="text-primary"> رَحِمِ العائلة</span>
-              </h2>
-              <p className="text-sm lg:text-[15px] text-muted-foreground leading-loose">
-                وُلِدَتْ فكرةُ الزواجِ الجماعي من
-                <span className="font-bold text-foreground"> اهتمامِ أبناءِ العائلة </span>
-                جميعاً برفعِ الكُلفةِ عن شبابِهم وتيسيرِ سبيلِ
-                الزواجِ لهم؛ إذ رأى الأهلُ أن يجتمعَ الفرحُ في موعدٍ واحدٍ،
-                فتُختصَرَ التكاليفُ، وتُوزَّعَ الأعباءُ، ويتشاركَ الجميعُ
-                <span className="font-bold text-foreground"> فرحةً واحدةً </span>
-                تجمعُ القلوبَ قبل أن تجمعَ البيوت. هكذا تحوَّلَت المبادرةُ من
-                حُلمٍ فرديٍّ إلى مشروعٍ عائليٍّ مُستدامٍ، يَحملُه الكبارُ ويُكمِلُه
-                الصغار، ليبقى أَثَرُه ممتدّاً جيلاً بعد جيل.
-              </p>
-              <div className="mt-6 grid grid-cols-3 gap-2">
-                <MiniPillar icon={Wallet} label="تخفيفُ الأعباء" />
-                <MiniPillar icon={HeartHandshake} label="فرحةٌ مشتركة" />
-                <MiniPillar icon={Sparkles} label="أَثَرٌ ممتد" />
-              </div>
-            </div>
-          </article>
         </div>
       </section>
 
@@ -471,7 +445,7 @@ function HeroKpi({
   );
 }
 
-function MiniPillar({
+function IntroPillar({
   icon: Icon,
   label,
 }: {
@@ -479,9 +453,11 @@ function MiniPillar({
   label: string;
 }) {
   return (
-    <div className="flex flex-col items-center justify-center gap-1.5 rounded-xl border border-border/60 bg-card/70 px-2 py-3 text-center">
-      <Icon className="h-4 w-4 text-gold" />
-      <span className="text-[11px] font-semibold text-foreground leading-snug">
+    <div className="group relative flex flex-col items-center justify-center gap-2 rounded-2xl border border-border/70 bg-card/80 backdrop-blur-sm px-3 py-4 text-center shadow-soft hover:shadow-elegant hover:-translate-y-0.5 transition-all">
+      <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-gold/20 to-primary/10 flex items-center justify-center ring-1 ring-gold/30">
+        <Icon className="h-4 w-4 text-gold" />
+      </div>
+      <span className="text-xs sm:text-[13px] font-bold text-foreground leading-snug">
         {label}
       </span>
     </div>
