@@ -21,6 +21,7 @@ import { MediaInbox } from "@/components/media/MediaInbox";
 import { ProcurementRequestsBoard } from "@/components/procurement/ProcurementRequestsBoard";
 import { TaskAttachments } from "@/components/TaskAttachments";
 import { TaskComments } from "@/components/TaskComments";
+import { TaskEditorDialog, type EditorTask } from "@/components/TaskEditorDialog";
 import { CommitteeArchive } from "@/components/CommitteeArchive";
 import { CommitteeMembersPanel } from "@/components/CommitteeMembersPanel";
 import { QuickResponseBar } from "@/components/QuickResponseBar";
