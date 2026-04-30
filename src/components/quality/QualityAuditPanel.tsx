@@ -540,7 +540,7 @@ function buildReportHTML(c: CommitteeRow, tasks: RawTask[]): string {
       <img src="${logo}" alt="شعار الحملة" />
       <div class="ti">
         <h1>تقرير متابعة الجودة — ${escapeHtml(c.name)}</h1>
-        <p class="sub">منصة القبيلة · إصدار رسمي صادر عن لجنة الجودة</p>
+        <p class="sub">لجنة الزواج الجماعي · إصدار رسمي صادر عن لجنة الجودة</p>
         <p class="meta">${escapeHtml(meta?.description ?? "")}</p>
       </div>
     </div>
@@ -604,7 +604,7 @@ function buildReportHTML(c: CommitteeRow, tasks: RawTask[]): string {
 
     <div class="footer">
       <span>صادر بتاريخ ${today}</span>
-      <span class="brand">منصة القبيلة</span>
+      <span class="brand">لجنة الزواج الجماعي</span>
     </div>
   </div>
   <script>window.onafterprint = () => window.close();</script>
