@@ -41,6 +41,7 @@ interface Req {
   rejection_reason: string | null;
   created_at: string;
   completed_at: string | null;
+  completed_by: string | null;
 }
 
 const CATEGORIES: { value: Category; label: string; color: string }[] = [
