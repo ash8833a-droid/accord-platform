@@ -6,7 +6,6 @@ const STATIC_LABELS: Record<string, string> = {
   admin: "الإدارة العليا",
   tasks: "مركز المهام",
   team: "فريق العمل",
-  "task-responses": "ردود اللجان",
   ideas: "بنك الأفكار",
   grooms: "سجل العرسان",
   reports: "التقارير والجودة",
