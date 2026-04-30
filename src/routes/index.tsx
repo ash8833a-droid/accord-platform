@@ -445,7 +445,7 @@ function HeroKpi({
   );
 }
 
-function MiniPillar({
+function IntroPillar({
   icon: Icon,
   label,
 }: {
@@ -453,9 +453,11 @@ function MiniPillar({
   label: string;
 }) {
   return (
-    <div className="flex flex-col items-center justify-center gap-1.5 rounded-xl border border-border/60 bg-card/70 px-2 py-3 text-center">
-      <Icon className="h-4 w-4 text-gold" />
-      <span className="text-[11px] font-semibold text-foreground leading-snug">
+    <div className="group relative flex flex-col items-center justify-center gap-2 rounded-2xl border border-border/70 bg-card/80 backdrop-blur-sm px-3 py-4 text-center shadow-soft hover:shadow-elegant hover:-translate-y-0.5 transition-all">
+      <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-gold/20 to-primary/10 flex items-center justify-center ring-1 ring-gold/30">
+        <Icon className="h-4 w-4 text-gold" />
+      </div>
+      <span className="text-xs sm:text-[13px] font-bold text-foreground leading-snug">
         {label}
       </span>
     </div>
