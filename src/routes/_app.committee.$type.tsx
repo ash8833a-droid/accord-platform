@@ -205,7 +205,7 @@ function CommitteePage() {
 
     const [{ data: t }, { data: p }, { data: m }, { data: am }, { data: rolesInCommittee }, { data: allRoles }, { data: rsp }] = await Promise.all([
       supabase.from("committee_tasks")
-        .select("id, title, description, status, priority, assigned_to, created_at")
+        .select("id, title, description, status, priority, assigned_to, due_date, created_at")
         .eq("committee_id", c.id)
         .order("created_at", { ascending: false }),
       supabase.from("payment_requests").select("id, title, amount, status, created_at, invoice_url").eq("committee_id", c.id).order("created_at", { ascending: false }),
