@@ -133,7 +133,13 @@ export function AppShell({ children, restricted = false, restrictedToCommitteeTy
 
       <nav className="flex-1 px-3 py-5 space-y-1 overflow-y-auto no-scrollbar">
         {TOP_NAV.map(({ to, label, icon: Icon }) => {
-          const active = path === to || path.startsWith(to + "/");
+          // Exact-match for parent routes that have children (e.g. /admin vs /admin/tasks)
+          const hasChildRoute = TOP_NAV.some(
+            (n) => n.to !== to && n.to.startsWith(to + "/"),
+          );
+          const active = hasChildRoute
+            ? path === to
+            : path === to || path.startsWith(to + "/");
           const showBadge = to === "/admin" && pendingCount > 0;
           return (
             <Link key={to} to={to} onClick={() => setOpen(false)} className={linkClass(active)}>
