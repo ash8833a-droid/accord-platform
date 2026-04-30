@@ -21,6 +21,7 @@ import { MediaInbox } from "@/components/media/MediaInbox";
 import { ProcurementRequestsBoard } from "@/components/procurement/ProcurementRequestsBoard";
 import { TaskAttachments } from "@/components/TaskAttachments";
 import { TaskComments } from "@/components/TaskComments";
+import { TaskEditorDialog, type EditorTask } from "@/components/TaskEditorDialog";
 import { CommitteeArchive } from "@/components/CommitteeArchive";
 import { CommitteeMembersPanel } from "@/components/CommitteeMembersPanel";
 import { QuickResponseBar } from "@/components/QuickResponseBar";
@@ -80,6 +81,7 @@ interface Task {
   status: "todo" | "in_progress" | "completed";
   priority: "low" | "medium" | "high" | "urgent";
   assigned_to?: string | null;
+  due_date?: string | null;
 }
 
 interface TeamMember {
@@ -165,6 +167,8 @@ function CommitteePage() {
 
   const [taskOpen, setTaskOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  // Inline task editor (open from any card — available to all committee members)
+  const [editorTask, setEditorTask] = useState<EditorTask | null>(null);
   const [tTitle, setTTitle] = useState("");
   const [tDesc, setTDesc] = useState("");
   const [tStatus, setTStatus] = useState<Task["status"]>("todo");
@@ -202,7 +206,7 @@ function CommitteePage() {
 
     const [{ data: t }, { data: p }, { data: m }, { data: am }, { data: rolesInCommittee }, { data: allRoles }, { data: rsp }] = await Promise.all([
       supabase.from("committee_tasks")
-        .select("id, title, description, status, priority, assigned_to, created_at")
+        .select("id, title, description, status, priority, assigned_to, due_date, created_at")
         .eq("committee_id", c.id)
         .order("created_at", { ascending: false }),
       supabase.from("payment_requests").select("id, title, amount, status, created_at, invoice_url").eq("committee_id", c.id).order("created_at", { ascending: false }),
@@ -1405,24 +1409,36 @@ function CommitteePage() {
                               <UserIcon className="h-3 w-3" /> غير معيّن
                             </span>
                           )}
-                          {canManageTasks && (
-                            <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition">
-                              <button
-                                onClick={() => openEditTask(t)}
-                                className="h-6 w-6 rounded-md flex items-center justify-center hover:bg-primary/10 hover:text-primary transition"
-                                aria-label="تعديل"
-                              >
-                                <Pencil className="h-3 w-3" />
-                              </button>
+                          <div className="flex items-center gap-0.5">
+                            {/* Editor available to ALL committee members (RLS allows update) */}
+                            <button
+                              onClick={() => setEditorTask({
+                                id: t.id,
+                                title: t.title,
+                                description: t.description,
+                                status: t.status,
+                                priority: t.priority,
+                                due_date: t.due_date ?? null,
+                                committee_id: committee.id,
+                              })}
+                              className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-bold bg-primary/10 text-primary hover:bg-primary/20 transition"
+                              aria-label="فتح محرر المهمة"
+                              title="تعديل الحالة والتفاصيل وإضافة تعليقات ومرفقات"
+                            >
+                              <Pencil className="h-3 w-3" />
+                              تحرير
+                            </button>
+                            {canManageTasks && (
                               <button
                                 onClick={() => deleteTask(t.id)}
-                                className="h-6 w-6 rounded-md flex items-center justify-center hover:bg-destructive/10 hover:text-destructive transition"
+                                className="h-7 w-7 rounded-md flex items-center justify-center hover:bg-destructive/10 hover:text-destructive transition opacity-0 group-hover:opacity-100"
                                 aria-label="حذف"
+                                title="حذف المهمة (للرئيس/المدير فقط)"
                               >
                                 <Trash2 className="h-3 w-3" />
                               </button>
-                            </div>
-                          )}
+                            )}
+                          </div>
                         </div>
                       </div>
                     );
@@ -1466,6 +1482,15 @@ function CommitteePage() {
           </form>
         </DialogContent>
       </Dialog>
+
+      {/* Unified inline task editor — open from any task card by any committee member */}
+      <TaskEditorDialog
+        task={editorTask}
+        open={!!editorTask}
+        onOpenChange={(o) => { if (!o) setEditorTask(null); }}
+        onSaved={load}
+        canManage={canManageTasks}
+      />
     </div>
   );
 }
