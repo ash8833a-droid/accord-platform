@@ -20,6 +20,7 @@ import { Route as AppProcurementRequestsRouteImport } from './routes/_app.procur
 import { Route as AppPaymentRequestsRouteImport } from './routes/_app.payment-requests'
 import { Route as AppIdeasRouteImport } from './routes/_app.ideas'
 import { Route as AppGroomsRouteImport } from './routes/_app.grooms'
+import { Route as AppFinanceManagementRouteImport } from './routes/_app.finance-management'
 import { Route as AppFinanceRouteImport } from './routes/_app.finance'
 import { Route as AppDashboardRouteImport } from './routes/_app.dashboard'
 import { Route as AppCommunicationsRouteImport } from './routes/_app.communications'
@@ -83,6 +84,11 @@ const AppGroomsRoute = AppGroomsRouteImport.update({
   path: '/grooms',
   getParentRoute: () => AppRoute,
 } as any)
+const AppFinanceManagementRoute = AppFinanceManagementRouteImport.update({
+  id: '/finance-management',
+  path: '/finance-management',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppFinanceRoute = AppFinanceRouteImport.update({
   id: '/finance',
   path: '/finance',
@@ -135,6 +141,7 @@ export interface FileRoutesByFullPath {
   '/communications': typeof AppCommunicationsRoute
   '/dashboard': typeof AppDashboardRoute
   '/finance': typeof AppFinanceRoute
+  '/finance-management': typeof AppFinanceManagementRoute
   '/grooms': typeof AppGroomsRoute
   '/ideas': typeof AppIdeasRoute
   '/payment-requests': typeof AppPaymentRequestsRoute
@@ -155,6 +162,7 @@ export interface FileRoutesByTo {
   '/communications': typeof AppCommunicationsRoute
   '/dashboard': typeof AppDashboardRoute
   '/finance': typeof AppFinanceRoute
+  '/finance-management': typeof AppFinanceManagementRoute
   '/grooms': typeof AppGroomsRoute
   '/ideas': typeof AppIdeasRoute
   '/payment-requests': typeof AppPaymentRequestsRoute
@@ -177,6 +185,7 @@ export interface FileRoutesById {
   '/_app/communications': typeof AppCommunicationsRoute
   '/_app/dashboard': typeof AppDashboardRoute
   '/_app/finance': typeof AppFinanceRoute
+  '/_app/finance-management': typeof AppFinanceManagementRoute
   '/_app/grooms': typeof AppGroomsRoute
   '/_app/ideas': typeof AppIdeasRoute
   '/_app/payment-requests': typeof AppPaymentRequestsRoute
@@ -199,6 +208,7 @@ export interface FileRouteTypes {
     | '/communications'
     | '/dashboard'
     | '/finance'
+    | '/finance-management'
     | '/grooms'
     | '/ideas'
     | '/payment-requests'
@@ -219,6 +229,7 @@ export interface FileRouteTypes {
     | '/communications'
     | '/dashboard'
     | '/finance'
+    | '/finance-management'
     | '/grooms'
     | '/ideas'
     | '/payment-requests'
@@ -240,6 +251,7 @@ export interface FileRouteTypes {
     | '/_app/communications'
     | '/_app/dashboard'
     | '/_app/finance'
+    | '/_app/finance-management'
     | '/_app/grooms'
     | '/_app/ideas'
     | '/_app/payment-requests'
@@ -338,6 +350,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppGroomsRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/finance-management': {
+      id: '/_app/finance-management'
+      path: '/finance-management'
+      fullPath: '/finance-management'
+      preLoaderRoute: typeof AppFinanceManagementRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/finance': {
       id: '/_app/finance'
       path: '/finance'
@@ -417,6 +436,7 @@ interface AppRouteChildren {
   AppCommunicationsRoute: typeof AppCommunicationsRoute
   AppDashboardRoute: typeof AppDashboardRoute
   AppFinanceRoute: typeof AppFinanceRoute
+  AppFinanceManagementRoute: typeof AppFinanceManagementRoute
   AppGroomsRoute: typeof AppGroomsRoute
   AppIdeasRoute: typeof AppIdeasRoute
   AppPaymentRequestsRoute: typeof AppPaymentRequestsRoute
@@ -431,6 +451,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppCommunicationsRoute: AppCommunicationsRoute,
   AppDashboardRoute: AppDashboardRoute,
   AppFinanceRoute: AppFinanceRoute,
+  AppFinanceManagementRoute: AppFinanceManagementRoute,
   AppGroomsRoute: AppGroomsRoute,
   AppIdeasRoute: AppIdeasRoute,
   AppPaymentRequestsRoute: AppPaymentRequestsRoute,
