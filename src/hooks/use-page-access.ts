@@ -39,7 +39,10 @@ export function usePageAccess(pageKey: string): PageAccess {
       .maybeSingle()
       .then(({ data }) => {
         if (cancelled) return;
-        setLevel((data?.access_level as AccessLevel) ?? "read");
+        // Default for "admin-tasks" is "edit" so committee members can manage
+        // their own committee tasks (RLS already restricts visibility per committee).
+        const fallback: AccessLevel = pageKey === "admin-tasks" ? "edit" : "read";
+        setLevel((data?.access_level as AccessLevel) ?? fallback);
         setLoading(false);
       });
     return () => { cancelled = true; };

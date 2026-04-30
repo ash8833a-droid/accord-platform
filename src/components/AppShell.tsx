@@ -23,6 +23,7 @@ import { useBrand, applyBrandCssVars } from "@/lib/brand";
 import { QuickPurchaseRequestDialog } from "@/components/QuickPurchaseRequestDialog";
 import { useAllPageAccess } from "@/hooks/use-page-access";
 import { PAGES } from "@/lib/pages";
+import { committeeByType } from "@/lib/committees";
 
 
 const ADMIN_TOP = [
@@ -73,14 +74,21 @@ export function AppShell({ children, restricted = false, restrictedToCommitteeTy
     if (!page) return false;
     return accessMap[page.key] === "hidden";
   };
-  const TOP_NAV = restricted
-    ? (canSeeDashboard
-        ? [
-            { to: "/admin", label: "الأداء العام", icon: ShieldCheck } as const,
-            ...RESTRICTED_TOP,
-          ]
-        : RESTRICTED_TOP)
-    : ADMIN_TOP.filter((n) => !isPathHidden(n.to));
+  const myCommitteeMeta = restrictedToCommitteeType ? committeeByType(restrictedToCommitteeType) : null;
+  const restrictedNav: Array<{ to: string; label: string; icon: typeof LayoutGrid; params?: Record<string, string> }> = [];
+  if (canSeeDashboard) {
+    restrictedNav.push({ to: "/admin", label: "الأداء العام", icon: ShieldCheck });
+  }
+  if (restrictedToCommitteeType && myCommitteeMeta) {
+    restrictedNav.push({
+      to: "/committee/$type",
+      params: { type: restrictedToCommitteeType },
+      label: myCommitteeMeta.label,
+      icon: myCommitteeMeta.icon,
+    });
+  }
+  restrictedNav.push({ to: "/admin/tasks", label: "مركز المهام", icon: Target });
+  const TOP_NAV = restricted ? restrictedNav : ADMIN_TOP.filter((n) => !isPathHidden(n.to));
   const BOTTOM_NAV = restricted ? [] : ADMIN_BOTTOM.filter((n) => !isPathHidden(n.to));
 
   useEffect(() => {
@@ -130,12 +138,17 @@ export function AppShell({ children, restricted = false, restrictedToCommitteeTy
           const hasChildRoute = TOP_NAV.some(
             (n) => n.to !== to && n.to.startsWith(to + "/"),
           );
+          const item = TOP_NAV.find((n) => n.to === to)!;
+          const params = (item as any).params as Record<string, string> | undefined;
+          const resolvedPath = params
+            ? to.replace(/\$(\w+)/g, (_, k) => params[k] ?? "")
+            : to;
           const active = hasChildRoute
-            ? path === to
-            : path === to || path.startsWith(to + "/");
+            ? path === resolvedPath
+            : path === resolvedPath || path.startsWith(resolvedPath + "/");
           const showBadge = to === "/admin" && pendingCount > 0;
           return (
-            <Link key={to} to={to} onClick={() => setOpen(false)} className={linkClass(active)}>
+            <Link key={to} to={to as any} params={params as any} onClick={() => setOpen(false)} className={linkClass(active)}>
               <Icon className="h-5 w-5" />
               <span className="flex-1 text-right">{label}</span>
               {showBadge && (

@@ -53,7 +53,9 @@ function AppLayout() {
     const isSupreme = myCommitteeType === "supreme";
     // الإدارة العليا (تشمل لوحة التحكم) متاحة فقط للجنة العليا/المدير/الجودة
     if (path === "/admin" || path.startsWith("/admin/")) {
-      if (!isSupreme) {
+      // /admin/tasks مسموح للجميع (يصفّى تلقائيًا بحسب RLS لكل لجنة)
+      const isTasksCenter = path === "/admin/tasks" || path.startsWith("/admin/tasks/");
+      if (!isSupreme && !isTasksCenter) {
         if (myCommitteeType) {
           nav({ to: "/committee/$type", params: { type: myCommitteeType } });
         } else {
@@ -64,7 +66,15 @@ function AppLayout() {
     }
 
     // المسارات المسموحة للأعضاء العاديين — لجنتهم + الطلبات
-    const allowed: string[] = ["/payment-requests", "/procurement-requests", "/ideas"];
+    const allowed: string[] = [
+      "/payment-requests",
+      "/procurement-requests",
+      "/ideas",
+      "/admin/tasks",
+      "/communications",
+      "/grooms",
+      "/reports",
+    ];
     if (isSupreme) allowed.push("/admin");
     if (myCommitteeType === "finance" || isSupreme) allowed.push("/finance-management");
     if (myCommitteeType) allowed.push(`/committee/${myCommitteeType}`);
