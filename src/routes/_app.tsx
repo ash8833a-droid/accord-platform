@@ -66,6 +66,7 @@ function AppLayout() {
     // المسارات المسموحة للأعضاء العاديين — لجنتهم + الطلبات
     const allowed: string[] = ["/payment-requests", "/procurement-requests", "/ideas"];
     if (isSupreme) allowed.push("/admin");
+    if (myCommitteeType === "finance" || isSupreme) allowed.push("/finance-management");
     if (myCommitteeType) allowed.push(`/committee/${myCommitteeType}`);
     const ok = allowed.some((p) => path === p || path.startsWith(p + "/"));
     if (!ok) {
