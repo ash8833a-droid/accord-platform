@@ -108,8 +108,8 @@ function GroomsPage() {
 
   const onPickFile = (file: File | null, kind: "photo" | "id") => {
     if (!file) return;
-    if (file.size > 8 * 1024 * 1024) {
-      toast.error("الحد الأقصى لحجم الملف 8 ميجابايت");
+    if (file.size > 50 * 1024 * 1024) {
+      toast.error("الحد الأقصى لحجم الملف 50 ميجابايت");
       return;
     }
     const url = URL.createObjectURL(file);
@@ -270,7 +270,7 @@ function GroomsPage() {
                     preview={photoPreview}
                     onChange={(f) => onPickFile(f, "photo")}
                     onClear={() => { setPhotoFile(null); setPhotoPreview(null); }}
-                    hint="JPG / PNG — حتى 8 ميجابايت"
+                    hint="JPG / PNG — حتى 50 ميجابايت (دقة عالية)"
                   />
                   <FileUploader
                     label="صورة الهوية الوطنية"
@@ -279,7 +279,7 @@ function GroomsPage() {
                     preview={idPreview}
                     onChange={(f) => onPickFile(f, "id")}
                     onClear={() => { setIdFile(null); setIdPreview(null); }}
-                    hint="صورة واضحة للوجهين"
+                    hint="صورة واضحة للوجهين — حتى 50 ميجابايت"
                   />
                 </div>
               </Section>

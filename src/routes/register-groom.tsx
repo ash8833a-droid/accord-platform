@@ -55,7 +55,7 @@ export const Route = createFileRoute("/register-groom")({
 
 const isValidSaPhone = (p: string) => /^05\d{8}$/.test(p.trim());
 const isQuadName = (n: string) => n.trim().split(/\s+/).filter(Boolean).length >= 4;
-const MAX_BYTES = 5 * 1024 * 1024;
+const MAX_BYTES = 50 * 1024 * 1024;
 const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
 const ALLOWED_EXT = /\.(jpe?g|png|webp)$/i;
 const formatBytes = (b: number) => `${(b / (1024 * 1024)).toFixed(2)} م.ب`;
@@ -327,7 +327,7 @@ function RegisterGroomPage() {
                 id="photofile"
                 label="صورة شخصية للعريس"
                 icon={<Camera className="h-4 w-4" />}
-                hint="JPG / PNG / WebP — حتى 5 ميغابايت"
+                hint="JPG / PNG / WebP — حتى 50 ميغابايت (دقة عالية)"
                 file={photoFile}
                 onFile={setPhotoFile}
               />
@@ -335,7 +335,7 @@ function RegisterGroomPage() {
                 id="idfile"
                 label="صورة الهوية الوطنية"
                 icon={<IdCard className="h-4 w-4" />}
-                hint="صورة واضحة للوجهين — حتى 5 ميغابايت"
+                hint="صورة واضحة للوجهين — حتى 50 ميغابايت"
                 file={idFile}
                 onFile={setIdFile}
               />
