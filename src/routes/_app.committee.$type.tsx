@@ -1408,24 +1408,36 @@ function CommitteePage() {
                               <UserIcon className="h-3 w-3" /> غير معيّن
                             </span>
                           )}
-                          {canManageTasks && (
-                            <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition">
-                              <button
-                                onClick={() => openEditTask(t)}
-                                className="h-6 w-6 rounded-md flex items-center justify-center hover:bg-primary/10 hover:text-primary transition"
-                                aria-label="تعديل"
-                              >
-                                <Pencil className="h-3 w-3" />
-                              </button>
+                          <div className="flex items-center gap-0.5">
+                            {/* Editor available to ALL committee members (RLS allows update) */}
+                            <button
+                              onClick={() => setEditorTask({
+                                id: t.id,
+                                title: t.title,
+                                description: t.description,
+                                status: t.status,
+                                priority: t.priority,
+                                due_date: (t as any).due_date ?? null,
+                                committee_id: committee.id,
+                              })}
+                              className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-bold bg-primary/10 text-primary hover:bg-primary/20 transition"
+                              aria-label="فتح محرر المهمة"
+                              title="تعديل الحالة والتفاصيل وإضافة تعليقات ومرفقات"
+                            >
+                              <Pencil className="h-3 w-3" />
+                              تحرير
+                            </button>
+                            {canManageTasks && (
                               <button
                                 onClick={() => deleteTask(t.id)}
-                                className="h-6 w-6 rounded-md flex items-center justify-center hover:bg-destructive/10 hover:text-destructive transition"
+                                className="h-7 w-7 rounded-md flex items-center justify-center hover:bg-destructive/10 hover:text-destructive transition opacity-0 group-hover:opacity-100"
                                 aria-label="حذف"
+                                title="حذف المهمة (للرئيس/المدير فقط)"
                               >
                                 <Trash2 className="h-3 w-3" />
                               </button>
-                            </div>
-                          )}
+                            )}
+                          </div>
                         </div>
                       </div>
                     );
