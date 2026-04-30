@@ -63,14 +63,18 @@ function AppLayout() {
       }
     }
 
-    // المسارات المسموحة للأعضاء العاديين — تركيز على بوابتي + لجنتهم فقط
-    const allowed: string[] = ["/portal", "/payment-requests", "/procurement-requests"];
+    // المسارات المسموحة للأعضاء العاديين — لجنتهم + الطلبات
+    const allowed: string[] = ["/payment-requests", "/procurement-requests", "/ideas"];
     if (isSupreme) allowed.push("/admin");
     if (myCommitteeType) allowed.push(`/committee/${myCommitteeType}`);
     const ok = allowed.some((p) => path === p || path.startsWith(p + "/"));
     if (!ok) {
-      // الافتراضي: بوابتي هي المدخل الموحّد
-      nav({ to: "/portal" });
+      // الافتراضي: لجنة العضو، وإلا صفحة الأفكار
+      if (myCommitteeType) {
+        nav({ to: "/committee/$type", params: { type: myCommitteeType } });
+      } else {
+        nav({ to: "/ideas" });
+      }
     }
   }, [user, loading, approved, nav, path, restricted, typeLoaded, myCommitteeType]);
 
