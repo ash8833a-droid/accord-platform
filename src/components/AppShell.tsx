@@ -15,7 +15,7 @@ import {
   KeyRound,
   Target,
 } from "lucide-react";
-import { ShoppingCart, MessagesSquare, LayoutGrid } from "lucide-react";
+import { ShoppingCart, Inbox, LayoutGrid } from "lucide-react";
 import { Logo } from "./Logo";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
@@ -37,7 +37,7 @@ const ADMIN_BOTTOM = [
   { to: "/ideas", label: "بنك الأفكار", icon: Lightbulb },
   { to: "/grooms", label: "سجل العرسان", icon: HeartHandshake },
   { to: "/reports", label: "التقارير والجودة", icon: FileBarChart },
-  { to: "/communications", label: "التواصل", icon: MessagesSquare },
+  { to: "/communications", label: "إدارة الطلبات", icon: Inbox },
   { to: "/admin/users", label: "إدارة المستخدمين", icon: UserCog },
 ] as const;
 
@@ -256,7 +256,7 @@ export function AppShell({ children, restricted = false, restrictedToCommitteeTy
               ...(committeeId
                 ? [{ to: "__purchase", label: "طلب شراء", icon: ShoppingCart }]
                 : [{ to: "/grooms", label: "العرسان", icon: HeartHandshake }]),
-              { to: "/communications", label: "التواصل", icon: MessagesSquare },
+              { to: "/communications", label: "الطلبات", icon: Inbox },
               { to: "__menu", label: "القائمة", icon: Menu },
             ].map((item) => {
               const isMenu = item.to === "__menu";
