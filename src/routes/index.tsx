@@ -14,6 +14,9 @@ import {
   ShieldCheck,
   HandHeart,
   GitBranch,
+  BookOpen,
+  Heart,
+  Handshake,
 } from "lucide-react";
 
 export const Route = createFileRoute("/")({
