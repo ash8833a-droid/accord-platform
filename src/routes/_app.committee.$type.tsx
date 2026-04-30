@@ -1488,8 +1488,8 @@ function Header({ meta }: { meta: typeof COMMITTEES[number] }) {
           </div>
         </div>
       </div>
-      <Link to="/portal" className="text-xs text-muted-foreground hover:text-primary inline-flex items-center gap-1">
-        <ArrowLeft className="h-3 w-3" /> العودة لبوابتي
+      <Link to="/" className="text-xs text-muted-foreground hover:text-primary inline-flex items-center gap-1">
+        <ArrowLeft className="h-3 w-3" /> العودة للرئيسية
       </Link>
     </div>
   );
