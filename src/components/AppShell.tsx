@@ -38,6 +38,7 @@ const ADMIN_BOTTOM = [
   { to: "/grooms", label: "سجل العرسان", icon: HeartHandshake },
   { to: "/reports", label: "التقارير والجودة", icon: FileBarChart },
   { to: "/communications", label: "إدارة الطلبات", icon: Inbox },
+  { to: "/finance-management", label: "إدارة المالية", icon: Wallet },
   { to: "/admin/users", label: "إدارة المستخدمين", icon: UserCog },
 ] as const;
 
