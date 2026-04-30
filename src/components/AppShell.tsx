@@ -11,7 +11,6 @@ import {
   ShieldCheck,
   Users,
   Lightbulb,
-  ClipboardCheck,
   UserCog,
   KeyRound,
   Target,
