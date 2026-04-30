@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
-type Role = "admin" | "committee" | "delegate" | "quality";
+type Role = "admin" | "committee" | "committee_head" | "delegate" | "quality";
 
 interface Input {
   full_name: string;
