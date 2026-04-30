@@ -35,7 +35,7 @@ function AuthPage() {
       // التوجيه بعد الدخول حسب الدور
       if (hasRole("admin")) nav({ to: "/admin" });
       else if (hasRole("quality")) nav({ to: "/task-responses" });
-      else nav({ to: "/portal" });
+      else nav({ to: "/ideas" });
     }
   }, [user, loading, nav, hasRole]);
 
