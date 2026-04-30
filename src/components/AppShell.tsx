@@ -11,7 +11,6 @@ import {
   ShieldCheck,
   Users,
   Lightbulb,
-  ClipboardCheck,
   UserCog,
   KeyRound,
   Target,
@@ -32,7 +31,6 @@ import { PAGES } from "@/lib/pages";
 const ADMIN_TOP = [
   { to: "/admin", label: "الأداء العام", icon: ShieldCheck },
   { to: "/admin/tasks", label: "مركز المهام", icon: Target },
-  { to: "/task-responses", label: "متابعة أداء اللجان", icon: ClipboardCheck },
 ] as const;
 
 const ADMIN_BOTTOM = [

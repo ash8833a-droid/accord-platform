@@ -15,7 +15,6 @@ import { Route as CommitteesRouteImport } from './routes/committees'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as AppTaskResponsesRouteImport } from './routes/_app.task-responses'
 import { Route as AppReportsRouteImport } from './routes/_app.reports'
 import { Route as AppProcurementRequestsRouteImport } from './routes/_app.procurement-requests'
 import { Route as AppPaymentRequestsRouteImport } from './routes/_app.payment-requests'
@@ -58,11 +57,6 @@ const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
-} as any)
-const AppTaskResponsesRoute = AppTaskResponsesRouteImport.update({
-  id: '/task-responses',
-  path: '/task-responses',
-  getParentRoute: () => AppRoute,
 } as any)
 const AppReportsRoute = AppReportsRouteImport.update({
   id: '/reports',
@@ -146,7 +140,6 @@ export interface FileRoutesByFullPath {
   '/payment-requests': typeof AppPaymentRequestsRoute
   '/procurement-requests': typeof AppProcurementRequestsRoute
   '/reports': typeof AppReportsRoute
-  '/task-responses': typeof AppTaskResponsesRoute
   '/admin/tasks': typeof AppAdminTasksRoute
   '/admin/users': typeof AppAdminUsersRoute
   '/committee/$type': typeof AppCommitteeTypeRoute
@@ -167,7 +160,6 @@ export interface FileRoutesByTo {
   '/payment-requests': typeof AppPaymentRequestsRoute
   '/procurement-requests': typeof AppProcurementRequestsRoute
   '/reports': typeof AppReportsRoute
-  '/task-responses': typeof AppTaskResponsesRoute
   '/admin/tasks': typeof AppAdminTasksRoute
   '/admin/users': typeof AppAdminUsersRoute
   '/committee/$type': typeof AppCommitteeTypeRoute
@@ -190,7 +182,6 @@ export interface FileRoutesById {
   '/_app/payment-requests': typeof AppPaymentRequestsRoute
   '/_app/procurement-requests': typeof AppProcurementRequestsRoute
   '/_app/reports': typeof AppReportsRoute
-  '/_app/task-responses': typeof AppTaskResponsesRoute
   '/_app/admin/tasks': typeof AppAdminTasksRoute
   '/_app/admin/users': typeof AppAdminUsersRoute
   '/_app/committee/$type': typeof AppCommitteeTypeRoute
@@ -213,7 +204,6 @@ export interface FileRouteTypes {
     | '/payment-requests'
     | '/procurement-requests'
     | '/reports'
-    | '/task-responses'
     | '/admin/tasks'
     | '/admin/users'
     | '/committee/$type'
@@ -234,7 +224,6 @@ export interface FileRouteTypes {
     | '/payment-requests'
     | '/procurement-requests'
     | '/reports'
-    | '/task-responses'
     | '/admin/tasks'
     | '/admin/users'
     | '/committee/$type'
@@ -256,7 +245,6 @@ export interface FileRouteTypes {
     | '/_app/payment-requests'
     | '/_app/procurement-requests'
     | '/_app/reports'
-    | '/_app/task-responses'
     | '/_app/admin/tasks'
     | '/_app/admin/users'
     | '/_app/committee/$type'
@@ -314,13 +302,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
-    }
-    '/_app/task-responses': {
-      id: '/_app/task-responses'
-      path: '/task-responses'
-      fullPath: '/task-responses'
-      preLoaderRoute: typeof AppTaskResponsesRouteImport
-      parentRoute: typeof AppRoute
     }
     '/_app/reports': {
       id: '/_app/reports'
@@ -441,7 +422,6 @@ interface AppRouteChildren {
   AppPaymentRequestsRoute: typeof AppPaymentRequestsRoute
   AppProcurementRequestsRoute: typeof AppProcurementRequestsRoute
   AppReportsRoute: typeof AppReportsRoute
-  AppTaskResponsesRoute: typeof AppTaskResponsesRoute
   AppCommitteeTypeRoute: typeof AppCommitteeTypeRoute
 }
 
@@ -456,7 +436,6 @@ const AppRouteChildren: AppRouteChildren = {
   AppPaymentRequestsRoute: AppPaymentRequestsRoute,
   AppProcurementRequestsRoute: AppProcurementRequestsRoute,
   AppReportsRoute: AppReportsRoute,
-  AppTaskResponsesRoute: AppTaskResponsesRoute,
   AppCommitteeTypeRoute: AppCommitteeTypeRoute,
 }
 
