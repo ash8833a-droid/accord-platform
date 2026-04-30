@@ -268,7 +268,12 @@ export function AppShell({ children, restricted = false, restrictedToCommitteeTy
             ].map((item) => {
               const isMenu = item.to === "__menu";
               const isPurchase = item.to === "__purchase";
-              const active = !isMenu && !isPurchase && (path === item.to || path.startsWith(item.to + "/"));
+              const active =
+                !isMenu &&
+                !isPurchase &&
+                (item.to === "/admin"
+                  ? path === item.to
+                  : path === item.to || path.startsWith(item.to + "/"));
               const Icon = item.icon;
               const inner = (
                 <>
