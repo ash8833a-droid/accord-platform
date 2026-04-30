@@ -17,7 +17,6 @@ import {
 import {
   Plus, Target, Search, Loader2, ListTodo, PlayCircle, CheckCircle2,
   AlertTriangle, Trash2, ExternalLink, LayoutGrid, Rows3, CalendarClock,
-  Banknote, ArrowLeft,
 } from "lucide-react";
 import { toast } from "sonner";
 import { CreateTaskDialog } from "@/components/admin/CreateTaskDialog";
@@ -74,7 +73,6 @@ function TaskCenterInner({ canEdit }: { canEdit: boolean }) {
   const [view, setView] = useState<"kanban" | "list">("kanban");
   const [createOpen, setCreateOpen] = useState(false);
   const [details, setDetails] = useState<TaskRow | null>(null);
-  const [pendingPayments, setPendingPayments] = useState<number>(0);
 
   const load = async () => {
     setLoading(true);
@@ -90,22 +88,6 @@ function TaskCenterInner({ canEdit }: { canEdit: boolean }) {
   };
 
   useEffect(() => { if (user) load(); }, [user]);
-  useEffect(() => {
-    if (!user) return;
-    const fetchCount = async () => {
-      const { count } = await supabase
-        .from("payment_requests")
-        .select("id", { count: "exact", head: true })
-        .eq("status", "pending");
-      setPendingPayments(count ?? 0);
-    };
-    fetchCount();
-    const ch = supabase
-      .channel("task_center_pr_count")
-      .on("postgres_changes", { event: "*", schema: "public", table: "payment_requests" }, fetchCount)
-      .subscribe();
-    return () => { supabase.removeChannel(ch); };
-  }, [user]);
   useEffect(() => {
     if (!user) return;
     const ch = supabase
