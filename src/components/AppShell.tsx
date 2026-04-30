@@ -32,7 +32,6 @@ import { PAGES } from "@/lib/pages";
 const ADMIN_TOP = [
   { to: "/admin", label: "الأداء العام", icon: ShieldCheck },
   { to: "/admin/tasks", label: "مركز المهام", icon: Target },
-  { to: "/portal", label: "بوابتي", icon: LayoutGrid },
   { to: "/task-responses", label: "متابعة أداء اللجان", icon: ClipboardCheck },
 ] as const;
 
@@ -44,11 +43,8 @@ const ADMIN_BOTTOM = [
   { to: "/admin/users", label: "إدارة المستخدمين", icon: UserCog },
 ] as const;
 
-// للأعضاء العاديين: بوابتي هي المدخل الوحيد + قائمة "لجاني" المنسدلة
-// (نخفي بنك الأفكار والتواصل وغيرها لتقليل التشتت)
-const RESTRICTED_TOP = [
-  { to: "/portal", label: "بوابتي", icon: LayoutGrid },
-] as const;
+// للأعضاء العاديين: لجنتهم هي المدخل (تظهر تلقائياً ضمن "لجاني")
+const RESTRICTED_TOP: ReadonlyArray<{ to: string; label: string; icon: typeof LayoutGrid }> = [];
 
 interface AppShellProps {
   children: ReactNode;
