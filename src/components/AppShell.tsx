@@ -2,12 +2,10 @@ import { ReactNode, useEffect, useState } from "react";
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import {
   Wallet,
-  Users2,
   HeartHandshake,
   FileBarChart,
   LogOut,
   Menu,
-  ChevronDown,
   ShieldCheck,
   Users,
   Lightbulb,
@@ -19,7 +17,6 @@ import { ShoppingCart, Inbox, LayoutGrid } from "lucide-react";
 import { Logo } from "./Logo";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
-import { COMMITTEES } from "@/lib/committees";
 import { supabase } from "@/integrations/supabase/client";
 import { NotificationBell } from "@/components/NotificationBell";
 import { useBrand, applyBrandCssVars } from "@/lib/brand";
@@ -60,7 +57,6 @@ export function AppShell({ children, restricted = false, restrictedToCommitteeTy
   const [purchaseOpen, setPurchaseOpen] = useState(false);
   const { brand } = useBrand();
   useEffect(() => { applyBrandCssVars(brand); }, [brand]);
-  const [committeesOpen, setCommitteesOpen] = useState(false);
   const [pendingCount, setPendingCount] = useState(0);
   const [profileName, setProfileName] = useState<string | null>(null);
 
@@ -86,9 +82,6 @@ export function AppShell({ children, restricted = false, restrictedToCommitteeTy
         : RESTRICTED_TOP)
     : ADMIN_TOP.filter((n) => !isPathHidden(n.to));
   const BOTTOM_NAV = restricted ? [] : ADMIN_BOTTOM.filter((n) => !isPathHidden(n.to));
-  const visibleCommittees = restricted
-    ? COMMITTEES.filter((c) => c.type === restrictedToCommitteeType)
-    : COMMITTEES;
 
   useEffect(() => {
     if (!isAdminUser) return;
@@ -153,46 +146,6 @@ export function AppShell({ children, restricted = false, restrictedToCommitteeTy
             </Link>
           );
         })}
-
-        <div>
-          <button
-            type="button"
-            onClick={() => setCommitteesOpen((v) => !v)}
-            className={linkClass(path.startsWith("/committee"))}
-          >
-            <Users2 className="h-5 w-5" />
-            <span className="flex-1 text-right">{restricted ? "لجاني" : "اللجان والمهام"}</span>
-            <ChevronDown
-              className={`h-4 w-4 transition-transform ${committeesOpen ? "rotate-180" : ""}`}
-            />
-          </button>
-          {committeesOpen && (
-            <div className="mt-1 mr-3 ps-2 border-s border-sidebar-border/60 space-y-0.5">
-              {visibleCommittees.map(({ type, label, icon: Icon, tone }) => {
-                const to = `/committee/${type}`;
-                const active = path === to;
-                return (
-                  <Link
-                    key={type}
-                    to="/committee/$type"
-                    params={{ type }}
-                    onClick={() => setOpen(false)}
-                    className={`flex items-center gap-3 rounded-lg px-3 py-2 text-xs font-medium transition-colors ${
-                      active
-                        ? "bg-sidebar-accent text-sidebar-foreground"
-                        : "text-sidebar-foreground/70 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground"
-                    }`}
-                  >
-                    <span className={`h-7 w-7 rounded-md flex items-center justify-center ${tone}`}>
-                      <Icon className="h-3.5 w-3.5" />
-                    </span>
-                    <span className="flex-1 text-right">{label}</span>
-                  </Link>
-                );
-              })}
-            </div>
-          )}
-        </div>
 
         {BOTTOM_NAV.map(({ to, label, icon: Icon }) => {
           const active = path === to || path.startsWith(to + "/");
