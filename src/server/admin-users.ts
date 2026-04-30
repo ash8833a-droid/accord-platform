@@ -76,7 +76,7 @@ export const adminToggleAccount = createServerFn({ method: "POST" })
 // ===== Update role / committee =====
 export const adminUpdateUserRole = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { user_id: string; role: "admin"|"committee"|"delegate"|"quality"; committee_id?: string | null }) => {
+  .inputValidator((input: { user_id: string; role: "admin"|"committee"|"committee_head"|"delegate"|"quality"; committee_id?: string | null }) => {
     if (!input?.user_id) throw new Error("user_id مطلوب");
     if (!input?.role) throw new Error("الدور مطلوب");
     return input;

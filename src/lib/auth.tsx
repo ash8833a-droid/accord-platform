@@ -6,7 +6,7 @@ import { installServerFnAuth } from "@/lib/server-fn-auth";
 // Install global fetch interceptor so server functions receive the auth token
 installServerFnAuth();
 
-type Role = "admin" | "committee" | "delegate" | "quality";
+type Role = "admin" | "committee" | "committee_head" | "delegate" | "quality";
 
 interface AuthCtx {
   user: User | null;

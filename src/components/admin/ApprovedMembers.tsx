@@ -33,7 +33,7 @@ import { toast } from "sonner";
 import { Search, UserX, Save, Users } from "lucide-react";
 import { COMMITTEE_HEAD_LABEL, COMMITTEE_MEMBER_LABEL } from "@/lib/committee-member-labels";
 
-type Role = "admin" | "committee" | "delegate" | "quality";
+type Role = "admin" | "committee" | "committee_head" | "delegate" | "quality";
 
 interface Committee {
   id: string;
@@ -52,21 +52,23 @@ interface Member {
 }
 
 const ROLE_LABELS: Record<Role, string> = {
-  admin: COMMITTEE_MEMBER_LABEL,
-  committee: COMMITTEE_HEAD_LABEL,
-  delegate: COMMITTEE_MEMBER_LABEL,
-  quality: COMMITTEE_MEMBER_LABEL,
+  admin: "مدير نظام",
+  committee: COMMITTEE_MEMBER_LABEL,
+  committee_head: COMMITTEE_HEAD_LABEL,
+  delegate: "مندوب أسرة",
+  quality: "جودة",
 };
 
 const ROLE_TONES: Record<Role, string> = {
   admin: "bg-destructive/15 text-destructive",
   committee: "bg-sky-500/15 text-sky-700 dark:text-sky-300",
+  committee_head: "bg-indigo-500/15 text-indigo-700 dark:text-indigo-300",
   delegate: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300",
   quality: "bg-amber-500/15 text-amber-700 dark:text-amber-300",
 };
 
 // Roles selectable from the dropdown (admin is hidden to prevent accidental privilege escalation)
-const SELECTABLE_ROLES: Role[] = ["committee", "delegate", "quality"];
+const SELECTABLE_ROLES: Role[] = ["committee", "committee_head", "delegate", "quality"];
 
 interface Props {
   isAdmin: boolean;
@@ -230,7 +232,7 @@ export function ApprovedMembers({ isAdmin }: Props) {
               const curRole = edit?.role ?? m.role;
               const curCommittee = edit?.committee_id ?? m.committee_id;
               const dirty = !!edit && (edit.role !== m.role || edit.committee_id !== m.committee_id);
-              const needsCommittee = curRole === "committee" || curRole === "delegate";
+              const needsCommittee = curRole === "committee" || curRole === "committee_head" || curRole === "delegate";
 
               return (
                 <TableRow key={m.role_row_id}>
