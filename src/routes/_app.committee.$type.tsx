@@ -1418,7 +1418,7 @@ function CommitteePage() {
                                 description: t.description,
                                 status: t.status,
                                 priority: t.priority,
-                                due_date: (t as any).due_date ?? null,
+                                due_date: t.due_date ?? null,
                                 committee_id: committee.id,
                               })}
                               className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-bold bg-primary/10 text-primary hover:bg-primary/20 transition"
