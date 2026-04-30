@@ -24,7 +24,7 @@ import {
 import { UserPlus, Loader2, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 
-type Role = "admin" | "committee" | "delegate" | "quality";
+type Role = "admin" | "committee" | "committee_head" | "delegate" | "quality";
 
 interface Committee {
   id: string;
@@ -33,7 +33,8 @@ interface Committee {
 
 const ROLE_OPTIONS: { value: Role; label: string; hint: string }[] = [
   { value: "committee", label: "عضو/منسق لجنة", hint: "يرى لجنته فقط — الخيار الافتراضي للأعضاء" },
-  { value: "delegate", label: "مندوب اشتراكات", hint: "خاص بمندوبي تحصيل الاشتراكات" },
+  { value: "committee_head", label: "رئيس اللجنة", hint: "رئيس لجنة محدد — يدير اللجنة وأعضاءها" },
+  { value: "delegate", label: "مندوب أسرة", hint: "خاص بمندوبي الأسرة لتحصيل الاشتراكات" },
   { value: "quality", label: "الجودة (رقابي شامل)", hint: "⚠️ يرى جميع اللجان — استخدمه فقط لأعضاء لجنة الجودة" },
   { value: "admin", label: "مدير نظام (صلاحيات كاملة)", hint: "⚠️ صلاحيات إدارة كاملة على المنصة" },
 ];

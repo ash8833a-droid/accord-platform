@@ -232,7 +232,8 @@ function UsersPage() {
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="committee">عضو لجنة</SelectItem>
-                  <SelectItem value="delegate">مندوب اشتراكات</SelectItem>
+                  <SelectItem value="committee_head">رئيس اللجنة</SelectItem>
+                  <SelectItem value="delegate">مندوب أسرة</SelectItem>
                   <SelectItem value="quality">جودة</SelectItem>
                   <SelectItem value="admin">مدير نظام</SelectItem>
                 </SelectContent>
