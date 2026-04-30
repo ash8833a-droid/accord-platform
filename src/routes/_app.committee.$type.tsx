@@ -81,6 +81,7 @@ interface Task {
   status: "todo" | "in_progress" | "completed";
   priority: "low" | "medium" | "high" | "urgent";
   assigned_to?: string | null;
+  due_date?: string | null;
 }
 
 interface TeamMember {
