@@ -157,14 +157,14 @@ function UsersPage() {
       </div>
 
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between gap-3">
+        <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 sm:p-6">
           <CardTitle className="text-base">قائمة المستخدمين ({filtered.length})</CardTitle>
-          <div className="relative">
+          <div className="relative w-full sm:w-auto">
             <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input placeholder="بحث بالاسم أو الجوال..." value={q} onChange={(e) => setQ(e.target.value)} className="ps-9 w-64" />
+            <Input placeholder="بحث بالاسم أو الجوال..." value={q} onChange={(e) => setQ(e.target.value)} className="ps-9 w-full sm:w-64" />
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-3 sm:p-6">
           {loading ? <p className="text-center py-8 text-muted-foreground">جاري التحميل...</p> :
            filtered.length === 0 ? <p className="text-center py-8 text-muted-foreground">لا يوجد مستخدمون</p> : (
             <div className="space-y-2">
