@@ -82,6 +82,8 @@ interface Task {
   priority: "low" | "medium" | "high" | "urgent";
   assigned_to?: string | null;
   due_date?: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
 }
 
 interface TeamMember {
