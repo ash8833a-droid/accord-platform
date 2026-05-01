@@ -172,26 +172,26 @@ function UsersPage() {
                 const role = u.roles[0];
                 const committee = committees.find((c) => c.id === role?.committee_id);
                 return (
-                  <div key={u.user_id} className={`flex flex-wrap items-center gap-3 rounded-xl border p-4 transition-colors ${u.status.is_disabled ? "bg-destructive/5 border-destructive/30" : "hover:bg-accent/40"}`}>
+                  <div key={u.user_id} className={`flex flex-col sm:flex-row sm:items-center gap-3 rounded-xl border p-4 transition-colors ${u.status.is_disabled ? "bg-destructive/5 border-destructive/30" : "hover:bg-accent/40"}`}>
                     <button
                       onClick={() => setPermsUser(u)}
-                      className="flex items-center gap-3 flex-1 min-w-0 text-right group"
+                      className="flex items-start gap-3 flex-1 min-w-0 w-full text-right group"
                       title="عرض/تعديل صلاحيات هذا المستخدم"
                     >
                       <div className="h-10 w-10 rounded-full bg-gradient-gold flex items-center justify-center text-gold-foreground font-bold shrink-0 group-hover:ring-2 group-hover:ring-gold/50 transition-all">
                         {u.full_name?.[0] || "?"}
                       </div>
-                      <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
+                      <div className="flex-1 min-w-0 space-y-1">
                         <p className="font-bold truncate group-hover:text-primary transition-colors">{u.full_name}</p>
-                        {role && <Badge variant="secondary" className="text-[10px]">{ROLE_LABELS[role.role] ?? role.role}</Badge>}
-                        {committee && <Badge variant="outline" className="text-[10px]">{committee.name}</Badge>}
-                        {u.status.is_disabled && <Badge variant="destructive" className="text-[10px]">معطّل</Badge>}
-                      </div>
-                      <p className="text-xs text-muted-foreground">{u.phone} · {u.family_branch || "—"}</p>
+                        <div className="flex items-center gap-1 flex-wrap">
+                          {role && <Badge variant="secondary" className="text-[10px]">{ROLE_LABELS[role.role] ?? role.role}</Badge>}
+                          {committee && <Badge variant="outline" className="text-[10px]">{committee.name}</Badge>}
+                          {u.status.is_disabled && <Badge variant="destructive" className="text-[10px]">معطّل</Badge>}
+                        </div>
+                        <p className="text-xs text-muted-foreground truncate">{u.phone} · {u.family_branch || "—"}</p>
                       </div>
                     </button>
-                    <div className="flex gap-1 flex-wrap">
+                    <div className="flex gap-1 flex-wrap justify-end shrink-0">
                       <Button size="sm" variant="outline" onClick={() => setPermsUser(u)} title="الصلاحيات">
                         <ShieldCheck className="h-4 w-4" />
                       </Button>
