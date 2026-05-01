@@ -67,9 +67,28 @@ export function AppShell({ children, restricted = false, restrictedToCommitteeTy
       .then(({ data }) => setProfileName(data?.full_name ?? null));
   }, [user]);
   const isAdminUser = hasRole("admin");
+  const isQualityUser = hasRole("quality");
   const { map: accessMap, isAdmin: isAdminMap } = useAllPageAccess();
+
+  // "إدارة الطلبات" should only be visible to admin/quality OR users who have at least one request
+  // (sent by them or addressed to them / to their committee). RLS already filters rows server-side.
+  const [hasAnyRequest, setHasAnyRequest] = useState(false);
+  useEffect(() => {
+    let cancelled = false;
+    if (!user) { setHasAnyRequest(false); return; }
+    if (isAdminUser || isQualityUser) { setHasAnyRequest(true); return; }
+    supabase
+      .from("internal_requests")
+      .select("id", { count: "exact", head: true })
+      .limit(1)
+      .then(({ count }) => { if (!cancelled) setHasAnyRequest((count ?? 0) > 0); });
+    return () => { cancelled = true; };
+  }, [user, isAdminUser, isQualityUser]);
+  const canSeeRequests = isAdminUser || isQualityUser || hasAnyRequest;
+
   const isPathHidden = (to: string) => {
     if (isAdminMap) return false;
+    if (to === "/communications" && !canSeeRequests) return true;
     const page = PAGES.find((p) => p.path === to);
     if (!page) return false;
     return accessMap[page.key] === "hidden";
@@ -229,7 +248,7 @@ export function AppShell({ children, restricted = false, restrictedToCommitteeTy
               ...(committeeId
                 ? [{ to: "__purchase", label: "طلب شراء", icon: ShoppingCart }]
                 : [{ to: "/grooms", label: "العرسان", icon: HeartHandshake }]),
-              { to: "/communications", label: "الطلبات", icon: Inbox },
+              ...(canSeeRequests ? [{ to: "/communications", label: "الطلبات", icon: Inbox }] : []),
               { to: "__menu", label: "القائمة", icon: Menu },
             ].map((item) => {
               const isMenu = item.to === "__menu";

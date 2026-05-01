@@ -82,6 +82,8 @@ interface Task {
   priority: "low" | "medium" | "high" | "urgent";
   assigned_to?: string | null;
   due_date?: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
 }
 
 interface TeamMember {
@@ -206,9 +208,9 @@ function CommitteePage() {
 
     const [{ data: t }, { data: p }, { data: m }, { data: am }, { data: rolesInCommittee }, { data: allRoles }, { data: rsp }] = await Promise.all([
       supabase.from("committee_tasks")
-        .select("id, title, description, status, priority, assigned_to, due_date, created_at")
+        .select("id, title, description, status, priority, assigned_to, due_date, created_at, updated_at")
         .eq("committee_id", c.id)
-        .order("created_at", { ascending: false }),
+        .order("updated_at", { ascending: false }),
       supabase.from("payment_requests").select("id, title, amount, status, created_at, invoice_url").eq("committee_id", c.id).order("created_at", { ascending: false }),
       supabase.from("team_members").select("id, full_name, role_title, is_head").eq("committee_id", c.id).order("display_order"),
       supabase.from("team_members").select("id, full_name, role_title, is_head, committee_id, committees(name)").order("display_order"),
@@ -286,7 +288,30 @@ function CommitteePage() {
     ];
     const mergedAll = [...allTeam, ...virtualFromRoles];
 
-    setTasks((t ?? []) as Task[]);
+    // Sort tasks by latest activity (task itself updated_at, comments, attachments, responses)
+    const taskRows = (t ?? []) as Task[];
+    const taskIds = taskRows.map((tt) => tt.id);
+    let lastActivityMap: Record<string, string> = {};
+    if (taskIds.length) {
+      const [{ data: cmts }, { data: atts }] = await Promise.all([
+        supabase.from("task_comments").select("task_id, created_at").in("task_id", taskIds),
+        supabase.from("task_attachments").select("task_id, created_at").in("task_id", taskIds),
+      ]);
+      const bump = (id: string, ts: string | null | undefined) => {
+        if (!ts) return;
+        if (!lastActivityMap[id] || ts > lastActivityMap[id]) lastActivityMap[id] = ts;
+      };
+      taskRows.forEach((tt) => bump(tt.id, (tt as any).updated_at ?? tt.created_at));
+      (cmts ?? []).forEach((r: any) => bump(r.task_id, r.created_at));
+      (atts ?? []).forEach((r: any) => bump(r.task_id, r.created_at));
+      responsesData.forEach((r: any) => bump(r.task_id, r.created_at));
+    }
+    const sortedTasks = [...taskRows].sort((a, b) => {
+      const av = lastActivityMap[a.id] ?? (a as any).updated_at ?? a.created_at ?? "";
+      const bv = lastActivityMap[b.id] ?? (b as any).updated_at ?? b.created_at ?? "";
+      return bv.localeCompare(av);
+    });
+    setTasks(sortedTasks);
     setRequests((p ?? []) as PaymentRequest[]);
     setMembers(mergedForCommittee);
     setAllMembers(mergedAll);
