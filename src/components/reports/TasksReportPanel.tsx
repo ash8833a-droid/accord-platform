@@ -25,7 +25,9 @@ const RANGE_OPTIONS = [
 ];
 
 export function TasksReportPanel() {
-  const { profile } = useAuth();
+  const { user } = useAuth();
+  const signerName =
+    (user?.user_metadata as any)?.full_name ?? undefined;
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState<"pdf" | "xlsx" | null>(null);
   const [committees, setCommittees] = useState<Committee[]>([]);
@@ -155,7 +157,7 @@ export function TasksReportPanel() {
   const onExportPDF = () => {
     setExporting("pdf");
     try {
-      exportTasksPDF(rows, summary, perCommittee, filename, profile?.full_name);
+      exportTasksPDF(rows, summary, perCommittee, filename, signerName);
       toast.success("تم فتح التقرير للطباعة");
     } catch (e: any) {
       toast.error("تعذر التصدير", { description: e?.message });
