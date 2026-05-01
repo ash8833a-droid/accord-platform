@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
+import { TasksReportPanel } from "@/components/reports/TasksReportPanel";
 
 export const Route = createFileRoute("/_app/reports")({
   component: ReportsPage,
@@ -119,6 +120,9 @@ function ReportsPage() {
           <p className="text-xs text-muted-foreground">إجمالي المنصرف (ر.س)</p>
         </div>
       </div>
+
+      {/* Tasks performance report */}
+      <TasksReportPanel />
 
       {/* Archive section */}
       <div className="rounded-2xl border bg-card shadow-soft overflow-hidden">
