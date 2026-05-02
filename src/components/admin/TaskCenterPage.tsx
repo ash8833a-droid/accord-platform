@@ -256,12 +256,21 @@ function TaskCenterInner({ canEdit }: { canEdit: boolean }) {
         subtitle="إنشاء ومتابعة مهام جميع اللجان من مكان واحد"
         icon={Target}
         actions={canEdit ? (
-          <Button
-            onClick={() => setCreateOpen(true)}
-            className="gap-2 bg-gold text-gold-foreground hover:bg-gold/90"
-          >
-            <Plus className="h-4 w-4" /> مهمة جديدة
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              onClick={async () => { await load(); toast.success("تم تحديث الترتيب"); }}
+              className="gap-2"
+            >
+              <RefreshCw className="h-4 w-4" /> تحديث
+            </Button>
+            <Button
+              onClick={() => setCreateOpen(true)}
+              className="gap-2 bg-gold text-gold-foreground hover:bg-gold/90"
+            >
+              <Plus className="h-4 w-4" /> مهمة جديدة
+            </Button>
+          </div>
         ) : null}
       />
 
