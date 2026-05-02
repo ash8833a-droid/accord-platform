@@ -413,6 +413,11 @@ function KanbanBoard({
                 const isDragging = dragId === t.id;
                 const showBefore = dragOverId === t.id && dragOverPos === "before";
                 const showAfter = dragOverId === t.id && dragOverPos === "after";
+                // Position within the same committee+status group (for step buttons)
+                const sameGroup = items.filter((x) => x.committee_id === t.committee_id);
+                const groupIdx = sameGroup.findIndex((x) => x.id === t.id);
+                const isFirstInGroup = groupIdx === 0;
+                const isLastInGroup = groupIdx === sameGroup.length - 1;
                 return (
                   <div key={t.id}>
                     {showBefore && <div className="h-1 bg-primary rounded mb-1" />}
@@ -449,13 +454,34 @@ function KanbanBoard({
                         {t.title}
                       </p>
                       {canEdit && (
-                        <button
-                          onClick={(e) => { e.stopPropagation(); onDelete(t.id); }}
-                          className="opacity-0 group-hover:opacity-100 text-rose-500 hover:text-rose-600 transition-opacity"
-                          aria-label="حذف"
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </button>
+                        <div className="flex items-center gap-0.5 shrink-0">
+                          <button
+                            onClick={(e) => { e.stopPropagation(); onStep(t.id, "up"); }}
+                            disabled={isFirstInGroup}
+                            className="p-1 rounded hover:bg-muted disabled:opacity-30 disabled:cursor-not-allowed text-muted-foreground hover:text-primary"
+                            aria-label="نقل لأعلى"
+                            title="نقل لأعلى"
+                          >
+                            <ArrowUp className="h-3.5 w-3.5" />
+                          </button>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); onStep(t.id, "down"); }}
+                            disabled={isLastInGroup}
+                            className="p-1 rounded hover:bg-muted disabled:opacity-30 disabled:cursor-not-allowed text-muted-foreground hover:text-primary"
+                            aria-label="نقل لأسفل"
+                            title="نقل لأسفل"
+                          >
+                            <ArrowDown className="h-3.5 w-3.5" />
+                          </button>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); onDelete(t.id); }}
+                            className="p-1 rounded hover:bg-muted text-rose-500 hover:text-rose-600"
+                            aria-label="حذف"
+                            title="حذف"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
                       )}
                     </div>
                     <div className="flex items-center flex-wrap gap-1 mt-2">
