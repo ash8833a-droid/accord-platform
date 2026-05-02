@@ -335,3 +335,185 @@ export function exportTasksPDF(
   win.document.write(html);
   win.document.close();
 }
+
+/** First (top) task from each committee — for an executive "urgent dispatch" sheet. */
+export interface FirstTaskRow {
+  committee_name: string;
+  title: string;
+  description: string | null;
+  status: string;
+  priority: string;
+  due_date: string | null;
+  assignee_name: string | null;
+  created_at: string;
+  is_overdue: boolean;
+  days_late: number;
+}
+
+export function exportFirstTasksPDF(
+  items: FirstTaskRow[],
+  filename: string,
+  signerName?: string,
+) {
+  const PRIMARY = "#1B4F58";
+  const GOLD = "#C4A25C";
+
+  const statusBadge = (s: string) => {
+    const tone: Record<string, string> = {
+      todo: "background:#E5E7EB;color:#374151",
+      in_progress: "background:#DBEAFE;color:#1E40AF",
+      done: "background:#DCFCE7;color:#166534",
+      cancelled: "background:#FEE2E2;color:#991B1B",
+      blocked: "background:#FEF3C7;color:#92400E",
+    };
+    return `<span style="${tone[s] ?? "background:#E5E7EB;color:#374151"};padding:3px 10px;border-radius:999px;font-size:9pt;font-weight:700;display:inline-block;">${STATUS_AR[s] ?? s}</span>`;
+  };
+  const priorityBadge = (p: string) => {
+    const tone: Record<string, string> = {
+      low: "background:#F3F4F6;color:#6B7280",
+      medium: "background:#DBEAFE;color:#1E40AF",
+      high: "background:#FED7AA;color:#9A3412",
+      urgent: "background:#FEE2E2;color:#991B1B",
+    };
+    return `<span style="${tone[p] ?? ""};padding:2px 9px;border-radius:6px;font-size:8.5pt;font-weight:700;">${PRIORITY_AR[p] ?? p}</span>`;
+  };
+
+  const html = `<!doctype html>
+<html lang="ar" dir="rtl"><head><meta charset="utf-8"/>
+<title>${escapeHtml(filename)}</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  @page { size: A4; margin: 14mm 12mm; }
+  * { box-sizing: border-box; }
+  body { font-family: 'Tajawal','Segoe UI',Tahoma,Arial,sans-serif; color:#1f2937; margin:0;
+    -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .header { border-radius: 18px;
+    background: linear-gradient(135deg, ${PRIMARY} 0%, #2A6B76 50%, ${PRIMARY} 100%);
+    color:#fff; padding: 22px 26px; margin-bottom: 18px; position: relative; overflow: hidden; }
+  .header::after { content:""; position:absolute; left:-40px; top:-40px; width:200px; height:200px;
+    background: radial-gradient(circle, ${GOLD}55, transparent 70%); border-radius: 50%; }
+  .h-row { display:flex; justify-content:space-between; align-items:center; position:relative; }
+  .brand { display:flex; align-items:center; gap:14px; }
+  .logo { width:64px; height:64px; border-radius:14px; background: rgba(255,255,255,0.95); padding:4px; }
+  .logo img { width:100%; height:100%; }
+  .brand h1 { margin:0; font-size:18pt; font-weight:900; }
+  .brand p { margin:2px 0 0; font-size:10pt; opacity:0.85; }
+  .h-meta { text-align:left; font-size:9pt; line-height:1.6; }
+  .h-meta b { display:block; color:${GOLD}; font-size:11pt; }
+  .intro { background: linear-gradient(135deg, ${GOLD}15, ${PRIMARY}08);
+    border-right: 4px solid ${GOLD}; border-radius: 10px; padding: 12px 16px; margin-bottom: 14px;
+    font-size: 10pt; color:#374151; line-height:1.7; }
+  .intro b { color: ${PRIMARY}; }
+  .grid { display:grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .item { border:1px solid ${GOLD}55; border-radius: 14px; padding: 14px; background: #fff;
+    box-shadow: 0 1px 3px rgba(27,79,88,0.06); page-break-inside: avoid; position:relative; overflow:hidden; }
+  .item::before { content:""; position:absolute; top:0; right:0; width:6px; height:100%;
+    background: linear-gradient(180deg, ${GOLD}, ${PRIMARY}); }
+  .item-head { display:flex; justify-content:space-between; align-items:flex-start; gap:8px; margin-bottom: 8px; }
+  .committee { font-size: 10.5pt; font-weight: 900; color: ${PRIMARY}; }
+  .urgent-tag { background: linear-gradient(135deg, #DC2626, #991B1B); color:#fff;
+    padding: 3px 10px; border-radius: 999px; font-size: 8.5pt; font-weight: 800;
+    box-shadow: 0 2px 6px rgba(220,38,38,0.3); }
+  .ttitle { font-size: 11pt; font-weight: 800; color:#111827; margin: 4px 0 8px; line-height: 1.5; }
+  .desc { font-size: 9.5pt; color:#4B5563; line-height: 1.6; margin-bottom: 10px;
+    display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  .meta { display:flex; flex-wrap:wrap; gap:6px 12px; font-size: 8.5pt; color:#6B7280;
+    border-top: 1px dashed ${GOLD}55; padding-top: 8px; }
+  .meta span b { color: ${PRIMARY}; }
+  .late { color: #991B1B !important; font-weight: 700; }
+  .empty { text-align:center; padding:40px; color:#9CA3AF; border:2px dashed #E5E7EB; border-radius:12px; }
+  .footer { margin-top: 20px; padding-top: 12px; border-top: 2px dashed ${GOLD}; font-size: 8.5pt; color:#6B7280; }
+  .signatures { display:grid; grid-template-columns: 1fr 1fr; gap:18px; margin-top:14px; }
+  .sig-box { border:1px solid ${GOLD}77; border-radius:12px; padding:14px 16px;
+    background: linear-gradient(135deg, ${GOLD}11, ${PRIMARY}08); }
+  .sig-box .sig-label { font-size:9pt; color:#6B7280; }
+  .sig-box .sig-name { font-size:12pt; font-weight:800; color:${PRIMARY}; margin:4px 0 36px; }
+  .sig-line { border-top:1.5px dotted ${PRIMARY}; padding-top:4px; text-align:center; font-size:8pt; color:#9CA3AF; }
+  .title-bar { display:flex; align-items:center; gap:10px; margin: 14px 0 10px; }
+  .title-bar .bar { width:5px; height:28px; background: linear-gradient(180deg, ${GOLD}, ${PRIMARY}); border-radius:3px; }
+  .title-bar h2 { margin:0; font-size:14pt; font-weight:800; color:${PRIMARY}; }
+  @media print { .no-print { display:none !important; } }
+  .toolbar { position:fixed; top:12px; left:12px; z-index:10; display:flex; gap:8px; }
+  .toolbar button { background:${PRIMARY}; color:#fff; border:0; padding:10px 18px;
+    border-radius:10px; font-family:inherit; font-weight:700; cursor:pointer;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+  .toolbar button.gold { background:${GOLD}; color:${PRIMARY}; }
+</style></head>
+<body>
+  <div class="toolbar no-print">
+    <button onclick="window.print()">🖨️ طباعة / حفظ PDF</button>
+    <button class="gold" onclick="window.close()">إغلاق</button>
+  </div>
+
+  <div class="header">
+    <div class="h-row">
+      <div class="brand">
+        <div class="logo"><img src="${BRAND_LOGO_DATA_URI}" alt="logo"/></div>
+        <div>
+          <h1>منصة لجنة الزواج الجماعي</h1>
+          <p>المهام العاجلة — أول مهمة من كل لجنة</p>
+        </div>
+      </div>
+      <div class="h-meta">
+        <b>مرجع التقرير</b>
+        ${escapeHtml(filename)}<br/>${todayAr()}
+      </div>
+    </div>
+  </div>
+
+  <div class="intro">
+    تتضمن هذه الوثيقة <b>أول مهمة (الأكثر أهمية / في أعلى قائمة المهام)</b> من كل لجنة،
+    وتُعتمد كأولوية تنفيذ عاجلة لإرسالها لرؤساء اللجان والمتابعة الفورية.
+  </div>
+
+  <div class="title-bar"><div class="bar"></div><h2>المهام العاجلة (${fmt(items.length)} لجنة)</h2></div>
+
+  ${items.length === 0 ? `<div class="empty">لا توجد مهام مسجلة</div>` : `
+  <div class="grid">
+    ${items.map((t) => `
+      <div class="item">
+        <div class="item-head">
+          <div class="committee">📋 ${escapeHtml(t.committee_name)}</div>
+          <div class="urgent-tag">عاجلة</div>
+        </div>
+        <div class="ttitle">${escapeHtml(t.title)}</div>
+        ${t.description ? `<div class="desc">${escapeHtml(t.description)}</div>` : ""}
+        <div class="meta">
+          <span><b>الحالة:</b> ${statusBadge(t.status)}</span>
+          <span><b>الأولوية:</b> ${priorityBadge(t.priority)}</span>
+          <span class="${t.is_overdue ? "late" : ""}"><b>الاستحقاق:</b> ${arDate(t.due_date)}${t.is_overdue ? ` (متأخرة ${t.days_late} يوم)` : ""}</span>
+          <span><b>المكلَّف:</b> ${escapeHtml(t.assignee_name ?? "—")}</span>
+        </div>
+      </div>`).join("")}
+  </div>`}
+
+  <div class="footer">
+    <div class="signatures">
+      <div class="sig-box">
+        <div class="sig-label">اعتمد من قِبل</div>
+        <div class="sig-name">${escapeHtml(signerName ?? "................................")}</div>
+        <div class="sig-line">التوقيع والتاريخ</div>
+      </div>
+      <div class="sig-box">
+        <div class="sig-label">اطّلع عليه</div>
+        <div class="sig-name">................................</div>
+        <div class="sig-line">رئيس اللجنة العليا — التوقيع والتاريخ</div>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:space-between;margin-top:14px;">
+      <div><b style="color:${PRIMARY}">منصة لجنة الزواج الجماعي</b> — وثيقة رسمية</div>
+      <div>${todayAr()}</div>
+    </div>
+  </div>
+
+  <script>
+    window.addEventListener('load', function(){ setTimeout(function(){ window.print(); }, 500); });
+  </script>
+</body></html>`;
+
+  const win = window.open("", "_blank", "width=1100,height=800");
+  if (!win) { alert("يرجى السماح بالنوافذ المنبثقة لتصدير التقرير"); return; }
+  win.document.open();
+  win.document.write(html);
+  win.document.close();
+}

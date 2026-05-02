@@ -6,12 +6,13 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   ListChecks, FileSpreadsheet, FileText, Filter,
-  CheckCircle2, Clock, AlertTriangle, TrendingUp, Loader2,
+  CheckCircle2, Clock, AlertTriangle, TrendingUp, Loader2, Send,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
-  exportTasksPDF, exportTasksXLSX,
+  exportTasksPDF, exportTasksXLSX, exportFirstTasksPDF,
   type TaskRow, type TaskReportSummary, type CommitteePerf,
+  type FirstTaskRow,
 } from "@/lib/task-reports";
 
 interface Committee { id: string; name: string }
@@ -30,6 +31,7 @@ export function TasksReportPanel() {
     (user?.user_metadata as any)?.full_name ?? undefined;
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState<"pdf" | "xlsx" | null>(null);
+  const [exportingFirst, setExportingFirst] = useState(false);
   const [committees, setCommittees] = useState<Committee[]>([]);
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [tasks, setTasks] = useState<any[]>([]);
@@ -174,6 +176,49 @@ export function TasksReportPanel() {
     } finally { setExporting(null); }
   };
 
+  const onExportFirstTasks = () => {
+    setExportingFirst(true);
+    try {
+      const today = new Date(); today.setHours(0, 0, 0, 0);
+      // pick first (topmost) task per committee from the full task list (not filtered),
+      // matching the same ordering shown in each committee's task column.
+      const sorted = [...tasks].sort(
+        (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+      );
+      const seen = new Set<string>();
+      const firstPerCommittee: FirstTaskRow[] = [];
+      for (const t of sorted) {
+        if (seen.has(t.committee_id)) continue;
+        seen.add(t.committee_id);
+        const due = t.due_date ? new Date(t.due_date) : null;
+        const isOverdue = !!(due && t.status !== "done" && t.status !== "cancelled" && due < today);
+        firstPerCommittee.push({
+          committee_name: committeeName(t.committee_id),
+          title: t.title,
+          description: t.description,
+          status: t.status,
+          priority: t.priority,
+          due_date: t.due_date,
+          assignee_name: profileName(t.assigned_to),
+          created_at: t.created_at,
+          is_overdue: isOverdue,
+          days_late: isOverdue && due ? Math.floor((today.getTime() - due.getTime()) / 86400000) : 0,
+        });
+      }
+      // sort committees alphabetically for a stable, executive-friendly order
+      firstPerCommittee.sort((a, b) => a.committee_name.localeCompare(b.committee_name, "ar"));
+      if (firstPerCommittee.length === 0) {
+        toast.error("لا توجد مهام لأي لجنة");
+        return;
+      }
+      const fname = `المهام-العاجلة-لكل-لجنة-${new Date().toISOString().slice(0, 10)}`;
+      exportFirstTasksPDF(firstPerCommittee, fname, signerName);
+      toast.success(`تم إعداد تقرير المهام العاجلة (${firstPerCommittee.length} لجنة)`);
+    } catch (e: any) {
+      toast.error("تعذر التصدير", { description: e?.message });
+    } finally { setExportingFirst(false); }
+  };
+
   return (
     <div className="rounded-2xl border bg-card shadow-soft overflow-hidden">
       <div className="px-6 py-4 border-b bg-gradient-to-l from-primary/5 to-transparent flex items-center justify-between gap-3 flex-wrap">
@@ -188,6 +233,17 @@ export function TasksReportPanel() {
           )}
         </div>
         <div className="flex items-center gap-2 flex-wrap">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={onExportFirstTasks}
+            disabled={exportingFirst || tasks.length === 0}
+            className="border-gold/40 bg-gold/10 hover:bg-gold/20 text-foreground"
+            title="طباعة أول مهمة من كل لجنة كقائمة عاجلة"
+          >
+            {exportingFirst ? <Loader2 className="h-3.5 w-3.5 animate-spin ms-1" /> : <Send className="h-3.5 w-3.5 ms-1" />}
+            المهام العاجلة (أول مهمة لكل لجنة)
+          </Button>
           <Button size="sm" variant="outline" onClick={onExportXLSX} disabled={exporting !== null || rows.length === 0}>
             {exporting === "xlsx" ? <Loader2 className="h-3.5 w-3.5 animate-spin ms-1" /> : <FileSpreadsheet className="h-3.5 w-3.5 ms-1" />}
             Excel
