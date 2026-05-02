@@ -35,6 +35,21 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import * as XLSX from "xlsx";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import {
+  Document as DocxDocument,
+  Packer,
+  Paragraph,
+  Table as DocxTable,
+  TableRow as DocxTableRow,
+  TableCell as DocxTableCell,
+  TextRun,
+  HeadingLevel,
+  AlignmentType,
+  WidthType,
+} from "docx";
+import { saveAs } from "file-saver";
 
 type Status = "new" | "contacted" | "accepted" | "rejected" | "on_hold";
 
@@ -190,6 +205,128 @@ export function WomenTalentsPanel() {
     XLSX.writeFile(wb, `women-talents-${new Date().toISOString().slice(0, 10)}.xlsx`);
   };
 
+  const exportPDF = () => {
+    if (rows.length === 0) {
+      toast.error("لا توجد بيانات للتصدير");
+      return;
+    }
+    const doc = new jsPDF({ orientation: "landscape", unit: "pt", format: "a4" });
+    doc.setFontSize(14);
+    doc.text("Women Talents Survey Responses", 40, 40);
+    doc.setFontSize(10);
+    doc.text(`Total: ${rows.length} | Date: ${new Date().toLocaleDateString("en-GB")}`, 40, 58);
+
+    autoTable(doc, {
+      startY: 75,
+      head: [[
+        "#", "Name", "Phone", "City", "Education", "Specialization",
+        "Skills", "Years", "Status", "Submitted",
+      ]],
+      body: rows.map((r, i) => [
+        i + 1,
+        r.full_name,
+        r.phone,
+        r.city ?? "-",
+        r.education_level ?? "-",
+        r.specialization ?? "-",
+        r.skills.join(", "),
+        r.experience_years ?? "-",
+        STATUS_LABEL[r.status],
+        new Date(r.created_at).toLocaleDateString("en-GB"),
+      ]),
+      styles: { fontSize: 8, cellPadding: 4, overflow: "linebreak" },
+      headStyles: { fillColor: [219, 39, 119], textColor: 255, fontStyle: "bold" },
+      alternateRowStyles: { fillColor: [253, 242, 248] },
+      columnStyles: {
+        0: { cellWidth: 25 },
+        6: { cellWidth: 140 },
+      },
+    });
+    doc.save(`women-talents-${new Date().toISOString().slice(0, 10)}.pdf`);
+  };
+
+  const exportWord = async () => {
+    if (rows.length === 0) {
+      toast.error("لا توجد بيانات للتصدير");
+      return;
+    }
+    const headers = [
+      "م", "الاسم", "الجوال", "المدينة", "المؤهل", "التخصص",
+      "المهارات", "سنوات الخبرة", "الحالة", "تاريخ الإرسال",
+    ];
+    const headerRow = new DocxTableRow({
+      children: headers.map(
+        (h) =>
+          new DocxTableCell({
+            children: [
+              new Paragraph({
+                alignment: AlignmentType.CENTER,
+                children: [new TextRun({ text: h, bold: true, size: 18 })],
+              }),
+            ],
+            shading: { fill: "DB2777", type: "clear", color: "auto" },
+          }),
+      ),
+    });
+    const bodyRows = rows.map(
+      (r, i) =>
+        new DocxTableRow({
+          children: [
+            String(i + 1),
+            r.full_name,
+            r.phone,
+            r.city ?? "—",
+            r.education_level ?? "—",
+            r.specialization ?? "—",
+            r.skills.join("، "),
+            String(r.experience_years ?? "—"),
+            STATUS_LABEL[r.status],
+            new Date(r.created_at).toLocaleDateString("ar-SA"),
+          ].map(
+            (val) =>
+              new DocxTableCell({
+                children: [
+                  new Paragraph({
+                    alignment: AlignmentType.CENTER,
+                    children: [new TextRun({ text: val, size: 16 })],
+                  }),
+                ],
+              }),
+          ),
+        }),
+    );
+    const doc = new DocxDocument({
+      sections: [
+        {
+          properties: {},
+          children: [
+            new Paragraph({
+              heading: HeadingLevel.HEADING_1,
+              alignment: AlignmentType.CENTER,
+              children: [new TextRun({ text: "ردود استبيان مواهب بنات العائلة", bold: true, size: 32 })],
+            }),
+            new Paragraph({
+              alignment: AlignmentType.CENTER,
+              children: [
+                new TextRun({
+                  text: `إجمالي الردود: ${rows.length}  •  تاريخ التصدير: ${new Date().toLocaleDateString("ar-SA")}`,
+                  size: 18,
+                }),
+              ],
+            }),
+            new Paragraph({ children: [new TextRun(" ")] }),
+            new DocxTable({
+              width: { size: 100, type: WidthType.PERCENTAGE },
+              rows: [headerRow, ...bodyRows],
+            }),
+          ],
+        },
+      ],
+    });
+    const blob = await Packer.toBlob(doc);
+    saveAs(blob, `women-talents-${new Date().toISOString().slice(0, 10)}.docx`);
+  };
+
   return (
     <div className="space-y-5">
       {/* Hero card with link */}
@@ -279,6 +416,12 @@ export function WomenTalentsPanel() {
         </Select>
         <Button type="button" variant="outline" onClick={exportExcel}>
           تصدير Excel
+        </Button>
+        <Button type="button" variant="outline" onClick={exportPDF}>
+          تصدير PDF
+        </Button>
+        <Button type="button" variant="outline" onClick={exportWord}>
+          تصدير Word
         </Button>
       </div>
 
