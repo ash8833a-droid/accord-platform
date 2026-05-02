@@ -86,6 +86,23 @@ const INTEREST_AREAS = [
 
 const TIME_SLOTS = ["صباحاً", "ظهراً", "مساءً", "ليلاً", "عطلة نهاية الأسبوع"];
 
+const TOOL_OPTIONS = [
+  "Photoshop",
+  "Illustrator",
+  "Canva",
+  "Figma",
+  "InDesign",
+  "Premiere Pro",
+  "After Effects",
+  "CapCut",
+  "Lightroom",
+  "Microsoft Office (Word/Excel/PowerPoint)",
+  "Google Workspace",
+  "Notion",
+  "WordPress",
+  "أخرى",
+];
+
 const isValidSaPhone = (p: string) => /^05\d{8}$/.test(p.trim());
 
 function WomenTalentsSurvey() {
@@ -100,7 +117,7 @@ function WomenTalentsSurvey() {
   const [education, setEducation] = useState("");
   const [specialization, setSpecialization] = useState("");
   const [skills, setSkills] = useState<string[]>([]);
-  const [tools, setTools] = useState("");
+  const [tools, setTools] = useState<string[]>([]);
   const [experienceYears, setExperienceYears] = useState("");
   const [previousWork, setPreviousWork] = useState("");
   const [certifications, setCertifications] = useState("");
@@ -140,7 +157,7 @@ function WomenTalentsSurvey() {
         education_level: education || null,
         specialization: specialization.trim() || null,
         skills: skillLabels,
-        tools: tools.trim() || null,
+        tools: tools.length ? tools.join("، ") : null,
         experience_years: experienceYears ? Number(experienceYears) : null,
         previous_work: previousWork.trim() || null,
         certifications: certifications.trim() || null,
