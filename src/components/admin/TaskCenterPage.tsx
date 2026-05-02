@@ -207,8 +207,9 @@ function TaskCenterInner({ canEdit }: { canEdit: boolean }) {
     if (error) toast.error(error.message); else toast.success("تم الحذف");
   };
 
-  // Step-by-step manual move within the same column (committee + status).
-  const stepTask = async (taskId: string, direction: "up" | "down") => {
+  // Manual move within the same column (committee + status) by N steps.
+  // steps: 1 = خطوة واحدة. 0 / Infinity → نقل لأقصى الطرف.
+  const stepTask = async (taskId: string, direction: "up" | "down", steps = 1) => {
     const t = tasks.find((x) => x.id === taskId);
     if (!t) return;
     const column = tasks
@@ -216,26 +217,40 @@ function TaskCenterInner({ canEdit }: { canEdit: boolean }) {
       .sort(comparePmp);
     const idx = column.findIndex((x) => x.id === taskId);
     if (idx === -1) return;
-    if (direction === "up" && idx === 0) return;
-    if (direction === "down" && idx === column.length - 1) return;
-    const targetIdx = direction === "up" ? idx - 1 : idx + 1;
-    const target = column[targetIdx];
-    // Swap sort_order values
-    const newSelf = target.sort_order;
-    const newOther = t.sort_order;
+
+    const maxUp = idx;
+    const maxDown = column.length - 1 - idx;
+    const want = !Number.isFinite(steps) || steps <= 0 ? Infinity : Math.floor(steps);
+    const move = direction === "up" ? Math.min(want, maxUp) : Math.min(want, maxDown);
+    if (move <= 0) { toast.info("لا يمكن النقل أكثر في هذا الاتجاه"); return; }
+
+    const targetIdx = direction === "up" ? idx - move : idx + move;
+    // Build the new column order by inserting the dragged item at targetIdx
+    const without = column.filter((x) => x.id !== taskId);
+    const reordered = [...without.slice(0, targetIdx), t, ...without.slice(targetIdx)];
+    // Reassign sort_order using existing values from the column (preserves spacing)
+    const orderValues = column.map((x) => x.sort_order).sort((a, b) => a - b);
+    const updates = reordered.map((task, i) => ({ id: task.id, sort_order: orderValues[i] }));
+    // Only persist rows whose sort_order actually changed
+    const changed = updates.filter((u) => {
+      const orig = column.find((x) => x.id === u.id);
+      return orig && orig.sort_order !== u.sort_order;
+    });
+    if (changed.length === 0) return;
+
     const prev = tasks;
-    setTasks((s) => s.map((x) =>
-      x.id === t.id ? { ...x, sort_order: newSelf }
-      : x.id === target.id ? { ...x, sort_order: newOther }
-      : x
-    ));
-    const [r1, r2] = await Promise.all([
-      supabase.from("committee_tasks").update({ sort_order: newSelf }).eq("id", t.id),
-      supabase.from("committee_tasks").update({ sort_order: newOther }).eq("id", target.id),
-    ]);
-    if (r1.error || r2.error) {
+    const newOrderMap = new Map(updates.map((u) => [u.id, u.sort_order]));
+    setTasks((s) => s.map((x) => newOrderMap.has(x.id) ? { ...x, sort_order: newOrderMap.get(x.id)! } : x));
+
+    const results = await Promise.all(
+      changed.map((u) => supabase.from("committee_tasks").update({ sort_order: u.sort_order }).eq("id", u.id))
+    );
+    const failed = results.find((r) => r.error);
+    if (failed?.error) {
       setTasks(prev);
-      toast.error("تعذّر النقل: " + (r1.error?.message || r2.error?.message));
+      toast.error("تعذّر النقل: " + failed.error.message);
+    } else if (move > 1) {
+      toast.success(`تم النقل ${move} خطوات`);
     }
   };
 
