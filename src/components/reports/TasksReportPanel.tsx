@@ -182,24 +182,14 @@ export function TasksReportPanel() {
     setExportingFirst(true);
     try {
       const today = new Date(); today.setHours(0, 0, 0, 0);
-      // PMP-style ordering: overdue first, then priority (urgent→low),
-      // then earliest due date, then manual sort_order, then oldest created_at.
-      const PRANK: Record<string, number> = { urgent: 1, high: 2, medium: 3, low: 4 };
-      const isOver = (t: any) => {
-        if (!t.due_date || t.status === "completed" || t.status === "done" || t.status === "cancelled") return false;
-        return new Date(t.due_date).getTime() < today.getTime();
-      };
+      // Take the actual first task in each committee's list as it appears in the
+      // Task Center: lowest sort_order, then oldest created_at. Exclude only
+      // completed/cancelled tasks so we surface the true next pending item.
       const sorted = [...tasks]
         .filter((t) => t.status !== "done" && t.status !== "completed" && t.status !== "cancelled")
         .sort((a, b) => {
-          const ao = isOver(a) ? 0 : 1, bo = isOver(b) ? 0 : 1;
-          if (ao !== bo) return ao - bo;
-          const pr = (PRANK[a.priority] ?? 9) - (PRANK[b.priority] ?? 9);
-          if (pr !== 0) return pr;
-          const ad = a.due_date ? new Date(a.due_date).getTime() : Infinity;
-          const bd = b.due_date ? new Date(b.due_date).getTime() : Infinity;
-          if (ad !== bd) return ad - bd;
-          if ((a.sort_order ?? 0) !== (b.sort_order ?? 0)) return (a.sort_order ?? 0) - (b.sort_order ?? 0);
+          const so = (a.sort_order ?? 0) - (b.sort_order ?? 0);
+          if (so !== 0) return so;
           return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
         });
       const seen = new Set<string>();
