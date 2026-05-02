@@ -86,6 +86,23 @@ const INTEREST_AREAS = [
 
 const TIME_SLOTS = ["صباحاً", "ظهراً", "مساءً", "ليلاً", "عطلة نهاية الأسبوع"];
 
+const TOOL_OPTIONS = [
+  "Photoshop",
+  "Illustrator",
+  "Canva",
+  "Figma",
+  "InDesign",
+  "Premiere Pro",
+  "After Effects",
+  "CapCut",
+  "Lightroom",
+  "Microsoft Office (Word/Excel/PowerPoint)",
+  "Google Workspace",
+  "Notion",
+  "WordPress",
+  "أخرى",
+];
+
 const isValidSaPhone = (p: string) => /^05\d{8}$/.test(p.trim());
 
 function WomenTalentsSurvey() {
@@ -100,7 +117,7 @@ function WomenTalentsSurvey() {
   const [education, setEducation] = useState("");
   const [specialization, setSpecialization] = useState("");
   const [skills, setSkills] = useState<string[]>([]);
-  const [tools, setTools] = useState("");
+  const [tools, setTools] = useState<string[]>([]);
   const [experienceYears, setExperienceYears] = useState("");
   const [previousWork, setPreviousWork] = useState("");
   const [certifications, setCertifications] = useState("");
@@ -140,7 +157,7 @@ function WomenTalentsSurvey() {
         education_level: education || null,
         specialization: specialization.trim() || null,
         skills: skillLabels,
-        tools: tools.trim() || null,
+        tools: tools.length ? tools.join("، ") : null,
         experience_years: experienceYears ? Number(experienceYears) : null,
         previous_work: previousWork.trim() || null,
         certifications: certifications.trim() || null,
@@ -361,15 +378,29 @@ function WomenTalentsSurvey() {
             })}
           </div>
 
+          <Field label="الأدوات/البرامج التي تتقنينها">
+            <div className="flex flex-wrap gap-2 pt-1">
+              {TOOL_OPTIONS.map((t) => {
+                const active = tools.includes(t);
+                return (
+                  <button
+                    key={t}
+                    type="button"
+                    onClick={() => toggle(tools, setTools, t)}
+                    className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition ${
+                      active
+                        ? "bg-gradient-to-r from-rose-500 to-fuchsia-600 text-white border-transparent shadow"
+                        : "bg-white text-slate-700 border-slate-200 hover:border-rose-300"
+                    }`}
+                  >
+                    {t}
+                  </button>
+                );
+              })}
+            </div>
+          </Field>
+
           <div className="grid sm:grid-cols-2 gap-4">
-            <Field label="الأدوات/البرامج التي تتقنينها">
-              <Input
-                value={tools}
-                onChange={(e) => setTools(e.target.value)}
-                placeholder="مثال: Photoshop, Canva, CapCut"
-                className="h-11 bg-white"
-              />
-            </Field>
             <Field label="سنوات الخبرة">
               <Select value={experienceYears} onValueChange={setExperienceYears}>
                 <SelectTrigger className="h-11 bg-white">
