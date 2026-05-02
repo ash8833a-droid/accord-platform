@@ -14,7 +14,6 @@ import {
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
-import { FAMILY_BRANCHES } from "@/lib/family-branches";
 import {
   Loader2,
   CheckCircle2,
@@ -95,7 +94,6 @@ function WomenTalentsSurvey() {
 
   const [fullName, setFullName] = useState("");
   const [age, setAge] = useState("");
-  const [familyBranch, setFamilyBranch] = useState("");
   const [phone, setPhone] = useState("");
   const [city, setCity] = useState("");
   const [maritalStatus, setMaritalStatus] = useState("");
@@ -136,7 +134,6 @@ function WomenTalentsSurvey() {
       const { error } = await supabase.from("women_talent_responses").insert({
         full_name: fullName.trim(),
         age: age ? Number(age) : null,
-        family_branch: familyBranch || null,
         phone: phone.trim(),
         city: city.trim() || null,
         marital_status: maritalStatus || null,
@@ -273,20 +270,6 @@ function WomenTalentsSurvey() {
                 placeholder="مثال: الرياض"
                 className="h-11 bg-white"
               />
-            </Field>
-            <Field label="الفرع العائلي">
-              <Select value={familyBranch} onValueChange={setFamilyBranch}>
-                <SelectTrigger className="h-11 bg-white">
-                  <SelectValue placeholder="اختاري الفرع" />
-                </SelectTrigger>
-                <SelectContent>
-                  {FAMILY_BRANCHES.map((b) => (
-                    <SelectItem key={b} value={b}>
-                      {b}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
             </Field>
             <Field label="الحالة الاجتماعية">
               <Select value={maritalStatus} onValueChange={setMaritalStatus}>
