@@ -55,6 +55,32 @@ function isOverdue(t: TaskRow): boolean {
   return new Date(t.due_date).getTime() < Date.now() - 86400000;
 }
 
+// PMP-style priority ranking (Urgent → High → Medium → Low)
+const PRIORITY_RANK: Record<TaskRow["priority"], number> = {
+  urgent: 1, high: 2, medium: 3, low: 4,
+};
+
+/**
+ * Comparator following project-management best practice:
+ * 1) Overdue items first (most days late on top)
+ * 2) Higher priority first (Urgent > High > Medium > Low)
+ * 3) Earlier due date first (nulls last)
+ * 4) Manual sort_order (drag-and-drop) as a fine-grained tiebreaker
+ * 5) Older created_at as a final stable tiebreaker
+ */
+function comparePmp(a: TaskRow, b: TaskRow): number {
+  const ao = isOverdue(a) ? 0 : 1;
+  const bo = isOverdue(b) ? 0 : 1;
+  if (ao !== bo) return ao - bo;
+  const pr = PRIORITY_RANK[a.priority] - PRIORITY_RANK[b.priority];
+  if (pr !== 0) return pr;
+  const ad = a.due_date ? new Date(a.due_date).getTime() : Number.POSITIVE_INFINITY;
+  const bd = b.due_date ? new Date(b.due_date).getTime() : Number.POSITIVE_INFINITY;
+  if (ad !== bd) return ad - bd;
+  if (a.sort_order !== b.sort_order) return a.sort_order - b.sort_order;
+  return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+}
+
 export function TaskCenterPage() {
   return (
     <PageGate pageKey="admin-tasks">
@@ -150,7 +176,7 @@ function TaskCenterInner({ canEdit }: { canEdit: boolean }) {
     }
     const column = tasks
       .filter((t) => t.committee_id === targetCommitteeId && t.status === targetStatus && t.id !== draggedId)
-      .sort((a, b) => a.sort_order - b.sort_order);
+      .sort(comparePmp);
     let newOrder: number;
     if (!targetId || column.length === 0) {
       const last = column[column.length - 1];
@@ -317,7 +343,7 @@ function KanbanBoard({
         const meta = STATUS_META[status];
         const items = tasks
           .filter((t) => t.status === status)
-          .sort((a, b) => a.sort_order - b.sort_order);
+          .sort(comparePmp);
         return (
           <div
             key={status}

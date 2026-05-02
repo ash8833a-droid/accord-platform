@@ -182,11 +182,26 @@ export function TasksReportPanel() {
     setExportingFirst(true);
     try {
       const today = new Date(); today.setHours(0, 0, 0, 0);
-      // pick first (topmost) task per committee from the full task list (not filtered),
-      // matching the same ordering shown in each committee's task column.
-      const sorted = [...tasks].sort(
-        (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
-      );
+      // PMP-style ordering: overdue first, then priority (urgent→low),
+      // then earliest due date, then manual sort_order, then oldest created_at.
+      const PRANK: Record<string, number> = { urgent: 1, high: 2, medium: 3, low: 4 };
+      const isOver = (t: any) => {
+        if (!t.due_date || t.status === "completed" || t.status === "done" || t.status === "cancelled") return false;
+        return new Date(t.due_date).getTime() < today.getTime();
+      };
+      const sorted = [...tasks]
+        .filter((t) => t.status !== "done" && t.status !== "completed" && t.status !== "cancelled")
+        .sort((a, b) => {
+          const ao = isOver(a) ? 0 : 1, bo = isOver(b) ? 0 : 1;
+          if (ao !== bo) return ao - bo;
+          const pr = (PRANK[a.priority] ?? 9) - (PRANK[b.priority] ?? 9);
+          if (pr !== 0) return pr;
+          const ad = a.due_date ? new Date(a.due_date).getTime() : Infinity;
+          const bd = b.due_date ? new Date(b.due_date).getTime() : Infinity;
+          if (ad !== bd) return ad - bd;
+          if ((a.sort_order ?? 0) !== (b.sort_order ?? 0)) return (a.sort_order ?? 0) - (b.sort_order ?? 0);
+          return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+        });
       const seen = new Set<string>();
       const firstPerCommittee: FirstTaskRow[] = [];
       for (const t of sorted) {
