@@ -378,15 +378,29 @@ function WomenTalentsSurvey() {
             })}
           </div>
 
+          <Field label="الأدوات/البرامج التي تتقنينها">
+            <div className="flex flex-wrap gap-2 pt-1">
+              {TOOL_OPTIONS.map((t) => {
+                const active = tools.includes(t);
+                return (
+                  <button
+                    key={t}
+                    type="button"
+                    onClick={() => toggle(tools, setTools, t)}
+                    className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition ${
+                      active
+                        ? "bg-gradient-to-r from-rose-500 to-fuchsia-600 text-white border-transparent shadow"
+                        : "bg-white text-slate-700 border-slate-200 hover:border-rose-300"
+                    }`}
+                  >
+                    {t}
+                  </button>
+                );
+              })}
+            </div>
+          </Field>
+
           <div className="grid sm:grid-cols-2 gap-4">
-            <Field label="الأدوات/البرامج التي تتقنينها">
-              <Input
-                value={tools}
-                onChange={(e) => setTools(e.target.value)}
-                placeholder="مثال: Photoshop, Canva, CapCut"
-                className="h-11 bg-white"
-              />
-            </Field>
             <Field label="سنوات الخبرة">
               <Select value={experienceYears} onValueChange={setExperienceYears}>
                 <SelectTrigger className="h-11 bg-white">
