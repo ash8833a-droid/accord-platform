@@ -417,25 +417,53 @@ function KanbanBoard({
         const gmeta = group.type ? committeeByType(group.type) : null;
         const total = group.list.length;
         const completed = group.list.filter((t) => t.status === "completed").length;
-        const rate = total === 0 ? 0 : Math.round((completed / total) * 100);
+        const todoCount = group.list.filter((t) => t.status === "todo").length;
+        const inProgressCount = group.list.filter((t) => t.status === "in_progress").length;
+        const pct = (n: number) => (total === 0 ? 0 : Math.round((n / total) * 100));
+        const rate = pct(completed);
+        const todoPct = pct(todoCount);
+        const inProgressPct = pct(inProgressCount);
         return (
           <section key={group.cid} className="rounded-xl border bg-card overflow-hidden">
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b bg-muted/20 px-4 py-3">
-              <div className="flex items-center gap-2">
-                {gmeta && (
-                  <div className={`h-9 w-9 rounded-lg flex items-center justify-center ${gmeta.tone}`}>
-                    <gmeta.icon className="h-4 w-4" />
+            <div className="border-b bg-muted/20 px-4 py-3 space-y-3">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  {gmeta && (
+                    <div className={`h-9 w-9 rounded-lg flex items-center justify-center ${gmeta.tone}`}>
+                      <gmeta.icon className="h-4 w-4" />
+                    </div>
+                  )}
+                  <div>
+                    <h3 className="font-bold text-sm">{group.name}</h3>
+                    <p className="text-[11px] text-muted-foreground">منهجية PMP: انتظار ← تنفيذ ← إغلاق</p>
                   </div>
-                )}
-                <div>
-                  <h3 className="font-bold text-sm">{group.name}</h3>
-                  <p className="text-[11px] text-muted-foreground">منهجية PMP: انتظار ← تنفيذ ← إغلاق</p>
+                </div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <Badge variant="outline">{total} مهمة</Badge>
+                  <Badge variant="outline" className="bg-slate-500/10 text-slate-700 border-slate-500/30">
+                    انتظار {todoCount} ({todoPct}%)
+                  </Badge>
+                  <Badge variant="outline" className="bg-amber-500/10 text-amber-700 border-amber-500/30">
+                    تنفيذ {inProgressCount} ({inProgressPct}%)
+                  </Badge>
+                  <Badge variant="outline" className="bg-emerald-500/10 text-emerald-700 border-emerald-500/30">
+                    إغلاق {completed} ({rate}%)
+                  </Badge>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                <Badge variant="outline">{total} مهمة</Badge>
-                <Badge variant="outline">إنجاز {rate}%</Badge>
-              </div>
+              {total > 0 && (
+                <div className="space-y-1.5">
+                  <div className="flex h-2.5 w-full overflow-hidden rounded-full bg-muted">
+                    <div className="bg-slate-400 h-full transition-all" style={{ width: `${todoPct}%` }} title={`انتظار ${todoPct}%`} />
+                    <div className="bg-amber-500 h-full transition-all" style={{ width: `${inProgressPct}%` }} title={`تنفيذ ${inProgressPct}%`} />
+                    <div className="bg-emerald-500 h-full transition-all" style={{ width: `${rate}%` }} title={`إغلاق ${rate}%`} />
+                  </div>
+                  <div className="flex items-center justify-between text-[10px] text-muted-foreground">
+                    <span>التقدم الكلي</span>
+                    <span className="font-semibold text-emerald-700 dark:text-emerald-400">إنجاز {rate}%</span>
+                  </div>
+                </div>
+              )}
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 p-3">
               {cols.map((status) => {
