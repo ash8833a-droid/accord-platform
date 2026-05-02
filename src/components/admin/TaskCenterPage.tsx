@@ -483,60 +483,24 @@ function KanbanBoard({
                       </p>
                       {canEdit && (
                         <div className="flex items-center gap-0.5 shrink-0">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <button
-                                onClick={(e) => e.stopPropagation()}
-                                disabled={isFirstInGroup}
-                                className="p-1 rounded hover:bg-muted disabled:opacity-30 disabled:cursor-not-allowed text-muted-foreground hover:text-primary"
-                                aria-label="نقل لأعلى"
-                                title="نقل لأعلى"
-                              >
-                                <ArrowUp className="h-3.5 w-3.5" />
-                              </button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
-                              <DropdownMenuLabel className="text-xs">نقل لأعلى</DropdownMenuLabel>
-                              <DropdownMenuItem onClick={() => onStep(t.id, "up", 1)}>خطوة واحدة</DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => onStep(t.id, "up", 3)}>3 خطوات</DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => onStep(t.id, "up", 5)}>5 خطوات</DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => onStep(t.id, "up", 10)}>10 خطوات</DropdownMenuItem>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem onClick={() => onStep(t.id, "up", Infinity)}>إلى الأعلى</DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => {
-                                const v = window.prompt("عدد الخطوات لأعلى:", "2");
-                                const n = v ? parseInt(v, 10) : NaN;
-                                if (Number.isFinite(n) && n > 0) onStep(t.id, "up", n);
-                              }}>عدد مخصص…</DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <button
-                                onClick={(e) => e.stopPropagation()}
-                                disabled={isLastInGroup}
-                                className="p-1 rounded hover:bg-muted disabled:opacity-30 disabled:cursor-not-allowed text-muted-foreground hover:text-primary"
-                                aria-label="نقل لأسفل"
-                                title="نقل لأسفل"
-                              >
-                                <ArrowDown className="h-3.5 w-3.5" />
-                              </button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
-                              <DropdownMenuLabel className="text-xs">نقل لأسفل</DropdownMenuLabel>
-                              <DropdownMenuItem onClick={() => onStep(t.id, "down", 1)}>خطوة واحدة</DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => onStep(t.id, "down", 3)}>3 خطوات</DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => onStep(t.id, "down", 5)}>5 خطوات</DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => onStep(t.id, "down", 10)}>10 خطوات</DropdownMenuItem>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem onClick={() => onStep(t.id, "down", Infinity)}>إلى الأسفل</DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => {
-                                const v = window.prompt("عدد الخطوات لأسفل:", "2");
-                                const n = v ? parseInt(v, 10) : NaN;
-                                if (Number.isFinite(n) && n > 0) onStep(t.id, "down", n);
-                              }}>عدد مخصص…</DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); onStep(t.id, "up", 1); }}
+                            disabled={isFirstInGroup}
+                            className="p-1 rounded hover:bg-muted disabled:opacity-30 disabled:cursor-not-allowed text-muted-foreground hover:text-primary"
+                            aria-label="نقل لأعلى"
+                            title="نقل خطوة لأعلى"
+                          >
+                            <ArrowUp className="h-3.5 w-3.5" />
+                          </button>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); onStep(t.id, "down", 1); }}
+                            disabled={isLastInGroup}
+                            className="p-1 rounded hover:bg-muted disabled:opacity-30 disabled:cursor-not-allowed text-muted-foreground hover:text-primary"
+                            aria-label="نقل لأسفل"
+                            title="نقل خطوة لأسفل"
+                          >
+                            <ArrowDown className="h-3.5 w-3.5" />
+                          </button>
                           <button
                             onClick={(e) => { e.stopPropagation(); onDelete(t.id); }}
                             className="p-1 rounded hover:bg-muted text-rose-500 hover:text-rose-600"
