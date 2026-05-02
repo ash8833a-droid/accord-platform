@@ -1482,6 +1482,84 @@ export type Database = {
           },
         ]
       }
+      women_talent_responses: {
+        Row: {
+          age: number | null
+          certifications: string | null
+          city: string | null
+          created_at: string
+          education_level: string | null
+          experience_years: number | null
+          family_branch: string | null
+          full_name: string
+          id: string
+          interest_areas: string[]
+          marital_status: string | null
+          motivation: string | null
+          notes: string | null
+          phone: string
+          preferred_times: string[]
+          previous_work: string | null
+          reviewer_notes: string | null
+          skills: string[]
+          specialization: string | null
+          status: Database["public"]["Enums"]["women_talent_status"]
+          tools: string | null
+          updated_at: string
+          weekly_hours: string | null
+        }
+        Insert: {
+          age?: number | null
+          certifications?: string | null
+          city?: string | null
+          created_at?: string
+          education_level?: string | null
+          experience_years?: number | null
+          family_branch?: string | null
+          full_name: string
+          id?: string
+          interest_areas?: string[]
+          marital_status?: string | null
+          motivation?: string | null
+          notes?: string | null
+          phone: string
+          preferred_times?: string[]
+          previous_work?: string | null
+          reviewer_notes?: string | null
+          skills?: string[]
+          specialization?: string | null
+          status?: Database["public"]["Enums"]["women_talent_status"]
+          tools?: string | null
+          updated_at?: string
+          weekly_hours?: string | null
+        }
+        Update: {
+          age?: number | null
+          certifications?: string | null
+          city?: string | null
+          created_at?: string
+          education_level?: string | null
+          experience_years?: number | null
+          family_branch?: string | null
+          full_name?: string
+          id?: string
+          interest_areas?: string[]
+          marital_status?: string | null
+          motivation?: string | null
+          notes?: string | null
+          phone?: string
+          preferred_times?: string[]
+          previous_work?: string | null
+          reviewer_notes?: string | null
+          skills?: string[]
+          specialization?: string | null
+          status?: Database["public"]["Enums"]["women_talent_status"]
+          tools?: string | null
+          updated_at?: string
+          weekly_hours?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -1513,6 +1591,10 @@ export type Database = {
       }
       is_supreme_member: { Args: { _user_id: string }; Returns: boolean }
       is_user_approved: { Args: { _user_id: string }; Returns: boolean }
+      is_women_committee_member: {
+        Args: { _user_id: string }
+        Returns: boolean
+      }
       shares_committee_with: {
         Args: { _target: string; _viewer: string }
         Returns: boolean
@@ -1580,6 +1662,12 @@ export type Database = {
       subscription_status: "pending" | "confirmed" | "rejected"
       task_priority: "low" | "medium" | "high" | "urgent"
       task_status: "todo" | "in_progress" | "completed"
+      women_talent_status:
+        | "new"
+        | "contacted"
+        | "accepted"
+        | "rejected"
+        | "on_hold"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1768,6 +1856,13 @@ export const Constants = {
       subscription_status: ["pending", "confirmed", "rejected"],
       task_priority: ["low", "medium", "high", "urgent"],
       task_status: ["todo", "in_progress", "completed"],
+      women_talent_status: [
+        "new",
+        "contacted",
+        "accepted",
+        "rejected",
+        "on_hold",
+      ],
     },
   },
 } as const

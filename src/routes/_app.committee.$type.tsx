@@ -31,7 +31,8 @@ import { EvaluationPlanBuilder } from "@/components/quality/EvaluationPlanBuilde
 import { EvaluationCriteria } from "@/components/quality/EvaluationCriteria";
 import { EvaluationForm } from "@/components/quality/EvaluationForm";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ClipboardList, ClipboardCheck, CalendarRange, ShieldCheck, UsersRound, HeartHandshake, Wallet as WalletIcon, Megaphone, Inbox, Archive } from "lucide-react";
+import { ClipboardList, ClipboardCheck, CalendarRange, ShieldCheck, UsersRound, HeartHandshake, Wallet as WalletIcon, Megaphone, Inbox, Archive, Sparkles as SparklesIcon } from "lucide-react";
+import { WomenTalentsPanel } from "@/components/committee/WomenTalentsPanel";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth } from "@/lib/auth";
 import { useAppSetting } from "@/hooks/use-app-setting";
@@ -927,6 +928,18 @@ function CommitteePage() {
             </div>
           </QualitySection>
         </>
+      )}
+
+      {/* Women's committee: talent recruitment survey */}
+      {type === "women" && (
+        <QualitySection
+          storageKey={`committee:${type}:talents`}
+          title="استبيان مواهب بنات العائلة"
+          icon={SparklesIcon}
+          defaultOpen
+        >
+          <WomenTalentsPanel />
+        </QualitySection>
       )}
 
       {/* Purchase requests — embedded in every committee page as a professional dropdown.
