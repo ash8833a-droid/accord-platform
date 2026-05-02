@@ -396,65 +396,82 @@ function KanbanBoard({
   const [dragOverId, setDragOverId] = useState<string | null>(null);
   const [dragOverPos, setDragOverPos] = useState<"before" | "after" | null>(null);
 
+  const committeeGroups = useMemo(() => {
+    const grouped = new Map<string, TaskRow[]>();
+    for (const task of tasks) {
+      if (!grouped.has(task.committee_id)) grouped.set(task.committee_id, []);
+      grouped.get(task.committee_id)!.push(task);
+    }
+    return Array.from(grouped.entries()).map(([cid, list]) => ({
+      cid,
+      name: cmMap.get(cid)?.name ?? "—",
+      type: cmMap.get(cid)?.type ?? "",
+      list,
+    })).sort((a, b) => a.name.localeCompare(b.name, "ar"));
+  }, [tasks, cmMap]);
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-      {cols.map((status) => {
-        const meta = STATUS_META[status];
-        const items = tasks
-          .filter((t) => t.status === status)
-          .sort(comparePmp);
-        // Group items by committee so each committee's tasks stay together
-        const groupsMap = new Map<string, TaskRow[]>();
-        for (const t of items) {
-          if (!groupsMap.has(t.committee_id)) groupsMap.set(t.committee_id, []);
-          groupsMap.get(t.committee_id)!.push(t);
-        }
-        const groups = Array.from(groupsMap.entries()).map(([cid, list]) => ({
-          cid,
-          name: cmMap.get(cid)?.name ?? "—",
-          type: cmMap.get(cid)?.type ?? "",
-          list,
-        })).sort((a, b) => a.name.localeCompare(b.name, "ar"));
+    <div className="space-y-4">
+      {committeeGroups.length === 0 && <Card><CardContent className="p-12 text-center text-sm text-muted-foreground">لا توجد مهام</CardContent></Card>}
+      {committeeGroups.map((group) => {
+        const gmeta = group.type ? committeeByType(group.type) : null;
+        const total = group.list.length;
+        const completed = group.list.filter((t) => t.status === "completed").length;
+        const rate = total === 0 ? 0 : Math.round((completed / total) * 100);
         return (
-          <div
-            key={status}
-            onDragOver={(e) => { if (canEdit) e.preventDefault(); }}
-            onDrop={(e) => {
-              e.preventDefault();
-              if (!canEdit || !dragId) return;
-              // Drop on empty column area → move to end
-              const dragged = tasks.find((t) => t.id === dragId);
-              if (dragged && dragged.status === status && items.length > 0) {
-                // if dropped on column (not on a card), append to end of this committee group
-                onReorder(dragId, status, dragged.committee_id, null, false);
-              } else if (dragged) {
-                onMove(dragId, status);
-              }
-              setDragId(null); setDragOverId(null); setDragOverPos(null);
-            }}
-            className="rounded-xl border bg-muted/20 p-3 min-h-[300px]"
-          >
-            <div className="flex items-center justify-between mb-3">
+          <section key={group.cid} className="rounded-xl border bg-card overflow-hidden">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b bg-muted/20 px-4 py-3">
               <div className="flex items-center gap-2">
-                <meta.icon className="h-4 w-4 text-muted-foreground" />
-                <h3 className="font-bold text-sm">{meta.label}</h3>
+                {gmeta && (
+                  <div className={`h-9 w-9 rounded-lg flex items-center justify-center ${gmeta.tone}`}>
+                    <gmeta.icon className="h-4 w-4" />
+                  </div>
+                )}
+                <div>
+                  <h3 className="font-bold text-sm">{group.name}</h3>
+                  <p className="text-[11px] text-muted-foreground">منهجية PMP: انتظار ← تنفيذ ← إغلاق</p>
+                </div>
               </div>
-              <Badge variant="outline">{items.length}</Badge>
+              <div className="flex items-center gap-2">
+                <Badge variant="outline">{total} مهمة</Badge>
+                <Badge variant="outline">إنجاز {rate}%</Badge>
+              </div>
             </div>
-            <div className="space-y-4">
-              {groups.length === 0 && <p className="text-xs text-muted-foreground text-center py-6">لا توجد مهام</p>}
-              {groups.map((g) => {
-                const gmeta = g.type ? committeeByType(g.type) : null;
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 p-3">
+              {cols.map((status) => {
+                const meta = STATUS_META[status];
+                const statusItems = group.list.filter((t) => t.status === status).sort(comparePmp);
                 return (
-                  <div key={g.cid} className="space-y-2">
-                    <div className="flex items-center justify-between sticky top-0 bg-muted/40 backdrop-blur px-2 py-1 rounded">
+                  <div
+                    key={`${group.cid}-${status}`}
+                    onDragOver={(e) => { if (canEdit) e.preventDefault(); }}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      if (!canEdit || !dragId) return;
+                      const dragged = tasks.find((t) => t.id === dragId);
+                      if (!dragged || dragged.committee_id !== group.cid) {
+                        setDragId(null); setDragOverId(null); setDragOverPos(null);
+                        return;
+                      }
+                      if (dragged.status === status && statusItems.length > 0) {
+                        onReorder(dragId, status, group.cid, null, false);
+                      } else if (dragged.status !== status) {
+                        onMove(dragId, status);
+                      }
+                      setDragId(null); setDragOverId(null); setDragOverPos(null);
+                    }}
+                    className="rounded-lg border bg-muted/20 p-3 min-h-[220px]"
+                  >
+                    <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-1.5">
-                        {gmeta && <gmeta.icon className="h-3.5 w-3.5" />}
-                        <span className="text-xs font-bold">{g.name}</span>
+                        <meta.icon className="h-4 w-4 text-muted-foreground" />
+                        <h4 className="font-bold text-xs">{meta.label}</h4>
                       </div>
-                      <Badge variant="outline" className="text-[10px]">{g.list.length}</Badge>
+                      <Badge variant="outline" className="text-[10px]">{statusItems.length}</Badge>
                     </div>
-                    {g.list.map((t, idx) => {
+                    <div className="space-y-2">
+                      {statusItems.length === 0 && <p className="text-xs text-muted-foreground text-center py-6">لا توجد مهام</p>}
+                      {statusItems.map((t, idx) => {
                 const cm = cmMap.get(t.committee_id);
                 const cmeta = cm ? committeeByType(cm.type) : null;
                 const overdue = isOverdue(t);
@@ -552,12 +569,13 @@ function KanbanBoard({
                     {showAfter && <div className="h-1 bg-primary rounded mt-1" />}
                   </div>
                 );
-                    })}
+                      })}
+                    </div>
                   </div>
                 );
               })}
             </div>
-          </div>
+          </section>
         );
       })}
     </div>
