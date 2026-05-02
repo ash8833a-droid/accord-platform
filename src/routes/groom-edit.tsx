@@ -174,7 +174,7 @@ function GroomEditPage() {
     <div dir="rtl" className="min-h-screen bg-gradient-to-b from-primary/5 via-background to-background">
       <header className="border-b bg-card/60 backdrop-blur sticky top-0 z-10">
         <div className="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
-          <Logo size="sm" />
+          <Logo size={32} />
           <Link to="/" className="text-xs text-muted-foreground hover:text-primary inline-flex items-center gap-1">
             <ArrowRight className="h-3.5 w-3.5" />
             الرئيسية
