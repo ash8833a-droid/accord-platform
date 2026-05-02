@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   ListChecks, FileSpreadsheet, FileText, Filter,
-  CheckCircle2, Clock, AlertTriangle, TrendingUp, Loader2, Send,
+  CheckCircle2, Clock, AlertTriangle, TrendingUp, Loader2, Send, BellRing,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -14,6 +14,7 @@ import {
   type TaskRow, type TaskReportSummary, type CommitteePerf,
   type FirstTaskRow,
 } from "@/lib/task-reports";
+import { sendFirstTaskReminders } from "@/server/task-reminders.functions";
 
 interface Committee { id: string; name: string }
 interface Profile { user_id: string; full_name: string }
@@ -32,6 +33,7 @@ export function TasksReportPanel() {
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState<"pdf" | "xlsx" | null>(null);
   const [exportingFirst, setExportingFirst] = useState(false);
+  const [sendingReminders, setSendingReminders] = useState(false);
   const [committees, setCommittees] = useState<Committee[]>([]);
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [tasks, setTasks] = useState<any[]>([]);
@@ -219,6 +221,17 @@ export function TasksReportPanel() {
     } finally { setExportingFirst(false); }
   };
 
+  const onSendReminders = async () => {
+    if (!confirm("إرسال تذكير داخلي للمكلّفين ورؤساء اللجان بأول مهمة لكل لجنة؟")) return;
+    setSendingReminders(true);
+    try {
+      const res = await sendFirstTaskReminders({ data: {} });
+      toast.success(`تم إرسال ${res.sent} تذكير لـ ${res.committees} لجنة`);
+    } catch (e: any) {
+      toast.error("تعذر إرسال التذكيرات", { description: e?.message });
+    } finally { setSendingReminders(false); }
+  };
+
   return (
     <div className="rounded-2xl border bg-card shadow-soft overflow-hidden">
       <div className="px-6 py-4 border-b bg-gradient-to-l from-primary/5 to-transparent flex items-center justify-between gap-3 flex-wrap">
@@ -243,6 +256,17 @@ export function TasksReportPanel() {
           >
             {exportingFirst ? <Loader2 className="h-3.5 w-3.5 animate-spin ms-1" /> : <Send className="h-3.5 w-3.5 ms-1" />}
             المهام العاجلة (أول مهمة لكل لجنة)
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={onSendReminders}
+            disabled={sendingReminders || tasks.length === 0}
+            className="border-primary/40 bg-primary/10 hover:bg-primary/20 text-foreground"
+            title="إرسال تذكير داخلي للمكلّفين ورؤساء اللجان بأول مهمة لكل لجنة"
+          >
+            {sendingReminders ? <Loader2 className="h-3.5 w-3.5 animate-spin ms-1" /> : <BellRing className="h-3.5 w-3.5 ms-1" />}
+            إرسال تذكير المتابعة
           </Button>
           <Button size="sm" variant="outline" onClick={onExportXLSX} disabled={exporting !== null || rows.length === 0}>
             {exporting === "xlsx" ? <Loader2 className="h-3.5 w-3.5 animate-spin ms-1" /> : <FileSpreadsheet className="h-3.5 w-3.5 ms-1" />}
