@@ -99,7 +99,7 @@ const INTEREST_AREAS = [
   "كتابة المحتوى والتقارير",
 ];
 
-const TIME_SLOTS = ["صباحاً", "ظهراً", "مساءً", "ليلاً", "عطلة نهاية الأسبوع"];
+
 
 const TOOL_OPTIONS = [
   "Photoshop",
@@ -137,10 +137,7 @@ function WomenTalentsSurvey() {
   const [previousWork, setPreviousWork] = useState("");
   const [certifications, setCertifications] = useState("");
   const [interestAreas, setInterestAreas] = useState<string[]>([]);
-  const [weeklyHours, setWeeklyHours] = useState("");
-  const [preferredTimes, setPreferredTimes] = useState<string[]>([]);
-  const [motivation, setMotivation] = useState("");
-  const [notes, setNotes] = useState("");
+
 
   const toggle = (
     arr: string[],
@@ -177,10 +174,10 @@ function WomenTalentsSurvey() {
         previous_work: previousWork.trim() || null,
         certifications: certifications.trim() || null,
         interest_areas: interestAreas,
-        weekly_hours: weeklyHours || null,
-        preferred_times: preferredTimes,
-        motivation: motivation.trim() || null,
-        notes: notes.trim() || null,
+        weekly_hours: null,
+        preferred_times: [],
+        motivation: null,
+        notes: null,
       });
       if (error) throw error;
       setDone(true);
