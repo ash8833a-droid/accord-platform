@@ -12,6 +12,9 @@ import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
+  DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
+import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import {
@@ -207,8 +210,9 @@ function TaskCenterInner({ canEdit }: { canEdit: boolean }) {
     if (error) toast.error(error.message); else toast.success("تم الحذف");
   };
 
-  // Step-by-step manual move within the same column (committee + status).
-  const stepTask = async (taskId: string, direction: "up" | "down") => {
+  // Manual move within the same column (committee + status) by N steps.
+  // steps: 1 = خطوة واحدة. 0 / Infinity → نقل لأقصى الطرف.
+  const stepTask = async (taskId: string, direction: "up" | "down", steps = 1) => {
     const t = tasks.find((x) => x.id === taskId);
     if (!t) return;
     const column = tasks
@@ -216,26 +220,40 @@ function TaskCenterInner({ canEdit }: { canEdit: boolean }) {
       .sort(comparePmp);
     const idx = column.findIndex((x) => x.id === taskId);
     if (idx === -1) return;
-    if (direction === "up" && idx === 0) return;
-    if (direction === "down" && idx === column.length - 1) return;
-    const targetIdx = direction === "up" ? idx - 1 : idx + 1;
-    const target = column[targetIdx];
-    // Swap sort_order values
-    const newSelf = target.sort_order;
-    const newOther = t.sort_order;
+
+    const maxUp = idx;
+    const maxDown = column.length - 1 - idx;
+    const want = !Number.isFinite(steps) || steps <= 0 ? Infinity : Math.floor(steps);
+    const move = direction === "up" ? Math.min(want, maxUp) : Math.min(want, maxDown);
+    if (move <= 0) { toast.info("لا يمكن النقل أكثر في هذا الاتجاه"); return; }
+
+    const targetIdx = direction === "up" ? idx - move : idx + move;
+    // Build the new column order by inserting the dragged item at targetIdx
+    const without = column.filter((x) => x.id !== taskId);
+    const reordered = [...without.slice(0, targetIdx), t, ...without.slice(targetIdx)];
+    // Reassign sort_order using existing values from the column (preserves spacing)
+    const orderValues = column.map((x) => x.sort_order).sort((a, b) => a - b);
+    const updates = reordered.map((task, i) => ({ id: task.id, sort_order: orderValues[i] }));
+    // Only persist rows whose sort_order actually changed
+    const changed = updates.filter((u) => {
+      const orig = column.find((x) => x.id === u.id);
+      return orig && orig.sort_order !== u.sort_order;
+    });
+    if (changed.length === 0) return;
+
     const prev = tasks;
-    setTasks((s) => s.map((x) =>
-      x.id === t.id ? { ...x, sort_order: newSelf }
-      : x.id === target.id ? { ...x, sort_order: newOther }
-      : x
-    ));
-    const [r1, r2] = await Promise.all([
-      supabase.from("committee_tasks").update({ sort_order: newSelf }).eq("id", t.id),
-      supabase.from("committee_tasks").update({ sort_order: newOther }).eq("id", target.id),
-    ]);
-    if (r1.error || r2.error) {
+    const newOrderMap = new Map(updates.map((u) => [u.id, u.sort_order]));
+    setTasks((s) => s.map((x) => newOrderMap.has(x.id) ? { ...x, sort_order: newOrderMap.get(x.id)! } : x));
+
+    const results = await Promise.all(
+      changed.map((u) => supabase.from("committee_tasks").update({ sort_order: u.sort_order }).eq("id", u.id))
+    );
+    const failed = results.find((r) => r.error);
+    if (failed?.error) {
       setTasks(prev);
-      toast.error("تعذّر النقل: " + (r1.error?.message || r2.error?.message));
+      toast.error("تعذّر النقل: " + failed.error.message);
+    } else if (move > 1) {
+      toast.success(`تم النقل ${move} خطوات`);
     }
   };
 
@@ -372,7 +390,7 @@ function KanbanBoard({
   canEdit: boolean;
   onMove: (id: string, to: TaskRow["status"]) => void;
   onReorder: (draggedId: string, targetStatus: TaskRow["status"], targetCommitteeId: string, targetId: string | null, placeBefore: boolean) => void;
-  onStep: (id: string, direction: "up" | "down") => void;
+  onStep: (id: string, direction: "up" | "down", steps?: number) => void;
   onOpen: (t: TaskRow) => void;
   onDelete: (id: string) => void;
 }) {
@@ -465,24 +483,60 @@ function KanbanBoard({
                       </p>
                       {canEdit && (
                         <div className="flex items-center gap-0.5 shrink-0">
-                          <button
-                            onClick={(e) => { e.stopPropagation(); onStep(t.id, "up"); }}
-                            disabled={isFirstInGroup}
-                            className="p-1 rounded hover:bg-muted disabled:opacity-30 disabled:cursor-not-allowed text-muted-foreground hover:text-primary"
-                            aria-label="نقل لأعلى"
-                            title="نقل لأعلى"
-                          >
-                            <ArrowUp className="h-3.5 w-3.5" />
-                          </button>
-                          <button
-                            onClick={(e) => { e.stopPropagation(); onStep(t.id, "down"); }}
-                            disabled={isLastInGroup}
-                            className="p-1 rounded hover:bg-muted disabled:opacity-30 disabled:cursor-not-allowed text-muted-foreground hover:text-primary"
-                            aria-label="نقل لأسفل"
-                            title="نقل لأسفل"
-                          >
-                            <ArrowDown className="h-3.5 w-3.5" />
-                          </button>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <button
+                                onClick={(e) => e.stopPropagation()}
+                                disabled={isFirstInGroup}
+                                className="p-1 rounded hover:bg-muted disabled:opacity-30 disabled:cursor-not-allowed text-muted-foreground hover:text-primary"
+                                aria-label="نقل لأعلى"
+                                title="نقل لأعلى"
+                              >
+                                <ArrowUp className="h-3.5 w-3.5" />
+                              </button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                              <DropdownMenuLabel className="text-xs">نقل لأعلى</DropdownMenuLabel>
+                              <DropdownMenuItem onClick={() => onStep(t.id, "up", 1)}>خطوة واحدة</DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => onStep(t.id, "up", 3)}>3 خطوات</DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => onStep(t.id, "up", 5)}>5 خطوات</DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => onStep(t.id, "up", 10)}>10 خطوات</DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem onClick={() => onStep(t.id, "up", Infinity)}>إلى الأعلى</DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => {
+                                const v = window.prompt("عدد الخطوات لأعلى:", "2");
+                                const n = v ? parseInt(v, 10) : NaN;
+                                if (Number.isFinite(n) && n > 0) onStep(t.id, "up", n);
+                              }}>عدد مخصص…</DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <button
+                                onClick={(e) => e.stopPropagation()}
+                                disabled={isLastInGroup}
+                                className="p-1 rounded hover:bg-muted disabled:opacity-30 disabled:cursor-not-allowed text-muted-foreground hover:text-primary"
+                                aria-label="نقل لأسفل"
+                                title="نقل لأسفل"
+                              >
+                                <ArrowDown className="h-3.5 w-3.5" />
+                              </button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                              <DropdownMenuLabel className="text-xs">نقل لأسفل</DropdownMenuLabel>
+                              <DropdownMenuItem onClick={() => onStep(t.id, "down", 1)}>خطوة واحدة</DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => onStep(t.id, "down", 3)}>3 خطوات</DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => onStep(t.id, "down", 5)}>5 خطوات</DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => onStep(t.id, "down", 10)}>10 خطوات</DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem onClick={() => onStep(t.id, "down", Infinity)}>إلى الأسفل</DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => {
+                                const v = window.prompt("عدد الخطوات لأسفل:", "2");
+                                const n = v ? parseInt(v, 10) : NaN;
+                                if (Number.isFinite(n) && n > 0) onStep(t.id, "down", n);
+                              }}>عدد مخصص…</DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                           <button
                             onClick={(e) => { e.stopPropagation(); onDelete(t.id); }}
                             className="p-1 rounded hover:bg-muted text-rose-500 hover:text-rose-600"
