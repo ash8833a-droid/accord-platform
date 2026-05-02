@@ -15,6 +15,7 @@ import { Route as CommitteesRouteImport } from './routes/committees'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as SurveyWomenTalentsRouteImport } from './routes/survey.women-talents'
 import { Route as AppReportsRouteImport } from './routes/_app.reports'
 import { Route as AppProcurementRequestsRouteImport } from './routes/_app.procurement-requests'
 import { Route as AppPaymentRequestsRouteImport } from './routes/_app.payment-requests'
@@ -57,6 +58,11 @@ const AppRoute = AppRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SurveyWomenTalentsRoute = SurveyWomenTalentsRouteImport.update({
+  id: '/survey/women-talents',
+  path: '/survey/women-talents',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AppReportsRoute = AppReportsRouteImport.update({
@@ -147,6 +153,7 @@ export interface FileRoutesByFullPath {
   '/payment-requests': typeof AppPaymentRequestsRoute
   '/procurement-requests': typeof AppProcurementRequestsRoute
   '/reports': typeof AppReportsRoute
+  '/survey/women-talents': typeof SurveyWomenTalentsRoute
   '/admin/tasks': typeof AppAdminTasksRoute
   '/admin/users': typeof AppAdminUsersRoute
   '/committee/$type': typeof AppCommitteeTypeRoute
@@ -168,6 +175,7 @@ export interface FileRoutesByTo {
   '/payment-requests': typeof AppPaymentRequestsRoute
   '/procurement-requests': typeof AppProcurementRequestsRoute
   '/reports': typeof AppReportsRoute
+  '/survey/women-talents': typeof SurveyWomenTalentsRoute
   '/admin/tasks': typeof AppAdminTasksRoute
   '/admin/users': typeof AppAdminUsersRoute
   '/committee/$type': typeof AppCommitteeTypeRoute
@@ -191,6 +199,7 @@ export interface FileRoutesById {
   '/_app/payment-requests': typeof AppPaymentRequestsRoute
   '/_app/procurement-requests': typeof AppProcurementRequestsRoute
   '/_app/reports': typeof AppReportsRoute
+  '/survey/women-talents': typeof SurveyWomenTalentsRoute
   '/_app/admin/tasks': typeof AppAdminTasksRoute
   '/_app/admin/users': typeof AppAdminUsersRoute
   '/_app/committee/$type': typeof AppCommitteeTypeRoute
@@ -214,6 +223,7 @@ export interface FileRouteTypes {
     | '/payment-requests'
     | '/procurement-requests'
     | '/reports'
+    | '/survey/women-talents'
     | '/admin/tasks'
     | '/admin/users'
     | '/committee/$type'
@@ -235,6 +245,7 @@ export interface FileRouteTypes {
     | '/payment-requests'
     | '/procurement-requests'
     | '/reports'
+    | '/survey/women-talents'
     | '/admin/tasks'
     | '/admin/users'
     | '/committee/$type'
@@ -257,6 +268,7 @@ export interface FileRouteTypes {
     | '/_app/payment-requests'
     | '/_app/procurement-requests'
     | '/_app/reports'
+    | '/survey/women-talents'
     | '/_app/admin/tasks'
     | '/_app/admin/users'
     | '/_app/committee/$type'
@@ -269,6 +281,7 @@ export interface RootRouteChildren {
   CommitteesRoute: typeof CommitteesRoute
   PendingRoute: typeof PendingRoute
   RegisterGroomRoute: typeof RegisterGroomRoute
+  SurveyWomenTalentsRoute: typeof SurveyWomenTalentsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -313,6 +326,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/survey/women-talents': {
+      id: '/survey/women-talents'
+      path: '/survey/women-talents'
+      fullPath: '/survey/women-talents'
+      preLoaderRoute: typeof SurveyWomenTalentsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_app/reports': {
@@ -469,6 +489,7 @@ const rootRouteChildren: RootRouteChildren = {
   CommitteesRoute: CommitteesRoute,
   PendingRoute: PendingRoute,
   RegisterGroomRoute: RegisterGroomRoute,
+  SurveyWomenTalentsRoute: SurveyWomenTalentsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
