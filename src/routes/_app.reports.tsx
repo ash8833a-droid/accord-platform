@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { FileBarChart, Download, Star, TrendingUp, Archive, Calendar, FileText, Image as ImageIcon, Pin, PinOff, Filter } from "lucide-react";
+import { FileBarChart, Download, Star, TrendingUp, Archive, Calendar, FileText, Image as ImageIcon, Pin, PinOff, Filter, ClipboardList, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
 import { TasksReportPanel } from "@/components/reports/TasksReportPanel";
+import { WomenTalentsPanel } from "@/components/committee/WomenTalentsPanel";
 
 export const Route = createFileRoute("/_app/reports")({
   component: ReportsPage,
@@ -32,8 +33,11 @@ interface Report {
 const CURRENT_YEAR = new Date().getFullYear();
 
 function ReportsPage() {
-  const { hasRole } = useAuth();
+  const { hasRole, user } = useAuth();
   const isAdmin = hasRole("admin");
+  const [tab, setTab] = useState<"reports" | "surveys">("reports");
+  const [isQualityHead, setIsQualityHead] = useState(false);
+  const [isWomenMember, setIsWomenMember] = useState(false);
   const [reports, setReports] = useState<Report[]>([]);
   const [committees, setCommittees] = useState<Committee[]>([]);
   const [stats, setStats] = useState({ committees: 0, totalBudget: 0, totalSpent: 0, satisfaction: 92 });
@@ -53,6 +57,27 @@ function ReportsPage() {
   };
 
   useEffect(() => { load(); }, []);
+
+  useEffect(() => {
+    if (!user) { setIsQualityHead(false); setIsWomenMember(false); return; }
+    (async () => {
+      const { data: cs } = await supabase
+        .from("committees")
+        .select("id, type, head_user_id");
+      const quality = cs?.find((c: any) => c.type === "quality");
+      setIsQualityHead(!!quality && quality.head_user_id === user.id);
+      const women = cs?.find((c: any) => c.type === "women");
+      if (!women) { setIsWomenMember(false); return; }
+      const { data: roles } = await supabase
+        .from("user_roles")
+        .select("committee_id")
+        .eq("user_id", user.id)
+        .eq("committee_id", women.id);
+      setIsWomenMember(!!roles && roles.length > 0);
+    })();
+  }, [user]);
+
+  const canSeeSurveys = isAdmin || isQualityHead || isWomenMember;
 
   const fmt = (n: number) => new Intl.NumberFormat("ar-SA").format(n);
   const committeeName = (id: string | null) => committees.find((c) => c.id === id)?.name ?? "—";
@@ -98,10 +123,106 @@ function ReportsPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold">التقارير</h1>
-        <p className="text-muted-foreground mt-1">مركز التقارير الدورية والأرشيف الموحد للجان</p>
+        <h1 className="text-3xl font-bold">التقارير والجودة</h1>
+        <p className="text-muted-foreground mt-1">مركز التقارير الدورية والأرشيف الموحد للجان والاستبانات</p>
       </div>
 
+      {/* Tabs */}
+      <div className="flex flex-wrap gap-2 border-b">
+        <button
+          type="button"
+          onClick={() => setTab("reports")}
+          className={`px-4 py-2.5 text-sm font-bold border-b-2 -mb-px transition flex items-center gap-2 ${
+            tab === "reports"
+              ? "border-primary text-primary"
+              : "border-transparent text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          <FileBarChart className="h-4 w-4" />
+          التقارير
+        </button>
+        {canSeeSurveys && (
+          <button
+            type="button"
+            onClick={() => setTab("surveys")}
+            className={`px-4 py-2.5 text-sm font-bold border-b-2 -mb-px transition flex items-center gap-2 ${
+              tab === "surveys"
+                ? "border-primary text-primary"
+                : "border-transparent text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <ClipboardList className="h-4 w-4" />
+            الاستبانات
+          </button>
+        )}
+      </div>
+
+      {tab === "surveys" && canSeeSurveys ? (
+        <div className="space-y-6">
+          <div className="rounded-2xl border bg-gradient-to-br from-rose-50 via-fuchsia-50 to-amber-50 p-5">
+            <div className="flex items-start gap-3">
+              <div className="h-10 w-10 rounded-xl bg-fuchsia-600 text-white flex items-center justify-center shrink-0">
+                <Sparkles className="h-5 w-5" />
+              </div>
+              <div>
+                <h2 className="font-extrabold text-base">الاستبانات والردود</h2>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  مركز موحد لاستبانات اللجان وعرض الردود مع إمكانية الطباعة بصيغ PDF و Word و Excel.
+                </p>
+              </div>
+            </div>
+          </div>
+          <WomenTalentsPanel />
+        </div>
+      ) : (
+        <ReportsTabContent
+          stats={stats}
+          fmt={fmt}
+          filtered={filtered}
+          unfiledCount={unfiledCount}
+          isAdmin={isAdmin}
+          committees={committees}
+          committeeFilter={committeeFilter}
+          setCommitteeFilter={setCommitteeFilter}
+          yearFilter={yearFilter}
+          setYearFilter={setYearFilter}
+          years={years}
+          reports={reports}
+          committeeName={committeeName}
+          isImg={isImg}
+          open={open}
+          setArchiveYear={setArchiveYear}
+        />
+      )}
+    </div>
+  );
+}
+
+function ReportsTabContent(props: {
+  stats: { committees: number; totalBudget: number; totalSpent: number; satisfaction: number };
+  fmt: (n: number) => string;
+  filtered: Report[];
+  unfiledCount: number;
+  isAdmin: boolean;
+  committees: Committee[];
+  committeeFilter: string;
+  setCommitteeFilter: (v: string) => void;
+  yearFilter: string;
+  setYearFilter: (v: string) => void;
+  years: number[];
+  reports: Report[];
+  committeeName: (id: string | null) => string;
+  isImg: (t: string | null) => boolean;
+  open: (r: Report) => void;
+  setArchiveYear: (id: string, year: number | null) => void;
+}) {
+  const {
+    stats, fmt, filtered, unfiledCount, isAdmin, committees,
+    committeeFilter, setCommitteeFilter, yearFilter, setYearFilter,
+    years, reports, committeeName, isImg, open, setArchiveYear,
+  } = props;
+  return (
+    <>
       {/* KPI strip */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="rounded-2xl bg-gradient-hero text-primary-foreground p-5 shadow-elegant">
@@ -255,6 +376,6 @@ function ReportsPage() {
           })}
         </div>
       </div>
-    </div>
+    </>
   );
 }
