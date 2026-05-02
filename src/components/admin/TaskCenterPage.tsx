@@ -34,6 +34,7 @@ interface TaskRow {
   assigned_to: string | null;
   due_date: string | null;
   created_at: string;
+  sort_order: number;
 }
 
 const STATUS_META = {
@@ -79,7 +80,8 @@ function TaskCenterInner({ canEdit }: { canEdit: boolean }) {
     const [{ data: cm }, { data: tk }] = await Promise.all([
       supabase.from("committees").select("id, name, type").order("name"),
       supabase.from("committee_tasks")
-        .select("id, title, description, committee_id, status, priority, assigned_to, due_date, created_at")
+        .select("id, title, description, committee_id, status, priority, assigned_to, due_date, created_at, sort_order")
+        .order("sort_order", { ascending: true })
         .order("created_at", { ascending: false }),
     ]);
     setCommittees((cm ?? []) as CommitteeRow[]);
@@ -128,6 +130,47 @@ function TaskCenterInner({ canEdit }: { canEdit: boolean }) {
     setTasks((s) => s.map((t) => (t.id === id ? { ...t, status: to } : t)));
     const { error } = await supabase.from("committee_tasks").update({ status: to }).eq("id", id);
     if (error) { setTasks(prev); toast.error("تعذّر نقل المهمة: " + error.message); }
+  };
+
+  // Reorder a task within the same column (committee + status). targetId is the task we drop ON; if null → drop at end.
+  const reorderTask = async (
+    draggedId: string,
+    targetStatus: TaskRow["status"],
+    targetCommitteeId: string,
+    targetId: string | null,
+    placeBefore: boolean,
+  ) => {
+    const dragged = tasks.find((t) => t.id === draggedId);
+    if (!dragged) return;
+    // Only reorder when staying in same committee AND same status
+    if (dragged.committee_id !== targetCommitteeId || dragged.status !== targetStatus) {
+      // fall back to status move only (cross-column)
+      if (dragged.status !== targetStatus) await moveTask(draggedId, targetStatus);
+      return;
+    }
+    const column = tasks
+      .filter((t) => t.committee_id === targetCommitteeId && t.status === targetStatus && t.id !== draggedId)
+      .sort((a, b) => a.sort_order - b.sort_order);
+    let newOrder: number;
+    if (!targetId || column.length === 0) {
+      const last = column[column.length - 1];
+      newOrder = (last?.sort_order ?? 0) + 1000;
+    } else {
+      const idx = column.findIndex((t) => t.id === targetId);
+      if (idx === -1) {
+        newOrder = (column[column.length - 1]?.sort_order ?? 0) + 1000;
+      } else if (placeBefore) {
+        const prevOrder = idx === 0 ? (column[0].sort_order - 1000) : column[idx - 1].sort_order;
+        newOrder = (prevOrder + column[idx].sort_order) / 2;
+      } else {
+        const nextOrder = idx === column.length - 1 ? (column[idx].sort_order + 1000) : column[idx + 1].sort_order;
+        newOrder = (column[idx].sort_order + nextOrder) / 2;
+      }
+    }
+    const prev = tasks;
+    setTasks((s) => s.map((t) => (t.id === draggedId ? { ...t, sort_order: newOrder } : t)));
+    const { error } = await supabase.from("committee_tasks").update({ sort_order: newOrder }).eq("id", draggedId);
+    if (error) { setTasks(prev); toast.error("تعذّر إعادة الترتيب: " + error.message); }
   };
 
   const deleteTask = async (id: string) => {
@@ -206,7 +249,7 @@ function TaskCenterInner({ canEdit }: { canEdit: boolean }) {
 
         <TabsContent value="board" className="mt-4">
           {view === "kanban"
-            ? <KanbanBoard tasks={filtered} cmMap={cmMap} canEdit={canEdit} onMove={moveTask} onOpen={setDetails} onDelete={deleteTask} />
+            ? <KanbanBoard tasks={filtered} cmMap={cmMap} canEdit={canEdit} onMove={moveTask} onReorder={reorderTask} onOpen={setDetails} onDelete={deleteTask} />
             : <ListView tasks={filtered} cmMap={cmMap} canEdit={canEdit} onMove={moveTask} onOpen={setDetails} onDelete={deleteTask} />
           }
         </TabsContent>
@@ -253,28 +296,45 @@ function KpiCard({ label, value, icon: Icon, tone }: { label: string; value: str
 }
 
 function KanbanBoard({
-  tasks, cmMap, canEdit, onMove, onOpen, onDelete,
+  tasks, cmMap, canEdit, onMove, onReorder, onOpen, onDelete,
 }: {
   tasks: TaskRow[];
   cmMap: Map<string, CommitteeRow>;
   canEdit: boolean;
   onMove: (id: string, to: TaskRow["status"]) => void;
+  onReorder: (draggedId: string, targetStatus: TaskRow["status"], targetCommitteeId: string, targetId: string | null, placeBefore: boolean) => void;
   onOpen: (t: TaskRow) => void;
   onDelete: (id: string) => void;
 }) {
   const cols: TaskRow["status"][] = ["todo", "in_progress", "completed"];
   const [dragId, setDragId] = useState<string | null>(null);
+  const [dragOverId, setDragOverId] = useState<string | null>(null);
+  const [dragOverPos, setDragOverPos] = useState<"before" | "after" | null>(null);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
       {cols.map((status) => {
         const meta = STATUS_META[status];
-        const items = tasks.filter((t) => t.status === status);
+        const items = tasks
+          .filter((t) => t.status === status)
+          .sort((a, b) => a.sort_order - b.sort_order);
         return (
           <div
             key={status}
             onDragOver={(e) => { if (canEdit) e.preventDefault(); }}
-            onDrop={() => { if (canEdit && dragId) { onMove(dragId, status); setDragId(null); } }}
+            onDrop={(e) => {
+              e.preventDefault();
+              if (!canEdit || !dragId) return;
+              // Drop on empty column area → move to end
+              const dragged = tasks.find((t) => t.id === dragId);
+              if (dragged && dragged.status === status && items.length > 0) {
+                // if dropped on column (not on a card), append to end of this committee group
+                onReorder(dragId, status, dragged.committee_id, null, false);
+              } else if (dragged) {
+                onMove(dragId, status);
+              }
+              setDragId(null); setDragOverId(null); setDragOverPos(null);
+            }}
             className="rounded-xl border bg-muted/20 p-3 min-h-[300px]"
           >
             <div className="flex items-center justify-between mb-3">
@@ -286,20 +346,48 @@ function KanbanBoard({
             </div>
             <div className="space-y-2">
               {items.length === 0 && <p className="text-xs text-muted-foreground text-center py-6">لا توجد مهام</p>}
-              {items.map((t) => {
+              {items.map((t, idx) => {
                 const cm = cmMap.get(t.committee_id);
                 const cmeta = cm ? committeeByType(cm.type) : null;
                 const overdue = isOverdue(t);
+                const isDragging = dragId === t.id;
+                const showBefore = dragOverId === t.id && dragOverPos === "before";
+                const showAfter = dragOverId === t.id && dragOverPos === "after";
                 return (
+                  <div key={t.id}>
+                    {showBefore && <div className="h-1 bg-primary rounded mb-1" />}
                   <div
-                    key={t.id}
                     draggable={canEdit}
-                    onDragStart={() => setDragId(t.id)}
+                    onDragStart={(e) => { setDragId(t.id); e.dataTransfer.effectAllowed = "move"; }}
+                    onDragEnd={() => { setDragId(null); setDragOverId(null); setDragOverPos(null); }}
+                    onDragOver={(e) => {
+                      if (!canEdit || !dragId || dragId === t.id) return;
+                      e.preventDefault();
+                      e.stopPropagation();
+                      const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+                      const before = (e.clientY - rect.top) < rect.height / 2;
+                      setDragOverId(t.id);
+                      setDragOverPos(before ? "before" : "after");
+                    }}
+                    onDragLeave={() => {
+                      if (dragOverId === t.id) { setDragOverId(null); setDragOverPos(null); }
+                    }}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      if (!canEdit || !dragId || dragId === t.id) return;
+                      const placeBefore = dragOverPos === "before";
+                      onReorder(dragId, status, t.committee_id, t.id, placeBefore);
+                      setDragId(null); setDragOverId(null); setDragOverPos(null);
+                    }}
                     onClick={() => onOpen(t)}
-                    className="group rounded-lg border bg-card p-3 cursor-pointer hover:shadow-md transition-all"
+                    className={`group rounded-lg border bg-card p-3 cursor-grab active:cursor-grabbing hover:shadow-md transition-all ${isDragging ? "opacity-40" : ""}`}
                   >
                     <div className="flex items-start justify-between gap-2">
-                      <p className="text-sm font-bold flex-1 line-clamp-2">{t.title}</p>
+                      <p className="text-sm font-bold flex-1 line-clamp-2">
+                        <span className="text-[10px] text-muted-foreground me-1">#{idx + 1}</span>
+                        {t.title}
+                      </p>
                       {canEdit && (
                         <button
                           onClick={(e) => { e.stopPropagation(); onDelete(t.id); }}
@@ -329,6 +417,8 @@ function KanbanBoard({
                         {new Date(t.due_date).toLocaleDateString("ar-SA")}
                       </p>
                     )}
+                  </div>
+                    {showAfter && <div className="h-1 bg-primary rounded mt-1" />}
                   </div>
                 );
               })}
