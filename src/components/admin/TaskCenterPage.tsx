@@ -387,7 +387,7 @@ function KanbanBoard({
   canEdit: boolean;
   onMove: (id: string, to: TaskRow["status"]) => void;
   onReorder: (draggedId: string, targetStatus: TaskRow["status"], targetCommitteeId: string, targetId: string | null, placeBefore: boolean) => void;
-  onStep: (id: string, direction: "up" | "down") => void;
+  onStep: (id: string, direction: "up" | "down", steps?: number) => void;
   onOpen: (t: TaskRow) => void;
   onDelete: (id: string) => void;
 }) {
