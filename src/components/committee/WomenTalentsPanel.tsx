@@ -42,7 +42,6 @@ interface Response {
   id: string;
   full_name: string;
   age: number | null;
-  family_branch: string | null;
   phone: string;
   city: string | null;
   marital_status: string | null;
@@ -126,8 +125,8 @@ export function WomenTalentsPanel() {
       if (search.trim()) {
         const q = search.trim().toLowerCase();
         const blob = `${r.full_name} ${r.phone} ${r.city ?? ""} ${
-          r.family_branch ?? ""
-        } ${r.skills.join(" ")} ${r.specialization ?? ""}`.toLowerCase();
+          r.skills.join(" ")
+        } ${r.specialization ?? ""}`.toLowerCase();
         if (!blob.includes(q)) return false;
       }
       return true;
@@ -167,7 +166,6 @@ export function WomenTalentsPanel() {
     const data = rows.map((r) => ({
       "الاسم": r.full_name,
       "العمر": r.age ?? "",
-      "الفرع العائلي": r.family_branch ?? "",
       "الجوال": r.phone,
       "المدينة": r.city ?? "",
       "المؤهل": r.education_level ?? "",
@@ -325,11 +323,6 @@ export function WomenTalentsPanel() {
                   {STATUS_LABEL[r.status]}
                 </Badge>
               </div>
-              {r.family_branch && (
-                <p className="text-xs text-muted-foreground mb-2">
-                  الفرع: {r.family_branch}
-                </p>
-              )}
               <div className="flex flex-wrap gap-1">
                 {r.skills.slice(0, 4).map((s) => (
                   <Badge
@@ -462,7 +455,6 @@ function ResponseDetailsDialog({
             <Row label="الجوال" value={response.phone} />
             <Row label="العمر" value={response.age ?? "—"} />
             <Row label="المدينة" value={response.city ?? "—"} />
-            <Row label="الفرع العائلي" value={response.family_branch ?? "—"} />
             <Row label="الحالة الاجتماعية" value={response.marital_status ?? "—"} />
           </Section>
           <Section title="المؤهل والتخصص">

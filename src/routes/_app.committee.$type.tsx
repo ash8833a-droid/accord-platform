@@ -930,8 +930,8 @@ function CommitteePage() {
         </>
       )}
 
-      {/* Women's committee + Quality committee: talent recruitment survey */}
-      {(type === "women" || type === "quality") && (
+      {/* Women's committee + Quality committee head: talent recruitment survey */}
+      {(type === "women" || (type === "quality" && (isHead || isAdmin))) && (
         <QualitySection
           storageKey={`committee:${type}:talents`}
           title="استبيان مواهب بنات العائلة"
