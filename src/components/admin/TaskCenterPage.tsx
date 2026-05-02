@@ -403,6 +403,18 @@ function KanbanBoard({
         const items = tasks
           .filter((t) => t.status === status)
           .sort(comparePmp);
+        // Group items by committee so each committee's tasks stay together
+        const groupsMap = new Map<string, TaskRow[]>();
+        for (const t of items) {
+          if (!groupsMap.has(t.committee_id)) groupsMap.set(t.committee_id, []);
+          groupsMap.get(t.committee_id)!.push(t);
+        }
+        const groups = Array.from(groupsMap.entries()).map(([cid, list]) => ({
+          cid,
+          name: cmMap.get(cid)?.name ?? "—",
+          type: cmMap.get(cid)?.type ?? "",
+          list,
+        })).sort((a, b) => a.name.localeCompare(b.name, "ar"));
         return (
           <div
             key={status}
@@ -429,20 +441,28 @@ function KanbanBoard({
               </div>
               <Badge variant="outline">{items.length}</Badge>
             </div>
-            <div className="space-y-2">
-              {items.length === 0 && <p className="text-xs text-muted-foreground text-center py-6">لا توجد مهام</p>}
-              {items.map((t, idx) => {
+            <div className="space-y-4">
+              {groups.length === 0 && <p className="text-xs text-muted-foreground text-center py-6">لا توجد مهام</p>}
+              {groups.map((g) => {
+                const gmeta = g.type ? committeeByType(g.type) : null;
+                return (
+                  <div key={g.cid} className="space-y-2">
+                    <div className="flex items-center justify-between sticky top-0 bg-muted/40 backdrop-blur px-2 py-1 rounded">
+                      <div className="flex items-center gap-1.5">
+                        {gmeta && <gmeta.icon className="h-3.5 w-3.5" />}
+                        <span className="text-xs font-bold">{g.name}</span>
+                      </div>
+                      <Badge variant="outline" className="text-[10px]">{g.list.length}</Badge>
+                    </div>
+                    {g.list.map((t, idx) => {
                 const cm = cmMap.get(t.committee_id);
                 const cmeta = cm ? committeeByType(cm.type) : null;
                 const overdue = isOverdue(t);
                 const isDragging = dragId === t.id;
                 const showBefore = dragOverId === t.id && dragOverPos === "before";
                 const showAfter = dragOverId === t.id && dragOverPos === "after";
-                // Position within the same committee+status group (for step buttons)
-                const sameGroup = items.filter((x) => x.committee_id === t.committee_id);
-                const groupIdx = sameGroup.findIndex((x) => x.id === t.id);
-                const isFirstInGroup = groupIdx === 0;
-                const isLastInGroup = groupIdx === sameGroup.length - 1;
+                const isFirstInGroup = idx === 0;
+                const isLastInGroup = idx === g.list.length - 1;
                 return (
                   <div key={t.id}>
                     {showBefore && <div className="h-1 bg-primary rounded mb-1" />}
@@ -530,6 +550,9 @@ function KanbanBoard({
                     )}
                   </div>
                     {showAfter && <div className="h-1 bg-primary rounded mt-1" />}
+                  </div>
+                );
+                    })}
                   </div>
                 );
               })}
