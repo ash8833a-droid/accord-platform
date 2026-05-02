@@ -479,7 +479,7 @@ function KanbanBoard({
                 const showBefore = dragOverId === t.id && dragOverPos === "before";
                 const showAfter = dragOverId === t.id && dragOverPos === "after";
                 const isFirstInGroup = idx === 0;
-                const isLastInGroup = idx === g.list.length - 1;
+                const isLastInGroup = idx === statusItems.length - 1;
                 return (
                   <div key={t.id}>
                     {showBefore && <div className="h-1 bg-primary rounded mb-1" />}
