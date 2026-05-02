@@ -206,6 +206,38 @@ function TaskCenterInner({ canEdit }: { canEdit: boolean }) {
     if (error) toast.error(error.message); else toast.success("تم الحذف");
   };
 
+  // Step-by-step manual move within the same column (committee + status).
+  const stepTask = async (taskId: string, direction: "up" | "down") => {
+    const t = tasks.find((x) => x.id === taskId);
+    if (!t) return;
+    const column = tasks
+      .filter((x) => x.committee_id === t.committee_id && x.status === t.status)
+      .sort(comparePmp);
+    const idx = column.findIndex((x) => x.id === taskId);
+    if (idx === -1) return;
+    if (direction === "up" && idx === 0) return;
+    if (direction === "down" && idx === column.length - 1) return;
+    const targetIdx = direction === "up" ? idx - 1 : idx + 1;
+    const target = column[targetIdx];
+    // Swap sort_order values
+    const newSelf = target.sort_order;
+    const newOther = t.sort_order;
+    const prev = tasks;
+    setTasks((s) => s.map((x) =>
+      x.id === t.id ? { ...x, sort_order: newSelf }
+      : x.id === target.id ? { ...x, sort_order: newOther }
+      : x
+    ));
+    const [r1, r2] = await Promise.all([
+      supabase.from("committee_tasks").update({ sort_order: newSelf }).eq("id", t.id),
+      supabase.from("committee_tasks").update({ sort_order: newOther }).eq("id", target.id),
+    ]);
+    if (r1.error || r2.error) {
+      setTasks(prev);
+      toast.error("تعذّر النقل: " + (r1.error?.message || r2.error?.message));
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
