@@ -1589,6 +1589,10 @@ export type Database = {
         Args: { _committee_id: string; _user_id: string }
         Returns: boolean
       }
+      is_quality_committee_member: {
+        Args: { _user_id: string }
+        Returns: boolean
+      }
       is_supreme_member: { Args: { _user_id: string }; Returns: boolean }
       is_user_approved: { Args: { _user_id: string }; Returns: boolean }
       is_women_committee_member: {
