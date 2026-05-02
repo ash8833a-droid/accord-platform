@@ -209,39 +209,132 @@ export function WomenTalentsPanel() {
       toast.error("لا توجد بيانات للتصدير");
       return;
     }
-    const doc = new jsPDF({ orientation: "landscape", unit: "pt", format: "a4" });
-    doc.setFontSize(14);
-    doc.text("Women Talents Survey Responses", 40, 40);
-    doc.setFontSize(10);
-    doc.text(`Total: ${rows.length} | Date: ${new Date().toLocaleDateString("en-GB")}`, 40, 58);
+    const esc = (s: unknown) =>
+      String(s ?? "—").replace(/[&<>"']/g, (c) =>
+        ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c] as string),
+      );
+    const date = new Date().toLocaleString("ar-SA-u-ca-gregory");
+    const w = window.open("", "_blank", "width=1200,height=850");
+    if (!w) {
+      toast.error("يرجى السماح بفتح النوافذ المنبثقة");
+      return;
+    }
+    const bodyRows = rows
+      .map(
+        (r, i) => `
+        <tr>
+          <td class="num">${i + 1}</td>
+          <td><b>${esc(r.full_name)}</b></td>
+          <td class="ltr">${esc(r.phone)}</td>
+          <td>${esc(r.city)}</td>
+          <td>${esc(r.education_level)}</td>
+          <td>${esc(r.specialization)}</td>
+          <td class="skills">${esc(r.skills?.join("، "))}</td>
+          <td class="num">${esc(r.experience_years)}</td>
+          <td><span class="status status-${r.status}">${esc(STATUS_LABEL[r.status])}</span></td>
+          <td class="ltr">${new Date(r.created_at).toLocaleDateString("en-GB")}</td>
+        </tr>`,
+      )
+      .join("");
 
-    autoTable(doc, {
-      startY: 75,
-      head: [[
-        "#", "Name", "Phone", "City", "Education", "Specialization",
-        "Skills", "Years", "Status", "Submitted",
-      ]],
-      body: rows.map((r, i) => [
-        i + 1,
-        r.full_name,
-        r.phone,
-        r.city ?? "-",
-        r.education_level ?? "-",
-        r.specialization ?? "-",
-        r.skills.join(", "),
-        r.experience_years ?? "-",
-        STATUS_LABEL[r.status],
-        new Date(r.created_at).toLocaleDateString("en-GB"),
-      ]),
-      styles: { fontSize: 8, cellPadding: 4, overflow: "linebreak" },
-      headStyles: { fillColor: [219, 39, 119], textColor: 255, fontStyle: "bold" },
-      alternateRowStyles: { fillColor: [253, 242, 248] },
-      columnStyles: {
-        0: { cellWidth: 25 },
-        6: { cellWidth: 140 },
-      },
-    });
-    doc.save(`women-talents-${new Date().toISOString().slice(0, 10)}.pdf`);
+    w.document.write(`<!doctype html>
+<html lang="ar" dir="rtl"><head><meta charset="utf-8"/>
+<title>ردود استبيان مواهب بنات العائلة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&display=swap" rel="stylesheet"/>
+<style>
+  *{box-sizing:border-box}
+  body{font-family:'Tajawal','Segoe UI',Tahoma,sans-serif;margin:0;color:#1a1a1a;background:#fff}
+  .page{padding:28px 32px}
+  header{display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid #C4A25C;padding-bottom:14px;margin-bottom:18px;gap:16px}
+  .brand{display:flex;align-items:center;gap:14px}
+  .brand img{width:64px;height:64px;filter:drop-shadow(0 2px 6px rgba(196,162,92,.35))}
+  .brand h1{margin:0;color:#0E3A42;font-size:20px;font-weight:900;letter-spacing:.2px}
+  .brand .sub{font-size:11px;color:#6b6b6b;margin-top:2px}
+  .meta{text-align:left;font-size:11px;color:#555;line-height:1.7}
+  .meta b{color:#0E3A42}
+  h2{margin:0 0 4px;color:#0E3A42;font-size:18px;font-weight:800}
+  .lead{color:#6b6b6b;font-size:12px;margin:0 0 14px}
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+  .kpi{border:1px solid #E8DAB6;background:linear-gradient(180deg,#FBF7EE,#fff);border-radius:10px;padding:10px 12px}
+  .kpi .l{font-size:11px;color:#6b6b6b}
+  .kpi .v{font-size:20px;font-weight:900;color:#0E3A42;margin-top:2px}
+  table{width:100%;border-collapse:collapse;font-size:11.5px;border:1px solid #E5E5E5;border-radius:8px;overflow:hidden}
+  thead th{background:linear-gradient(90deg,#0E3A42,#1B5560);color:#fff;padding:9px 6px;text-align:right;font-weight:700;font-size:11px;border:1px solid #0E3A42}
+  tbody td{padding:8px 6px;border:1px solid #EAEAEA;vertical-align:top;background:#fff}
+  tbody tr:nth-child(even) td{background:#FAF6EE}
+  td.num{text-align:center;color:#555;font-variant-numeric:tabular-nums}
+  td.ltr{direction:ltr;text-align:center;font-variant-numeric:tabular-nums}
+  td.skills{color:#444;font-size:11px;line-height:1.6}
+  .status{display:inline-block;padding:2px 8px;border-radius:999px;font-size:10.5px;font-weight:700;border:1px solid transparent;white-space:nowrap}
+  .status-new{background:#FEE2E2;color:#9F1239;border-color:#FBCFE8}
+  .status-contacted{background:#E0F2FE;color:#075985;border-color:#BAE6FD}
+  .status-accepted{background:#DCFCE7;color:#166534;border-color:#BBF7D0}
+  .status-rejected{background:#F1F5F9;color:#475569;border-color:#E2E8F0}
+  .status-on_hold{background:#FEF3C7;color:#92400E;border-color:#FDE68A}
+  footer{margin-top:22px;border-top:2px solid #C4A25C;padding-top:12px;display:flex;justify-content:space-between;align-items:center;font-size:11px;color:#555}
+  .stamp{border:2px dashed #0E3A42;color:#0E3A42;padding:8px 18px;border-radius:50%;font-weight:800;text-align:center;line-height:1.3;font-size:11px}
+  @media print{
+    @page{size:A4 landscape;margin:12mm}
+    .page{padding:0}
+    thead{display:table-header-group}
+    tr{page-break-inside:avoid}
+  }
+</style></head>
+<body><div class="page">
+  <header>
+    <div class="brand">
+      <img src="${BRAND_LOGO_DATA_URI}" alt="logo"/>
+      <div>
+        <h1>لجان الزواج الجماعي الثاني عشر</h1>
+        <div class="sub">استبيان مواهب بنات العائلة — تقرير الردود</div>
+      </div>
+    </div>
+    <div class="meta">
+      <div><b>تاريخ التقرير:</b> ${esc(date)}</div>
+      <div><b>إجمالي الردود:</b> ${rows.length}</div>
+      <div><b>المرجع:</b> WT-${new Date().toISOString().slice(0, 10)}</div>
+    </div>
+  </header>
+
+  <h2>ردود استبيان المواهب</h2>
+  <p class="lead">قائمة شاملة بالردود المستلمة عبر استبيان مواهب بنات العائلة، مرتبة حسب تاريخ الإرسال.</p>
+
+  <div class="kpis">
+    <div class="kpi"><div class="l">إجمالي الردود</div><div class="v">${stats.total}</div></div>
+    <div class="kpi"><div class="l">ردود جديدة</div><div class="v">${stats.newCount}</div></div>
+    <div class="kpi"><div class="l">مقبولات</div><div class="v">${stats.accepted}</div></div>
+    <div class="kpi"><div class="l">تاريخ الطباعة</div><div class="v" style="font-size:13px">${new Date().toLocaleDateString("ar-SA-u-ca-gregory")}</div></div>
+  </div>
+
+  <table>
+    <thead><tr>
+      <th style="width:32px">م</th>
+      <th>الاسم</th>
+      <th style="width:90px">الجوال</th>
+      <th style="width:80px">المدينة</th>
+      <th style="width:80px">المؤهل</th>
+      <th>التخصص</th>
+      <th>المهارات</th>
+      <th style="width:50px">الخبرة</th>
+      <th style="width:80px">الحالة</th>
+      <th style="width:80px">تاريخ الإرسال</th>
+    </tr></thead>
+    <tbody>${bodyRows}</tbody>
+  </table>
+
+  <footer>
+    <div>
+      <div><b>أُعدّ بواسطة:</b> منصة لجان الزواج الجماعي</div>
+      <div style="margin-top:2px;color:#888">lajnat-zawaj.org</div>
+    </div>
+    <div class="stamp">ختم<br/>اللجنة العليا</div>
+  </footer>
+</div>
+<script>window.onload=()=>setTimeout(()=>window.print(),400)</script>
+</body></html>`);
+    w.document.close();
   };
 
   const exportWord = async () => {
