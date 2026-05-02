@@ -30,8 +30,7 @@ export const sendFirstTaskReminders = createServerFn({ method: "POST" })
     let q = supabaseAdmin
       .from("committee_tasks")
       .select("id, title, committee_id, assigned_to, status, priority, sort_order, created_at, due_date")
-      .neq("status", "done")
-      .neq("status", "cancelled");
+      .neq("status", "completed");
     if (data.committee_ids?.length) q = q.in("committee_id", data.committee_ids);
     const { data: tasks, error } = await q;
     if (error) throw new Error(error.message);
