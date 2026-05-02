@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { FileBarChart, Download, Star, TrendingUp, Archive, Calendar, FileText, Image as ImageIcon, Pin, PinOff, Filter, ClipboardList, Sparkles } from "lucide-react";
+import { FileBarChart, Download, Star, TrendingUp, Archive, Calendar, FileText, Image as ImageIcon, Pin, PinOff, Filter, ClipboardList, Sparkles, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -10,6 +10,7 @@ import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
 import { TasksReportPanel } from "@/components/reports/TasksReportPanel";
 import { WomenTalentsPanel } from "@/components/committee/WomenTalentsPanel";
+import { EvaluationCriteria } from "@/components/quality/EvaluationCriteria";
 
 export const Route = createFileRoute("/_app/reports")({
   component: ReportsPage,
@@ -35,7 +36,7 @@ const CURRENT_YEAR = new Date().getFullYear();
 function ReportsPage() {
   const { hasRole, user } = useAuth();
   const isAdmin = hasRole("admin");
-  const [tab, setTab] = useState<"reports" | "surveys">("reports");
+  const [tab, setTab] = useState<"reports" | "criteria" | "surveys">("reports");
   const [isQualityHead, setIsQualityHead] = useState(false);
   const [isWomenMember, setIsWomenMember] = useState(false);
   const [reports, setReports] = useState<Report[]>([]);
@@ -78,6 +79,7 @@ function ReportsPage() {
   }, [user]);
 
   const canSeeSurveys = isAdmin || isQualityHead || isWomenMember;
+  const canSeeCriteria = isAdmin || isQualityHead || hasRole("quality");
 
   const fmt = (n: number) => new Intl.NumberFormat("ar-SA").format(n);
   const committeeName = (id: string | null) => committees.find((c) => c.id === id)?.name ?? "—";
@@ -141,6 +143,20 @@ function ReportsPage() {
           <FileBarChart className="h-4 w-4" />
           التقارير
         </button>
+        {canSeeCriteria && (
+          <button
+            type="button"
+            onClick={() => setTab("criteria")}
+            className={`px-4 py-2.5 text-sm font-bold border-b-2 -mb-px transition flex items-center gap-2 ${
+              tab === "criteria"
+                ? "border-primary text-primary"
+                : "border-transparent text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <ShieldCheck className="h-4 w-4" />
+            معايير التقييم
+          </button>
+        )}
         {canSeeSurveys && (
           <button
             type="button"
@@ -174,6 +190,8 @@ function ReportsPage() {
           </div>
           <WomenTalentsPanel />
         </div>
+      ) : tab === "criteria" && canSeeCriteria ? (
+        <EvaluationCriteria />
       ) : (
         <ReportsTabContent
           stats={stats}
