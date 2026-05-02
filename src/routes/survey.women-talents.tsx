@@ -40,6 +40,7 @@ export const Route = createFileRoute("/survey/women-talents")({
   component: WomenTalentsSurvey,
   head: () => {
     const url = "https://lajnat-zawaj.org/survey/women-talents";
+    const image = "https://lajnat-zawaj.org/og-women-talents.jpg";
     return {
       meta: [
         { title: "استبيان مواهب بنات العائلة — لجنة الزواج الجماعي" },
@@ -56,6 +57,20 @@ export const Route = createFileRoute("/survey/women-talents")({
         },
         { property: "og:url", content: url },
         { property: "og:type", content: "website" },
+        { property: "og:image", content: image },
+        { property: "og:image:width", content: "1200" },
+        { property: "og:image:height", content: "630" },
+        { property: "og:image:alt", content: "استبيان مواهب بنات العائلة — اللجنة النسائية" },
+        { property: "og:locale", content: "ar_SA" },
+        { property: "og:site_name", content: "لجنة الزواج الجماعي" },
+        { name: "twitter:card", content: "summary_large_image" },
+        { name: "twitter:title", content: "🌸 ندعوكِ للمشاركة في صناعة فرحة العائلة" },
+        {
+          name: "twitter:description",
+          content:
+            "اللجنة النسائية تبحث عن المبدعات والمميزات في مجالات التصميم، التصوير، التقنية والكتابة.",
+        },
+        { name: "twitter:image", content: image },
       ],
       links: [{ rel: "canonical", href: url }],
     };
