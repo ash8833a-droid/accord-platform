@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as RegisterGroomRouteImport } from './routes/register-groom'
 import { Route as PendingRouteImport } from './routes/pending'
+import { Route as GroomEditRouteImport } from './routes/groom-edit'
 import { Route as CommitteesRouteImport } from './routes/committees'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AppRouteImport } from './routes/_app'
@@ -39,6 +40,11 @@ const RegisterGroomRoute = RegisterGroomRouteImport.update({
 const PendingRoute = PendingRouteImport.update({
   id: '/pending',
   path: '/pending',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GroomEditRoute = GroomEditRouteImport.update({
+  id: '/groom-edit',
+  path: '/groom-edit',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CommitteesRoute = CommitteesRouteImport.update({
@@ -140,6 +146,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/committees': typeof CommitteesRoute
+  '/groom-edit': typeof GroomEditRoute
   '/pending': typeof PendingRoute
   '/register-groom': typeof RegisterGroomRoute
   '/admin': typeof AppAdminRouteWithChildren
@@ -162,6 +169,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/committees': typeof CommitteesRoute
+  '/groom-edit': typeof GroomEditRoute
   '/pending': typeof PendingRoute
   '/register-groom': typeof RegisterGroomRoute
   '/admin': typeof AppAdminRouteWithChildren
@@ -186,6 +194,7 @@ export interface FileRoutesById {
   '/_app': typeof AppRouteWithChildren
   '/auth': typeof AuthRoute
   '/committees': typeof CommitteesRoute
+  '/groom-edit': typeof GroomEditRoute
   '/pending': typeof PendingRoute
   '/register-groom': typeof RegisterGroomRoute
   '/_app/admin': typeof AppAdminRouteWithChildren
@@ -210,6 +219,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/committees'
+    | '/groom-edit'
     | '/pending'
     | '/register-groom'
     | '/admin'
@@ -232,6 +242,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/committees'
+    | '/groom-edit'
     | '/pending'
     | '/register-groom'
     | '/admin'
@@ -255,6 +266,7 @@ export interface FileRouteTypes {
     | '/_app'
     | '/auth'
     | '/committees'
+    | '/groom-edit'
     | '/pending'
     | '/register-groom'
     | '/_app/admin'
@@ -279,6 +291,7 @@ export interface RootRouteChildren {
   AppRoute: typeof AppRouteWithChildren
   AuthRoute: typeof AuthRoute
   CommitteesRoute: typeof CommitteesRoute
+  GroomEditRoute: typeof GroomEditRoute
   PendingRoute: typeof PendingRoute
   RegisterGroomRoute: typeof RegisterGroomRoute
   SurveyWomenTalentsRoute: typeof SurveyWomenTalentsRoute
@@ -298,6 +311,13 @@ declare module '@tanstack/react-router' {
       path: '/pending'
       fullPath: '/pending'
       preLoaderRoute: typeof PendingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/groom-edit': {
+      id: '/groom-edit'
+      path: '/groom-edit'
+      fullPath: '/groom-edit'
+      preLoaderRoute: typeof GroomEditRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/committees': {
@@ -487,6 +507,7 @@ const rootRouteChildren: RootRouteChildren = {
   AppRoute: AppRouteWithChildren,
   AuthRoute: AuthRoute,
   CommitteesRoute: CommitteesRoute,
+  GroomEditRoute: GroomEditRoute,
   PendingRoute: PendingRoute,
   RegisterGroomRoute: RegisterGroomRoute,
   SurveyWomenTalentsRoute: SurveyWomenTalentsRoute,
