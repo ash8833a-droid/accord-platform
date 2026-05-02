@@ -1490,7 +1490,6 @@ export type Database = {
           created_at: string
           education_level: string | null
           experience_years: number | null
-          family_branch: string | null
           full_name: string
           id: string
           interest_areas: string[]
@@ -1515,7 +1514,6 @@ export type Database = {
           created_at?: string
           education_level?: string | null
           experience_years?: number | null
-          family_branch?: string | null
           full_name: string
           id?: string
           interest_areas?: string[]
@@ -1540,7 +1538,6 @@ export type Database = {
           created_at?: string
           education_level?: string | null
           experience_years?: number | null
-          family_branch?: string | null
           full_name?: string
           id?: string
           interest_areas?: string[]
