@@ -176,7 +176,7 @@ function TaskCenterInner({ canEdit }: { canEdit: boolean }) {
     }
     const column = tasks
       .filter((t) => t.committee_id === targetCommitteeId && t.status === targetStatus && t.id !== draggedId)
-      .sort((a, b) => a.sort_order - b.sort_order);
+      .sort(comparePmp);
     let newOrder: number;
     if (!targetId || column.length === 0) {
       const last = column[column.length - 1];
@@ -343,7 +343,7 @@ function KanbanBoard({
         const meta = STATUS_META[status];
         const items = tasks
           .filter((t) => t.status === status)
-          .sort((a, b) => a.sort_order - b.sort_order);
+          .sort(comparePmp);
         return (
           <div
             key={status}
