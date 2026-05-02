@@ -17,6 +17,7 @@ import {
 import {
   Plus, Target, Search, Loader2, ListTodo, PlayCircle, CheckCircle2,
   AlertTriangle, Trash2, ExternalLink, LayoutGrid, Rows3, CalendarClock,
+  ArrowUp, ArrowDown,
 } from "lucide-react";
 import { toast } from "sonner";
 import { CreateTaskDialog } from "@/components/admin/CreateTaskDialog";
@@ -205,6 +206,38 @@ function TaskCenterInner({ canEdit }: { canEdit: boolean }) {
     if (error) toast.error(error.message); else toast.success("تم الحذف");
   };
 
+  // Step-by-step manual move within the same column (committee + status).
+  const stepTask = async (taskId: string, direction: "up" | "down") => {
+    const t = tasks.find((x) => x.id === taskId);
+    if (!t) return;
+    const column = tasks
+      .filter((x) => x.committee_id === t.committee_id && x.status === t.status)
+      .sort(comparePmp);
+    const idx = column.findIndex((x) => x.id === taskId);
+    if (idx === -1) return;
+    if (direction === "up" && idx === 0) return;
+    if (direction === "down" && idx === column.length - 1) return;
+    const targetIdx = direction === "up" ? idx - 1 : idx + 1;
+    const target = column[targetIdx];
+    // Swap sort_order values
+    const newSelf = target.sort_order;
+    const newOther = t.sort_order;
+    const prev = tasks;
+    setTasks((s) => s.map((x) =>
+      x.id === t.id ? { ...x, sort_order: newSelf }
+      : x.id === target.id ? { ...x, sort_order: newOther }
+      : x
+    ));
+    const [r1, r2] = await Promise.all([
+      supabase.from("committee_tasks").update({ sort_order: newSelf }).eq("id", t.id),
+      supabase.from("committee_tasks").update({ sort_order: newOther }).eq("id", target.id),
+    ]);
+    if (r1.error || r2.error) {
+      setTasks(prev);
+      toast.error("تعذّر النقل: " + (r1.error?.message || r2.error?.message));
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
@@ -275,7 +308,7 @@ function TaskCenterInner({ canEdit }: { canEdit: boolean }) {
 
         <TabsContent value="board" className="mt-4">
           {view === "kanban"
-            ? <KanbanBoard tasks={filtered} cmMap={cmMap} canEdit={canEdit} onMove={moveTask} onReorder={reorderTask} onOpen={setDetails} onDelete={deleteTask} />
+            ? <KanbanBoard tasks={filtered} cmMap={cmMap} canEdit={canEdit} onMove={moveTask} onReorder={reorderTask} onStep={stepTask} onOpen={setDetails} onDelete={deleteTask} />
             : <ListView tasks={filtered} cmMap={cmMap} canEdit={canEdit} onMove={moveTask} onOpen={setDetails} onDelete={deleteTask} />
           }
         </TabsContent>
@@ -322,13 +355,14 @@ function KpiCard({ label, value, icon: Icon, tone }: { label: string; value: str
 }
 
 function KanbanBoard({
-  tasks, cmMap, canEdit, onMove, onReorder, onOpen, onDelete,
+  tasks, cmMap, canEdit, onMove, onReorder, onStep, onOpen, onDelete,
 }: {
   tasks: TaskRow[];
   cmMap: Map<string, CommitteeRow>;
   canEdit: boolean;
   onMove: (id: string, to: TaskRow["status"]) => void;
   onReorder: (draggedId: string, targetStatus: TaskRow["status"], targetCommitteeId: string, targetId: string | null, placeBefore: boolean) => void;
+  onStep: (id: string, direction: "up" | "down") => void;
   onOpen: (t: TaskRow) => void;
   onDelete: (id: string) => void;
 }) {
@@ -379,6 +413,11 @@ function KanbanBoard({
                 const isDragging = dragId === t.id;
                 const showBefore = dragOverId === t.id && dragOverPos === "before";
                 const showAfter = dragOverId === t.id && dragOverPos === "after";
+                // Position within the same committee+status group (for step buttons)
+                const sameGroup = items.filter((x) => x.committee_id === t.committee_id);
+                const groupIdx = sameGroup.findIndex((x) => x.id === t.id);
+                const isFirstInGroup = groupIdx === 0;
+                const isLastInGroup = groupIdx === sameGroup.length - 1;
                 return (
                   <div key={t.id}>
                     {showBefore && <div className="h-1 bg-primary rounded mb-1" />}
@@ -415,13 +454,34 @@ function KanbanBoard({
                         {t.title}
                       </p>
                       {canEdit && (
-                        <button
-                          onClick={(e) => { e.stopPropagation(); onDelete(t.id); }}
-                          className="opacity-0 group-hover:opacity-100 text-rose-500 hover:text-rose-600 transition-opacity"
-                          aria-label="حذف"
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </button>
+                        <div className="flex items-center gap-0.5 shrink-0">
+                          <button
+                            onClick={(e) => { e.stopPropagation(); onStep(t.id, "up"); }}
+                            disabled={isFirstInGroup}
+                            className="p-1 rounded hover:bg-muted disabled:opacity-30 disabled:cursor-not-allowed text-muted-foreground hover:text-primary"
+                            aria-label="نقل لأعلى"
+                            title="نقل لأعلى"
+                          >
+                            <ArrowUp className="h-3.5 w-3.5" />
+                          </button>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); onStep(t.id, "down"); }}
+                            disabled={isLastInGroup}
+                            className="p-1 rounded hover:bg-muted disabled:opacity-30 disabled:cursor-not-allowed text-muted-foreground hover:text-primary"
+                            aria-label="نقل لأسفل"
+                            title="نقل لأسفل"
+                          >
+                            <ArrowDown className="h-3.5 w-3.5" />
+                          </button>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); onDelete(t.id); }}
+                            className="p-1 rounded hover:bg-muted text-rose-500 hover:text-rose-600"
+                            aria-label="حذف"
+                            title="حذف"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
                       )}
                     </div>
                     <div className="flex items-center flex-wrap gap-1 mt-2">
