@@ -35,8 +35,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import * as XLSX from "xlsx";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
+import { BRAND_LOGO_DATA_URI } from "@/assets/brand-logo";
 import {
   Document as DocxDocument,
   Packer,
