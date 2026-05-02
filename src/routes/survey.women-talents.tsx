@@ -99,7 +99,7 @@ const INTEREST_AREAS = [
   "كتابة المحتوى والتقارير",
 ];
 
-const TIME_SLOTS = ["صباحاً", "ظهراً", "مساءً", "ليلاً", "عطلة نهاية الأسبوع"];
+
 
 const TOOL_OPTIONS = [
   "Photoshop",
@@ -137,10 +137,7 @@ function WomenTalentsSurvey() {
   const [previousWork, setPreviousWork] = useState("");
   const [certifications, setCertifications] = useState("");
   const [interestAreas, setInterestAreas] = useState<string[]>([]);
-  const [weeklyHours, setWeeklyHours] = useState("");
-  const [preferredTimes, setPreferredTimes] = useState<string[]>([]);
-  const [motivation, setMotivation] = useState("");
-  const [notes, setNotes] = useState("");
+
 
   const toggle = (
     arr: string[],
@@ -177,10 +174,10 @@ function WomenTalentsSurvey() {
         previous_work: previousWork.trim() || null,
         certifications: certifications.trim() || null,
         interest_areas: interestAreas,
-        weekly_hours: weeklyHours || null,
-        preferred_times: preferredTimes,
-        motivation: motivation.trim() || null,
-        notes: notes.trim() || null,
+        weekly_hours: null,
+        preferred_times: [],
+        motivation: null,
+        notes: null,
       });
       if (error) throw error;
       setDone(true);
@@ -477,70 +474,6 @@ function WomenTalentsSurvey() {
               );
             })}
           </div>
-
-          {/* Section: Availability */}
-          <SectionTitle icon={Clock} color="fuchsia">
-            التفرغ والتواجد
-          </SectionTitle>
-          <div className="grid sm:grid-cols-2 gap-4">
-            <Field label="عدد الساعات أسبوعياً">
-              <Select value={weeklyHours} onValueChange={setWeeklyHours}>
-                <SelectTrigger className="h-11 bg-white">
-                  <SelectValue placeholder="اختاري" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="1-3">1 - 3 ساعات</SelectItem>
-                  <SelectItem value="4-7">4 - 7 ساعات</SelectItem>
-                  <SelectItem value="8-15">8 - 15 ساعة</SelectItem>
-                  <SelectItem value="15+">أكثر من 15 ساعة</SelectItem>
-                </SelectContent>
-              </Select>
-            </Field>
-            <Field label="الأوقات المفضلة (اختاري ما يناسبك)">
-              <div className="flex flex-wrap gap-2 pt-1">
-                {TIME_SLOTS.map((t) => {
-                  const active = preferredTimes.includes(t);
-                  return (
-                    <button
-                      key={t}
-                      type="button"
-                      onClick={() =>
-                        toggle(preferredTimes, setPreferredTimes, t)
-                      }
-                      className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition ${
-                        active
-                          ? "bg-gradient-to-r from-rose-500 to-fuchsia-600 text-white border-transparent shadow"
-                          : "bg-white text-slate-700 border-slate-200 hover:border-rose-300"
-                      }`}
-                    >
-                      {t}
-                    </button>
-                  );
-                })}
-              </div>
-            </Field>
-          </div>
-
-          {/* Section: Motivation */}
-          <SectionTitle icon={Gem} color="amber">
-            لمسة شخصية
-          </SectionTitle>
-          <Field label="ما الذي يحمسك للمشاركة معنا؟">
-            <Textarea
-              value={motivation}
-              onChange={(e) => setMotivation(e.target.value)}
-              placeholder="شاركينا دوافعك وما الذي تتمنين أن تضيفيه..."
-              className="min-h-[100px] bg-white"
-            />
-          </Field>
-          <Field label="ملاحظات إضافية (اختياري)">
-            <Textarea
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder="أي شيء تودّين إخبارنا به"
-              className="min-h-[70px] bg-white"
-            />
-          </Field>
 
           {/* Submit */}
           <div className="pt-4">
