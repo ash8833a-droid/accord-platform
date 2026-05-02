@@ -308,7 +308,7 @@ function TaskCenterInner({ canEdit }: { canEdit: boolean }) {
 
         <TabsContent value="board" className="mt-4">
           {view === "kanban"
-            ? <KanbanBoard tasks={filtered} cmMap={cmMap} canEdit={canEdit} onMove={moveTask} onReorder={reorderTask} onOpen={setDetails} onDelete={deleteTask} />
+            ? <KanbanBoard tasks={filtered} cmMap={cmMap} canEdit={canEdit} onMove={moveTask} onReorder={reorderTask} onStep={stepTask} onOpen={setDetails} onDelete={deleteTask} />
             : <ListView tasks={filtered} cmMap={cmMap} canEdit={canEdit} onMove={moveTask} onOpen={setDetails} onDelete={deleteTask} />
           }
         </TabsContent>
@@ -355,13 +355,14 @@ function KpiCard({ label, value, icon: Icon, tone }: { label: string; value: str
 }
 
 function KanbanBoard({
-  tasks, cmMap, canEdit, onMove, onReorder, onOpen, onDelete,
+  tasks, cmMap, canEdit, onMove, onReorder, onStep, onOpen, onDelete,
 }: {
   tasks: TaskRow[];
   cmMap: Map<string, CommitteeRow>;
   canEdit: boolean;
   onMove: (id: string, to: TaskRow["status"]) => void;
   onReorder: (draggedId: string, targetStatus: TaskRow["status"], targetCommitteeId: string, targetId: string | null, placeBefore: boolean) => void;
+  onStep: (id: string, direction: "up" | "down") => void;
   onOpen: (t: TaskRow) => void;
   onDelete: (id: string) => void;
 }) {
