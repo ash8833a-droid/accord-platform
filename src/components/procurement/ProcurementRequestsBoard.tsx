@@ -41,6 +41,8 @@ import {
   Clock,
   AlertTriangle,
   Filter,
+  Pencil,
+  Trash2,
 } from "lucide-react";
 
 type ReqStatus =
@@ -129,6 +131,16 @@ export function ProcurementRequestsBoard({
   const [decisionFor, setDecisionFor] = useState<ProcRequest | null>(null);
   const [decisionNotes, setDecisionNotes] = useState("");
   const [decisionTarget, setDecisionTarget] = useState<ReqStatus>("approved");
+  const [editFor, setEditFor] = useState<ProcRequest | null>(null);
+  const [editForm, setEditForm] = useState({
+    item_name: "",
+    description: "",
+    quantity: "1",
+    unit: "قطعة",
+    needed_by: "",
+    priority: "medium" as Priority,
+    notes: "",
+  });
 
   const isAdmin = hasRole("admin");
   const isProcurementMember = myCommitteeType === "procurement";
@@ -268,6 +280,67 @@ export function ProcurementRequestsBoard({
     setDecisionTarget(target);
     setDecisionNotes(req.decision_notes ?? "");
   };
+
+  const openEdit = (req: ProcRequest) => {
+    setEditFor(req);
+    setEditForm({
+      item_name: req.item_name,
+      description: req.description ?? "",
+      quantity: String(req.quantity),
+      unit: req.unit,
+      needed_by: req.needed_by ?? "",
+      priority: req.priority,
+      notes: req.notes ?? "",
+    });
+  };
+
+  const saveEdit = async () => {
+    if (!editFor) return;
+    if (!editForm.item_name.trim()) return toast.error("اكتب اسم الصنف");
+    const qty = Number(editForm.quantity);
+    if (!qty || qty <= 0) return toast.error("الكمية غير صحيحة");
+    const { error } = await supabase
+      .from("procurement_requests")
+      .update({
+        item_name: editForm.item_name.trim(),
+        description: editForm.description.trim() || null,
+        quantity: qty,
+        unit: editForm.unit,
+        needed_by: editForm.needed_by || null,
+        priority: editForm.priority,
+        notes: editForm.notes.trim() || null,
+      })
+      .eq("id", editFor.id);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success("تم تحديث الطلب");
+    setEditFor(null);
+    refresh();
+  };
+
+  const deleteRequest = async (req: ProcRequest) => {
+    if (!confirm(`حذف طلب «${req.item_name}» نهائياً؟`)) return;
+    const { error } = await supabase
+      .from("procurement_requests")
+      .delete()
+      .eq("id", req.id);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success("تم حذف الطلب");
+    refresh();
+  };
+
+  const canEditRequest = (r: ProcRequest) =>
+    isAdmin ||
+    isProcurementMember ||
+    (user?.id === r.requested_by && r.status === "new");
+
+  const canDeleteRequest = (r: ProcRequest) =>
+    isAdmin || (user?.id === r.requested_by && r.status === "new");
 
   const counts = useMemo(() => {
     const c: Record<ReqStatus | "all", number> = {
@@ -494,8 +567,24 @@ export function ProcurementRequestsBoard({
                         )}
                       </div>
 
-                      {canDecide && (
-                        <div className="flex flex-wrap gap-1.5">
+                      <div className="flex flex-wrap gap-1.5">
+                        {canEditRequest(r) && (
+                          <Button size="sm" variant="outline" onClick={() => openEdit(r)}>
+                            <Pencil className="ml-1 size-3.5" /> تعديل
+                          </Button>
+                        )}
+                        {canDeleteRequest(r) && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="text-destructive hover:bg-destructive/10"
+                            onClick={() => deleteRequest(r)}
+                          >
+                            <Trash2 className="ml-1 size-3.5" /> حذف
+                          </Button>
+                        )}
+                        {canDecide && (
+                          <>
                           {r.status === "new" && (
                             <Button size="sm" variant="outline" onClick={() => updateStatus(r, "under_review")}>
                               <AlertTriangle className="ml-1 size-3.5" /> مراجعة
@@ -537,8 +626,9 @@ export function ProcurementRequestsBoard({
                               <Truck className="ml-1 size-3.5" /> تأكيد التسليم
                             </Button>
                           )}
-                        </div>
-                      )}
+                          </>
+                        )}
+                      </div>
                     </div>
                   </div>
                 );
@@ -596,6 +686,95 @@ export function ProcurementRequestsBoard({
               }
             >
               تأكيد
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit dialog */}
+      <Dialog open={!!editFor} onOpenChange={(o) => !o && setEditFor(null)}>
+        <DialogContent className="max-w-lg" dir="rtl">
+          <DialogHeader>
+            <DialogTitle>تعديل طلب الشراء</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <Label>الصنف *</Label>
+              <Input
+                value={editForm.item_name}
+                onChange={(e) => setEditForm({ ...editForm, item_name: e.target.value })}
+                maxLength={150}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <Label>الكمية *</Label>
+                <Input
+                  type="number"
+                  min="1"
+                  value={editForm.quantity}
+                  onChange={(e) => setEditForm({ ...editForm, quantity: e.target.value })}
+                />
+              </div>
+              <div>
+                <Label>الوحدة</Label>
+                <Select value={editForm.unit} onValueChange={(v) => setEditForm({ ...editForm, unit: v })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {UNITS.map((u) => (
+                      <SelectItem key={u} value={u}>{u}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <Label>تاريخ الحاجة</Label>
+                <Input
+                  type="date"
+                  value={editForm.needed_by}
+                  onChange={(e) => setEditForm({ ...editForm, needed_by: e.target.value })}
+                />
+              </div>
+              <div>
+                <Label>الأولوية</Label>
+                <Select
+                  value={editForm.priority}
+                  onValueChange={(v) => setEditForm({ ...editForm, priority: v as Priority })}
+                >
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {(Object.keys(PRIORITY_META) as Priority[]).map((p) => (
+                      <SelectItem key={p} value={p}>{PRIORITY_META[p].label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div>
+              <Label>وصف تفصيلي</Label>
+              <Textarea
+                rows={3}
+                value={editForm.description}
+                onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+                maxLength={1000}
+              />
+            </div>
+            <div>
+              <Label>ملاحظات</Label>
+              <Textarea
+                rows={2}
+                value={editForm.notes}
+                onChange={(e) => setEditForm({ ...editForm, notes: e.target.value })}
+                maxLength={500}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditFor(null)}>إلغاء</Button>
+            <Button onClick={saveEdit} className="bg-gradient-hero text-primary-foreground">
+              حفظ التعديلات
             </Button>
           </DialogFooter>
         </DialogContent>
