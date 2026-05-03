@@ -952,3 +952,28 @@ function Row({
     </div>
   );
 }
+
+function EditField({
+  label,
+  value,
+  onChange,
+  type = "text",
+  multiline,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  type?: string;
+  multiline?: boolean;
+}) {
+  return (
+    <div className="grid grid-cols-1 gap-1">
+      <label className="text-xs font-semibold text-muted-foreground">{label}</label>
+      {multiline ? (
+        <Textarea value={value} onChange={(e) => onChange(e.target.value)} className="min-h-[60px]" />
+      ) : (
+        <Input type={type} value={value} onChange={(e) => onChange(e.target.value)} />
+      )}
+    </div>
+  );
+}
