@@ -131,6 +131,16 @@ export function ProcurementRequestsBoard({
   const [decisionFor, setDecisionFor] = useState<ProcRequest | null>(null);
   const [decisionNotes, setDecisionNotes] = useState("");
   const [decisionTarget, setDecisionTarget] = useState<ReqStatus>("approved");
+  const [editFor, setEditFor] = useState<ProcRequest | null>(null);
+  const [editForm, setEditForm] = useState({
+    item_name: "",
+    description: "",
+    quantity: "1",
+    unit: "قطعة",
+    needed_by: "",
+    priority: "medium" as Priority,
+    notes: "",
+  });
 
   const isAdmin = hasRole("admin");
   const isProcurementMember = myCommitteeType === "procurement";
@@ -270,6 +280,67 @@ export function ProcurementRequestsBoard({
     setDecisionTarget(target);
     setDecisionNotes(req.decision_notes ?? "");
   };
+
+  const openEdit = (req: ProcRequest) => {
+    setEditFor(req);
+    setEditForm({
+      item_name: req.item_name,
+      description: req.description ?? "",
+      quantity: String(req.quantity),
+      unit: req.unit,
+      needed_by: req.needed_by ?? "",
+      priority: req.priority,
+      notes: req.notes ?? "",
+    });
+  };
+
+  const saveEdit = async () => {
+    if (!editFor) return;
+    if (!editForm.item_name.trim()) return toast.error("اكتب اسم الصنف");
+    const qty = Number(editForm.quantity);
+    if (!qty || qty <= 0) return toast.error("الكمية غير صحيحة");
+    const { error } = await supabase
+      .from("procurement_requests")
+      .update({
+        item_name: editForm.item_name.trim(),
+        description: editForm.description.trim() || null,
+        quantity: qty,
+        unit: editForm.unit,
+        needed_by: editForm.needed_by || null,
+        priority: editForm.priority,
+        notes: editForm.notes.trim() || null,
+      })
+      .eq("id", editFor.id);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success("تم تحديث الطلب");
+    setEditFor(null);
+    refresh();
+  };
+
+  const deleteRequest = async (req: ProcRequest) => {
+    if (!confirm(`حذف طلب «${req.item_name}» نهائياً؟`)) return;
+    const { error } = await supabase
+      .from("procurement_requests")
+      .delete()
+      .eq("id", req.id);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success("تم حذف الطلب");
+    refresh();
+  };
+
+  const canEditRequest = (r: ProcRequest) =>
+    isAdmin ||
+    isProcurementMember ||
+    (user?.id === r.requested_by && r.status === "new");
+
+  const canDeleteRequest = (r: ProcRequest) =>
+    isAdmin || (user?.id === r.requested_by && r.status === "new");
 
   const counts = useMemo(() => {
     const c: Record<ReqStatus | "all", number> = {
