@@ -278,6 +278,9 @@ function ReportsTabContent(props: {
         </div>
       </div>
 
+      {/* Latest committee evaluations (linked to evaluation form) */}
+      <LatestEvaluationsPanel />
+
       {/* Tasks performance report */}
       <TasksReportPanel />
 
