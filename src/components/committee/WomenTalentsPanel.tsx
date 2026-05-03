@@ -723,7 +723,8 @@ function ResponseDetailsDialog({
     }
     const { error } = await supabase
       .from("women_talent_responses")
-      .update(payload)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .update(payload as any)
       .eq("id", response.id);
     setSaving(false);
     if (error) {
