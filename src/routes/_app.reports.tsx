@@ -12,6 +12,7 @@ import { TasksReportPanel } from "@/components/reports/TasksReportPanel";
 import { WomenTalentsPanel } from "@/components/committee/WomenTalentsPanel";
 import { EvaluationCriteria } from "@/components/quality/EvaluationCriteria";
 import { EvaluationForm } from "@/components/quality/EvaluationForm";
+import { LatestEvaluationsPanel } from "@/components/quality/LatestEvaluationsPanel";
 
 export const Route = createFileRoute("/_app/reports")({
   component: ReportsPage,
