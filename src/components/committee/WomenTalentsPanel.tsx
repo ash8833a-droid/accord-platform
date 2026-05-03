@@ -32,6 +32,8 @@ import {
   Save,
   Users,
   CheckCircle2,
+  Pencil,
+  X,
 } from "lucide-react";
 import { toast } from "sonner";
 import * as XLSX from "xlsx";
@@ -534,12 +536,52 @@ export function WomenTalentsPanel() {
       ) : (
         <div className="grid sm:grid-cols-2 gap-3">
           {filtered.map((r) => (
-            <button
+            <div
               key={r.id}
-              type="button"
-              onClick={() => setSelected(r)}
-              className="text-right rounded-2xl border bg-card p-4 hover:shadow-md transition-all hover:border-rose-300"
+              className="relative text-right rounded-2xl border bg-card p-4 hover:shadow-md transition-all hover:border-rose-300 group"
             >
+              <div className="absolute top-2 left-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="outline"
+                  className="h-7 w-7"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelected(r);
+                  }}
+                  title="تعديل"
+                >
+                  <Pencil className="h-3.5 w-3.5" />
+                </Button>
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="outline"
+                  className="h-7 w-7 text-destructive hover:bg-destructive/10"
+                  onClick={async (e) => {
+                    e.stopPropagation();
+                    if (!confirm(`حذف رد «${r.full_name}» نهائياً؟`)) return;
+                    const { error } = await supabase
+                      .from("women_talent_responses")
+                      .delete()
+                      .eq("id", r.id);
+                    if (error) toast.error("تعذر الحذف");
+                    else {
+                      toast.success("تم الحذف");
+                      load();
+                    }
+                  }}
+                  title="حذف"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelected(r)}
+                className="w-full text-right"
+              >
               <div className="flex items-start justify-between gap-2 mb-2">
                 <div className="min-w-0">
                   <h4 className="font-bold text-sm truncate">{r.full_name}</h4>
@@ -577,7 +619,8 @@ export function WomenTalentsPanel() {
               <p className="text-[11px] text-muted-foreground mt-2">
                 {new Date(r.created_at).toLocaleString("ar-SA")}
               </p>
-            </button>
+              </button>
+            </div>
           ))}
         </div>
       )}
@@ -637,11 +680,15 @@ function ResponseDetailsDialog({
   const [status, setStatus] = useState<Status>("new");
   const [reviewerNotes, setReviewerNotes] = useState("");
   const [saving, setSaving] = useState(false);
+  const [editMode, setEditMode] = useState(false);
+  const [form, setForm] = useState<Response | null>(null);
 
   useEffect(() => {
     if (response) {
       setStatus(response.status);
       setReviewerNotes(response.reviewer_notes ?? "");
+      setForm(response);
+      setEditMode(false);
     }
   }, [response]);
 
@@ -649,13 +696,39 @@ function ResponseDetailsDialog({
 
   const save = async () => {
     setSaving(true);
+    const payload: Record<string, unknown> = {
+      status,
+      reviewer_notes: reviewerNotes || null,
+    };
+    if (editMode && form) {
+      Object.assign(payload, {
+        full_name: form.full_name,
+        phone: form.phone,
+        age: form.age,
+        city: form.city,
+        marital_status: form.marital_status,
+        education_level: form.education_level,
+        specialization: form.specialization,
+        skills: form.skills,
+        tools: form.tools,
+        experience_years: form.experience_years,
+        previous_work: form.previous_work,
+        certifications: form.certifications,
+        interest_areas: form.interest_areas,
+        weekly_hours: form.weekly_hours,
+        preferred_times: form.preferred_times,
+        motivation: form.motivation,
+        notes: form.notes,
+      });
+    }
     const { error } = await supabase
       .from("women_talent_responses")
-      .update({ status, reviewer_notes: reviewerNotes || null })
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .update(payload as any)
       .eq("id", response.id);
     setSaving(false);
     if (error) {
-      toast.error("تعذر الحفظ");
+      toast.error("تعذر الحفظ", { description: error.message });
     } else {
       toast.success("تم تحديث الحالة");
       onSaved();
@@ -675,17 +748,57 @@ function ResponseDetailsDialog({
     }
   };
 
+  const upd = <K extends keyof Response>(k: K, v: Response[K]) =>
+    setForm((f) => (f ? { ...f, [k]: v } : f));
+  const f = form ?? response;
+
   return (
     <Dialog open onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" dir="rtl">
         <DialogHeader>
-          <DialogTitle className="text-lg">{response.full_name}</DialogTitle>
+          <div className="flex items-center justify-between gap-2">
+            <DialogTitle className="text-lg">{response.full_name}</DialogTitle>
+            <Button
+              type="button"
+              size="sm"
+              variant={editMode ? "secondary" : "outline"}
+              onClick={() => setEditMode((v) => !v)}
+            >
+              {editMode ? (
+                <><X className="h-4 w-4 ml-1.5" />إلغاء التعديل</>
+              ) : (
+                <><Pencil className="h-4 w-4 ml-1.5" />تعديل البيانات</>
+              )}
+            </Button>
+          </div>
           <DialogDescription>
             تاريخ الإرسال: {new Date(response.created_at).toLocaleString("ar-SA")}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 text-sm">
+          {editMode ? (
+            <div className="space-y-3 rounded-xl border bg-amber-50/40 p-3">
+              <EditField label="الاسم" value={f.full_name} onChange={(v) => upd("full_name", v)} />
+              <EditField label="الجوال" value={f.phone} onChange={(v) => upd("phone", v)} />
+              <EditField label="العمر" type="number" value={f.age?.toString() ?? ""} onChange={(v) => upd("age", v ? Number(v) : null)} />
+              <EditField label="المدينة" value={f.city ?? ""} onChange={(v) => upd("city", v || null)} />
+              <EditField label="الحالة الاجتماعية" value={f.marital_status ?? ""} onChange={(v) => upd("marital_status", v || null)} />
+              <EditField label="المستوى التعليمي" value={f.education_level ?? ""} onChange={(v) => upd("education_level", v || null)} />
+              <EditField label="التخصص" value={f.specialization ?? ""} onChange={(v) => upd("specialization", v || null)} />
+              <EditField label="المهارات (مفصولة بفاصلة)" value={f.skills.join("، ")} onChange={(v) => upd("skills", v.split(/[،,]/).map((s) => s.trim()).filter(Boolean))} />
+              <EditField label="الأدوات" value={f.tools ?? ""} onChange={(v) => upd("tools", v || null)} />
+              <EditField label="سنوات الخبرة" type="number" value={f.experience_years?.toString() ?? ""} onChange={(v) => upd("experience_years", v ? Number(v) : null)} />
+              <EditField label="أعمال سابقة" value={f.previous_work ?? ""} onChange={(v) => upd("previous_work", v || null)} multiline />
+              <EditField label="شهادات" value={f.certifications ?? ""} onChange={(v) => upd("certifications", v || null)} />
+              <EditField label="مجالات الاهتمام (مفصولة بفاصلة)" value={f.interest_areas.join("، ")} onChange={(v) => upd("interest_areas", v.split(/[،,]/).map((s) => s.trim()).filter(Boolean))} />
+              <EditField label="ساعات أسبوعياً" value={f.weekly_hours ?? ""} onChange={(v) => upd("weekly_hours", v || null)} />
+              <EditField label="الأوقات المفضلة (مفصولة بفاصلة)" value={f.preferred_times.join("، ")} onChange={(v) => upd("preferred_times", v.split(/[،,]/).map((s) => s.trim()).filter(Boolean))} />
+              <EditField label="الدوافع" value={f.motivation ?? ""} onChange={(v) => upd("motivation", v || null)} multiline />
+              <EditField label="ملاحظات" value={f.notes ?? ""} onChange={(v) => upd("notes", v || null)} multiline />
+            </div>
+          ) : (
+          <>
           <Section title="البيانات الشخصية">
             <Row label="الجوال" value={response.phone} />
             <Row label="العمر" value={response.age ?? "—"} />
@@ -734,6 +847,8 @@ function ResponseDetailsDialog({
             <Row label="الدوافع" value={response.motivation ?? "—"} multiline />
             <Row label="ملاحظات" value={response.notes ?? "—"} multiline />
           </Section>
+          </>
+          )}
 
           <div className="rounded-xl border bg-muted/30 p-3 space-y-3">
             <h4 className="font-bold text-sm">إدارة المراجعة</h4>
@@ -834,6 +949,31 @@ function Row({
       <span className={`${multiline ? "" : "col-span-2"} text-foreground whitespace-pre-wrap break-words`}>
         {value}
       </span>
+    </div>
+  );
+}
+
+function EditField({
+  label,
+  value,
+  onChange,
+  type = "text",
+  multiline,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  type?: string;
+  multiline?: boolean;
+}) {
+  return (
+    <div className="grid grid-cols-1 gap-1">
+      <label className="text-xs font-semibold text-muted-foreground">{label}</label>
+      {multiline ? (
+        <Textarea value={value} onChange={(e) => onChange(e.target.value)} className="min-h-[60px]" />
+      ) : (
+        <Input type={type} value={value} onChange={(e) => onChange(e.target.value)} />
+      )}
     </div>
   );
 }
