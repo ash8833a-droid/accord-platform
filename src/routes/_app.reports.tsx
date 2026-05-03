@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { TasksReportPanel } from "@/components/reports/TasksReportPanel";
 import { WomenTalentsPanel } from "@/components/committee/WomenTalentsPanel";
 import { EvaluationCriteria } from "@/components/quality/EvaluationCriteria";
+import { EvaluationForm } from "@/components/quality/EvaluationForm";
 
 export const Route = createFileRoute("/_app/reports")({
   component: ReportsPage,
@@ -36,7 +37,7 @@ const CURRENT_YEAR = new Date().getFullYear();
 function ReportsPage() {
   const { hasRole, user } = useAuth();
   const isAdmin = hasRole("admin");
-  const [tab, setTab] = useState<"reports" | "criteria" | "surveys">("reports");
+  const [tab, setTab] = useState<"reports" | "criteria" | "evaluate" | "surveys">("reports");
   const [isQualityHead, setIsQualityHead] = useState(false);
   const [isWomenMember, setIsWomenMember] = useState(false);
   const [reports, setReports] = useState<Report[]>([]);
@@ -157,6 +158,20 @@ function ReportsPage() {
             معايير التقييم
           </button>
         )}
+        {canSeeCriteria && (
+          <button
+            type="button"
+            onClick={() => setTab("evaluate")}
+            className={`px-4 py-2.5 text-sm font-bold border-b-2 -mb-px transition flex items-center gap-2 ${
+              tab === "evaluate"
+                ? "border-primary text-primary"
+                : "border-transparent text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <Star className="h-4 w-4" />
+            تقييم اللجان
+          </button>
+        )}
         {canSeeSurveys && (
           <button
             type="button"
@@ -192,6 +207,8 @@ function ReportsPage() {
         </div>
       ) : tab === "criteria" && canSeeCriteria ? (
         <EvaluationCriteria />
+      ) : tab === "evaluate" && canSeeCriteria ? (
+        <EvaluationForm />
       ) : (
         <ReportsTabContent
           stats={stats}
