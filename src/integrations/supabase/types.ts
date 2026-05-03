@@ -62,6 +62,63 @@ export type Database = {
         }
         Relationships: []
       }
+      committee_evaluations: {
+        Row: {
+          answered_count: number
+          committee_type: Database["public"]["Enums"]["committee_type"]
+          created_at: string
+          evaluator_id: string | null
+          evaluator_name: string
+          final_score: number
+          general_note: string | null
+          grade: string
+          id: string
+          is_complete: boolean
+          notes: Json
+          percentage: number
+          scores: Json
+          total_count: number
+          total_weight: number
+          updated_at: string
+        }
+        Insert: {
+          answered_count?: number
+          committee_type: Database["public"]["Enums"]["committee_type"]
+          created_at?: string
+          evaluator_id?: string | null
+          evaluator_name: string
+          final_score?: number
+          general_note?: string | null
+          grade?: string
+          id?: string
+          is_complete?: boolean
+          notes?: Json
+          percentage?: number
+          scores?: Json
+          total_count?: number
+          total_weight?: number
+          updated_at?: string
+        }
+        Update: {
+          answered_count?: number
+          committee_type?: Database["public"]["Enums"]["committee_type"]
+          created_at?: string
+          evaluator_id?: string | null
+          evaluator_name?: string
+          final_score?: number
+          general_note?: string | null
+          grade?: string
+          id?: string
+          is_complete?: boolean
+          notes?: Json
+          percentage?: number
+          scores?: Json
+          total_count?: number
+          total_weight?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       committee_post_comments: {
         Row: {
           author_name: string

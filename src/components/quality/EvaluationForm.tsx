@@ -34,6 +34,8 @@ import {
 } from "lucide-react";
 import * as XLSX from "xlsx";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/lib/auth";
 
 type ScoreMap = Record<string, number>; // code -> 0..5
 
@@ -59,6 +61,7 @@ function gradeFromPct(pct: number) {
 }
 
 export function EvaluationForm() {
+  const { user } = useAuth();
   const [active, setActive] = useState<CommitteeType>("supreme");
   const [scores, setScores] = useState<Record<CommitteeType, ScoreMap>>(() =>
     Object.fromEntries(COMMITTEES.map((c) => [c.type, {}])) as Record<CommitteeType, ScoreMap>,
@@ -68,6 +71,7 @@ export function EvaluationForm() {
   );
   const [evaluator, setEvaluator] = useState("");
   const [generalNote, setGeneralNote] = useState("");
+  const [saving, setSaving] = useState(false);
 
   const meta = committeeByType(active)!;
   const Icon = meta.icon;
@@ -100,6 +104,34 @@ export function EvaluationForm() {
   }, [rows, currentScores]);
 
   const grade = gradeFromPct(stats.pct);
+
+  const saveEvaluation = async (silent = false) => {
+    if (stats.answered === 0) return;
+    setSaving(true);
+    const evaluatorName = evaluator.trim() || user?.user_metadata?.full_name || "مُقيِّم";
+    const { error } = await supabase.from("committee_evaluations").insert({
+      committee_type: active,
+      evaluator_id: user?.id ?? null,
+      evaluator_name: evaluatorName,
+      scores: currentScores,
+      notes: currentNotes,
+      general_note: generalNote || null,
+      final_score: Number(stats.finalScore.toFixed(2)),
+      percentage: Number(stats.pct.toFixed(2)),
+      grade: grade.label,
+      total_weight: stats.totalWeight,
+      answered_count: stats.answered,
+      total_count: stats.total,
+      is_complete: stats.complete,
+    });
+    setSaving(false);
+    if (error) {
+      toast.error("تعذر حفظ التقييم", { description: error.message });
+      return false;
+    }
+    if (!silent) toast.success("تم حفظ التقييم وربطه بصفحة التقارير والجودة");
+    return true;
+  };
 
   const setScore = (code: string, val: number) => {
     setScores((prev) => ({ ...prev, [active]: { ...(prev[active] ?? {}), [code]: val } }));
@@ -413,6 +445,9 @@ export function EvaluationForm() {
                   اكتمل التقييم — جاهز للتصدير والطباعة
                 </div>
                 <div className="flex items-center gap-2">
+                  <Button variant="secondary" size="sm" onClick={() => saveEvaluation()} disabled={saving}>
+                    {saving ? "جارٍ الحفظ…" : "حفظ في التقارير"}
+                  </Button>
                   <Button variant="outline" size="sm" onClick={exportXLSX}>
                     <FileSpreadsheet className="ml-1 size-4" /> تصدير Excel
                   </Button>
