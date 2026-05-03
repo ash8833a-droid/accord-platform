@@ -61,7 +61,7 @@ function gradeFromPct(pct: number) {
 }
 
 export function EvaluationForm() {
-  const { user, profile } = useAuth();
+  const { user } = useAuth();
   const [active, setActive] = useState<CommitteeType>("supreme");
   const [scores, setScores] = useState<Record<CommitteeType, ScoreMap>>(() =>
     Object.fromEntries(COMMITTEES.map((c) => [c.type, {}])) as Record<CommitteeType, ScoreMap>,
@@ -108,7 +108,7 @@ export function EvaluationForm() {
   const saveEvaluation = async (silent = false) => {
     if (stats.answered === 0) return;
     setSaving(true);
-    const evaluatorName = evaluator.trim() || profile?.full_name || "مُقيِّم";
+    const evaluatorName = evaluator.trim() || user?.user_metadata?.full_name || "مُقيِّم";
     const { error } = await supabase.from("committee_evaluations").insert({
       committee_type: active,
       evaluator_id: user?.id ?? null,
