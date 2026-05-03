@@ -536,12 +536,52 @@ export function WomenTalentsPanel() {
       ) : (
         <div className="grid sm:grid-cols-2 gap-3">
           {filtered.map((r) => (
-            <button
+            <div
               key={r.id}
-              type="button"
-              onClick={() => setSelected(r)}
-              className="text-right rounded-2xl border bg-card p-4 hover:shadow-md transition-all hover:border-rose-300"
+              className="relative text-right rounded-2xl border bg-card p-4 hover:shadow-md transition-all hover:border-rose-300 group"
             >
+              <div className="absolute top-2 left-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="outline"
+                  className="h-7 w-7"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelected(r);
+                  }}
+                  title="تعديل"
+                >
+                  <Pencil className="h-3.5 w-3.5" />
+                </Button>
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="outline"
+                  className="h-7 w-7 text-destructive hover:bg-destructive/10"
+                  onClick={async (e) => {
+                    e.stopPropagation();
+                    if (!confirm(`حذف رد «${r.full_name}» نهائياً؟`)) return;
+                    const { error } = await supabase
+                      .from("women_talent_responses")
+                      .delete()
+                      .eq("id", r.id);
+                    if (error) toast.error("تعذر الحذف");
+                    else {
+                      toast.success("تم الحذف");
+                      load();
+                    }
+                  }}
+                  title="حذف"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelected(r)}
+                className="w-full text-right"
+              >
               <div className="flex items-start justify-between gap-2 mb-2">
                 <div className="min-w-0">
                   <h4 className="font-bold text-sm truncate">{r.full_name}</h4>
@@ -579,7 +619,8 @@ export function WomenTalentsPanel() {
               <p className="text-[11px] text-muted-foreground mt-2">
                 {new Date(r.created_at).toLocaleString("ar-SA")}
               </p>
-            </button>
+              </button>
+            </div>
           ))}
         </div>
       )}
