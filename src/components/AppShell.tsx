@@ -88,6 +88,10 @@ export function AppShell({ children, restricted = false, restrictedToCommitteeTy
     });
   }
   restrictedNav.push({ to: "/admin/tasks", label: "مركز المهام", icon: Target });
+  // Media Committee: grant permanent unrestricted access to the Grooms Registry
+  if (restrictedToCommitteeType === "media") {
+    restrictedNav.push({ to: "/grooms", label: "سجل العرسان", icon: HeartHandshake });
+  }
   const TOP_NAV = restricted ? restrictedNav : ADMIN_TOP.filter((n) => !isPathHidden(n.to));
   const BOTTOM_NAV = restricted ? [] : ADMIN_BOTTOM.filter((n) => !isPathHidden(n.to));
 
