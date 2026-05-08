@@ -249,18 +249,27 @@ export function AppShell({ children, restricted = false, restrictedToCommitteeTy
         </main>
 
         <nav className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-background border-t border-border shadow-[0_-2px_10px_rgba(0,0,0,0.04)]">
-          <div className="grid grid-cols-5 h-16">
-            {[
-              ...(isAdminUser && canSeeDashboard
-                ? [{ to: "/admin", label: "الإدارة", icon: ShieldCheck }]
-                : []),
-              { to: "/ideas", label: "الأفكار", icon: Lightbulb },
-              ...(committeeId
-                ? [{ to: "__purchase", label: "طلب شراء", icon: ShoppingCart }]
-                : [{ to: "/grooms", label: "العرسان", icon: HeartHandshake }]),
-              { to: "/communications", label: "الطلبات", icon: Inbox },
-              { to: "__menu", label: "القائمة", icon: Menu },
-            ].map((item) => {
+          <div className={`grid h-16 ${isStandardMember ? "grid-cols-3" : "grid-cols-5"}`}>
+            {(isStandardMember
+              ? [
+                  ...(restrictedToCommitteeType && myCommitteeMeta
+                    ? [{ to: `/committee/${restrictedToCommitteeType}`, label: "لجنتي", icon: myCommitteeMeta.icon }]
+                    : []),
+                  { to: "/ideas", label: "الأفكار", icon: Lightbulb },
+                  { to: "__menu", label: "القائمة", icon: Menu },
+                ]
+              : [
+                  ...(isAdminUser && canSeeDashboard
+                    ? [{ to: "/admin", label: "الإدارة", icon: ShieldCheck }]
+                    : []),
+                  { to: "/ideas", label: "الأفكار", icon: Lightbulb },
+                  ...(committeeId
+                    ? [{ to: "__purchase", label: "طلب شراء", icon: ShoppingCart }]
+                    : [{ to: "/grooms", label: "العرسان", icon: HeartHandshake }]),
+                  { to: "/communications", label: "الطلبات", icon: Inbox },
+                  { to: "__menu", label: "القائمة", icon: Menu },
+                ]
+            ).map((item) => {
               const isMenu = item.to === "__menu";
               const isPurchase = item.to === "__purchase";
               const active =
