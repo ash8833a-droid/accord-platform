@@ -72,6 +72,9 @@ function UsersPage() {
   const [committees, setCommittees] = useState<{ id: string; name: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState("");
+  const [roleFilter, setRoleFilter] = useState<string>("all");
+  const [committeeFilter, setCommitteeFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
   const [roleEdit, setRoleEdit] = useState<UserRow | null>(null);
   const [resetUser, setResetUser] = useState<UserRow | null>(null);
   const [delUser, setDelUser] = useState<UserRow | null>(null);
@@ -111,9 +114,17 @@ function UsersPage() {
     return <div className="p-6 text-center text-muted-foreground">هذه الصفحة للمدير فقط</div>;
   }
 
-  const filtered = users.filter((u) =>
-    !q || u.full_name?.includes(q) || u.phone?.includes(q) || u.family_branch?.includes(q),
-  );
+  const filtered = users.filter((u) => {
+    if (q && !(u.full_name?.includes(q) || u.phone?.includes(q) || u.family_branch?.includes(q))) return false;
+    const role = u.roles[0];
+    if (roleFilter !== "all" && role?.role !== roleFilter) return false;
+    if (committeeFilter !== "all") {
+      if (committeeFilter === "none" ? !!role?.committee_id : role?.committee_id !== committeeFilter) return false;
+    }
+    if (statusFilter === "active" && u.status.is_disabled) return false;
+    if (statusFilter === "disabled" && !u.status.is_disabled) return false;
+    return true;
+  });
 
   const handleToggle = async (u: UserRow) => {
     setBusy(true);
