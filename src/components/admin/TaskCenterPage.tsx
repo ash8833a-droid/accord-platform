@@ -52,6 +52,14 @@ const PRIORITY_META: Record<TaskRow["priority"], { label: string; cls: string }>
   urgent: { label: "عاجلة",  cls: "bg-rose-500/10 text-rose-600 border-rose-500/30" },
 };
 
+// Thick colored left-border per priority (renders on the right in RTL via border-r)
+const PRIORITY_BORDER: Record<TaskRow["priority"], string> = {
+  urgent: "border-r-4 border-r-rose-500",
+  high:   "border-r-4 border-r-orange-500",
+  medium: "border-r-4 border-r-amber-400",
+  low:    "border-r-4 border-r-slate-300",
+};
+
 function isOverdue(t: TaskRow): boolean {
   if (!t.due_date || t.status === "completed") return false;
   return new Date(t.due_date).getTime() < Date.now() - 86400000;
@@ -429,6 +437,7 @@ function KanbanBoard({
   const [dragId, setDragId] = useState<string | null>(null);
   const [dragOverId, setDragOverId] = useState<string | null>(null);
   const [dragOverPos, setDragOverPos] = useState<"before" | "after" | null>(null);
+  const [dragOverColKey, setDragOverColKey] = useState<string | null>(null);
 
   const committeeGroups = useMemo(() => {
     const grouped = new Map<string, TaskRow[]>();
@@ -506,13 +515,23 @@ function KanbanBoard({
                 return (
                   <div
                     key={`${group.cid}-${status}`}
-                    onDragOver={(e) => { if (canEdit) e.preventDefault(); }}
+                    onDragOver={(e) => {
+                      if (!canEdit || !dragId) return;
+                      e.preventDefault();
+                      setDragOverColKey(`${group.cid}-${status}`);
+                    }}
+                    onDragLeave={(e) => {
+                      // Only clear when leaving the column itself, not its children
+                      if (!(e.currentTarget as HTMLElement).contains(e.relatedTarget as Node)) {
+                        setDragOverColKey((k) => (k === `${group.cid}-${status}` ? null : k));
+                      }
+                    }}
                     onDrop={(e) => {
                       e.preventDefault();
-                      if (!canEdit || !dragId) return;
+                      if (!canEdit || !dragId) { setDragOverColKey(null); return; }
                       const dragged = tasks.find((t) => t.id === dragId);
                       if (!dragged || dragged.committee_id !== group.cid) {
-                        setDragId(null); setDragOverId(null); setDragOverPos(null);
+                        setDragId(null); setDragOverId(null); setDragOverPos(null); setDragOverColKey(null);
                         return;
                       }
                       if (dragged.status === status && statusItems.length > 0) {
@@ -520,9 +539,13 @@ function KanbanBoard({
                       } else if (dragged.status !== status) {
                         onMove(dragId, status);
                       }
-                      setDragId(null); setDragOverId(null); setDragOverPos(null);
+                      setDragId(null); setDragOverId(null); setDragOverPos(null); setDragOverColKey(null);
                     }}
-                    className="rounded-lg border bg-muted/20 p-3 min-h-[220px]"
+                    className={`rounded-lg border bg-muted/20 p-3 min-h-[220px] transition-all ${
+                      dragOverColKey === `${group.cid}-${status}` && dragId
+                        ? "border-primary border-2 bg-primary/5 shadow-lg shadow-primary/20 ring-2 ring-primary/30"
+                        : ""
+                    }`}
                   >
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-1.5">
@@ -570,7 +593,7 @@ function KanbanBoard({
                       setDragId(null); setDragOverId(null); setDragOverPos(null);
                     }}
                     onClick={() => onOpen(t)}
-                    className={`group rounded-lg border bg-card p-3 cursor-grab active:cursor-grabbing hover:shadow-md transition-all ${isDragging ? "opacity-40" : ""}`}
+                    className={`group relative rounded-lg border bg-card p-3 pr-3.5 cursor-grab active:cursor-grabbing hover:shadow-md hover:-translate-y-0.5 transition-all ${PRIORITY_BORDER[t.priority]} ${isDragging ? "opacity-40 rotate-1 shadow-xl ring-2 ring-primary/40" : ""}`}
                   >
                     <div className="flex items-start justify-between gap-2">
                       <p className="text-sm font-bold flex-1 line-clamp-2">
@@ -615,17 +638,26 @@ function KanbanBoard({
                         </span>
                       )}
                       <Badge variant="outline" className={`text-[10px] ${PRIORITY_META[t.priority].cls}`}>{PRIORITY_META[t.priority].label}</Badge>
-                      {overdue && (
-                        <Badge className="text-[10px] bg-rose-500/15 text-rose-600 border-rose-500/30">
-                          <AlertTriangle className="h-2.5 w-2.5 ms-0.5" />متأخرة
-                        </Badge>
-                      )}
                     </div>
                     {t.due_date && (
-                      <p className="text-[11px] text-muted-foreground mt-1.5 inline-flex items-center gap-1">
-                        <CalendarClock className="h-3 w-3" />
-                        {new Date(t.due_date).toLocaleDateString("ar-SA")}
-                      </p>
+                      <div className="mt-2 flex items-center justify-between gap-2">
+                        <span
+                          className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-1 rounded-md border ${
+                            overdue
+                              ? "bg-rose-500/10 text-rose-600 border-rose-500/40"
+                              : "bg-muted text-foreground/80 border-border"
+                          }`}
+                          title={overdue ? "تاريخ متأخر" : "تاريخ الاستحقاق"}
+                        >
+                          <CalendarClock className="h-3 w-3" />
+                          {new Date(t.due_date).toLocaleDateString("ar-SA")}
+                        </span>
+                        {overdue && (
+                          <span className="inline-flex items-center gap-1 text-[10px] font-bold text-rose-600">
+                            <AlertTriangle className="h-3 w-3" />متأخرة
+                          </span>
+                        )}
+                      </div>
                     )}
                   </div>
                     {showAfter && <div className="h-1 bg-primary rounded mt-1" />}
