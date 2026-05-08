@@ -474,12 +474,14 @@ function TaskCenterInner({ canEdit }: { canEdit: boolean }) {
 
 function KpiCard({ label, value, icon: Icon, tone }: { label: string; value: string; icon: any; tone: string }) {
   return (
-    <Card>
-      <CardContent className="p-4 flex items-center gap-3">
-        <div className={`h-10 w-10 rounded-xl flex items-center justify-center ${tone}`}><Icon className="h-5 w-5" /></div>
-        <div>
-          <p className="text-xs text-muted-foreground">{label}</p>
-          <p className="text-xl font-extrabold">{value}</p>
+    <Card className="bg-white dark:bg-card border-slate-200/70 dark:border-border shadow-sm hover:shadow-md transition-shadow rounded-2xl">
+      <CardContent className="p-6 flex items-center gap-5">
+        <div className={`h-14 w-14 rounded-2xl flex items-center justify-center ${tone}`}>
+          <Icon className="h-6 w-6" />
+        </div>
+        <div className="min-w-0">
+          <p className="text-[13px] font-medium text-muted-foreground tracking-wide">{label}</p>
+          <p className="text-3xl font-extrabold tabular-nums mt-1 leading-none">{value}</p>
         </div>
       </CardContent>
     </Card>
