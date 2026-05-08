@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import "drag-drop-touch";
 import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -20,7 +21,7 @@ import {
   ArrowUp, ArrowDown,
   RefreshCw,
 } from "lucide-react";
-import { Bell, PartyPopper } from "lucide-react";
+import { Bell, PartyPopper, GripVertical } from "lucide-react";
 import { toast } from "sonner";
 import { CreateTaskDialog } from "@/components/admin/CreateTaskDialog";
 import { TaskDetailsDialog } from "@/components/admin/TaskDetailsDialog";
@@ -573,19 +574,12 @@ function KanbanBoard({
                 </div>
               )}
             </div>
-            {/* Mobile: tabbed view (no drag-and-drop, use status dropdown) */}
-            <div className="lg:hidden p-3">
-              <MobileColumns
-                group={group}
-                cmMap={cmMap}
-                canEdit={canEdit}
-                onMove={onMove}
-                onOpen={onOpen}
-                onDelete={onDelete}
-              />
-            </div>
-            {/* Desktop: 3-column Kanban with drag-and-drop */}
-            <div className="hidden lg:grid grid-cols-3 gap-3 p-3">
+            {/* Kanban — single layout for desktop & mobile (touch DnD enabled via polyfill) */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 p-3">
+              <div className="lg:hidden -mb-1 flex items-center gap-2 text-[11px] text-muted-foreground bg-sky-50 dark:bg-sky-950/30 border border-sky-200/60 dark:border-sky-800/60 rounded-md px-2.5 py-1.5">
+                <GripVertical className="h-3.5 w-3.5" />
+                <span>اضغط مطوّلاً على المقبض لسحب البطاقة. التمرير العادي يعمل بشكل طبيعي.</span>
+              </div>
               {cols.map((status) => {
                 const meta = STATUS_META[status];
                 const statusItems = group.list.filter((t) => t.status === status).sort(comparePmp);
@@ -670,8 +664,16 @@ function KanbanBoard({
                       setDragId(null); setDragOverId(null); setDragOverPos(null);
                     }}
                     onClick={() => onOpen(t)}
-                    className={`group relative rounded-lg border bg-card p-3 pr-3.5 cursor-grab active:cursor-grabbing hover:shadow-md hover:-translate-y-0.5 transition-all ${PRIORITY_BORDER[t.priority]} ${isDragging ? "opacity-40 rotate-1 shadow-xl ring-2 ring-primary/40" : ""}`}
+                    style={{ touchAction: "pan-y" }}
+                    className={`group relative rounded-lg border bg-card p-3 ps-9 pr-3.5 cursor-grab active:cursor-grabbing hover:shadow-md hover:-translate-y-0.5 transition-all select-none ${PRIORITY_BORDER[t.priority]} ${isDragging ? "opacity-40 rotate-1 shadow-xl ring-2 ring-primary/40" : ""}`}
                   >
+                    {/* Visible drag handle (also acts as a touch-friendly affordance) */}
+                    <div
+                      aria-hidden
+                      className="absolute inset-y-0 start-0 w-7 flex items-center justify-center text-muted-foreground/60 group-hover:text-primary border-e border-dashed border-border/60 bg-muted/30 rounded-s-lg"
+                    >
+                      <GripVertical className="h-4 w-4" />
+                    </div>
                     <div className="flex items-start justify-between gap-2">
                       <p className="text-sm font-bold flex-1 line-clamp-2">
                         <span className="text-[10px] text-muted-foreground me-1">#{idx + 1}</span>
