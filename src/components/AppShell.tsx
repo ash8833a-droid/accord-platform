@@ -249,7 +249,7 @@ export function AppShell({ children, restricted = false, restrictedToCommitteeTy
           className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-white dark:bg-card border-t border-border shadow-[0_-4px_16px_rgba(0,0,0,0.08)]"
           style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
         >
-          <div className={`grid h-16 ${isStandardMember ? "grid-cols-3" : "grid-cols-5"}`}>
+          <div className={`grid h-16 ${isStandardMember ? "grid-cols-2" : "grid-cols-5"}`}>
             {(isStandardMember
               ? [
                   { to: "/admin/tasks", label: "مركز المهام", icon: Target },
