@@ -55,6 +55,20 @@ function Inner() {
 
   useEffect(() => { void load(); }, []);
 
+  // Real-time subscription: refresh whenever any task changes (insert/update/delete)
+  // so the "مستويات إنجاز اللجان الفرعية" widget reflects Kanban changes instantly.
+  useEffect(() => {
+    const channel = supabase
+      .channel("dashboard-committee-tasks")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "committee_tasks" },
+        () => { void load(); },
+      )
+      .subscribe();
+    return () => { void supabase.removeChannel(channel); };
+  }, []);
+
   async function load() {
     setLoading(true);
     const [committeesRes, tasksRes, groomsRes, paymentsRes] = await Promise.all([
@@ -98,15 +112,13 @@ function Inner() {
     if (!data || !k) return null;
 
     // Per-committee achievement (progress + radar)
+    // Formula: (completed tasks / total tasks) * 100, with division-by-zero failsafe.
     const perCommittee = data.committees.map((c: any) => {
       const ct = k.tasksY.filter((t: any) => t.committee_id === c.id);
+      const total = ct.length;
       const done = ct.filter((t: any) => t.status === "completed").length;
-      return {
-        name: c.name,
-        total: ct.length,
-        done,
-        rate: ct.length ? Math.round((done / ct.length) * 100) : 0,
-      };
+      const rate = total > 0 ? Math.round((done / total) * 100) : 0;
+      return { name: c.name, total, done, rate };
     });
 
     // Year-over-year comparison (current year vs previous 2 years)
@@ -232,10 +244,10 @@ function Inner() {
                 <div className="flex items-center justify-between text-sm mb-1.5">
                   <span className="font-medium truncate">{c.name}</span>
                   <span className="text-muted-foreground tabular-nums shrink-0">
-                    {c.done}/{c.total} · <span className="font-bold text-foreground">{c.rate}%</span>
+                    <span className="font-bold text-foreground">{c.rate}%</span> · {c.done}/{c.total}
                   </span>
                 </div>
-                <Progress value={c.rate} className="h-2" />
+                <Progress value={Math.max(0, Math.min(100, c.rate))} className="h-2" />
               </div>
             ))}
           </div>
