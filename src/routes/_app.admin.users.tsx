@@ -34,7 +34,15 @@ interface UserRow {
 }
 
 const ROLE_LABELS: Record<string, string> = {
-  admin: "مدير", committee: "عضو لجنة", delegate: "مندوب", quality: "جودة",
+  admin: "مدير النظام", committee: "عضو لجنة", committee_head: "رئيس لجنة", delegate: "مندوب", quality: "جودة",
+};
+
+const ROLE_BADGE_STYLES: Record<string, string> = {
+  admin: "bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30",
+  committee_head: "bg-primary/10 text-primary border-primary/30",
+  committee: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30",
+  delegate: "bg-sky-500/15 text-sky-700 dark:text-sky-300 border-sky-500/30",
+  quality: "bg-violet-500/15 text-violet-700 dark:text-violet-300 border-violet-500/30",
 };
 
 function UsersPage() {
@@ -139,84 +147,153 @@ function UsersPage() {
 
   return (
     <div className="space-y-6" dir="rtl">
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-hero p-8 text-primary-foreground shadow-elegant">
-        <div className="absolute -top-10 -left-10 w-72 h-72 bg-gold/20 rounded-full blur-3xl" />
-        <div className="relative z-10 flex items-center justify-between gap-4 flex-wrap">
-          <div className="flex items-center gap-4">
-            <div className="h-14 w-14 rounded-2xl bg-gold/20 flex items-center justify-center backdrop-blur-sm">
-              <UsersIcon className="h-7 w-7 text-gold" />
-            </div>
-            <div>
-              <p className="text-sm text-primary-foreground/70">إدارة المنصة</p>
-              <h1 className="text-2xl lg:text-3xl font-bold">بوابة <span className="text-shimmer-gold">المستخدمين</span></h1>
-              <p className="text-primary-foreground/80 text-sm mt-1">إضافة، تعطيل، حذف، إعادة تعيين كلمة المرور، وتعديل الدور</p>
-            </div>
-          </div>
-          <div className="flex gap-2 items-center">
-            <CreateMemberDialog />
-          </div>
+      {/* Header */}
+      <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+        <div className="text-right">
+          <h1 className="text-3xl lg:text-4xl font-bold tracking-tight">لوحة تحكم الإدارة</h1>
+          <p className="text-muted-foreground mt-1 text-sm">إدارة المستخدمين والصلاحيات ومراقبة النظام</p>
+        </div>
+        <div className="flex items-center gap-2 flex-wrap">
+          <Button variant="default" className="gap-2">
+            <UsersIcon className="h-4 w-4" /> المستخدمون
+          </Button>
+          <Button asChild variant="outline" className="gap-2">
+            <Link to="/communications"><Mail className="h-4 w-4" /> سجل المراسلات</Link>
+          </Button>
+          <CreateMemberDialog />
         </div>
       </div>
 
-      <Card>
-        <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 sm:p-6">
-          <CardTitle className="text-base">قائمة المستخدمين ({filtered.length})</CardTitle>
-          <div className="relative w-full sm:w-auto">
+      {/* Stat cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <StatBox icon={<UsersIcon className="h-5 w-5" />} label="إجمالي الموظفين" value={users.length} tone="primary" />
+        <StatBox icon={<Crown className="h-5 w-5" />} label="مدراء النظام" value={users.filter((u) => u.roles.some((r) => r.role === "admin")).length} tone="gold" />
+        <StatBox icon={<ShieldCheck className="h-5 w-5" />} label="مدراء" value={users.filter((u) => u.roles.some((r) => r.role === "admin" || r.role === "committee_head")).length} tone="muted" />
+      </div>
+
+      {/* Table */}
+      <Card className="overflow-hidden">
+        <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 sm:p-6 border-b">
+          <CardTitle className="text-lg">الموظفون والصلاحيات</CardTitle>
+          <div className="relative w-full sm:w-72">
             <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input placeholder="بحث بالاسم أو الجوال..." value={q} onChange={(e) => setQ(e.target.value)} className="ps-9 w-full sm:w-64" />
+            <Input placeholder="بحث بالاسم أو الجوال..." value={q} onChange={(e) => setQ(e.target.value)} className="ps-9 w-full" />
           </div>
         </CardHeader>
-        <CardContent className="p-3 sm:p-6">
-          {loading ? <p className="text-center py-8 text-muted-foreground">جاري التحميل...</p> :
-           filtered.length === 0 ? <p className="text-center py-8 text-muted-foreground">لا يوجد مستخدمون</p> : (
-            <div className="space-y-2">
-              {filtered.map((u) => {
-                const role = u.roles[0];
-                const committee = committees.find((c) => c.id === role?.committee_id);
-                return (
-                  <div key={u.user_id} className={`flex flex-col sm:flex-row sm:items-center gap-3 rounded-xl border p-4 transition-colors ${u.status.is_disabled ? "bg-destructive/5 border-destructive/30" : "hover:bg-accent/40"}`}>
-                    <button
-                      onClick={() => setPermsUser(u)}
-                      className="flex items-start gap-3 flex-1 min-w-0 w-full text-right group"
-                      title="عرض/تعديل صلاحيات هذا المستخدم"
-                    >
-                      <div className="h-10 w-10 rounded-full bg-gradient-gold flex items-center justify-center text-gold-foreground font-bold shrink-0 group-hover:ring-2 group-hover:ring-gold/50 transition-all">
-                        {u.full_name?.[0] || "?"}
-                      </div>
-                      <div className="flex-1 min-w-0 space-y-1">
-                        <p className="font-bold truncate group-hover:text-primary transition-colors">{u.full_name}</p>
-                        <div className="flex items-center gap-1 flex-wrap">
-                          {role && <Badge variant="secondary" className="text-[10px]">{ROLE_LABELS[role.role] ?? role.role}</Badge>}
-                          {committee && <Badge variant="outline" className="text-[10px]">{committee.name}</Badge>}
-                          {u.status.is_disabled && <Badge variant="destructive" className="text-[10px]">معطّل</Badge>}
+        <CardContent className="p-0">
+          {loading ? (
+            <p className="text-center py-12 text-muted-foreground">جاري التحميل...</p>
+          ) : filtered.length === 0 ? (
+            <p className="text-center py-12 text-muted-foreground">لا يوجد مستخدمون</p>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-muted/30">
+                  <TableHead className="text-right">الاسم</TableHead>
+                  <TableHead className="text-right">الجوال</TableHead>
+                  <TableHead className="text-right">المنصب</TableHead>
+                  <TableHead className="text-right">الصلاحية</TableHead>
+                  <TableHead className="text-right">القسم</TableHead>
+                  <TableHead className="text-right">تغيير الصلاحية</TableHead>
+                  <TableHead className="text-right">تغيير القسم</TableHead>
+                  <TableHead className="text-center">تعديل</TableHead>
+                  <TableHead className="text-center text-destructive">حذف</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filtered.map((u) => {
+                  const role = u.roles[0];
+                  const roleKey = role?.role ?? "";
+                  const committee = committees.find((c) => c.id === role?.committee_id);
+                  return (
+                    <TableRow key={u.user_id} className={u.status.is_disabled ? "bg-destructive/5" : ""}>
+                      <TableCell className="font-semibold whitespace-nowrap">{u.full_name}</TableCell>
+                      <TableCell className="text-muted-foreground" dir="ltr">{u.phone}</TableCell>
+                      <TableCell className="text-muted-foreground whitespace-nowrap">{ROLE_LABELS[roleKey] ?? "—"}</TableCell>
+                      <TableCell>
+                        {role ? (
+                          <Badge variant="outline" className={`gap-1 ${ROLE_BADGE_STYLES[roleKey] ?? ""}`}>
+                            {roleKey === "admin" && <Crown className="h-3 w-3" />}
+                            {(roleKey === "committee_head" || roleKey === "quality") && <ShieldCheck className="h-3 w-3" />}
+                            {ROLE_LABELS[roleKey] ?? roleKey}
+                          </Badge>
+                        ) : <span className="text-muted-foreground">—</span>}
+                        {u.status.is_disabled && <Badge variant="destructive" className="ms-1 text-[10px]">معطّل</Badge>}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground whitespace-nowrap">{committee?.name ?? "—"}</TableCell>
+                      <TableCell>
+                        <Select
+                          value={roleKey || undefined}
+                          onValueChange={async (v) => {
+                            setBusy(true);
+                            try {
+                              await updRole({ data: { user_id: u.user_id, role: v as any, committee_id: role?.committee_id ?? null } });
+                              toast.success("تم تحديث الصلاحية");
+                              await reload();
+                            } catch (e: any) { toast.error(e.message); }
+                            setBusy(false);
+                          }}
+                        >
+                          <SelectTrigger className="h-8 w-32"><SelectValue placeholder="الصلاحية" /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="committee">عضو لجنة</SelectItem>
+                            <SelectItem value="committee_head">رئيس لجنة</SelectItem>
+                            <SelectItem value="delegate">مندوب</SelectItem>
+                            <SelectItem value="quality">جودة</SelectItem>
+                            <SelectItem value="admin">مدير نظام</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </TableCell>
+                      <TableCell>
+                        <Select
+                          value={role?.committee_id ?? "none"}
+                          onValueChange={async (v) => {
+                            if (!roleKey) return toast.error("حدّد الصلاحية أولاً");
+                            setBusy(true);
+                            try {
+                              await updRole({ data: { user_id: u.user_id, role: roleKey as any, committee_id: v === "none" ? null : v } });
+                              toast.success("تم تحديث القسم");
+                              await reload();
+                            } catch (e: any) { toast.error(e.message); }
+                            setBusy(false);
+                          }}
+                        >
+                          <SelectTrigger className="h-8 w-36"><SelectValue placeholder="القسم" /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="none">— بدون —</SelectItem>
+                            {committees.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <div className="inline-flex gap-1">
+                          <Button size="icon" variant="ghost" onClick={() => setPermsUser(u)} title="الصلاحيات التفصيلية">
+                            <ShieldCheck className="h-4 w-4" />
+                          </Button>
+                          <Button size="icon" variant="ghost" onClick={() => setResetUser(u)} title="إعادة كلمة المرور">
+                            <KeyRound className="h-4 w-4" />
+                          </Button>
+                          <Button size="icon" variant="ghost" onClick={() => setActivityUser(u)} title="سجل النشاط">
+                            <History className="h-4 w-4" />
+                          </Button>
+                          <Button size="icon" variant="ghost" onClick={() => handleToggle(u)} disabled={busy} title={u.status.is_disabled ? "تفعيل" : "تعطيل"}>
+                            {u.status.is_disabled ? <CheckCircle2 className="h-4 w-4 text-emerald-600" /> : <Ban className="h-4 w-4" />}
+                          </Button>
+                          <Button size="icon" variant="ghost" onClick={() => { setRoleEdit(u); setNewRole(roleKey || "committee"); setNewCommittee(role?.committee_id ?? ""); }} title="تعديل">
+                            <Pencil className="h-4 w-4" />
+                          </Button>
                         </div>
-                        <p className="text-xs text-muted-foreground truncate">{u.phone} · {u.family_branch || "—"}</p>
-                      </div>
-                    </button>
-                    <div className="flex gap-1 flex-wrap justify-end shrink-0">
-                      <Button size="sm" variant="outline" onClick={() => setPermsUser(u)} title="الصلاحيات">
-                        <ShieldCheck className="h-4 w-4" />
-                      </Button>
-                      <Button size="sm" variant="outline" onClick={() => { setRoleEdit(u); setNewRole(role?.role ?? "committee"); setNewCommittee(role?.committee_id ?? ""); }} title="تعديل الدور">
-                        <Settings2 className="h-4 w-4" />
-                      </Button>
-                      <Button size="sm" variant="outline" onClick={() => setActivityUser(u)} title="سجل النشاط">
-                        <History className="h-4 w-4" />
-                      </Button>
-                      <Button size="sm" variant="outline" onClick={() => setResetUser(u)} title="إعادة كلمة المرور">
-                        <KeyRound className="h-4 w-4" />
-                      </Button>
-                      <Button size="sm" variant={u.status.is_disabled ? "default" : "outline"} onClick={() => handleToggle(u)} disabled={busy} title={u.status.is_disabled ? "تفعيل" : "تعطيل"}>
-                        {u.status.is_disabled ? <CheckCircle2 className="h-4 w-4" /> : <Ban className="h-4 w-4" />}
-                      </Button>
-                      <Button size="sm" variant="destructive" onClick={() => setDelUser(u)} title="حذف">
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <Button size="icon" variant="ghost" onClick={() => setDelUser(u)} title="حذف" className="text-destructive hover:bg-destructive/10 hover:text-destructive">
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
           )}
         </CardContent>
       </Card>
