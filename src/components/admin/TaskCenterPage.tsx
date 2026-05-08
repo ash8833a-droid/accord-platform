@@ -173,6 +173,21 @@ function TaskCenterInner({ canEdit }: { canEdit: boolean }) {
     return { activeCount: active.length, completionRate, overdue, empty };
   }, [scopedTasks, scopedCommittees]);
 
+  // Most urgent active task for the current scope (committee member sees their committee).
+  const urgentTask = useMemo(() => {
+    const order: Record<TaskRow["priority"], number> = { urgent: 0, high: 1, medium: 2, low: 3 };
+    const active = scopedTasks.filter((t) => t.status === "todo" || t.status === "in_progress");
+    if (active.length === 0) return null;
+    return [...active].sort((a, b) => {
+      const pa = order[a.priority] ?? 9;
+      const pb = order[b.priority] ?? 9;
+      if (pa !== pb) return pa - pb;
+      const da = a.due_date ? new Date(a.due_date).getTime() : Number.POSITIVE_INFINITY;
+      const db = b.due_date ? new Date(b.due_date).getTime() : Number.POSITIVE_INFINITY;
+      return da - db;
+    })[0];
+  }, [scopedTasks]);
+
   const moveTask = async (id: string, to: TaskRow["status"]) => {
     const prev = tasks;
     setTasks((s) => s.map((t) => (t.id === id ? { ...t, status: to } : t)));
