@@ -664,8 +664,16 @@ function KanbanBoard({
                       setDragId(null); setDragOverId(null); setDragOverPos(null);
                     }}
                     onClick={() => onOpen(t)}
-                    className={`group relative rounded-lg border bg-card p-3 pr-3.5 cursor-grab active:cursor-grabbing hover:shadow-md hover:-translate-y-0.5 transition-all ${PRIORITY_BORDER[t.priority]} ${isDragging ? "opacity-40 rotate-1 shadow-xl ring-2 ring-primary/40" : ""}`}
+                    style={{ touchAction: "pan-y" }}
+                    className={`group relative rounded-lg border bg-card p-3 ps-9 pr-3.5 cursor-grab active:cursor-grabbing hover:shadow-md hover:-translate-y-0.5 transition-all select-none ${PRIORITY_BORDER[t.priority]} ${isDragging ? "opacity-40 rotate-1 shadow-xl ring-2 ring-primary/40" : ""}`}
                   >
+                    {/* Visible drag handle (also acts as a touch-friendly affordance) */}
+                    <div
+                      aria-hidden
+                      className="absolute inset-y-0 start-0 w-7 flex items-center justify-center text-muted-foreground/60 group-hover:text-primary border-e border-dashed border-border/60 bg-muted/30 rounded-s-lg"
+                    >
+                      <GripVertical className="h-4 w-4" />
+                    </div>
                     <div className="flex items-start justify-between gap-2">
                       <p className="text-sm font-bold flex-1 line-clamp-2">
                         <span className="text-[10px] text-muted-foreground me-1">#{idx + 1}</span>
