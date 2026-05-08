@@ -1,17 +1,22 @@
 import { useEffect, useMemo, useState } from "react";
+import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { PageGate } from "@/components/PageGate";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import {
+  Collapsible, CollapsibleContent, CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import {
   Activity, AlertTriangle, CheckCircle2, ClipboardList, HeartHandshake,
   ListTodo, Loader2, ShieldCheck, TrendingUp, UserPlus, Users, Wallet,
+  Target, Inbox, FileBarChart, Settings2, ChevronDown, Lightbulb,
 } from "lucide-react";
 import {
   Bar, BarChart, CartesianGrid, Cell, Legend, Line, LineChart, Pie, PieChart,
   ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from "recharts";
-import { PageHeroHeader } from "@/components/PageHeroHeader";
 
 type Period = "day" | "week" | "month" | "quarter" | "year";
 
