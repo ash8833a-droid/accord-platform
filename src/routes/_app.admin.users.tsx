@@ -72,6 +72,9 @@ function UsersPage() {
   const [committees, setCommittees] = useState<{ id: string; name: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState("");
+  const [roleFilter, setRoleFilter] = useState<string>("all");
+  const [committeeFilter, setCommitteeFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
   const [roleEdit, setRoleEdit] = useState<UserRow | null>(null);
   const [resetUser, setResetUser] = useState<UserRow | null>(null);
   const [delUser, setDelUser] = useState<UserRow | null>(null);
@@ -111,9 +114,17 @@ function UsersPage() {
     return <div className="p-6 text-center text-muted-foreground">هذه الصفحة للمدير فقط</div>;
   }
 
-  const filtered = users.filter((u) =>
-    !q || u.full_name?.includes(q) || u.phone?.includes(q) || u.family_branch?.includes(q),
-  );
+  const filtered = users.filter((u) => {
+    if (q && !(u.full_name?.includes(q) || u.phone?.includes(q) || u.family_branch?.includes(q))) return false;
+    const role = u.roles[0];
+    if (roleFilter !== "all" && role?.role !== roleFilter) return false;
+    if (committeeFilter !== "all") {
+      if (committeeFilter === "none" ? !!role?.committee_id : role?.committee_id !== committeeFilter) return false;
+    }
+    if (statusFilter === "active" && u.status.is_disabled) return false;
+    if (statusFilter === "disabled" && !u.status.is_disabled) return false;
+    return true;
+  });
 
   const handleToggle = async (u: UserRow) => {
     setBusy(true);
@@ -191,9 +202,38 @@ function UsersPage() {
       <Card className="overflow-hidden">
         <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 sm:p-6 border-b">
           <CardTitle className="text-lg">الموظفون والصلاحيات</CardTitle>
-          <div className="relative w-full sm:w-72">
-            <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input placeholder="بحث بالاسم أو الجوال..." value={q} onChange={(e) => setQ(e.target.value)} className="ps-9 w-full" />
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto flex-wrap">
+            <div className="relative w-full sm:w-60">
+              <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input placeholder="بحث بالاسم أو الجوال..." value={q} onChange={(e) => setQ(e.target.value)} className="ps-9 w-full" />
+            </div>
+            <Select value={roleFilter} onValueChange={setRoleFilter}>
+              <SelectTrigger className="w-full sm:w-36"><SelectValue placeholder="الصلاحية" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">كل الصلاحيات</SelectItem>
+                <SelectItem value="admin">مدير نظام</SelectItem>
+                <SelectItem value="committee_head">رئيس لجنة</SelectItem>
+                <SelectItem value="committee">عضو لجنة</SelectItem>
+                <SelectItem value="delegate">مندوب</SelectItem>
+                <SelectItem value="quality">جودة</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={committeeFilter} onValueChange={setCommitteeFilter}>
+              <SelectTrigger className="w-full sm:w-40"><SelectValue placeholder="القسم" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">كل الأقسام</SelectItem>
+                <SelectItem value="none">— بدون قسم —</SelectItem>
+                {committees.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-full sm:w-32"><SelectValue placeholder="الحالة" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">الكل</SelectItem>
+                <SelectItem value="active">مفعّل</SelectItem>
+                <SelectItem value="disabled">معطّل</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </CardHeader>
         <CardContent className="p-0">
