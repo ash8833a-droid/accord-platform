@@ -227,7 +227,7 @@ function Inner() {
         <SectionCard title="مستويات إنجاز اللجان الفرعية" subtitle="نسبة الإنجاز لكل لجنة" icon={Target}>
           <div className="space-y-3">
             {charts.perCommittee.length === 0 && <Empty text="لا توجد بيانات" />}
-            {charts.perCommittee.map((c) => (
+            {charts.perCommittee.map((c: any) => (
               <div key={c.name}>
                 <div className="flex items-center justify-between text-sm mb-1.5">
                   <span className="font-medium truncate">{c.name}</span>
