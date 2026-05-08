@@ -19,6 +19,22 @@ import { useAuth } from "@/lib/auth";
 import { CreateMemberDialog } from "@/components/admin/CreateMemberDialog";
 import { UserPermissionsPanel } from "@/components/admin/UserPermissionsPanel";
 
+function StatBox({ icon, label, value, tone }: { icon: React.ReactNode; label: string; value: number; tone: "primary" | "gold" | "muted" }) {
+  const toneClass =
+    tone === "gold" ? "bg-amber-500/10 text-amber-600 dark:text-amber-400" :
+    tone === "primary" ? "bg-primary/10 text-primary" :
+    "bg-muted text-muted-foreground";
+  return (
+    <Card className="p-5 flex items-center justify-between gap-4">
+      <div className="text-right">
+        <p className="text-sm text-muted-foreground">{label}</p>
+        <p className="text-3xl font-bold mt-1">{value}</p>
+      </div>
+      <div className={`h-11 w-11 rounded-xl flex items-center justify-center ${toneClass}`}>{icon}</div>
+    </Card>
+  );
+}
+
 export const Route = createFileRoute("/_app/admin/users")({
   component: UsersPage,
 });
