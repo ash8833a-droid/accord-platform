@@ -9,8 +9,9 @@ import {
 } from "@/components/ui/select";
 import {
   CalendarRange, CheckCircle2, ClipboardList, HeartHandshake, Loader2,
-  Wallet, TrendingUp, BarChart3, Scale, Target, RefreshCw,
+  Wallet, TrendingUp, BarChart3, Scale, Target, RefreshCw, FileDown,
 } from "lucide-react";
+import { exportDashboardPdf } from "@/lib/dashboard-pdf";
 import {
   Bar, BarChart, CartesianGrid, Legend, Line, LineChart,
   PolarAngleAxis, PolarGrid, PolarRadiusAxis, Radar, RadarChart,
@@ -181,6 +182,25 @@ function Inner() {
             <Button variant="outline" size="sm" onClick={load} className="gap-2">
               <RefreshCw className="h-4 w-4" /> تحديث
             </Button>
+            <Button
+              size="sm"
+              onClick={() => exportDashboardPdf({
+                year,
+                kpis: {
+                  totalTasks: k.totalTasks,
+                  completionRate: k.completionRate,
+                  totalMarriages: k.totalMarriages,
+                  netBalance: k.netBalance,
+                },
+                finance: charts.finance,
+                committees: charts.perCommittee,
+                revenues: k.revenues,
+                expenses: k.expenses,
+              })}
+              className="gap-2 bg-[#064e3b] hover:bg-[#053f30] text-white"
+            >
+              <FileDown className="h-4 w-4" /> تصدير PDF
+            </Button>
           </div>
         </CardContent>
       </Card>
@@ -207,7 +227,7 @@ function Inner() {
         <SectionCard title="مستويات إنجاز اللجان الفرعية" subtitle="نسبة الإنجاز لكل لجنة" icon={Target}>
           <div className="space-y-3">
             {charts.perCommittee.length === 0 && <Empty text="لا توجد بيانات" />}
-            {charts.perCommittee.map((c) => (
+            {charts.perCommittee.map((c: any) => (
               <div key={c.name}>
                 <div className="flex items-center justify-between text-sm mb-1.5">
                   <span className="font-medium truncate">{c.name}</span>
