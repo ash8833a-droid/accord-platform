@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import "drag-drop-touch";
 import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -20,7 +21,7 @@ import {
   ArrowUp, ArrowDown,
   RefreshCw,
 } from "lucide-react";
-import { Bell, PartyPopper } from "lucide-react";
+import { Bell, PartyPopper, GripVertical } from "lucide-react";
 import { toast } from "sonner";
 import { CreateTaskDialog } from "@/components/admin/CreateTaskDialog";
 import { TaskDetailsDialog } from "@/components/admin/TaskDetailsDialog";
