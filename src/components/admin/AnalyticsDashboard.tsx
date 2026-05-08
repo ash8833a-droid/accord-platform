@@ -4,7 +4,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { PageGate } from "@/components/PageGate";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
 import {
   Activity, AlertTriangle, CheckCircle2, ClipboardList, HeartHandshake,
   ListTodo, Loader2, ShieldCheck, TrendingUp, UserPlus, Users, Wallet,
