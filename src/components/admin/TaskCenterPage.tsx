@@ -18,7 +18,7 @@ import {
 import {
   Plus, Target, Search, Loader2, ListTodo, PlayCircle, CheckCircle2,
   AlertTriangle, Trash2, ExternalLink, LayoutGrid, Rows3, CalendarClock,
-  ArrowUp, ArrowDown,
+  ArrowUp, ArrowDown, ChevronDown,
   RefreshCw,
 } from "lucide-react";
 import { Bell, PartyPopper, GripVertical } from "lucide-react";
@@ -299,7 +299,7 @@ function TaskCenterInner({ canEdit }: { canEdit: boolean }) {
   }
 
   return (
-    <div className="p-4 lg:p-10 space-y-8 bg-[#f8fafc] dark:bg-background min-h-screen" dir="rtl">
+    <div className="p-3 sm:p-4 lg:p-10 space-y-6 lg:space-y-8 bg-[#f8fafc] dark:bg-background min-h-screen" dir="rtl">
       {/* Active task alert banner */}
       {urgentTask ? (
         <div className="rounded-xl border-2 border-sky-300/60 dark:border-sky-700/60 bg-sky-50/80 dark:bg-sky-950/30 px-4 py-3 shadow-sm">
@@ -505,6 +505,10 @@ function KanbanBoard({
   const [dragOverId, setDragOverId] = useState<string | null>(null);
   const [dragOverPos, setDragOverPos] = useState<"before" | "after" | null>(null);
   const [dragOverColKey, setDragOverColKey] = useState<string | null>(null);
+  // Mobile-only collapsible state: which column is expanded inside each committee group.
+  const [mobileOpen, setMobileOpen] = useState<Record<string, boolean>>({});
+  const isOpen = (key: string) => mobileOpen[key] ?? key.endsWith("-in_progress");
+  const toggleOpen = (key: string) => setMobileOpen((prev) => ({ ...prev, [key]: !isOpen(key) }));
 
   const committeeGroups = useMemo(() => {
     const grouped = new Map<string, TaskRow[]>();
@@ -619,14 +623,28 @@ function KanbanBoard({
                         : ""
                     }`}
                   >
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => toggleOpen(`${group.cid}-${status}`)}
+                      className="w-full flex items-center justify-between mb-3 lg:cursor-default lg:pointer-events-none min-h-[44px] lg:min-h-0"
+                      aria-expanded={isOpen(`${group.cid}-${status}`)}
+                    >
+                      <div className="flex items-center gap-2">
                         <meta.icon className="h-4 w-4 text-muted-foreground" />
-                        <h4 className="font-bold text-xs">{meta.label}</h4>
+                        <h4 className="font-bold text-sm lg:text-xs">{meta.label}</h4>
+                        <Badge variant="outline" className="text-[10px]">{statusItems.length}</Badge>
                       </div>
-                      <Badge variant="outline" className="text-[10px]">{statusItems.length}</Badge>
-                    </div>
-                    <div className="space-y-2">
+                      <ChevronDown
+                        className={`h-5 w-5 text-muted-foreground transition-transform lg:hidden ${
+                          isOpen(`${group.cid}-${status}`) ? "rotate-180" : ""
+                        }`}
+                      />
+                    </button>
+                    <div
+                      className={`space-y-2 transform-gpu will-change-transform transition-[opacity] duration-200 ${
+                        isOpen(`${group.cid}-${status}`) ? "block" : "hidden"
+                      } lg:!block`}
+                    >
                       {statusItems.length === 0 && <p className="text-xs text-muted-foreground text-center py-6">لا توجد مهام</p>}
                       {statusItems.map((t, idx) => {
                 const cm = cmMap.get(t.committee_id);
@@ -666,7 +684,7 @@ function KanbanBoard({
                     }}
                     onClick={() => onOpen(t)}
                     style={{ touchAction: "pan-y" }}
-                    className={`group relative rounded-lg border bg-card p-3 ps-9 pr-3.5 cursor-grab active:cursor-grabbing hover:shadow-md hover:-translate-y-0.5 transition-all select-none ${PRIORITY_BORDER[t.priority]} ${isDragging ? "opacity-40 rotate-1 shadow-xl ring-2 ring-primary/40" : ""}`}
+                    className={`group relative rounded-lg border bg-card p-3.5 ps-10 lg:ps-9 cursor-grab active:cursor-grabbing hover:shadow-md hover:-translate-y-0.5 transform-gpu will-change-transform transition-all select-none ${PRIORITY_BORDER[t.priority]} ${isDragging ? "opacity-40 rotate-1 shadow-xl ring-2 ring-primary/40" : ""}`}
                   >
                     {/* Visible drag handle (also acts as a touch-friendly affordance) */}
                     <div
@@ -676,37 +694,37 @@ function KanbanBoard({
                       <GripVertical className="h-4 w-4" />
                     </div>
                     <div className="flex items-start justify-between gap-2">
-                      <p className="text-sm font-bold flex-1 line-clamp-2">
+                      <p className="text-base lg:text-sm font-bold flex-1 leading-snug break-words [overflow-wrap:anywhere]">
                         <span className="text-[10px] text-muted-foreground me-1">#{idx + 1}</span>
                         {t.title}
                       </p>
                       {canEdit && (
-                        <div className="flex items-center gap-0.5 shrink-0">
+                        <div className="flex items-center gap-1 shrink-0">
                           <button
                             onClick={(e) => { e.stopPropagation(); onStep(t.id, "up", 1); }}
                             disabled={isFirstInGroup}
-                            className="p-1 rounded hover:bg-muted disabled:opacity-30 disabled:cursor-not-allowed text-muted-foreground hover:text-primary"
+                            className="h-11 w-11 lg:h-8 lg:w-8 inline-flex items-center justify-center rounded-md hover:bg-muted disabled:opacity-30 disabled:cursor-not-allowed text-muted-foreground hover:text-primary active:scale-95 transition-transform transform-gpu"
                             aria-label="نقل لأعلى"
                             title="نقل خطوة لأعلى"
                           >
-                            <ArrowUp className="h-3.5 w-3.5" />
+                            <ArrowUp className="h-4 w-4" />
                           </button>
                           <button
                             onClick={(e) => { e.stopPropagation(); onStep(t.id, "down", 1); }}
                             disabled={isLastInGroup}
-                            className="p-1 rounded hover:bg-muted disabled:opacity-30 disabled:cursor-not-allowed text-muted-foreground hover:text-primary"
+                            className="h-11 w-11 lg:h-8 lg:w-8 inline-flex items-center justify-center rounded-md hover:bg-muted disabled:opacity-30 disabled:cursor-not-allowed text-muted-foreground hover:text-primary active:scale-95 transition-transform transform-gpu"
                             aria-label="نقل لأسفل"
                             title="نقل خطوة لأسفل"
                           >
-                            <ArrowDown className="h-3.5 w-3.5" />
+                            <ArrowDown className="h-4 w-4" />
                           </button>
                           <button
                             onClick={(e) => { e.stopPropagation(); onDelete(t.id); }}
-                            className="p-1 rounded hover:bg-muted text-rose-500 hover:text-rose-600"
+                            className="h-11 w-11 lg:h-8 lg:w-8 inline-flex items-center justify-center rounded-md hover:bg-muted text-rose-500 hover:text-rose-600 active:scale-95 transition-transform transform-gpu"
                             aria-label="حذف"
                             title="حذف"
                           >
-                            <Trash2 className="h-3.5 w-3.5" />
+                            <Trash2 className="h-4 w-4" />
                           </button>
                         </div>
                       )}
