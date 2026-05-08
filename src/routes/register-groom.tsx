@@ -170,6 +170,7 @@ function RegisterGroomPage() {
   const [notes, setNotes] = useState("");
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(false);
+  const [editLink, setEditLink] = useState<string | null>(null);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [photoPreviewUrl, setPhotoPreviewUrl] = useState<string | null>(null);
   const [idPreviewUrl, setIdPreviewUrl] = useState<string | null>(null);
@@ -229,14 +230,33 @@ function RegisterGroomPage() {
     if (!validate()) return;
     setBusy(true);
     try {
+      // Strict duplicate prevention on phone & national ID
+      const phoneTrim = phone.trim();
+      const nidTrim = nationalId.trim();
+      const { data: dup, error: dupErr } = await supabase
+        .from("grooms")
+        .select("id, phone, national_id")
+        .or(`phone.eq.${phoneTrim},national_id.eq.${nidTrim}`)
+        .limit(1);
+      if (dupErr) throw dupErr;
+      if (dup && dup.length > 0) {
+        const row = dup[0];
+        const which = row.phone === phoneTrim ? "رقم الجوال" : "رقم الهوية الوطنية";
+        toast.error("هذا العريس مسجَّل مسبقاً", {
+          description: `${which} مستخدم في طلب سابق. لتعديل بياناتك استخدم صفحة «تعديل بياناتي».`,
+        });
+        setBusy(false);
+        return;
+      }
+
       const national_id_url = idFile ? await uploadPublic(idFile, "id") : null;
       const photo_url = photoFile ? await uploadPublic(photoFile, "photo") : null;
 
-      const { error } = await supabase.from("grooms").insert({
+      const { data: inserted, error } = await supabase.from("grooms").insert({
         full_name: fullName.trim(),
-        phone: phone.trim(),
+        phone: phoneTrim,
         family_branch: "غير محدد",
-        national_id: nationalId.trim(),
+        national_id: nidTrim,
         national_id_url,
         photo_url,
         extra_sheep: extraChoice === "yes" ? (Number(extraSheep) || 0) : 0,
@@ -248,8 +268,12 @@ function RegisterGroomPage() {
         notes: notesChoice === "yes" ? notes.trim() : null,
         status: "new",
         created_by: null,
-      });
+      }).select("id, edit_token").single();
       if (error) throw error;
+      if (inserted?.edit_token) {
+        const origin = typeof window !== "undefined" ? window.location.origin : "";
+        setEditLink(`${origin}/groom-edit/${inserted.edit_token}`);
+      }
       setPreviewOpen(false);
       setDone(true);
       toast.success("تم استلام طلبك بنجاح", { description: "ستتواصل معك اللجنة قريباً للمتابعة" });
@@ -272,7 +296,34 @@ function RegisterGroomPage() {
           <p className="text-muted-foreground leading-relaxed">
             بارك الله لك وبارك عليك وجمع بينكما في خير. ستراجع اللجنة بياناتك وتتواصل معك قريباً عبر رقم جوالك.
           </p>
-          <Button onClick={() => { setDone(false); reset(); }} variant="outline" className="w-full">
+          {editLink && (
+            <div className="rounded-2xl border-2 border-primary/30 bg-primary/5 p-4 text-start space-y-2">
+              <p className="text-xs font-bold text-primary">رابطك الخاص لتعديل بياناتك لاحقاً</p>
+              <p className="text-[11px] text-muted-foreground leading-relaxed">
+                احتفظ بهذا الرابط في مكانٍ آمن — هو الطريقة الوحيدة لتعديل بياناتك دون إعادة التسجيل.
+              </p>
+              <div className="flex items-center gap-2">
+                <Input readOnly value={editLink} dir="ltr" className="text-xs h-9" onFocus={(e) => e.currentTarget.select()} />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-9 shrink-0"
+                  onClick={async () => {
+                    try {
+                      await navigator.clipboard.writeText(editLink);
+                      toast.success("تم نسخ الرابط");
+                    } catch {
+                      toast.error("تعذّر النسخ");
+                    }
+                  }}
+                >
+                  نسخ
+                </Button>
+              </div>
+            </div>
+          )}
+          <Button onClick={() => { setDone(false); setEditLink(null); reset(); }} variant="outline" className="w-full">
             تسجيل عريس آخر
           </Button>
         </div>

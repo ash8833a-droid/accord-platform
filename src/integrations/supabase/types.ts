@@ -432,6 +432,7 @@ export type Database = {
           created_at: string
           created_by: string | null
           deficit_share: number
+          edit_token: string
           external_participation: boolean
           external_participation_details: string | null
           extra_cards_men: number
@@ -464,6 +465,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           deficit_share?: number
+          edit_token?: string
           external_participation?: boolean
           external_participation_details?: string | null
           extra_cards_men?: number
@@ -496,6 +498,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           deficit_share?: number
+          edit_token?: string
           external_participation?: boolean
           external_participation_details?: string | null
           extra_cards_men?: number
