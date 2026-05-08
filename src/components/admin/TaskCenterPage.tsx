@@ -52,6 +52,14 @@ const PRIORITY_META: Record<TaskRow["priority"], { label: string; cls: string }>
   urgent: { label: "عاجلة",  cls: "bg-rose-500/10 text-rose-600 border-rose-500/30" },
 };
 
+// Thick colored left-border per priority (renders on the right in RTL via border-r)
+const PRIORITY_BORDER: Record<TaskRow["priority"], string> = {
+  urgent: "border-r-4 border-r-rose-500",
+  high:   "border-r-4 border-r-orange-500",
+  medium: "border-r-4 border-r-amber-400",
+  low:    "border-r-4 border-r-slate-300",
+};
+
 function isOverdue(t: TaskRow): boolean {
   if (!t.due_date || t.status === "completed") return false;
   return new Date(t.due_date).getTime() < Date.now() - 86400000;
