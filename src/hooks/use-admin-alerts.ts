@@ -65,7 +65,7 @@ export function useAdminAlerts(enabled: boolean) {
   useEffect(() => {
     if (!enabled) return;
     const ch = supabase
-      .channel("admin_alerts_membership_requests")
+      .channel(`admin_alerts_membership_requests_${Math.random().toString(36).slice(2)}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "membership_requests" }, () => { void fetchAll(); })
       .subscribe();
     return () => { void supabase.removeChannel(ch); };
