@@ -18,7 +18,7 @@ import {
 import {
   Plus, Target, Search, Loader2, ListTodo, PlayCircle, CheckCircle2,
   AlertTriangle, Trash2, ExternalLink, LayoutGrid, Rows3, CalendarClock,
-  ArrowUp, ArrowDown,
+  ArrowUp, ArrowDown, ChevronDown,
   RefreshCw,
 } from "lucide-react";
 import { Bell, PartyPopper, GripVertical } from "lucide-react";
@@ -299,7 +299,7 @@ function TaskCenterInner({ canEdit }: { canEdit: boolean }) {
   }
 
   return (
-    <div className="p-4 lg:p-10 space-y-8 bg-[#f8fafc] dark:bg-background min-h-screen" dir="rtl">
+    <div className="p-3 sm:p-4 lg:p-10 space-y-6 lg:space-y-8 bg-[#f8fafc] dark:bg-background min-h-screen" dir="rtl">
       {/* Active task alert banner */}
       {urgentTask ? (
         <div className="rounded-xl border-2 border-sky-300/60 dark:border-sky-700/60 bg-sky-50/80 dark:bg-sky-950/30 px-4 py-3 shadow-sm">
