@@ -321,7 +321,7 @@ export function GroomsPage() {
         }
 
         if (Object.keys(updates).length > 0) {
-          const { error: upErr } = await supabase.from("grooms").update(updates).eq("id", primary.id);
+          const { error: upErr } = await supabase.from("grooms").update(updates as any).eq("id", primary.id);
           if (upErr) { errs.push(`update ${primary.id}: ${upErr.message}`); continue; }
         }
 
