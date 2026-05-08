@@ -1,17 +1,22 @@
 import { useEffect, useMemo, useState } from "react";
+import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { PageGate } from "@/components/PageGate";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import {
+  Collapsible, CollapsibleContent, CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import {
   Activity, AlertTriangle, CheckCircle2, ClipboardList, HeartHandshake,
   ListTodo, Loader2, ShieldCheck, TrendingUp, UserPlus, Users, Wallet,
+  Target, Inbox, FileBarChart, Settings2, ChevronDown,
 } from "lucide-react";
 import {
   Bar, BarChart, CartesianGrid, Cell, Legend, Line, LineChart, Pie, PieChart,
   ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from "recharts";
-import { PageHeroHeader } from "@/components/PageHeroHeader";
 
 type Period = "day" | "week" | "month" | "quarter" | "year";
 
@@ -214,28 +219,61 @@ function Inner() {
 
   return (
     <div className="space-y-6" dir="rtl">
-      <PageHeroHeader
-        eyebrow="لوحة تقييم الأداء"
-        title="ومؤشرات اللجان"
-        highlight="أداء المنصة"
-        subtitle="إحصائيات لحظية وتحليلات للفترة المحددة"
-        icon={ShieldCheck}
-        actions={
-          <>
-            {loading && <Loader2 className="h-4 w-4 animate-spin text-gold" />}
-            <Tabs value={period} onValueChange={(v) => setPeriod(v as Period)} dir="rtl">
-              <TabsList className="bg-white/10 backdrop-blur border border-white/20">
-                {(Object.keys(PERIOD_LABEL) as Period[]).map((p) => (
-                  <TabsTrigger key={p} value={p}
-                    className="text-primary-foreground data-[state=active]:bg-gold data-[state=active]:text-gold-foreground">
-                    {PERIOD_LABEL[p]}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-            </Tabs>
-          </>
-        }
-      />
+      {/* Minimal header */}
+      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">لوحة الأداء</h1>
+          <p className="text-sm text-muted-foreground mt-1">نظرة سريعة على ما يهمّك اليوم</p>
+        </div>
+        <div className="flex items-center gap-2">
+          {loading && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
+          <Tabs value={period} onValueChange={(v) => setPeriod(v as Period)} dir="rtl">
+            <TabsList>
+              {(Object.keys(PERIOD_LABEL) as Period[]).map((p) => (
+                <TabsTrigger key={p} value={p}>{PERIOD_LABEL[p]}</TabsTrigger>
+              ))}
+            </TabsList>
+          </Tabs>
+        </div>
+      </div>
+
+      {/* Primary actions — large, clear, friendly */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        <PrimaryAction to="/admin/tasks" icon={Target} label="مركز المهام" hint="تابع وأنشئ المهام" />
+        <PrimaryAction to="/grooms" icon={HeartHandshake} label="سجل العرسان" hint="عرض وإدارة العرسان" />
+        <PrimaryAction to="/communications" icon={Inbox} label="الطلبات والمراسلات" hint={`${k.pendingRequests} بانتظار الرد`} />
+        <PrimaryAction to="/reports" icon={FileBarChart} label="التقارير والجودة" hint="تقارير وتقييمات" />
+      </div>
+
+      {/* Quick summary — only the essentials */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <Kpi label="نسبة الإنجاز" value={`${k.completionRate}%`} sub={`${k.completedAll} مكتملة`} icon={CheckCircle2} tone="text-emerald-600 bg-emerald-500/10" />
+        <Kpi label="مهام نشطة" value={k.active} sub={`${k.overdue} متأخرة`} icon={ClipboardList} tone="text-sky-600 bg-sky-500/10" />
+        <Kpi label="عدد العرسان" value={k.totalGrooms} sub={`+${k.newGrooms} ${PERIOD_LABEL[period]}`} icon={HeartHandshake} tone="text-pink-600 bg-pink-500/10" />
+        <Kpi label="طلبات معلّقة" value={k.pendingRequests} sub={`+${k.newRequests} ${PERIOD_LABEL[period]}`} icon={UserPlus} tone="text-violet-600 bg-violet-500/10" />
+      </div>
+
+      {/* Advanced: hidden by default */}
+      <Collapsible>
+        <div className="flex items-center justify-between border-t pt-4">
+          <p className="text-sm text-muted-foreground">تفاصيل وتحليلات إضافية</p>
+          <CollapsibleTrigger asChild>
+            <Button variant="ghost" size="sm" className="gap-2">
+              <Settings2 className="h-4 w-4" />
+              عرض التحليلات المتقدمة
+              <ChevronDown className="h-4 w-4 transition-transform data-[state=open]:rotate-180" />
+            </Button>
+          </CollapsibleTrigger>
+        </div>
+        <CollapsibleContent className="space-y-4 pt-4">
+
+      {/* Extended KPIs */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <Kpi label="إجمالي المهام" value={k.totalAll} sub={`${k.active} نشطة`} icon={ClipboardList} tone="text-sky-600 bg-sky-500/10" />
+        <Kpi label={`أُنجزت ${PERIOD_LABEL[period]}`} value={k.completedPeriod} sub="خلال الفترة" icon={Activity} tone="text-amber-600 bg-amber-500/10" />
+        <Kpi label="إجمالي الأعضاء" value={k.totalMembers} sub={`+${k.newMembers} جدد`} icon={Users} tone="text-indigo-600 bg-indigo-500/10" />
+        <Kpi label="نسبة الإنفاق" value={`${k.spendRate}%`} sub={`${fmtSar(k.totalSpent)} من ${fmtSar(k.totalBudget)}`} icon={Wallet} tone="text-teal-600 bg-teal-500/10" />
+      </div>
 
       {/* KPI grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
@@ -338,7 +376,26 @@ function Inner() {
           </ResponsiveContainer>
         </ChartCard>
       </div>
+        </CollapsibleContent>
+      </Collapsible>
     </div>
+  );
+}
+
+function PrimaryAction({ to, icon: Icon, label, hint }: { to: string; icon: any; label: string; hint?: string }) {
+  return (
+    <Link
+      to={to}
+      className="group rounded-2xl border bg-card p-5 hover:border-primary hover:shadow-elegant hover:-translate-y-0.5 transition-all flex items-center gap-4"
+    >
+      <div className="h-14 w-14 rounded-2xl bg-primary/10 text-primary flex items-center justify-center shrink-0 group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+        <Icon className="h-7 w-7" />
+      </div>
+      <div className="min-w-0">
+        <p className="text-base font-bold leading-tight">{label}</p>
+        {hint && <p className="text-xs text-muted-foreground mt-1 truncate">{hint}</p>}
+      </div>
+    </Link>
   );
 }
 
