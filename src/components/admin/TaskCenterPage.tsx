@@ -508,7 +508,19 @@ function KanbanBoard({
                 </div>
               )}
             </div>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 p-3">
+            {/* Mobile: tabbed view (no drag-and-drop, use status dropdown) */}
+            <div className="lg:hidden p-3">
+              <MobileColumns
+                group={group}
+                cmMap={cmMap}
+                canEdit={canEdit}
+                onMove={onMove}
+                onOpen={onOpen}
+                onDelete={onDelete}
+              />
+            </div>
+            {/* Desktop: 3-column Kanban with drag-and-drop */}
+            <div className="hidden lg:grid grid-cols-3 gap-3 p-3">
               {cols.map((status) => {
                 const meta = STATUS_META[status];
                 const statusItems = group.list.filter((t) => t.status === status).sort(comparePmp);
@@ -742,6 +754,118 @@ function ListView({
         </TableBody>
       </Table>
     </Card>
+  );
+}
+
+function MobileColumns({
+  group, cmMap, canEdit, onMove, onOpen, onDelete,
+}: {
+  group: { cid: string; name: string; type: string; list: TaskRow[] };
+  cmMap: Map<string, CommitteeRow>;
+  canEdit: boolean;
+  onMove: (id: string, to: TaskRow["status"]) => void;
+  onOpen: (t: TaskRow) => void;
+  onDelete: (id: string) => void;
+}) {
+  const cols: TaskRow["status"][] = ["todo", "in_progress", "completed"];
+  const counts = {
+    todo: group.list.filter((t) => t.status === "todo").length,
+    in_progress: group.list.filter((t) => t.status === "in_progress").length,
+    completed: group.list.filter((t) => t.status === "completed").length,
+  };
+  const initial: TaskRow["status"] = counts.in_progress > 0 ? "in_progress" : counts.todo > 0 ? "todo" : "completed";
+  const [tab, setTab] = useState<TaskRow["status"]>(initial);
+  return (
+    <Tabs value={tab} onValueChange={(v) => setTab(v as TaskRow["status"])} dir="rtl" className="w-full">
+      <TabsList className="w-full grid grid-cols-3 h-auto">
+        {cols.map((s) => {
+          const meta = STATUS_META[s];
+          return (
+            <TabsTrigger key={s} value={s} className="flex flex-col gap-0.5 py-2 text-[11px] data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              <span className="inline-flex items-center gap-1"><meta.icon className="h-3.5 w-3.5" />{meta.label}</span>
+              <span className="text-[10px] opacity-80">{counts[s]}</span>
+            </TabsTrigger>
+          );
+        })}
+      </TabsList>
+      {cols.map((status) => {
+        const items = group.list.filter((t) => t.status === status).sort(comparePmp);
+        return (
+          <TabsContent key={status} value={status} className="mt-3 space-y-2">
+            {items.length === 0 && (
+              <p className="text-xs text-muted-foreground text-center py-8">لا توجد مهام في هذا العمود</p>
+            )}
+            {items.map((t, idx) => {
+              const cm = cmMap.get(t.committee_id);
+              const cmeta = cm ? committeeByType(cm.type) : null;
+              const overdue = isOverdue(t);
+              return (
+                <div
+                  key={t.id}
+                  onClick={() => onOpen(t)}
+                  className={`rounded-lg border bg-card p-3 active:bg-muted/40 transition-colors ${PRIORITY_BORDER[t.priority]}`}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="text-sm font-bold flex-1 line-clamp-2">
+                      <span className="text-[10px] text-muted-foreground me-1">#{idx + 1}</span>
+                      {t.title}
+                    </p>
+                    {canEdit && (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); onDelete(t.id); }}
+                        className="p-1.5 rounded text-rose-500 hover:bg-rose-500/10 shrink-0"
+                        aria-label="حذف"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    )}
+                  </div>
+                  <div className="flex items-center flex-wrap gap-1 mt-2">
+                    {cmeta && (
+                      <span className={`inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded ${cmeta.tone}`}>
+                        <cmeta.icon className="h-3 w-3" />{cm?.name}
+                      </span>
+                    )}
+                    <Badge variant="outline" className={`text-[10px] ${PRIORITY_META[t.priority].cls}`}>{PRIORITY_META[t.priority].label}</Badge>
+                  </div>
+                  {t.due_date && (
+                    <div className="mt-2">
+                      <span
+                        className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-1 rounded-md border ${
+                          overdue
+                            ? "bg-rose-500/10 text-rose-600 border-rose-500/40"
+                            : "bg-muted text-foreground/80 border-border"
+                        }`}
+                      >
+                        <CalendarClock className="h-3 w-3" />
+                        {new Date(t.due_date).toLocaleDateString("ar-SA")}
+                        {overdue && <span className="ms-1 font-bold">· متأخرة</span>}
+                      </span>
+                    </div>
+                  )}
+                  {canEdit && (
+                    <div
+                      className="mt-3 pt-3 border-t flex items-center gap-2"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <span className="text-[11px] text-muted-foreground shrink-0">تغيير الحالة:</span>
+                      <Select value={t.status} onValueChange={(v) => onMove(t.id, v as TaskRow["status"])}>
+                        <SelectTrigger className="h-9 flex-1 text-xs"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          {cols.map((s) => (
+                            <SelectItem key={s} value={s} className="text-xs">{STATUS_META[s].label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </TabsContent>
+        );
+      })}
+    </Tabs>
   );
 }
 
