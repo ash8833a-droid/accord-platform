@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
-import { AlertTriangle, BellRing, Check, X, ExternalLink, ShieldAlert } from "lucide-react";
+import { useEffect, useState } from "react";
+import { AlertTriangle, BellRing, Check, X, ExternalLink, ShieldAlert, ChevronDown, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useAdminAlerts } from "@/hooks/use-admin-alerts";
@@ -15,18 +16,57 @@ interface Props {
  */
 export function AdminAlertsPanel({ enabled }: Props) {
   const { alerts, count, dismiss, dismissAll } = useAdminAlerts(enabled);
+  const STORAGE_KEY = "admin_alerts_panel_collapsed_v1";
+  const [collapsed, setCollapsed] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    return localStorage.getItem(STORAGE_KEY) === "1";
+  });
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem(STORAGE_KEY, collapsed ? "1" : "0");
+    }
+  }, [collapsed]);
 
   if (!enabled) return null;
+
+  // Collapsed: minimal pill toggle
+  if (collapsed) {
+    return (
+      <button
+        onClick={() => setCollapsed(false)}
+        dir="rtl"
+        className="w-full flex items-center justify-between gap-3 rounded-xl border bg-card px-3 py-2 hover:bg-accent/50 transition-colors"
+        aria-label="إظهار لوحة التنبيهات"
+      >
+        <span className="flex items-center gap-2 text-sm font-semibold">
+          <ShieldAlert className={`h-4 w-4 ${count > 0 ? "text-rose-600" : "text-emerald-600"}`} />
+          {count > 0 ? `تنبيهات هامة (${count})` : "لا توجد تنبيهات"}
+        </span>
+        <ChevronDown className="h-4 w-4 text-muted-foreground" />
+      </button>
+    );
+  }
+
   if (count === 0) {
     return (
-      <div className="rounded-2xl border-2 border-emerald-300/60 dark:border-emerald-700/60 bg-emerald-50/80 dark:bg-emerald-950/30 px-4 py-3 flex items-center gap-3">
+      <div dir="rtl" className="rounded-2xl border-2 border-emerald-300/60 dark:border-emerald-700/60 bg-emerald-50/80 dark:bg-emerald-950/30 px-4 py-3 flex items-center gap-3">
         <div className="h-10 w-10 rounded-xl bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 flex items-center justify-center shrink-0">
           <Check className="h-5 w-5" />
         </div>
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <h3 className="text-sm sm:text-base font-bold text-emerald-800 dark:text-emerald-200">لا توجد تنبيهات هامة</h3>
           <p className="text-xs text-emerald-700/80 dark:text-emerald-300/80">جميع طلبات الانضمام تمت مراجعتها.</p>
         </div>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setCollapsed(true)}
+          aria-label="إخفاء"
+          title="إخفاء"
+          className="shrink-0 h-8 w-8 p-0 text-emerald-700 dark:text-emerald-300"
+        >
+          <ChevronUp className="h-4 w-4" />
+        </Button>
       </div>
     );
   }
@@ -48,11 +88,23 @@ export function AdminAlertsPanel({ enabled }: Props) {
             </p>
           </div>
         </div>
-        {count > 1 && (
-          <Button variant="ghost" size="sm" onClick={dismissAll} className="text-rose-700 hover:bg-rose-100 dark:text-rose-200 shrink-0">
-            تجاهل الكل
+        <div className="flex items-center gap-1 shrink-0">
+          {count > 1 && (
+            <Button variant="ghost" size="sm" onClick={dismissAll} className="text-rose-700 hover:bg-rose-100 dark:text-rose-200">
+              تجاهل الكل
+            </Button>
+          )}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setCollapsed(true)}
+            aria-label="إخفاء اللوحة"
+            title="إخفاء اللوحة"
+            className="h-8 w-8 p-0 text-rose-700 dark:text-rose-300"
+          >
+            <ChevronUp className="h-4 w-4" />
           </Button>
-        )}
+        </div>
       </div>
       <ul className="divide-y divide-rose-200/60 dark:divide-rose-800/50">
         {alerts.map((a) => (
