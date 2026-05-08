@@ -684,7 +684,7 @@ function KanbanBoard({
                     }}
                     onClick={() => onOpen(t)}
                     style={{ touchAction: "pan-y" }}
-                    className={`group relative rounded-lg border bg-card p-3 ps-9 pr-3.5 cursor-grab active:cursor-grabbing hover:shadow-md hover:-translate-y-0.5 transition-all select-none ${PRIORITY_BORDER[t.priority]} ${isDragging ? "opacity-40 rotate-1 shadow-xl ring-2 ring-primary/40" : ""}`}
+                    className={`group relative rounded-lg border bg-card p-3.5 ps-10 lg:ps-9 cursor-grab active:cursor-grabbing hover:shadow-md hover:-translate-y-0.5 transform-gpu will-change-transform transition-all select-none ${PRIORITY_BORDER[t.priority]} ${isDragging ? "opacity-40 rotate-1 shadow-xl ring-2 ring-primary/40" : ""}`}
                   >
                     {/* Visible drag handle (also acts as a touch-friendly affordance) */}
                     <div
@@ -694,37 +694,37 @@ function KanbanBoard({
                       <GripVertical className="h-4 w-4" />
                     </div>
                     <div className="flex items-start justify-between gap-2">
-                      <p className="text-sm font-bold flex-1 line-clamp-2">
+                      <p className="text-base lg:text-sm font-bold flex-1 leading-snug break-words [overflow-wrap:anywhere]">
                         <span className="text-[10px] text-muted-foreground me-1">#{idx + 1}</span>
                         {t.title}
                       </p>
                       {canEdit && (
-                        <div className="flex items-center gap-0.5 shrink-0">
+                        <div className="flex items-center gap-1 shrink-0">
                           <button
                             onClick={(e) => { e.stopPropagation(); onStep(t.id, "up", 1); }}
                             disabled={isFirstInGroup}
-                            className="p-1 rounded hover:bg-muted disabled:opacity-30 disabled:cursor-not-allowed text-muted-foreground hover:text-primary"
+                            className="h-11 w-11 lg:h-8 lg:w-8 inline-flex items-center justify-center rounded-md hover:bg-muted disabled:opacity-30 disabled:cursor-not-allowed text-muted-foreground hover:text-primary active:scale-95 transition-transform transform-gpu"
                             aria-label="نقل لأعلى"
                             title="نقل خطوة لأعلى"
                           >
-                            <ArrowUp className="h-3.5 w-3.5" />
+                            <ArrowUp className="h-4 w-4" />
                           </button>
                           <button
                             onClick={(e) => { e.stopPropagation(); onStep(t.id, "down", 1); }}
                             disabled={isLastInGroup}
-                            className="p-1 rounded hover:bg-muted disabled:opacity-30 disabled:cursor-not-allowed text-muted-foreground hover:text-primary"
+                            className="h-11 w-11 lg:h-8 lg:w-8 inline-flex items-center justify-center rounded-md hover:bg-muted disabled:opacity-30 disabled:cursor-not-allowed text-muted-foreground hover:text-primary active:scale-95 transition-transform transform-gpu"
                             aria-label="نقل لأسفل"
                             title="نقل خطوة لأسفل"
                           >
-                            <ArrowDown className="h-3.5 w-3.5" />
+                            <ArrowDown className="h-4 w-4" />
                           </button>
                           <button
                             onClick={(e) => { e.stopPropagation(); onDelete(t.id); }}
-                            className="p-1 rounded hover:bg-muted text-rose-500 hover:text-rose-600"
+                            className="h-11 w-11 lg:h-8 lg:w-8 inline-flex items-center justify-center rounded-md hover:bg-muted text-rose-500 hover:text-rose-600 active:scale-95 transition-transform transform-gpu"
                             aria-label="حذف"
                             title="حذف"
                           >
-                            <Trash2 className="h-3.5 w-3.5" />
+                            <Trash2 className="h-4 w-4" />
                           </button>
                         </div>
                       )}
