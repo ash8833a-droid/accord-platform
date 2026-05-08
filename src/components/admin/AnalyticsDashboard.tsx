@@ -13,6 +13,8 @@ import {
   Banknote, HandCoins,
 } from "lucide-react";
 import { exportDashboardPdf } from "@/lib/dashboard-pdf";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { WeeklyReport } from "@/components/admin/WeeklyReport";
 import {
   Bar, BarChart, CartesianGrid, Legend, Line, LineChart,
   PolarAngleAxis, PolarGrid, PolarRadiusAxis, Radar, RadarChart,
@@ -261,6 +263,23 @@ function Inner() {
         </CardContent>
       </Card>
 
+      <Tabs defaultValue="live" className="w-full">
+        <TabsList className="grid w-full sm:w-auto grid-cols-2 sm:inline-grid bg-muted/60 p-1 rounded-xl">
+          <TabsTrigger
+            value="live"
+            className="rounded-lg data-[state=active]:bg-[#064e3b] data-[state=active]:text-white data-[state=active]:shadow-sm font-bold"
+          >
+            الأداء اللحظي
+          </TabsTrigger>
+          <TabsTrigger
+            value="weekly"
+            className="rounded-lg data-[state=active]:bg-gradient-gold data-[state=active]:text-gold-foreground data-[state=active]:shadow-sm font-bold"
+          >
+            الملخص الأسبوعي
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="live" className="space-y-6 mt-6 focus-visible:outline-none">
       {/* Unified KPI cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
         <HeroKpi label="إجمالي المهام" value={k.totalTasks} sub={`${k.completed} مُنجزة`}
@@ -369,6 +388,12 @@ function Inner() {
           </LineChart>
         </ResponsiveContainer>
       </SectionCard>
+        </TabsContent>
+
+        <TabsContent value="weekly" className="mt-6 focus-visible:outline-none">
+          <WeeklyReport />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

@@ -12,7 +12,6 @@ import {
   UserCog,
   KeyRound,
   Target,
-  CalendarCheck,
 } from "lucide-react";
 import { ShoppingCart, Inbox, LayoutGrid } from "lucide-react";
 import { Logo } from "./Logo";
@@ -30,7 +29,6 @@ import { committeeByType } from "@/lib/committees";
 const ADMIN_TOP = [
   { to: "/admin", label: "الأداء العام", icon: ShieldCheck },
   { to: "/admin/tasks", label: "مركز المهام", icon: Target },
-  { to: "/admin/weekly", label: "الملخص الأسبوعي", icon: CalendarCheck },
 ] as const;
 
 const ADMIN_BOTTOM = [
