@@ -10,6 +10,7 @@ import {
 import {
   CalendarRange, CheckCircle2, ClipboardList, HeartHandshake, Loader2,
   Wallet, TrendingUp, BarChart3, Scale, Target, RefreshCw, FileDown,
+  Banknote,
 } from "lucide-react";
 import { exportDashboardPdf } from "@/lib/dashboard-pdf";
 import {
@@ -43,6 +44,9 @@ const AVAILABLE_YEARS = (() => {
   return [cur, cur - 1, cur - 2, cur - 3, cur - 4];
 })();
 
+// Fixed allocated support per registered groom (SAR)
+export const ALLOCATED_SUPPORT_PER_GROOM = 10000;
+
 // ---- Component ----
 export function AnalyticsDashboard() {
   return <PageGate pageKey="admin">{() => <Inner />}</PageGate>;
@@ -63,6 +67,19 @@ function Inner() {
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "committee_tasks" },
+        () => { void load(); },
+      )
+      .subscribe();
+    return () => { void supabase.removeChannel(channel); };
+  }, []);
+
+  // Real-time subscription on grooms so allocated-funds KPI updates instantly.
+  useEffect(() => {
+    const channel = supabase
+      .channel("dashboard-grooms")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "grooms" },
         () => { void load(); },
       )
       .subscribe();
@@ -103,9 +120,16 @@ function Inner() {
     const paymentsY = data.payments.filter((p: any) => inRange(p.created_at, r));
     const expenses = paymentsY.filter((p: any) => p.status === "paid").reduce((s: number, p: any) => s + Number(p.amount || 0), 0);
     const revenues = groomsY.reduce((s: number, g: any) => s + Number(g.groom_contribution || 0), 0);
-    const netBalance = revenues - expenses;
+    // Allocated support = total grooms × fixed allocation (treated as projected expense)
+    const allocatedFunds = totalMarriages * ALLOCATED_SUPPORT_PER_GROOM;
+    const projectedExpenses = expenses + allocatedFunds;
+    const netBalance = revenues - projectedExpenses;
 
-    return { totalTasks, completed, completionRate, totalMarriages, revenues, expenses, netBalance, tasksY, groomsY, paymentsY };
+    return {
+      totalTasks, completed, completionRate, totalMarriages,
+      revenues, expenses, allocatedFunds, projectedExpenses, netBalance,
+      tasksY, groomsY, paymentsY,
+    };
   }, [data, year]);
 
   const charts = useMemo(() => {
@@ -218,13 +242,19 @@ function Inner() {
       </Card>
 
       {/* Unified KPI cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         <HeroKpi label="إجمالي المهام" value={k.totalTasks} sub={`${k.completed} مُنجزة`}
           icon={ClipboardList} accent="from-sky-500/15 to-sky-500/0 text-sky-600 ring-sky-500/20" />
         <HeroKpi label="نسبة الإنجاز العامة" value={`${k.completionRate}%`} sub="عبر كل اللجان"
           icon={CheckCircle2} accent="from-emerald-500/15 to-emerald-500/0 text-emerald-600 ring-emerald-500/20" />
         <HeroKpi label="إجمالي العرسان" value={k.totalMarriages} sub={year === "all" ? "تراكمي" : `سنة ${year}`}
           icon={HeartHandshake} accent="from-pink-500/15 to-pink-500/0 text-pink-600 ring-pink-500/20" />
+        <HeroKpi
+          label="إجمالي المبالغ المخصصة للعرسان"
+          value={fmtSar(k.allocatedFunds)}
+          sub={`${k.totalMarriages} عريس × ${fmtSar(ALLOCATED_SUPPORT_PER_GROOM)}`}
+          icon={Banknote}
+          accent="from-amber-500/15 to-amber-500/0 text-amber-600 ring-amber-500/20" />
         <HeroKpi label="صافي الرصيد المالي"
           value={fmtSar(k.netBalance)}
           sub={k.netBalance >= 0 ? "فائض" : "عجز"}
@@ -292,9 +322,11 @@ function Inner() {
         subtitle={`الإيرادات مقابل المصروفات · ${year === "all" ? AVAILABLE_YEARS[0] : year}`}
         icon={Wallet}
         right={
-          <div className="flex items-center gap-4 text-xs">
+          <div className="flex items-center flex-wrap gap-x-4 gap-y-1 text-xs">
             <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-emerald-500" /> إيرادات: <b className="tabular-nums">{fmtSar(k.revenues)}</b></span>
             <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-rose-500" /> مصروفات: <b className="tabular-nums">{fmtSar(k.expenses)}</b></span>
+            <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-amber-500" /> دعم مخصص للعرسان: <b className="tabular-nums">{fmtSar(k.allocatedFunds)}</b></span>
+            <span className="flex items-center gap-1.5 border-r pr-3 mr-1"><span className="h-2.5 w-2.5 rounded-full bg-rose-700" /> إجمالي المصروفات المتوقعة: <b className="tabular-nums">{fmtSar(k.projectedExpenses)}</b></span>
           </div>
         }
       >
