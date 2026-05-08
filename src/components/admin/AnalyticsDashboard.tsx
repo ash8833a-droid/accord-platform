@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { PageGate } from "@/components/PageGate";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,7 +10,7 @@ import {
 import {
   Activity, AlertTriangle, CheckCircle2, ClipboardList, HeartHandshake,
   ListTodo, Loader2, ShieldCheck, TrendingUp, UserPlus, Users, Wallet,
-  Target, Inbox, FileBarChart, Settings2, ChevronDown,
+  Inbox, Settings2, ChevronDown,
 } from "lucide-react";
 import {
   Bar, BarChart, CartesianGrid, Cell, Legend, Line, LineChart, Pie, PieChart,
