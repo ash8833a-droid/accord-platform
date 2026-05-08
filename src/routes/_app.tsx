@@ -63,15 +63,11 @@ function AppLayout() {
 
     // Standard committee members: ONLY their committee + Idea Bank.
     if (isStandardMember) {
-      const allowed: string[] = ["/ideas"];
-      if (myCommitteeType) allowed.push(`/committee/${myCommitteeType}`);
+      // Consolidated: regular members work from the Task Center (auto-filtered to their committee) + Idea Bank.
+      const allowed: string[] = ["/ideas", "/admin/tasks"];
       const ok = allowed.some((p) => path === p || path.startsWith(p + "/"));
       if (!ok) {
-        if (myCommitteeType) {
-          nav({ to: "/committee/$type", params: { type: myCommitteeType } });
-        } else {
-          nav({ to: "/ideas" });
-        }
+        nav({ to: "/admin/tasks" });
       }
       return;
     }
