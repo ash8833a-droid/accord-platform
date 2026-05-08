@@ -20,6 +20,7 @@ import {
   ArrowUp, ArrowDown,
   RefreshCw,
 } from "lucide-react";
+import { Bell, PartyPopper } from "lucide-react";
 import { toast } from "sonner";
 import { CreateTaskDialog } from "@/components/admin/CreateTaskDialog";
 import { TaskDetailsDialog } from "@/components/admin/TaskDetailsDialog";
