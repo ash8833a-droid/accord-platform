@@ -376,7 +376,26 @@ function Inner() {
           </ResponsiveContainer>
         </ChartCard>
       </div>
+        </CollapsibleContent>
+      </Collapsible>
     </div>
+  );
+}
+
+function PrimaryAction({ to, icon: Icon, label, hint }: { to: string; icon: any; label: string; hint?: string }) {
+  return (
+    <Link
+      to={to}
+      className="group rounded-2xl border bg-card p-5 hover:border-primary hover:shadow-elegant hover:-translate-y-0.5 transition-all flex items-center gap-4"
+    >
+      <div className="h-14 w-14 rounded-2xl bg-primary/10 text-primary flex items-center justify-center shrink-0 group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+        <Icon className="h-7 w-7" />
+      </div>
+      <div className="min-w-0">
+        <p className="text-base font-bold leading-tight">{label}</p>
+        {hint && <p className="text-xs text-muted-foreground mt-1 truncate">{hint}</p>}
+      </div>
+    </Link>
   );
 }
 
