@@ -11,7 +11,7 @@ import {
 import {
   Activity, AlertTriangle, CheckCircle2, ClipboardList, HeartHandshake,
   ListTodo, Loader2, ShieldCheck, TrendingUp, UserPlus, Users, Wallet,
-  Target, Inbox, FileBarChart, Settings2, ChevronDown, Lightbulb,
+  Target, Inbox, FileBarChart, Settings2, ChevronDown,
 } from "lucide-react";
 import {
   Bar, BarChart, CartesianGrid, Cell, Legend, Line, LineChart, Pie, PieChart,
