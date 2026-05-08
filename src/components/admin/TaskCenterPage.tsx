@@ -92,7 +92,8 @@ export function TaskCenterPage() {
 }
 
 function TaskCenterInner({ canEdit }: { canEdit: boolean }) {
-  const { user } = useAuth();
+  const { user, hasRole, committeeId } = useAuth();
+  const isPrivileged = hasRole("admin") || hasRole("quality");
   const [committees, setCommittees] = useState<CommitteeRow[]>([]);
   const [tasks, setTasks] = useState<TaskRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -129,10 +130,20 @@ function TaskCenterInner({ canEdit }: { canEdit: boolean }) {
 
   const cmMap = useMemo(() => new Map(committees.map((c) => [c.id, c])), [committees]);
 
+  // Regular committee members: lock view to their own committee only.
+  const scopedTasks = useMemo(() => {
+    if (isPrivileged || !committeeId) return tasks;
+    return tasks.filter((t) => t.committee_id === committeeId);
+  }, [tasks, isPrivileged, committeeId]);
+  const scopedCommittees = useMemo(() => {
+    if (isPrivileged || !committeeId) return committees;
+    return committees.filter((c) => c.id === committeeId);
+  }, [committees, isPrivileged, committeeId]);
+
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    return tasks.filter((t) => {
-      if (committeeFilter !== "all" && t.committee_id !== committeeFilter) return false;
+    return scopedTasks.filter((t) => {
+      if (isPrivileged && committeeFilter !== "all" && t.committee_id !== committeeFilter) return false;
       if (priorityFilter !== "all" && t.priority !== priorityFilter) return false;
       if (!q) return true;
       const cn = cmMap.get(t.committee_id)?.name ?? "";
@@ -140,18 +151,18 @@ function TaskCenterInner({ canEdit }: { canEdit: boolean }) {
         || (t.description ?? "").toLowerCase().includes(q)
         || cn.toLowerCase().includes(q);
     });
-  }, [tasks, committeeFilter, priorityFilter, search, cmMap]);
+  }, [scopedTasks, isPrivileged, committeeFilter, priorityFilter, search, cmMap]);
 
   const stats = useMemo(() => {
-    const active = tasks.filter((t) => t.status !== "completed");
-    const completed = tasks.filter((t) => t.status === "completed").length;
-    const overdue = tasks.filter(isOverdue).length;
-    const total = tasks.length;
+    const active = scopedTasks.filter((t) => t.status !== "completed");
+    const completed = scopedTasks.filter((t) => t.status === "completed").length;
+    const overdue = scopedTasks.filter(isOverdue).length;
+    const total = scopedTasks.length;
     const completionRate = total === 0 ? 0 : Math.round((completed / total) * 100);
-    const committeesWithTasks = new Set(tasks.map((t) => t.committee_id));
-    const empty = committees.filter((c) => !committeesWithTasks.has(c.id)).length;
+    const committeesWithTasks = new Set(scopedTasks.map((t) => t.committee_id));
+    const empty = scopedCommittees.filter((c) => !committeesWithTasks.has(c.id)).length;
     return { activeCount: active.length, completionRate, overdue, empty };
-  }, [tasks, committees]);
+  }, [scopedTasks, scopedCommittees]);
 
   const moveTask = async (id: string, to: TaskRow["status"]) => {
     const prev = tasks;
@@ -264,38 +275,57 @@ function TaskCenterInner({ canEdit }: { canEdit: boolean }) {
 
   return (
     <div className="p-4 lg:p-8 space-y-6" dir="rtl">
-      <PageHeroHeader
-        eyebrow="مركز عمليات اللجان"
-        title="ومتابعة المهام"
-        highlight="إدارة"
-        subtitle="إنشاء ومتابعة مهام جميع اللجان من مكان واحد"
-        icon={Target}
-        actions={canEdit ? (
-          <div className="flex items-center gap-2">
+      {/* Compact header — slim banner to keep board near the top */}
+      <div className="flex items-center justify-between gap-3 rounded-xl border bg-gradient-to-l from-primary/10 to-transparent px-4 py-3">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="h-9 w-9 rounded-lg bg-primary/15 text-primary flex items-center justify-center shrink-0">
+            <Target className="h-4 w-4" />
+          </div>
+          <div className="min-w-0">
+            <h1 className="text-base sm:text-lg font-bold leading-tight truncate">
+              {isPrivileged ? "إدارة ومتابعة المهام" : `مهام لجنتك${committeeId && cmMap.get(committeeId) ? ` — ${cmMap.get(committeeId)!.name}` : ""}`}
+            </h1>
+            <p className="text-[11px] text-muted-foreground truncate">
+              {isPrivileged ? "كل اللجان في مكان واحد" : "المهام المعنية بلجنتك فقط"}
+            </p>
+          </div>
+        </div>
+        {canEdit && (
+          <div className="flex items-center gap-2 shrink-0">
             <Button
               variant="outline"
-              onClick={async () => { await load(); toast.success("تم تحديث الترتيب"); }}
-              className="gap-2"
+              size="sm"
+              onClick={async () => { await load(); toast.success("تم التحديث"); }}
+              className="gap-2 h-8"
             >
-              <RefreshCw className="h-4 w-4" /> تحديث
+              <RefreshCw className="h-3.5 w-3.5" /> تحديث
             </Button>
             <Button
+              size="sm"
               onClick={() => setCreateOpen(true)}
-              className="gap-2 bg-gold text-gold-foreground hover:bg-gold/90"
+              className="gap-2 h-8 bg-gold text-gold-foreground hover:bg-gold/90"
             >
-              <Plus className="h-4 w-4" /> مهمة جديدة
+              <Plus className="h-3.5 w-3.5" /> مهمة جديدة
             </Button>
           </div>
-        ) : null}
-      />
-
-      {/* KPI cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <KpiCard label="مهام نشطة" value={String(stats.activeCount)} icon={ListTodo} tone="text-sky-600 bg-sky-500/10" />
-        <KpiCard label="نسبة الإنجاز" value={`${stats.completionRate}%`} icon={CheckCircle2} tone="text-emerald-600 bg-emerald-500/10" />
-        <KpiCard label="مهام متأخرة" value={String(stats.overdue)} icon={AlertTriangle} tone="text-rose-600 bg-rose-500/10" />
-        <KpiCard label="لجان دون مهام" value={String(stats.empty)} icon={Target} tone="text-amber-600 bg-amber-500/10" />
+        )}
       </div>
+
+      {/* Global KPI cards — only for admins/quality. Members see their own scoped quick stats. */}
+      {isPrivileged ? (
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <KpiCard label="مهام نشطة" value={String(stats.activeCount)} icon={ListTodo} tone="text-sky-600 bg-sky-500/10" />
+          <KpiCard label="نسبة الإنجاز" value={`${stats.completionRate}%`} icon={CheckCircle2} tone="text-emerald-600 bg-emerald-500/10" />
+          <KpiCard label="مهام متأخرة" value={String(stats.overdue)} icon={AlertTriangle} tone="text-rose-600 bg-rose-500/10" />
+          <KpiCard label="لجان دون مهام" value={String(stats.empty)} icon={Target} tone="text-amber-600 bg-amber-500/10" />
+        </div>
+      ) : (
+        <div className="flex flex-wrap gap-2 text-xs">
+          <span className="rounded-full border bg-sky-500/10 text-sky-700 px-3 py-1">نشطة: <b>{stats.activeCount}</b></span>
+          <span className="rounded-full border bg-emerald-500/10 text-emerald-700 px-3 py-1">إنجاز: <b>{stats.completionRate}%</b></span>
+          <span className="rounded-full border bg-rose-500/10 text-rose-700 px-3 py-1">متأخرة: <b>{stats.overdue}</b></span>
+        </div>
+      )}
 
       {/* Filters */}
       <Card>
@@ -311,13 +341,15 @@ function TaskCenterInner({ canEdit }: { canEdit: boolean }) {
               {Object.entries(PRIORITY_META).map(([k, v]) => <SelectItem key={k} value={k}>{v.label}</SelectItem>)}
             </SelectContent>
           </Select>
-          <Select value={committeeFilter} onValueChange={setCommitteeFilter}>
-            <SelectTrigger className="w-[180px] order-3"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">كل اللجان</SelectItem>
-              {committees.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
-            </SelectContent>
-          </Select>
+          {isPrivileged && (
+            <Select value={committeeFilter} onValueChange={setCommitteeFilter}>
+              <SelectTrigger className="w-[180px] order-3"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">كل اللجان</SelectItem>
+                {committees.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          )}
           <div className="relative flex-1 min-w-[200px] order-4">
             <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="ابحث في المهام..." className="pr-9" />
@@ -328,7 +360,7 @@ function TaskCenterInner({ canEdit }: { canEdit: boolean }) {
       <Tabs defaultValue="board" dir="rtl" className="w-full">
         <TabsList>
           <TabsTrigger value="board">المهام</TabsTrigger>
-          <TabsTrigger value="performance">أداء اللجان</TabsTrigger>
+          {isPrivileged && <TabsTrigger value="performance">أداء اللجان</TabsTrigger>}
         </TabsList>
 
         <TabsContent value="board" className="mt-4">
@@ -338,9 +370,11 @@ function TaskCenterInner({ canEdit }: { canEdit: boolean }) {
           }
         </TabsContent>
 
-        <TabsContent value="performance" className="mt-4">
-          <PerformanceGrid committees={committees} tasks={tasks} />
-        </TabsContent>
+        {isPrivileged && (
+          <TabsContent value="performance" className="mt-4">
+            <PerformanceGrid committees={committees} tasks={tasks} />
+          </TabsContent>
+        )}
       </Tabs>
 
       {createOpen && (
