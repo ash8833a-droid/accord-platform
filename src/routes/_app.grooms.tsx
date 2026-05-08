@@ -206,6 +206,43 @@ export function GroomsPage() {
     load();
   };
 
+  const downloadGroomFiles = async (g: Groom) => {
+    const ge = g as any;
+    const targets: Array<{ path: string; label: string }> = [];
+    if (ge.photo_url) targets.push({ path: ge.photo_url, label: "صورة" });
+    if (ge.national_id_url) targets.push({ path: ge.national_id_url, label: "هوية" });
+    if (targets.length === 0) {
+      toast.info("لا توجد ملفات مرفوعة لهذا العريس");
+      return;
+    }
+    const safeName = (g.full_name || "groom").replace(/[\\/:*?"<>|]/g, "_").trim();
+    const tid = toast.loading(`جارٍ تحضير ${targets.length} ملف للتنزيل...`);
+    let okCount = 0;
+    for (const t of targets) {
+      try {
+        const { data, error } = await sb.storage.from("groom-docs").download(t.path);
+        if (error || !data) throw error ?? new Error("download failed");
+        const ext = (t.path.split(".").pop() || "bin").split("?")[0];
+        const fileName = `${safeName}-${t.label}.${ext}`;
+        const url = URL.createObjectURL(data);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1500);
+        okCount++;
+      } catch (err: any) {
+        console.error("download error", t.path, err);
+      }
+    }
+    toast.dismiss(tid);
+    if (okCount === targets.length) toast.success(`تم تنزيل ${okCount} ملف`);
+    else if (okCount > 0) toast.warning(`تم تنزيل ${okCount} من ${targets.length} ملف`);
+    else toast.error("تعذّر تنزيل الملفات");
+  };
+
   const stats = {
     total: grooms.length,
     approved: grooms.filter((g) => g.status === "approved" || g.status === "completed").length,
@@ -417,19 +454,33 @@ export function GroomsPage() {
                     <td className="px-4 py-3 text-muted-foreground" dir="ltr">{g.phone}</td>
                     <td className="px-4 py-3"><Badge className={b.cls}>{b.label}</Badge></td>
                     <td className="px-4 py-3">
-                      {(g.status === "approved" || g.status === "completed") ? (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="h-8 gap-1.5 border-primary/40 text-primary hover:bg-primary/10"
-                          onClick={() => setDetailsId(g.id)}
-                        >
-                          <FolderOpen className="h-3.5 w-3.5" />
-                          المستندات والطلبات
-                        </Button>
-                      ) : (
-                        <span className="text-xs text-muted-foreground">يُتاح بعد الاعتماد</span>
-                      )}
+                      <div className="flex items-center gap-2 flex-wrap">
+                        {(g.status === "approved" || g.status === "completed") ? (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-8 gap-1.5 border-primary/40 text-primary hover:bg-primary/10"
+                            onClick={() => setDetailsId(g.id)}
+                          >
+                            <FolderOpen className="h-3.5 w-3.5" />
+                            المستندات والطلبات
+                          </Button>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">يُتاح بعد الاعتماد</span>
+                        )}
+                        {((g as any).photo_url || (g as any).national_id_url) && (
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-8 w-8 text-primary hover:bg-primary/10"
+                            onClick={() => downloadGroomFiles(g)}
+                            title="تنزيل الصور والمستندات"
+                            aria-label="تنزيل الصور والمستندات"
+                          >
+                            <Download className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
