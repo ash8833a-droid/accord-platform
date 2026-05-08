@@ -920,6 +920,11 @@ function CommitteePage() {
       {/* Media committee gets inbox + invitation cards distribution */}
       {type === "media" && (
         <>
+          <QualitySection storageKey={`committee:${type}:grooms-db`} title="قاعدة بيانات العرسان" icon={HeartHandshake} defaultOpen>
+            <div className="rounded-2xl border bg-card p-5 shadow-soft">
+              <GroomsPage />
+            </div>
+          </QualitySection>
           <QualitySection storageKey={`committee:${type}:inbox`} title="صندوق الوارد الإعلامي" icon={Inbox} defaultOpen>
             <MediaInbox />
           </QualitySection>
