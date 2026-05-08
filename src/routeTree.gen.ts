@@ -31,6 +31,7 @@ import { Route as AppAdminRouteImport } from './routes/_app.admin'
 import { Route as AppCommitteeTypeRouteImport } from './routes/_app.committee.$type'
 import { Route as AppAdminUsersRouteImport } from './routes/_app.admin.users'
 import { Route as AppAdminTasksRouteImport } from './routes/_app.admin.tasks'
+import { Route as ApiPublicHooksTaskDeadlineCheckRouteImport } from './routes/api.public.hooks.task-deadline-check'
 
 const RegisterGroomRoute = RegisterGroomRouteImport.update({
   id: '/register-groom',
@@ -141,6 +142,12 @@ const AppAdminTasksRoute = AppAdminTasksRouteImport.update({
   path: '/tasks',
   getParentRoute: () => AppAdminRoute,
 } as any)
+const ApiPublicHooksTaskDeadlineCheckRoute =
+  ApiPublicHooksTaskDeadlineCheckRouteImport.update({
+    id: '/api/public/hooks/task-deadline-check',
+    path: '/api/public/hooks/task-deadline-check',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -164,6 +171,7 @@ export interface FileRoutesByFullPath {
   '/admin/tasks': typeof AppAdminTasksRoute
   '/admin/users': typeof AppAdminUsersRoute
   '/committee/$type': typeof AppCommitteeTypeRoute
+  '/api/public/hooks/task-deadline-check': typeof ApiPublicHooksTaskDeadlineCheckRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -187,6 +195,7 @@ export interface FileRoutesByTo {
   '/admin/tasks': typeof AppAdminTasksRoute
   '/admin/users': typeof AppAdminUsersRoute
   '/committee/$type': typeof AppCommitteeTypeRoute
+  '/api/public/hooks/task-deadline-check': typeof ApiPublicHooksTaskDeadlineCheckRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -212,6 +221,7 @@ export interface FileRoutesById {
   '/_app/admin/tasks': typeof AppAdminTasksRoute
   '/_app/admin/users': typeof AppAdminUsersRoute
   '/_app/committee/$type': typeof AppCommitteeTypeRoute
+  '/api/public/hooks/task-deadline-check': typeof ApiPublicHooksTaskDeadlineCheckRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -237,6 +247,7 @@ export interface FileRouteTypes {
     | '/admin/tasks'
     | '/admin/users'
     | '/committee/$type'
+    | '/api/public/hooks/task-deadline-check'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -260,6 +271,7 @@ export interface FileRouteTypes {
     | '/admin/tasks'
     | '/admin/users'
     | '/committee/$type'
+    | '/api/public/hooks/task-deadline-check'
   id:
     | '__root__'
     | '/'
@@ -284,6 +296,7 @@ export interface FileRouteTypes {
     | '/_app/admin/tasks'
     | '/_app/admin/users'
     | '/_app/committee/$type'
+    | '/api/public/hooks/task-deadline-check'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -295,6 +308,7 @@ export interface RootRouteChildren {
   PendingRoute: typeof PendingRoute
   RegisterGroomRoute: typeof RegisterGroomRoute
   SurveyWomenTalentsRoute: typeof SurveyWomenTalentsRoute
+  ApiPublicHooksTaskDeadlineCheckRoute: typeof ApiPublicHooksTaskDeadlineCheckRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -453,6 +467,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAdminTasksRouteImport
       parentRoute: typeof AppAdminRoute
     }
+    '/api/public/hooks/task-deadline-check': {
+      id: '/api/public/hooks/task-deadline-check'
+      path: '/api/public/hooks/task-deadline-check'
+      fullPath: '/api/public/hooks/task-deadline-check'
+      preLoaderRoute: typeof ApiPublicHooksTaskDeadlineCheckRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -511,6 +532,7 @@ const rootRouteChildren: RootRouteChildren = {
   PendingRoute: PendingRoute,
   RegisterGroomRoute: RegisterGroomRoute,
   SurveyWomenTalentsRoute: SurveyWomenTalentsRoute,
+  ApiPublicHooksTaskDeadlineCheckRoute: ApiPublicHooksTaskDeadlineCheckRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

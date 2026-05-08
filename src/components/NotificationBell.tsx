@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { Bell, ListTodo, Receipt, CheckCheck } from "lucide-react";
+import { Bell, ListTodo, Receipt, CheckCheck, Trash2, AlarmClock, Check } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -47,6 +47,9 @@ export function NotificationBell() {
   }, [user]);
 
   const unread = notifs.filter((n) => !n.is_read).length;
+  const hasUrgent = notifs.some(
+    (n) => !n.is_read && (n.type === "task_deadline" || n.type === "task_reminder" || /عاجل|urgent/i.test(n.title)),
+  );
 
   const markAll = async () => {
     if (!user || unread === 0) return;
@@ -59,6 +62,17 @@ export function NotificationBell() {
     setNotifs((prev) => prev.map((n) => n.id === id ? { ...n, is_read: true } : n));
   };
 
+  const clearAll = async () => {
+    if (!user || notifs.length === 0) return;
+    await supabase.from("notifications").delete().eq("user_id", user.id);
+    setNotifs([]);
+  };
+
+  const deleteOne = async (id: string) => {
+    await supabase.from("notifications").delete().eq("id", id);
+    setNotifs((prev) => prev.filter((n) => n.id !== id));
+  };
+
   if (!user) return null;
 
   return (
@@ -68,9 +82,12 @@ export function NotificationBell() {
           className="relative p-2 rounded-lg hover:bg-accent transition-colors"
           aria-label={`الإشعارات${unread > 0 ? ` (${unread} غير مقروء)` : ""}`}
         >
-          <Bell className="h-5 w-5 text-muted-foreground" />
+          <Bell className={`h-5 w-5 ${hasUrgent ? "text-rose-500" : "text-muted-foreground"}`} />
+          {hasUrgent && (
+            <span className="absolute inset-0 rounded-lg ring-2 ring-rose-500/60 animate-ping pointer-events-none" />
+          )}
           {unread > 0 && (
-            <span className="absolute -top-0.5 -right-0.5 min-w-4 h-4 px-1 rounded-full bg-rose-500 text-white text-[9px] font-bold flex items-center justify-center ring-2 ring-background">
+            <span className={`absolute -top-0.5 -right-0.5 min-w-4 h-4 px-1 rounded-full bg-rose-500 text-white text-[9px] font-bold flex items-center justify-center ring-2 ring-background ${hasUrgent ? "animate-pulse" : ""}`}>
               {unread > 9 ? "9+" : unread}
             </span>
           )}
@@ -83,11 +100,18 @@ export function NotificationBell() {
             <h3 className="font-bold text-sm">الإشعارات</h3>
             {unread > 0 && <span className="text-[10px] bg-primary/15 text-primary rounded-full px-2 py-0.5 font-bold">{unread}</span>}
           </div>
-          {unread > 0 && (
-            <button onClick={markAll} className="text-[11px] text-primary hover:underline inline-flex items-center gap-1">
-              <CheckCheck className="h-3 w-3" /> تعليم الكل
-            </button>
-          )}
+          <div className="flex items-center gap-3">
+            {unread > 0 && (
+              <button onClick={markAll} className="text-[11px] text-primary hover:underline inline-flex items-center gap-1">
+                <CheckCheck className="h-3 w-3" /> تعليم الكل
+              </button>
+            )}
+            {notifs.length > 0 && (
+              <button onClick={clearAll} className="text-[11px] text-rose-600 hover:underline inline-flex items-center gap-1">
+                <Trash2 className="h-3 w-3" /> مسح الكل
+              </button>
+            )}
+          </div>
         </div>
 
         <div className="max-h-[60vh] overflow-y-auto divide-y">
@@ -98,30 +122,55 @@ export function NotificationBell() {
             </div>
           ) : (
             notifs.map((n) => {
-              const Icon = n.type === "task_assigned" ? ListTodo : Receipt;
+              const isDeadline = n.type === "task_deadline" || n.type === "task_reminder";
+              const Icon = isDeadline ? AlarmClock : n.type === "task_assigned" ? ListTodo : Receipt;
               const target = n.link && n.link.startsWith("/committee/") ? n.link : null;
               return (
-                <button
+                <div
                   key={n.id}
-                  onClick={() => {
-                    markOne(n.id);
-                    setOpen(false);
-                    if (target) navigate({ to: target });
-                  }}
-                  className={`w-full text-start flex items-start gap-3 p-3.5 hover:bg-muted/40 transition-colors ${n.is_read ? "" : "bg-primary/5"}`}
+                  className={`group relative flex items-start gap-3 p-3.5 hover:bg-muted/40 transition-colors ${n.is_read ? "" : "bg-primary/5"}`}
                 >
-                  <span className={`h-8 w-8 rounded-lg flex items-center justify-center shrink-0 ${
-                    n.type === "task_assigned" ? "bg-primary/10 text-primary" : "bg-gold/15 text-gold-foreground"
-                  }`}>
-                    <Icon className="h-4 w-4" />
-                  </span>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-bold leading-snug">{n.title}</p>
-                    {n.body && <p className="text-[11px] text-muted-foreground line-clamp-2 mt-0.5">{n.body}</p>}
-                    <p className="text-[10px] text-muted-foreground/70 mt-1">{new Date(n.created_at).toLocaleString("ar-SA")}</p>
+                  <button
+                    onClick={() => {
+                      markOne(n.id);
+                      setOpen(false);
+                      if (target) navigate({ to: target });
+                    }}
+                    className="flex-1 text-start flex items-start gap-3 min-w-0"
+                  >
+                    <span className={`h-8 w-8 rounded-lg flex items-center justify-center shrink-0 ${
+                      isDeadline ? "bg-rose-500/10 text-rose-600"
+                        : n.type === "task_assigned" ? "bg-primary/10 text-primary"
+                        : "bg-gold/15 text-gold-foreground"
+                    }`}>
+                      <Icon className="h-4 w-4" />
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-bold leading-snug">{n.title}</p>
+                      {n.body && <p className="text-[11px] text-muted-foreground line-clamp-2 mt-0.5">{n.body}</p>}
+                      <p className="text-[10px] text-muted-foreground/70 mt-1">{new Date(n.created_at).toLocaleString("ar-SA")}</p>
+                    </div>
+                    {!n.is_read && <span className="h-2 w-2 rounded-full bg-primary mt-1.5 shrink-0" />}
+                  </button>
+                  <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    {!n.is_read && (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); markOne(n.id); }}
+                        title="تعليم كمقروء"
+                        className="p-1 rounded hover:bg-primary/15 text-primary"
+                      >
+                        <Check className="h-3 w-3" />
+                      </button>
+                    )}
+                    <button
+                      onClick={(e) => { e.stopPropagation(); deleteOne(n.id); }}
+                      title="حذف"
+                      className="p-1 rounded hover:bg-rose-500/15 text-rose-600"
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </button>
                   </div>
-                  {!n.is_read && <span className="h-2 w-2 rounded-full bg-primary mt-1.5 shrink-0" />}
-                </button>
+                </div>
               );
             })
           )}
