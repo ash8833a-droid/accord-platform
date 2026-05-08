@@ -24,6 +24,7 @@ import { QuickPurchaseRequestDialog } from "@/components/QuickPurchaseRequestDia
 import { useAllPageAccess } from "@/hooks/use-page-access";
 import { PAGES } from "@/lib/pages";
 import { committeeByType } from "@/lib/committees";
+import { useAdminAlerts } from "@/hooks/use-admin-alerts";
 
 
 const ADMIN_TOP = [
@@ -58,7 +59,6 @@ export function AppShell({ children, restricted = false, restrictedToCommitteeTy
   const [purchaseOpen, setPurchaseOpen] = useState(false);
   const { brand } = useBrand();
   useEffect(() => { applyBrandCssVars(brand); }, [brand]);
-  const [pendingCount, setPendingCount] = useState(0);
   const [profileName, setProfileName] = useState<string | null>(null);
   const [isCommitteeHead, setIsCommitteeHead] = useState(false);
 
@@ -74,6 +74,7 @@ export function AppShell({ children, restricted = false, restrictedToCommitteeTy
       .then(({ count }) => setIsCommitteeHead((count ?? 0) > 0));
   }, [user]);
   const isAdminUser = hasRole("admin");
+  const { count: pendingCount } = useAdminAlerts(isAdminUser);
   const { map: accessMap, isAdmin: isAdminMap } = useAllPageAccess();
   const isPathHidden = (to: string) => {
     if (isAdminMap) return false;
@@ -111,29 +112,6 @@ export function AppShell({ children, restricted = false, restrictedToCommitteeTy
       ? restrictedNav
       : ADMIN_TOP.filter((n) => !isPathHidden(n.to));
   const BOTTOM_NAV = restricted ? [] : ADMIN_BOTTOM.filter((n) => !isPathHidden(n.to));
-
-  useEffect(() => {
-    if (!isAdminUser) return;
-    const fetchPending = async () => {
-      const { count } = await supabase
-        .from("membership_requests")
-        .select("id", { count: "exact", head: true })
-        .eq("status", "pending");
-      setPendingCount(count ?? 0);
-    };
-    fetchPending();
-    const channel = supabase
-      .channel("membership_requests_badge")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "membership_requests" },
-        () => fetchPending(),
-      )
-      .subscribe();
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [isAdminUser]);
 
   const handleLogout = async () => {
     await signOut();
