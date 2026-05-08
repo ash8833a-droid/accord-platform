@@ -15,6 +15,8 @@ import {
 import { exportDashboardPdf } from "@/lib/dashboard-pdf";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { WeeklyReport } from "@/components/admin/WeeklyReport";
+import { AdminAlertsPanel } from "@/components/admin/AdminAlertsPanel";
+import { useAuth } from "@/lib/auth";
 import {
   Bar, BarChart, CartesianGrid, Legend, Line, LineChart,
   PolarAngleAxis, PolarGrid, PolarRadiusAxis, Radar, RadarChart,
@@ -55,6 +57,8 @@ export function AnalyticsDashboard() {
 }
 
 function Inner() {
+  const { hasRole } = useAuth();
+  const isAdmin = hasRole("admin");
   const [year, setYear] = useState<YearKey>(new Date().getFullYear());
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<any>(null);
@@ -215,6 +219,8 @@ function Inner() {
 
   return (
     <div className="space-y-6 text-right" dir="rtl">
+      {/* Action-required alerts — synced with the red sidebar badge */}
+      <AdminAlertsPanel enabled={isAdmin} />
       {/* Filter bar */}
       <Card className="border-primary/10">
         <CardContent className="p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
