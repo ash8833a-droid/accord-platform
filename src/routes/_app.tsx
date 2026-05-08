@@ -15,10 +15,21 @@ function AppLayout() {
   const path = useRouterState({ select: (s) => s.location.pathname });
   const [myCommitteeType, setMyCommitteeType] = useState<string | null>(null);
   const [typeLoaded, setTypeLoaded] = useState(false);
+  const [isCommitteeHead, setIsCommitteeHead] = useState(false);
+  const [headLoaded, setHeadLoaded] = useState(false);
 
   const isAdmin = hasRole("admin");
   const isQuality = hasRole("quality");
   const restricted = !isAdmin && !isQuality;
+  const isStandardMember = restricted && headLoaded && !isCommitteeHead;
+
+  useEffect(() => {
+    if (!user) { setIsCommitteeHead(false); setHeadLoaded(true); return; }
+    setHeadLoaded(false);
+    supabase.from("committees").select("id", { count: "exact", head: true })
+      .eq("head_user_id", user.id)
+      .then(({ count }) => { setIsCommitteeHead((count ?? 0) > 0); setHeadLoaded(true); });
+  }, [user]);
 
   useEffect(() => {
     if (!committeeId) {
@@ -48,7 +59,22 @@ function AppLayout() {
       nav({ to: "/pending" });
       return;
     }
-    if (!restricted || !typeLoaded) return;
+    if (!restricted || !typeLoaded || !headLoaded) return;
+
+    // Standard committee members: ONLY their committee + Idea Bank.
+    if (isStandardMember) {
+      const allowed: string[] = ["/ideas"];
+      if (myCommitteeType) allowed.push(`/committee/${myCommitteeType}`);
+      const ok = allowed.some((p) => path === p || path.startsWith(p + "/"));
+      if (!ok) {
+        if (myCommitteeType) {
+          nav({ to: "/committee/$type", params: { type: myCommitteeType } });
+        } else {
+          nav({ to: "/ideas" });
+        }
+      }
+      return;
+    }
 
     const isSupreme = myCommitteeType === "supreme";
     // الإدارة العليا (تشمل لوحة التحكم) متاحة فقط للجنة العليا/المدير/الجودة
@@ -87,7 +113,7 @@ function AppLayout() {
         nav({ to: "/ideas" });
       }
     }
-  }, [user, loading, approved, nav, path, restricted, typeLoaded, myCommitteeType]);
+  }, [user, loading, approved, nav, path, restricted, typeLoaded, headLoaded, isStandardMember, myCommitteeType]);
 
   if (loading || !user || !approved) {
     return (
