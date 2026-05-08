@@ -574,19 +574,12 @@ function KanbanBoard({
                 </div>
               )}
             </div>
-            {/* Mobile: tabbed view (no drag-and-drop, use status dropdown) */}
-            <div className="lg:hidden p-3">
-              <MobileColumns
-                group={group}
-                cmMap={cmMap}
-                canEdit={canEdit}
-                onMove={onMove}
-                onOpen={onOpen}
-                onDelete={onDelete}
-              />
-            </div>
-            {/* Desktop: 3-column Kanban with drag-and-drop */}
-            <div className="hidden lg:grid grid-cols-3 gap-3 p-3">
+            {/* Kanban — single layout for desktop & mobile (touch DnD enabled via polyfill) */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 p-3">
+              <div className="lg:hidden -mb-1 flex items-center gap-2 text-[11px] text-muted-foreground bg-sky-50 dark:bg-sky-950/30 border border-sky-200/60 dark:border-sky-800/60 rounded-md px-2.5 py-1.5">
+                <GripVertical className="h-3.5 w-3.5" />
+                <span>اضغط مطوّلاً على المقبض لسحب البطاقة. التمرير العادي يعمل بشكل طبيعي.</span>
+              </div>
               {cols.map((status) => {
                 const meta = STATUS_META[status];
                 const statusItems = group.list.filter((t) => t.status === status).sort(comparePmp);
