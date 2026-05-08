@@ -1,18 +1,17 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { PageGate } from "@/components/PageGate";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Activity, AlertTriangle, CheckCircle2, ClipboardList, HeartHandshake,
   ListTodo, Loader2, ShieldCheck, TrendingUp, UserPlus, Users, Wallet,
-  Plus, FileBarChart, Inbox, Settings2, ChevronRight,
 } from "lucide-react";
 import {
   Bar, BarChart, CartesianGrid, Cell, Legend, Line, LineChart, Pie, PieChart,
   ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from "recharts";
+import { PageHeroHeader } from "@/components/PageHeroHeader";
 
 type Period = "day" | "week" | "month" | "quarter" | "year";
 
@@ -215,71 +214,44 @@ function Inner() {
 
   return (
     <div className="space-y-6" dir="rtl">
-      {/* Clean header */}
-      <div className="flex flex-wrap items-end justify-between gap-3 border-b pb-4">
-        <div>
-          <h1 className="text-2xl font-bold leading-tight">لوحة الإدارة</h1>
-          <p className="text-sm text-muted-foreground mt-1">نظرة سريعة على أداء المنصة</p>
-        </div>
-        <div className="flex items-center gap-2">
-          {loading && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
-          <Tabs value={period} onValueChange={(v) => setPeriod(v as Period)} dir="rtl">
-            <TabsList>
-              {(Object.keys(PERIOD_LABEL) as Period[]).map((p) => (
-                <TabsTrigger key={p} value={p} className="text-xs">{PERIOD_LABEL[p]}</TabsTrigger>
-              ))}
-            </TabsList>
-          </Tabs>
-        </div>
-      </div>
+      <PageHeroHeader
+        eyebrow="لوحة تقييم الأداء"
+        title="ومؤشرات اللجان"
+        highlight="أداء المنصة"
+        subtitle="إحصائيات لحظية وتحليلات للفترة المحددة"
+        icon={ShieldCheck}
+        actions={
+          <>
+            {loading && <Loader2 className="h-4 w-4 animate-spin text-gold" />}
+            <Tabs value={period} onValueChange={(v) => setPeriod(v as Period)} dir="rtl">
+              <TabsList className="bg-white/10 backdrop-blur border border-white/20">
+                {(Object.keys(PERIOD_LABEL) as Period[]).map((p) => (
+                  <TabsTrigger key={p} value={p}
+                    className="text-primary-foreground data-[state=active]:bg-gold data-[state=active]:text-gold-foreground">
+                    {PERIOD_LABEL[p]}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </Tabs>
+          </>
+        }
+      />
 
-      {/* Primary action buttons — large & clear */}
+      {/* KPI grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <PrimaryAction to="/admin/tasks" icon={Plus} label="مهمة جديدة" hint="أنشئ وكلّف مهمة" tone="from-primary to-primary/80 text-primary-foreground" />
-        <PrimaryAction to="/grooms" icon={HeartHandshake} label="تسجيل عريس" hint="أضف عريساً للسجل" tone="from-rose-500 to-pink-500 text-white" />
-        <PrimaryAction to="/communications" icon={Inbox} label="إدارة الطلبات" hint={k.pendingRequests > 0 ? `${k.pendingRequests} بانتظار المراجعة` : "بريد المعاملات"} tone="from-amber-500 to-orange-500 text-white" badge={k.pendingRequests} />
-        <PrimaryAction to="/reports" icon={FileBarChart} label="التقارير" hint="عرض الأداء والجودة" tone="from-emerald-500 to-teal-500 text-white" />
+        <Kpi label="إجمالي المهام" value={k.totalAll} sub={`${k.active} نشطة`} icon={ClipboardList} tone="text-sky-600 bg-sky-500/10" />
+        <Kpi label="نسبة الإنجاز" value={`${k.completionRate}%`} sub={`${k.completedAll} مكتملة`} icon={CheckCircle2} tone="text-emerald-600 bg-emerald-500/10" />
+        <Kpi label="مهام متأخرة" value={k.overdue} sub="بحاجة متابعة" icon={AlertTriangle} tone="text-rose-600 bg-rose-500/10" />
+        <Kpi label={`أُنجزت ${PERIOD_LABEL[period]}`} value={k.completedPeriod} sub="خلال الفترة" icon={Activity} tone="text-amber-600 bg-amber-500/10" />
+
+        <Kpi label="إجمالي الأعضاء" value={k.totalMembers} sub={`+${k.newMembers} جدد`} icon={Users} tone="text-indigo-600 bg-indigo-500/10" />
+        <Kpi label="طلبات الانضمام" value={k.pendingRequests} sub={`+${k.newRequests} ${PERIOD_LABEL[period]}`} icon={UserPlus} tone="text-violet-600 bg-violet-500/10" />
+        <Kpi label="عدد العرسان" value={k.totalGrooms} sub={`+${k.newGrooms} ${PERIOD_LABEL[period]}`} icon={HeartHandshake} tone="text-pink-600 bg-pink-500/10" />
+        <Kpi label="نسبة الإنفاق" value={`${k.spendRate}%`} sub={`${fmtSar(k.totalSpent)} من ${fmtSar(k.totalBudget)}`} icon={Wallet} tone="text-teal-600 bg-teal-500/10" />
       </div>
 
-      {/* Tabbed body — Overview by default, Analytics & Settings hidden */}
-      <Tabs defaultValue="overview" dir="rtl" className="space-y-4">
-        <TabsList className="grid grid-cols-3 w-full sm:w-auto sm:inline-grid">
-          <TabsTrigger value="overview">نظرة عامة</TabsTrigger>
-          <TabsTrigger value="analytics">تحليلات</TabsTrigger>
-          <TabsTrigger value="advanced">إعدادات متقدمة</TabsTrigger>
-        </TabsList>
-
-        {/* OVERVIEW: only the 4 most important KPIs + quick links */}
-        <TabsContent value="overview" className="space-y-4 mt-0">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-            <Kpi label="نسبة الإنجاز" value={`${k.completionRate}%`} sub={`${k.completedAll} مكتملة`} icon={CheckCircle2} tone="text-emerald-600 bg-emerald-500/10" />
-            <Kpi label="مهام نشطة" value={k.active} sub={`${k.totalAll} إجمالاً`} icon={ClipboardList} tone="text-sky-600 bg-sky-500/10" />
-            <Kpi label="مهام متأخرة" value={k.overdue} sub="بحاجة متابعة" icon={AlertTriangle} tone="text-rose-600 bg-rose-500/10" />
-            <Kpi label="إجمالي الأعضاء" value={k.totalMembers} sub={`+${k.newMembers} جدد`} icon={Users} tone="text-indigo-600 bg-indigo-500/10" />
-          </div>
-
-          <Card>
-            <CardContent className="p-4">
-              <p className="text-xs text-muted-foreground mb-3">روابط سريعة</p>
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
-                <QuickLink to="/admin/users" label="المستخدمون" icon={Users} />
-                <QuickLink to="/finance-management" label="المالية" icon={Wallet} />
-                <QuickLink to="/grooms" label="سجل العرسان" icon={HeartHandshake} />
-                <QuickLink to="/ideas" label="بنك الأفكار" icon={Activity} />
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* ANALYTICS: charts moved here */}
-        <TabsContent value="analytics" className="space-y-4 mt-0">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-            <Kpi label={`أُنجزت ${PERIOD_LABEL[period]}`} value={k.completedPeriod} sub="خلال الفترة" icon={Activity} tone="text-amber-600 bg-amber-500/10" />
-            <Kpi label="طلبات الانضمام" value={k.pendingRequests} sub={`+${k.newRequests} ${PERIOD_LABEL[period]}`} icon={UserPlus} tone="text-violet-600 bg-violet-500/10" />
-            <Kpi label="عدد العرسان" value={k.totalGrooms} sub={`+${k.newGrooms} ${PERIOD_LABEL[period]}`} icon={HeartHandshake} tone="text-pink-600 bg-pink-500/10" />
-            <Kpi label="نسبة الإنفاق" value={`${k.spendRate}%`} sub={`${fmtSar(k.totalSpent)} من ${fmtSar(k.totalBudget)}`} icon={Wallet} tone="text-teal-600 bg-teal-500/10" />
-          </div>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      {/* Charts */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <ChartCard title="اتجاه المهام خلال الفترة" subtitle="المُنشأة مقابل المُنجزة" icon={TrendingUp}>
           <ResponsiveContainer width="100%" height={260}>
             <LineChart data={charts.taskTrend}>
@@ -365,61 +337,8 @@ function Inner() {
             </BarChart>
           </ResponsiveContainer>
         </ChartCard>
-          </div>
-        </TabsContent>
-
-        {/* ADVANCED: management & settings */}
-        <TabsContent value="advanced" className="mt-0">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-base">
-                <Settings2 className="h-4 w-4 text-primary" />
-                إعدادات وإدارة
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              <QuickLink to="/admin/users" label="إدارة المستخدمين والصلاحيات" icon={Users} />
-              <QuickLink to="/brand" label="الهوية البصرية" icon={Settings2} />
-              <QuickLink to="/finance-management" label="إدارة المالية" icon={Wallet} />
-              <QuickLink to="/payment-requests" label="طلبات الصرف" icon={Wallet} />
-              <QuickLink to="/procurement-requests" label="طلبات الشراء" icon={ListTodo} />
-              <QuickLink to="/admin/tasks" label="مركز المهام" icon={ClipboardList} />
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+      </div>
     </div>
-  );
-}
-
-function PrimaryAction({ to, icon: Icon, label, hint, tone, badge }: { to: string; icon: any; label: string; hint?: string; tone: string; badge?: number }) {
-  return (
-    <Link to={to} className={`group relative overflow-hidden rounded-2xl bg-gradient-to-br ${tone} p-5 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all`}>
-      <div className="flex items-start justify-between">
-        <div className="h-11 w-11 rounded-xl bg-white/20 backdrop-blur flex items-center justify-center">
-          <Icon className="h-6 w-6" />
-        </div>
-        {badge && badge > 0 ? (
-          <span className="min-w-6 h-6 px-2 rounded-full bg-white/90 text-foreground text-xs font-bold flex items-center justify-center">{badge}</span>
-        ) : (
-          <ChevronRight className="h-5 w-5 opacity-60 rtl:rotate-180" />
-        )}
-      </div>
-      <p className="mt-4 text-base font-bold">{label}</p>
-      {hint && <p className="text-xs opacity-90 mt-0.5">{hint}</p>}
-    </Link>
-  );
-}
-
-function QuickLink({ to, icon: Icon, label }: { to: string; icon: any; label: string }) {
-  return (
-    <Link to={to} className="flex items-center gap-3 rounded-xl border bg-card hover:bg-accent/50 hover:border-primary/40 px-3 py-2.5 transition-colors">
-      <div className="h-8 w-8 rounded-lg bg-muted flex items-center justify-center">
-        <Icon className="h-4 w-4 text-muted-foreground" />
-      </div>
-      <span className="text-sm font-medium flex-1">{label}</span>
-      <ChevronRight className="h-4 w-4 text-muted-foreground rtl:rotate-180" />
-    </Link>
   );
 }
 
