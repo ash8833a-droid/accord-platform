@@ -35,7 +35,8 @@ function AuthPage() {
       // التوجيه بعد الدخول حسب الدور
       if (hasRole("admin")) nav({ to: "/admin" });
       else if (hasRole("quality")) nav({ to: "/reports" });
-      else nav({ to: "/ideas" });
+      // أعضاء اللجان: انتقال فوري إلى مركز المهام
+      else nav({ to: "/admin/tasks" });
     }
   }, [user, loading, nav, hasRole]);
 
