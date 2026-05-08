@@ -160,7 +160,7 @@ export async function exportDashboardPdf(data: DashboardPdfData): Promise<void> 
   document.body.appendChild(container);
 
   try {
-    await html2pdf()
+    await (html2pdf as any)()
       .set({
         margin: [10, 10, 10, 10],
         filename: `تقرير-الأداء-${data.year === "all" ? "كل-السنوات" : data.year}.pdf`,
