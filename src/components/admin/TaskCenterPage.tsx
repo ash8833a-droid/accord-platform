@@ -299,7 +299,7 @@ function TaskCenterInner({ canEdit }: { canEdit: boolean }) {
   }
 
   return (
-    <div className="p-4 lg:p-8 space-y-6" dir="rtl">
+    <div className="p-4 lg:p-10 space-y-8 bg-[#f8fafc] dark:bg-background min-h-screen" dir="rtl">
       {/* Active task alert banner */}
       {urgentTask ? (
         <div className="rounded-xl border-2 border-sky-300/60 dark:border-sky-700/60 bg-sky-50/80 dark:bg-sky-950/30 px-4 py-3 shadow-sm">
@@ -387,11 +387,10 @@ function TaskCenterInner({ canEdit }: { canEdit: boolean }) {
 
       {/* Global KPI cards — only for admins/quality. Members see their own scoped quick stats. */}
       {isPrivileged ? (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          <KpiCard label="مهام نشطة" value={String(stats.activeCount)} icon={ListTodo} tone="text-sky-600 bg-sky-500/10" />
-          <KpiCard label="نسبة الإنجاز" value={`${stats.completionRate}%`} icon={CheckCircle2} tone="text-emerald-600 bg-emerald-500/10" />
-          <KpiCard label="مهام متأخرة" value={String(stats.overdue)} icon={AlertTriangle} tone="text-rose-600 bg-rose-500/10" />
-          <KpiCard label="لجان دون مهام" value={String(stats.empty)} icon={Target} tone="text-amber-600 bg-amber-500/10" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-7">
+          <KpiCard label="إجمالي المهام النشطة" value={String(stats.activeCount)} icon={ListTodo} tone="text-sky-600 bg-sky-500/10" />
+          <KpiCard label="نسبة الإنجاز الكلية" value={`${stats.completionRate}%`} icon={CheckCircle2} tone="text-emerald-600 bg-emerald-500/10" />
+          <KpiCard label="المهام المتأخرة" value={String(stats.overdue)} icon={AlertTriangle} tone="text-rose-600 bg-rose-500/10" />
         </div>
       ) : (
         <div className="flex flex-wrap gap-2 text-xs">
@@ -475,12 +474,14 @@ function TaskCenterInner({ canEdit }: { canEdit: boolean }) {
 
 function KpiCard({ label, value, icon: Icon, tone }: { label: string; value: string; icon: any; tone: string }) {
   return (
-    <Card>
-      <CardContent className="p-4 flex items-center gap-3">
-        <div className={`h-10 w-10 rounded-xl flex items-center justify-center ${tone}`}><Icon className="h-5 w-5" /></div>
-        <div>
-          <p className="text-xs text-muted-foreground">{label}</p>
-          <p className="text-xl font-extrabold">{value}</p>
+    <Card className="bg-white dark:bg-card border-slate-200/70 dark:border-border shadow-sm hover:shadow-md transition-shadow rounded-2xl">
+      <CardContent className="p-6 flex items-center gap-5">
+        <div className={`h-14 w-14 rounded-2xl flex items-center justify-center ${tone}`}>
+          <Icon className="h-6 w-6" />
+        </div>
+        <div className="min-w-0">
+          <p className="text-[13px] font-medium text-muted-foreground tracking-wide">{label}</p>
+          <p className="text-3xl font-extrabold tabular-nums mt-1 leading-none">{value}</p>
         </div>
       </CardContent>
     </Card>
@@ -938,7 +939,7 @@ function MobileColumns({
 
 function PerformanceGrid({ committees, tasks }: { committees: CommitteeRow[]; tasks: TaskRow[] }) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+    <div className="space-y-4">
       {committees.map((c) => {
         const ct = tasks.filter((t) => t.committee_id === c.id);
         const completed = ct.filter((t) => t.status === "completed").length;
@@ -947,36 +948,48 @@ function PerformanceGrid({ committees, tasks }: { committees: CommitteeRow[]; ta
         const overdue = ct.filter(isOverdue).length;
         const meta = committeeByType(c.type);
         return (
-          <Card key={c.id}>
-            <CardContent className="p-4 space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  {meta && (
-                    <div className={`h-9 w-9 rounded-lg flex items-center justify-center ${meta.tone}`}>
-                      <meta.icon className="h-4 w-4" />
+          <Card key={c.id} className="bg-white dark:bg-card border-slate-200/70 dark:border-border shadow-sm hover:shadow-md transition-shadow rounded-2xl">
+            <CardContent className="p-5 lg:p-6">
+              <div className="flex items-center gap-4 lg:gap-6">
+                {meta && (
+                  <div className={`h-14 w-14 lg:h-16 lg:w-16 rounded-2xl flex items-center justify-center shrink-0 ${meta.tone}`}>
+                    <meta.icon className="h-6 w-6 lg:h-7 lg:w-7" />
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between gap-3 mb-2 flex-wrap">
+                    <div className="min-w-0">
+                      <h3 className="font-bold text-base lg:text-lg leading-tight truncate">{c.name}</h3>
+                      <p className="text-xs text-muted-foreground mt-0.5">مسار اللجنة</p>
                     </div>
-                  )}
-                  <div>
-                    <p className="font-bold text-sm">{c.name}</p>
-                    <p className="text-[11px] text-muted-foreground">{total} مهمة · {completed} مكتملة</p>
+                    <div className="flex items-center gap-3 shrink-0">
+                      <span className="text-2xl lg:text-3xl font-extrabold tabular-nums text-emerald-700 dark:text-emerald-400 leading-none">{rate}%</span>
+                      <Link to="/committee/$type" params={{ type: c.type }} className="text-xs text-primary hover:underline inline-flex items-center gap-1 font-semibold">
+                        فتح <ExternalLink className="h-3 w-3" />
+                      </Link>
+                    </div>
+                  </div>
+                  <Progress value={rate} className="h-3 rounded-full" />
+                  <div className="flex items-center justify-between gap-3 mt-2 text-xs flex-wrap">
+                    <div className="text-muted-foreground tabular-nums">
+                      <span className="font-semibold text-foreground">{total}</span> مهمة
+                      <span className="mx-1.5">•</span>
+                      <span className="font-semibold text-foreground">{completed}</span> مكتملة
+                      {total - completed > 0 && (
+                        <>
+                          <span className="mx-1.5">•</span>
+                          <span className="font-semibold text-foreground">{total - completed}</span> قيد العمل
+                        </>
+                      )}
+                    </div>
+                    {overdue > 0 && (
+                      <div className="text-rose-600 inline-flex items-center gap-1 font-semibold">
+                        <AlertTriangle className="h-3.5 w-3.5" /> {overdue} متأخرة
+                      </div>
+                    )}
                   </div>
                 </div>
-                <Link to="/committee/$type" params={{ type: c.type }} className="text-xs text-primary hover:underline inline-flex items-center gap-1">
-                  فتح <ExternalLink className="h-3 w-3" />
-                </Link>
               </div>
-              <div>
-                <div className="flex items-center justify-between text-xs mb-1">
-                  <span className="text-muted-foreground">نسبة الإنجاز</span>
-                  <span className="font-bold">{rate}%</span>
-                </div>
-                <Progress value={rate} className="h-2" />
-              </div>
-              {overdue > 0 && (
-                <div className="text-xs text-rose-600 inline-flex items-center gap-1">
-                  <AlertTriangle className="h-3.5 w-3.5" /> {overdue} مهمة متأخرة
-                </div>
-              )}
             </CardContent>
           </Card>
         );
