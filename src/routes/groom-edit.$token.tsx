@@ -99,7 +99,12 @@ function GroomEditByTokenPage() {
     if (!groom) return;
     setSaving(true);
     try {
-      const updates: Record<string, unknown> = {};
+      const updates: {
+        photo_url?: string;
+        national_id_url?: string;
+        request_type?: string;
+        request_details?: string | null;
+      } = {};
       if (photoFile) {
         const url = await uploadPublic(photoFile, "photo");
         if (url) updates.photo_url = url;
@@ -120,7 +125,13 @@ function GroomEditByTokenPage() {
       const { error } = await supabase.from("grooms").update(updates).eq("id", groom.id);
       if (error) throw error;
       toast.success("تم حفظ التعديلات بنجاح");
-      setGroom({ ...groom, ...updates } as Groom);
+      setGroom({
+        ...groom,
+        ...(updates.photo_url !== undefined ? { photo_url: updates.photo_url } : {}),
+        ...(updates.national_id_url !== undefined ? { national_id_url: updates.national_id_url } : {}),
+        ...(updates.request_type !== undefined ? { request_type: updates.request_type } : {}),
+        ...(updates.request_details !== undefined ? { request_details: updates.request_details } : {}),
+      });
       setPhotoFile(null);
       setIdFile(null);
       if (photoPreview) { URL.revokeObjectURL(photoPreview); setPhotoPreview(null); }

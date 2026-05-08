@@ -17,6 +17,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SurveyWomenTalentsRouteImport } from './routes/survey.women-talents'
+import { Route as GroomEditTokenRouteImport } from './routes/groom-edit.$token'
 import { Route as AppReportsRouteImport } from './routes/_app.reports'
 import { Route as AppProcurementRequestsRouteImport } from './routes/_app.procurement-requests'
 import { Route as AppPaymentRequestsRouteImport } from './routes/_app.payment-requests'
@@ -71,6 +72,11 @@ const SurveyWomenTalentsRoute = SurveyWomenTalentsRouteImport.update({
   id: '/survey/women-talents',
   path: '/survey/women-talents',
   getParentRoute: () => rootRouteImport,
+} as any)
+const GroomEditTokenRoute = GroomEditTokenRouteImport.update({
+  id: '/$token',
+  path: '/$token',
+  getParentRoute: () => GroomEditRoute,
 } as any)
 const AppReportsRoute = AppReportsRouteImport.update({
   id: '/reports',
@@ -153,7 +159,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/committees': typeof CommitteesRoute
-  '/groom-edit': typeof GroomEditRoute
+  '/groom-edit': typeof GroomEditRouteWithChildren
   '/pending': typeof PendingRoute
   '/register-groom': typeof RegisterGroomRoute
   '/admin': typeof AppAdminRouteWithChildren
@@ -167,6 +173,7 @@ export interface FileRoutesByFullPath {
   '/payment-requests': typeof AppPaymentRequestsRoute
   '/procurement-requests': typeof AppProcurementRequestsRoute
   '/reports': typeof AppReportsRoute
+  '/groom-edit/$token': typeof GroomEditTokenRoute
   '/survey/women-talents': typeof SurveyWomenTalentsRoute
   '/admin/tasks': typeof AppAdminTasksRoute
   '/admin/users': typeof AppAdminUsersRoute
@@ -177,7 +184,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/committees': typeof CommitteesRoute
-  '/groom-edit': typeof GroomEditRoute
+  '/groom-edit': typeof GroomEditRouteWithChildren
   '/pending': typeof PendingRoute
   '/register-groom': typeof RegisterGroomRoute
   '/admin': typeof AppAdminRouteWithChildren
@@ -191,6 +198,7 @@ export interface FileRoutesByTo {
   '/payment-requests': typeof AppPaymentRequestsRoute
   '/procurement-requests': typeof AppProcurementRequestsRoute
   '/reports': typeof AppReportsRoute
+  '/groom-edit/$token': typeof GroomEditTokenRoute
   '/survey/women-talents': typeof SurveyWomenTalentsRoute
   '/admin/tasks': typeof AppAdminTasksRoute
   '/admin/users': typeof AppAdminUsersRoute
@@ -203,7 +211,7 @@ export interface FileRoutesById {
   '/_app': typeof AppRouteWithChildren
   '/auth': typeof AuthRoute
   '/committees': typeof CommitteesRoute
-  '/groom-edit': typeof GroomEditRoute
+  '/groom-edit': typeof GroomEditRouteWithChildren
   '/pending': typeof PendingRoute
   '/register-groom': typeof RegisterGroomRoute
   '/_app/admin': typeof AppAdminRouteWithChildren
@@ -217,6 +225,7 @@ export interface FileRoutesById {
   '/_app/payment-requests': typeof AppPaymentRequestsRoute
   '/_app/procurement-requests': typeof AppProcurementRequestsRoute
   '/_app/reports': typeof AppReportsRoute
+  '/groom-edit/$token': typeof GroomEditTokenRoute
   '/survey/women-talents': typeof SurveyWomenTalentsRoute
   '/_app/admin/tasks': typeof AppAdminTasksRoute
   '/_app/admin/users': typeof AppAdminUsersRoute
@@ -243,6 +252,7 @@ export interface FileRouteTypes {
     | '/payment-requests'
     | '/procurement-requests'
     | '/reports'
+    | '/groom-edit/$token'
     | '/survey/women-talents'
     | '/admin/tasks'
     | '/admin/users'
@@ -267,6 +277,7 @@ export interface FileRouteTypes {
     | '/payment-requests'
     | '/procurement-requests'
     | '/reports'
+    | '/groom-edit/$token'
     | '/survey/women-talents'
     | '/admin/tasks'
     | '/admin/users'
@@ -292,6 +303,7 @@ export interface FileRouteTypes {
     | '/_app/payment-requests'
     | '/_app/procurement-requests'
     | '/_app/reports'
+    | '/groom-edit/$token'
     | '/survey/women-talents'
     | '/_app/admin/tasks'
     | '/_app/admin/users'
@@ -304,7 +316,7 @@ export interface RootRouteChildren {
   AppRoute: typeof AppRouteWithChildren
   AuthRoute: typeof AuthRoute
   CommitteesRoute: typeof CommitteesRoute
-  GroomEditRoute: typeof GroomEditRoute
+  GroomEditRoute: typeof GroomEditRouteWithChildren
   PendingRoute: typeof PendingRoute
   RegisterGroomRoute: typeof RegisterGroomRoute
   SurveyWomenTalentsRoute: typeof SurveyWomenTalentsRoute
@@ -368,6 +380,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/survey/women-talents'
       preLoaderRoute: typeof SurveyWomenTalentsRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/groom-edit/$token': {
+      id: '/groom-edit/$token'
+      path: '/$token'
+      fullPath: '/groom-edit/$token'
+      preLoaderRoute: typeof GroomEditTokenRouteImport
+      parentRoute: typeof GroomEditRoute
     }
     '/_app/reports': {
       id: '/_app/reports'
@@ -523,12 +542,24 @@ const AppRouteChildren: AppRouteChildren = {
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 
+interface GroomEditRouteChildren {
+  GroomEditTokenRoute: typeof GroomEditTokenRoute
+}
+
+const GroomEditRouteChildren: GroomEditRouteChildren = {
+  GroomEditTokenRoute: GroomEditTokenRoute,
+}
+
+const GroomEditRouteWithChildren = GroomEditRoute._addFileChildren(
+  GroomEditRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AppRoute: AppRouteWithChildren,
   AuthRoute: AuthRoute,
   CommitteesRoute: CommitteesRoute,
-  GroomEditRoute: GroomEditRoute,
+  GroomEditRoute: GroomEditRouteWithChildren,
   PendingRoute: PendingRoute,
   RegisterGroomRoute: RegisterGroomRoute,
   SurveyWomenTalentsRoute: SurveyWomenTalentsRoute,
