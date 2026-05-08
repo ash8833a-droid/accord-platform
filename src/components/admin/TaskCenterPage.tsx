@@ -299,7 +299,7 @@ function TaskCenterInner({ canEdit }: { canEdit: boolean }) {
   }
 
   return (
-    <div className="p-4 lg:p-8 space-y-6" dir="rtl">
+    <div className="p-4 lg:p-10 space-y-8 bg-[#f8fafc] dark:bg-background min-h-screen" dir="rtl">
       {/* Active task alert banner */}
       {urgentTask ? (
         <div className="rounded-xl border-2 border-sky-300/60 dark:border-sky-700/60 bg-sky-50/80 dark:bg-sky-950/30 px-4 py-3 shadow-sm">
@@ -387,11 +387,10 @@ function TaskCenterInner({ canEdit }: { canEdit: boolean }) {
 
       {/* Global KPI cards — only for admins/quality. Members see their own scoped quick stats. */}
       {isPrivileged ? (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          <KpiCard label="مهام نشطة" value={String(stats.activeCount)} icon={ListTodo} tone="text-sky-600 bg-sky-500/10" />
-          <KpiCard label="نسبة الإنجاز" value={`${stats.completionRate}%`} icon={CheckCircle2} tone="text-emerald-600 bg-emerald-500/10" />
-          <KpiCard label="مهام متأخرة" value={String(stats.overdue)} icon={AlertTriangle} tone="text-rose-600 bg-rose-500/10" />
-          <KpiCard label="لجان دون مهام" value={String(stats.empty)} icon={Target} tone="text-amber-600 bg-amber-500/10" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-7">
+          <KpiCard label="إجمالي المهام النشطة" value={String(stats.activeCount)} icon={ListTodo} tone="text-sky-600 bg-sky-500/10" />
+          <KpiCard label="نسبة الإنجاز الكلية" value={`${stats.completionRate}%`} icon={CheckCircle2} tone="text-emerald-600 bg-emerald-500/10" />
+          <KpiCard label="المهام المتأخرة" value={String(stats.overdue)} icon={AlertTriangle} tone="text-rose-600 bg-rose-500/10" />
         </div>
       ) : (
         <div className="flex flex-wrap gap-2 text-xs">
