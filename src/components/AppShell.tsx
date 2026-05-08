@@ -60,11 +60,18 @@ export function AppShell({ children, restricted = false, restrictedToCommitteeTy
   useEffect(() => { applyBrandCssVars(brand); }, [brand]);
   const [pendingCount, setPendingCount] = useState(0);
   const [profileName, setProfileName] = useState<string | null>(null);
+  const [isCommitteeHead, setIsCommitteeHead] = useState(false);
 
   useEffect(() => {
     if (!user) { setProfileName(null); return; }
     supabase.from("profiles").select("full_name").eq("user_id", user.id).maybeSingle()
       .then(({ data }) => setProfileName(data?.full_name ?? null));
+  }, [user]);
+  useEffect(() => {
+    if (!user) { setIsCommitteeHead(false); return; }
+    supabase.from("committees").select("id", { count: "exact", head: true })
+      .eq("head_user_id", user.id)
+      .then(({ count }) => setIsCommitteeHead((count ?? 0) > 0));
   }, [user]);
   const isAdminUser = hasRole("admin");
   const { map: accessMap, isAdmin: isAdminMap } = useAllPageAccess();
@@ -92,7 +99,13 @@ export function AppShell({ children, restricted = false, restrictedToCommitteeTy
   if (restrictedToCommitteeType === "media") {
     restrictedNav.push({ to: "/grooms", label: "سجل العرسان", icon: HeartHandshake });
   }
-  const TOP_NAV = restricted ? restrictedNav : ADMIN_TOP.filter((n) => !isPathHidden(n.to));
+  // Standard Committee Members (not admin/quality, not committee head): show ONLY Task Center.
+  const isStandardMember = restricted && !isCommitteeHead && !hasRole("quality");
+  const TOP_NAV = isStandardMember
+    ? [{ to: "/admin/tasks", label: "مركز المهام", icon: Target } as { to: string; label: string; icon: typeof LayoutGrid; params?: Record<string, string> }]
+    : restricted
+      ? restrictedNav
+      : ADMIN_TOP.filter((n) => !isPathHidden(n.to));
   const BOTTOM_NAV = restricted ? [] : ADMIN_BOTTOM.filter((n) => !isPathHidden(n.to));
 
   useEffect(() => {
