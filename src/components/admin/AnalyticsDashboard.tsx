@@ -84,7 +84,7 @@ function Inner() {
     const groomsY = year === "all"
       ? data.grooms
       : data.grooms.filter((g: any) => inRange(g.wedding_date ?? g.created_at, r));
-    const totalMarriages = groomsY.filter((g: any) => g.status === "completed" || g.status === "approved").length;
+    const totalMarriages = groomsY.length;
 
     const paymentsY = data.payments.filter((p: any) => inRange(p.created_at, r));
     const expenses = paymentsY.filter((p: any) => p.status === "paid").reduce((s: number, p: any) => s + Number(p.amount || 0), 0);
@@ -211,7 +211,7 @@ function Inner() {
           icon={ClipboardList} accent="from-sky-500/15 to-sky-500/0 text-sky-600 ring-sky-500/20" />
         <HeroKpi label="نسبة الإنجاز العامة" value={`${k.completionRate}%`} sub="عبر كل اللجان"
           icon={CheckCircle2} accent="from-emerald-500/15 to-emerald-500/0 text-emerald-600 ring-emerald-500/20" />
-        <HeroKpi label="إجمالي الزيجات" value={k.totalMarriages} sub={year === "all" ? "تراكمي" : `سنة ${year}`}
+        <HeroKpi label="إجمالي العرسان" value={k.totalMarriages} sub={year === "all" ? "تراكمي" : `سنة ${year}`}
           icon={HeartHandshake} accent="from-pink-500/15 to-pink-500/0 text-pink-600 ring-pink-500/20" />
         <HeroKpi label="صافي الرصيد المالي"
           value={fmtSar(k.netBalance)}
