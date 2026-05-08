@@ -593,7 +593,7 @@ function KanbanBoard({
                       setDragId(null); setDragOverId(null); setDragOverPos(null);
                     }}
                     onClick={() => onOpen(t)}
-                    className={`group rounded-lg border bg-card p-3 cursor-grab active:cursor-grabbing hover:shadow-md transition-all ${isDragging ? "opacity-40" : ""}`}
+                    className={`group relative rounded-lg border bg-card p-3 pr-3.5 cursor-grab active:cursor-grabbing hover:shadow-md hover:-translate-y-0.5 transition-all ${PRIORITY_BORDER[t.priority]} ${isDragging ? "opacity-40 rotate-1 shadow-xl ring-2 ring-primary/40" : ""}`}
                   >
                     <div className="flex items-start justify-between gap-2">
                       <p className="text-sm font-bold flex-1 line-clamp-2">
@@ -638,17 +638,26 @@ function KanbanBoard({
                         </span>
                       )}
                       <Badge variant="outline" className={`text-[10px] ${PRIORITY_META[t.priority].cls}`}>{PRIORITY_META[t.priority].label}</Badge>
-                      {overdue && (
-                        <Badge className="text-[10px] bg-rose-500/15 text-rose-600 border-rose-500/30">
-                          <AlertTriangle className="h-2.5 w-2.5 ms-0.5" />متأخرة
-                        </Badge>
-                      )}
                     </div>
                     {t.due_date && (
-                      <p className="text-[11px] text-muted-foreground mt-1.5 inline-flex items-center gap-1">
-                        <CalendarClock className="h-3 w-3" />
-                        {new Date(t.due_date).toLocaleDateString("ar-SA")}
-                      </p>
+                      <div className="mt-2 flex items-center justify-between gap-2">
+                        <span
+                          className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-1 rounded-md border ${
+                            overdue
+                              ? "bg-rose-500/10 text-rose-600 border-rose-500/40"
+                              : "bg-muted text-foreground/80 border-border"
+                          }`}
+                          title={overdue ? "تاريخ متأخر" : "تاريخ الاستحقاق"}
+                        >
+                          <CalendarClock className="h-3 w-3" />
+                          {new Date(t.due_date).toLocaleDateString("ar-SA")}
+                        </span>
+                        {overdue && (
+                          <span className="inline-flex items-center gap-1 text-[10px] font-bold text-rose-600">
+                            <AlertTriangle className="h-3 w-3" />متأخرة
+                          </span>
+                        )}
+                      </div>
                     )}
                   </div>
                     {showAfter && <div className="h-1 bg-primary rounded mt-1" />}
