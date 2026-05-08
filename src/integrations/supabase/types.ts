@@ -265,6 +265,44 @@ export type Database = {
           },
         ]
       }
+      committee_weekly_snapshots: {
+        Row: {
+          committee_id: string
+          completion_rate: number
+          created_at: string
+          done_tasks: number
+          id: string
+          total_tasks: number
+          week_start: string
+        }
+        Insert: {
+          committee_id: string
+          completion_rate?: number
+          created_at?: string
+          done_tasks?: number
+          id?: string
+          total_tasks?: number
+          week_start: string
+        }
+        Update: {
+          committee_id?: string
+          completion_rate?: number
+          created_at?: string
+          done_tasks?: number
+          id?: string
+          total_tasks?: number
+          week_start?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "committee_weekly_snapshots_committee_id_fkey"
+            columns: ["committee_id"]
+            isOneToOne: false
+            referencedRelation: "committees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       committees: {
         Row: {
           budget_allocated: number
