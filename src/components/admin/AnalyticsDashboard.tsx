@@ -84,7 +84,7 @@ function Inner() {
     const groomsY = year === "all"
       ? data.grooms
       : data.grooms.filter((g: any) => inRange(g.wedding_date ?? g.created_at, r));
-    const totalMarriages = groomsY.filter((g: any) => g.status === "completed" || g.status === "approved").length || groomsY.length;
+    const totalMarriages = groomsY.filter((g: any) => g.status === "completed" || g.status === "approved").length;
 
     const paymentsY = data.payments.filter((p: any) => inRange(p.created_at, r));
     const expenses = paymentsY.filter((p: any) => p.status === "paid").reduce((s: number, p: any) => s + Number(p.amount || 0), 0);
