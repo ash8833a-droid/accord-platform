@@ -381,6 +381,39 @@ export type Database = {
         }
         Relationships: []
       }
+      family_contributions: {
+        Row: {
+          amount: number
+          contribution_date: string
+          created_at: string
+          donor_name: string
+          id: string
+          notes: string | null
+          recorded_by: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          contribution_date?: string
+          created_at?: string
+          donor_name: string
+          id?: string
+          notes?: string | null
+          recorded_by?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          contribution_date?: string
+          created_at?: string
+          donor_name?: string
+          id?: string
+          notes?: string | null
+          recorded_by?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       groom_audit_log: {
         Row: {
           actor_name: string | null
