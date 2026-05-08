@@ -12,7 +12,7 @@ import {
   HeartHandshake, Plus, FileCheck2, FolderOpen, User, Phone, Users, Heart,
   StickyNote, IdCard, Camera, ClipboardList, Globe2, Crown, Upload, X, ImageIcon, FileImage,
   Pencil, Trash2, Share2, Copy, MessageCircle, Database, Search, Download,
-  FileSpreadsheet, FileText, FileJson, Printer,
+  FileSpreadsheet, FileText, FileJson, Printer, Combine,
 } from "lucide-react";
 import * as XLSX from "xlsx";
 import {
@@ -24,6 +24,7 @@ import { GroomDetailsDialog } from "@/components/grooms/GroomDetailsDialog";
 import { useBrand, brandLogoSrc, urlToDataUri } from "@/lib/brand";
 import { supabase as sb } from "@/integrations/supabase/client";
 import { useAppSetting } from "@/hooks/use-app-setting";
+import { useAuth } from "@/lib/auth";
 
 const REGISTER_LINK_KEY = "groom_registration_url";
 const DEFAULT_REGISTRATION_URL = "https://lajnat-zawaj.org";
@@ -67,6 +68,9 @@ const STATUS_BADGE: Record<string, { label: string; cls: string }> = {
 };
 
 export function GroomsPage() {
+  const { hasRole } = useAuth();
+  const isAdmin = hasRole("admin");
+  const [merging, setMerging] = useState(false);
   const [grooms, setGrooms] = useState<Groom[]>([]);
   const [open, setOpen] = useState(false);
   const registrationUrl = useRegistrationUrl();
@@ -206,6 +210,147 @@ export function GroomsPage() {
     load();
   };
 
+  const mergeDuplicates = async () => {
+    if (!isAdmin) return;
+    if (!confirm("سيتم دمج السجلات المكررة (نفس الجوال أو نفس رقم الهوية) في السجل الأقدم وحذف النسخ الزائدة. هل تريد المتابعة؟")) return;
+    setMerging(true);
+    const tid = toast.loading("جارٍ فحص ودمج السجلات المكررة...");
+    try {
+      const { data: all, error } = await supabase
+        .from("grooms")
+        .select("*")
+        .order("created_at", { ascending: true });
+      if (error) throw error;
+      const rows = (all ?? []) as any[];
+
+      const normPhone = (p: any) => String(p ?? "").replace(/\D+/g, "").replace(/^00/, "").replace(/^966/, "");
+      const normId = (n: any) => String(n ?? "").replace(/\s+/g, "");
+
+      // Build groups: primary id -> Set of duplicate ids (older record wins)
+      const parent: Record<string, string> = {};
+      const find = (x: string): string => (parent[x] === x ? x : (parent[x] = find(parent[x])));
+      const union = (a: string, b: string) => {
+        const ra = find(a), rb = find(b);
+        if (ra === rb) return;
+        // keep the older (earlier in array) as root
+        const ia = rows.findIndex((r) => r.id === ra);
+        const ib = rows.findIndex((r) => r.id === rb);
+        if (ia <= ib) parent[rb] = ra; else parent[ra] = rb;
+      };
+      rows.forEach((r) => { parent[r.id] = r.id; });
+
+      const phoneMap = new Map<string, string>();
+      const idMap = new Map<string, string>();
+      for (const r of rows) {
+        const p = normPhone(r.phone);
+        if (p) {
+          if (phoneMap.has(p)) union(phoneMap.get(p)!, r.id);
+          else phoneMap.set(p, r.id);
+        }
+        const nid = normId(r.national_id);
+        if (nid) {
+          if (idMap.has(nid)) union(idMap.get(nid)!, r.id);
+          else idMap.set(nid, r.id);
+        }
+      }
+
+      const groups = new Map<string, any[]>();
+      for (const r of rows) {
+        const root = find(r.id);
+        if (!groups.has(root)) groups.set(root, []);
+        groups.get(root)!.push(r);
+      }
+
+      const dupGroups = [...groups.values()].filter((g) => g.length > 1);
+      if (dupGroups.length === 0) {
+        toast.dismiss(tid);
+        toast.success("لا توجد سجلات مكررة");
+        setMerging(false);
+        return;
+      }
+
+      const TEXT_FIELDS = [
+        "bride_name", "wedding_date", "notes", "request_type", "request_details",
+        "vip_guests", "special_requests", "external_participation_details",
+        "family_branch", "national_id", "photo_url", "national_id_url",
+      ];
+      const BOOL_OR_FIELDS = ["external_participation", "contribution_paid", "cards_printed"];
+      const NUM_MAX_FIELDS = ["extra_sheep", "extra_cards_men", "extra_cards_women"];
+
+      let mergedCount = 0;
+      let deletedCount = 0;
+      const errs: string[] = [];
+
+      for (const group of dupGroups) {
+        // sorted ascending by created_at already; primary = first
+        const sorted = [...group].sort((a, b) => String(a.created_at).localeCompare(String(b.created_at)));
+        const primary = sorted[0];
+        const dups = sorted.slice(1);
+
+        const updates: Record<string, any> = {};
+        for (const f of TEXT_FIELDS) {
+          const cur = primary[f];
+          if (cur === null || cur === undefined || (typeof cur === "string" && cur.trim() === "")) {
+            const found = dups.find((d) => d[f] !== null && d[f] !== undefined && (typeof d[f] !== "string" || d[f].trim() !== ""));
+            if (found) updates[f] = found[f];
+          }
+        }
+        for (const f of BOOL_OR_FIELDS) {
+          if (!primary[f] && dups.some((d) => d[f])) updates[f] = true;
+        }
+        for (const f of NUM_MAX_FIELDS) {
+          const max = Math.max(Number(primary[f] ?? 0), ...dups.map((d) => Number(d[f] ?? 0)));
+          if (max > Number(primary[f] ?? 0)) updates[f] = max;
+        }
+        // merge requirements_checklist (jsonb)
+        const checklist: Record<string, any> = { ...(primary.requirements_checklist || {}) };
+        for (const d of dups) {
+          const dc = d.requirements_checklist || {};
+          for (const k of Object.keys(dc)) if (!(k in checklist) || !checklist[k]) checklist[k] = dc[k];
+        }
+        if (JSON.stringify(checklist) !== JSON.stringify(primary.requirements_checklist || {})) {
+          updates.requirements_checklist = checklist;
+        }
+        // merge notes by appending if both have content
+        const notesJoin = [primary.notes, ...dups.map((d) => d.notes)]
+          .filter((n) => n && String(n).trim() !== "")
+          .map((n) => String(n).trim());
+        const uniqNotes = [...new Set(notesJoin)];
+        if (uniqNotes.length > 0 && (primary.notes ?? "") !== uniqNotes.join("\n---\n")) {
+          updates.notes = uniqNotes.join("\n---\n");
+        }
+
+        if (Object.keys(updates).length > 0) {
+          const { error: upErr } = await supabase.from("grooms").update(updates).eq("id", primary.id);
+          if (upErr) { errs.push(`update ${primary.id}: ${upErr.message}`); continue; }
+        }
+
+        const dupIds = dups.map((d) => d.id);
+        // reassign attached documents
+        await supabase.from("groom_documents").update({ groom_id: primary.id }).in("groom_id", dupIds);
+
+        const { error: delErr } = await supabase.from("grooms").delete().in("id", dupIds);
+        if (delErr) { errs.push(`delete: ${delErr.message}`); continue; }
+
+        mergedCount += 1;
+        deletedCount += dupIds.length;
+      }
+
+      toast.dismiss(tid);
+      if (errs.length > 0) {
+        toast.warning(`تم دمج ${mergedCount} مجموعة وحذف ${deletedCount} سجل، مع ${errs.length} خطأ`, { description: errs.slice(0, 3).join(" · ") });
+      } else {
+        toast.success(`تم دمج ${mergedCount} مجموعة مكررة وحذف ${deletedCount} سجل بنجاح`);
+      }
+      load();
+    } catch (err: any) {
+      toast.dismiss(tid);
+      toast.error("تعذّر إتمام عملية الدمج", { description: err?.message });
+    } finally {
+      setMerging(false);
+    }
+  };
+
   const downloadGroomFiles = async (g: Groom) => {
     const ge = g as any;
     const targets: Array<{ path: string; label: string }> = [];
@@ -257,6 +402,18 @@ export function GroomsPage() {
           <p className="text-muted-foreground mt-1">قاعدة بيانات شاملة لطلبات العرسان والمستندات</p>
         </div>
         <div className="flex gap-2">
+        {isAdmin && (
+          <Button
+            variant="outline"
+            onClick={mergeDuplicates}
+            disabled={merging}
+            className="border-amber-400/60 text-amber-700 hover:bg-amber-50 dark:text-amber-300 dark:hover:bg-amber-900/20 gap-1.5"
+            title="دمج السجلات المكررة بناءً على الجوال أو رقم الهوية"
+          >
+            <Combine className="h-4 w-4" />
+            {merging ? "جارٍ التنظيف..." : "تنظيف السجلات المكررة"}
+          </Button>
+        )}
         <GroomsDatabaseDialog grooms={grooms} />
         <ShareRegistrationLink url={registrationUrl} />
         <QuickWhatsAppShare url={registrationUrl} />
