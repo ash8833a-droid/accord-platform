@@ -299,6 +299,55 @@ function TaskCenterInner({ canEdit }: { canEdit: boolean }) {
 
   return (
     <div className="p-4 lg:p-8 space-y-6" dir="rtl">
+      {/* Active task alert banner */}
+      {urgentTask ? (
+        <div className="rounded-xl border-2 border-sky-300/60 dark:border-sky-700/60 bg-sky-50/80 dark:bg-sky-950/30 px-4 py-3 shadow-sm">
+          <div className="flex items-start sm:items-center gap-3 flex-col sm:flex-row">
+            <div className="h-10 w-10 rounded-lg bg-sky-500/15 text-sky-700 dark:text-sky-300 flex items-center justify-center shrink-0">
+              <Bell className="h-5 w-5" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-[11px] font-semibold uppercase tracking-wide text-sky-700 dark:text-sky-300">المهمة النشطة الحالية</span>
+                <Badge variant="outline" className={PRIORITY_META[urgentTask.priority].cls}>
+                  {PRIORITY_META[urgentTask.priority].label}
+                </Badge>
+                <Badge variant="outline" className={STATUS_META[urgentTask.status].color}>
+                  {STATUS_META[urgentTask.status].label}
+                </Badge>
+              </div>
+              <h2 className="text-base sm:text-lg font-bold mt-1 truncate">{urgentTask.title}</h2>
+              <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1 flex-wrap">
+                {urgentTask.due_date && (
+                  <span className="inline-flex items-center gap-1">
+                    <CalendarClock className="h-3.5 w-3.5" />
+                    تاريخ الاستحقاق: {new Date(urgentTask.due_date).toLocaleDateString("ar-SA")}
+                  </span>
+                )}
+                {cmMap.get(urgentTask.committee_id) && (
+                  <span className="truncate">{cmMap.get(urgentTask.committee_id)!.name}</span>
+                )}
+              </div>
+            </div>
+            <Button size="sm" onClick={() => setDetails(urgentTask)} className="gap-2 shrink-0">
+              <ExternalLink className="h-3.5 w-3.5" /> عرض التفاصيل
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <div className="rounded-xl border-2 border-emerald-300/60 dark:border-emerald-700/60 bg-emerald-50/80 dark:bg-emerald-950/30 px-4 py-3 shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-lg bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 flex items-center justify-center shrink-0">
+              <PartyPopper className="h-5 w-5" />
+            </div>
+            <div className="min-w-0">
+              <h2 className="text-base sm:text-lg font-bold text-emerald-800 dark:text-emerald-200">تم إنجاز جميع المهام</h2>
+              <p className="text-xs text-emerald-700/80 dark:text-emerald-300/80">لا توجد مهام معلقة حالياً. عمل رائع!</p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Compact header — slim banner to keep board near the top */}
       <div className="flex items-center justify-between gap-3 rounded-xl border bg-gradient-to-l from-primary/10 to-transparent px-4 py-3">
         <div className="flex items-center gap-3 min-w-0">
