@@ -505,6 +505,10 @@ function KanbanBoard({
   const [dragOverId, setDragOverId] = useState<string | null>(null);
   const [dragOverPos, setDragOverPos] = useState<"before" | "after" | null>(null);
   const [dragOverColKey, setDragOverColKey] = useState<string | null>(null);
+  // Mobile-only collapsible state: which column is expanded inside each committee group.
+  const [mobileOpen, setMobileOpen] = useState<Record<string, boolean>>({});
+  const isOpen = (key: string) => mobileOpen[key] ?? key.endsWith("-in_progress");
+  const toggleOpen = (key: string) => setMobileOpen((prev) => ({ ...prev, [key]: !isOpen(key) }));
 
   const committeeGroups = useMemo(() => {
     const grouped = new Map<string, TaskRow[]>();
@@ -619,14 +623,28 @@ function KanbanBoard({
                         : ""
                     }`}
                   >
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => toggleOpen(`${group.cid}-${status}`)}
+                      className="w-full flex items-center justify-between mb-3 lg:cursor-default lg:pointer-events-none min-h-[44px] lg:min-h-0"
+                      aria-expanded={isOpen(`${group.cid}-${status}`)}
+                    >
+                      <div className="flex items-center gap-2">
                         <meta.icon className="h-4 w-4 text-muted-foreground" />
-                        <h4 className="font-bold text-xs">{meta.label}</h4>
+                        <h4 className="font-bold text-sm lg:text-xs">{meta.label}</h4>
+                        <Badge variant="outline" className="text-[10px]">{statusItems.length}</Badge>
                       </div>
-                      <Badge variant="outline" className="text-[10px]">{statusItems.length}</Badge>
-                    </div>
-                    <div className="space-y-2">
+                      <ChevronDown
+                        className={`h-5 w-5 text-muted-foreground transition-transform lg:hidden ${
+                          isOpen(`${group.cid}-${status}`) ? "rotate-180" : ""
+                        }`}
+                      />
+                    </button>
+                    <div
+                      className={`space-y-2 transform-gpu will-change-transform transition-[opacity] duration-200 ${
+                        isOpen(`${group.cid}-${status}`) ? "block" : "hidden"
+                      } lg:!block`}
+                    >
                       {statusItems.length === 0 && <p className="text-xs text-muted-foreground text-center py-6">لا توجد مهام</p>}
                       {statusItems.map((t, idx) => {
                 const cm = cmMap.get(t.committee_id);
