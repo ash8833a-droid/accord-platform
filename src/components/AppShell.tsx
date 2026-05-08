@@ -102,14 +102,8 @@ export function AppShell({ children, restricted = false, restrictedToCommitteeTy
   // Standard Committee Members (not admin/quality, not committee head): show ONLY Task Center.
   const isStandardMember = restricted && !isCommitteeHead && !hasRole("quality");
   const standardMemberNav: typeof restrictedNav = [];
-  if (restrictedToCommitteeType && myCommitteeMeta) {
-    standardMemberNav.push({
-      to: "/committee/$type",
-      params: { type: restrictedToCommitteeType },
-      label: "لجنتي",
-      icon: myCommitteeMeta.icon,
-    });
-  }
+  // Unified entry-point for regular members: Task Center is auto-filtered to their committee.
+  standardMemberNav.push({ to: "/admin/tasks", label: "مركز المهام", icon: Target });
   standardMemberNav.push({ to: "/ideas", label: "بنك الأفكار", icon: Lightbulb });
   const TOP_NAV = isStandardMember
     ? standardMemberNav
@@ -255,13 +249,10 @@ export function AppShell({ children, restricted = false, restrictedToCommitteeTy
           className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-white dark:bg-card border-t border-border shadow-[0_-4px_16px_rgba(0,0,0,0.08)]"
           style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
         >
-          <div className={`grid h-16 ${isStandardMember ? "grid-cols-3" : "grid-cols-5"}`}>
+          <div className={`grid h-16 ${isStandardMember ? "grid-cols-2" : "grid-cols-5"}`}>
             {(isStandardMember
               ? [
-                  { to: "/admin/tasks", label: "الرئيسية", icon: Target },
-                  ...(restrictedToCommitteeType && myCommitteeMeta
-                    ? [{ to: `/committee/${restrictedToCommitteeType}`, label: "لجنتي", icon: myCommitteeMeta.icon }]
-                    : []),
+                  { to: "/admin/tasks", label: "مركز المهام", icon: Target },
                   { to: "/ideas", label: "بنك الأفكار", icon: Lightbulb },
                 ]
               : [
