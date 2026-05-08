@@ -508,7 +508,19 @@ function KanbanBoard({
                 </div>
               )}
             </div>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 p-3">
+            {/* Mobile: tabbed view (no drag-and-drop, use status dropdown) */}
+            <div className="lg:hidden p-3">
+              <MobileColumns
+                group={group}
+                cmMap={cmMap}
+                canEdit={canEdit}
+                onMove={onMove}
+                onOpen={onOpen}
+                onDelete={onDelete}
+              />
+            </div>
+            {/* Desktop: 3-column Kanban with drag-and-drop */}
+            <div className="hidden lg:grid grid-cols-3 gap-3 p-3">
               {cols.map((status) => {
                 const meta = STATUS_META[status];
                 const statusItems = group.list.filter((t) => t.status === status).sort(comparePmp);
