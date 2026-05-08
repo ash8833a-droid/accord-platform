@@ -437,6 +437,7 @@ function KanbanBoard({
   const [dragId, setDragId] = useState<string | null>(null);
   const [dragOverId, setDragOverId] = useState<string | null>(null);
   const [dragOverPos, setDragOverPos] = useState<"before" | "after" | null>(null);
+  const [dragOverColKey, setDragOverColKey] = useState<string | null>(null);
 
   const committeeGroups = useMemo(() => {
     const grouped = new Map<string, TaskRow[]>();
@@ -514,13 +515,23 @@ function KanbanBoard({
                 return (
                   <div
                     key={`${group.cid}-${status}`}
-                    onDragOver={(e) => { if (canEdit) e.preventDefault(); }}
+                    onDragOver={(e) => {
+                      if (!canEdit || !dragId) return;
+                      e.preventDefault();
+                      setDragOverColKey(`${group.cid}-${status}`);
+                    }}
+                    onDragLeave={(e) => {
+                      // Only clear when leaving the column itself, not its children
+                      if (!(e.currentTarget as HTMLElement).contains(e.relatedTarget as Node)) {
+                        setDragOverColKey((k) => (k === `${group.cid}-${status}` ? null : k));
+                      }
+                    }}
                     onDrop={(e) => {
                       e.preventDefault();
-                      if (!canEdit || !dragId) return;
+                      if (!canEdit || !dragId) { setDragOverColKey(null); return; }
                       const dragged = tasks.find((t) => t.id === dragId);
                       if (!dragged || dragged.committee_id !== group.cid) {
-                        setDragId(null); setDragOverId(null); setDragOverPos(null);
+                        setDragId(null); setDragOverId(null); setDragOverPos(null); setDragOverColKey(null);
                         return;
                       }
                       if (dragged.status === status && statusItems.length > 0) {
@@ -528,9 +539,13 @@ function KanbanBoard({
                       } else if (dragged.status !== status) {
                         onMove(dragId, status);
                       }
-                      setDragId(null); setDragOverId(null); setDragOverPos(null);
+                      setDragId(null); setDragOverId(null); setDragOverPos(null); setDragOverColKey(null);
                     }}
-                    className="rounded-lg border bg-muted/20 p-3 min-h-[220px]"
+                    className={`rounded-lg border bg-muted/20 p-3 min-h-[220px] transition-all ${
+                      dragOverColKey === `${group.cid}-${status}` && dragId
+                        ? "border-primary border-2 bg-primary/5 shadow-lg shadow-primary/20 ring-2 ring-primary/30"
+                        : ""
+                    }`}
                   >
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-1.5">
