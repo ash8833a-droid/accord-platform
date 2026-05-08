@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuLabel, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Wallet, Users2, Plus, CheckCircle2, Clock, Receipt, TrendingUp, XCircle, CheckCheck, FileText, Download, FileSpreadsheet, FileType2, Printer, ShieldCheck, AlertTriangle, Lock, Eye, ScrollText, TreePine, HeartHandshake, Settings2 } from "lucide-react";
+import { Wallet, Users2, Plus, CheckCircle2, Clock, Receipt, TrendingUp, XCircle, CheckCheck, FileText, Download, FileSpreadsheet, FileType2, Printer, ShieldCheck, AlertTriangle, Lock, Eye, ScrollText, TreePine, HeartHandshake, Settings2, HandCoins } from "lucide-react";
 import { toast } from "sonner";
 import { StatCard } from "@/components/StatCard";
 import { committeeByType } from "@/lib/committees";
@@ -15,6 +15,7 @@ import { exportRequestsCSV, exportRequestsXLSX, exportRequestsPDF, type ExportRe
 import { SharesByBranch } from "@/components/finance/SharesByBranch";
 import { GroomContributions } from "@/components/finance/GroomContributions";
 import { CommitteeBudgetLimits } from "@/components/finance/CommitteeBudgetLimits";
+import { FamilyContributionsPanel } from "@/components/finance/FamilyContributionsPanel";
 import { Pencil, Trash2 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { Textarea } from "@/components/ui/textarea";
@@ -299,6 +300,7 @@ export function FinanceModule() {
           </TabsTrigger>
           <TabsTrigger value="shares" className="gap-2"><TreePine className="h-4 w-4" /> أسهم الفروع</TabsTrigger>
           <TabsTrigger value="grooms" className="gap-2"><HeartHandshake className="h-4 w-4" /> مساهمات العرسان</TabsTrigger>
+          <TabsTrigger value="family" className="gap-2"><HandCoins className="h-4 w-4" /> مساهمات أفراد العائلة</TabsTrigger>
           <TabsTrigger value="limits" className="gap-2"><Settings2 className="h-4 w-4" /> مخصصات اللجان</TabsTrigger>
           <TabsTrigger value="delegates" className="gap-2"><Users2 className="h-4 w-4" /> المناديب</TabsTrigger>
           <TabsTrigger value="subs" className="gap-2"><CheckCircle2 className="h-4 w-4" /> الاشتراكات</TabsTrigger>
@@ -504,6 +506,10 @@ export function FinanceModule() {
 
         <TabsContent value="grooms" className="mt-5">
           <GroomContributions totalCollected={totalCollected} totalBudgetNeeded={totalBudgetNeeded} />
+        </TabsContent>
+
+        <TabsContent value="family" className="mt-5">
+          <FamilyContributionsPanel />
         </TabsContent>
 
         <TabsContent value="limits" className="mt-5">
