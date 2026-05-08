@@ -30,6 +30,7 @@ import { Route as AppCommunicationsRouteImport } from './routes/_app.communicati
 import { Route as AppBrandRouteImport } from './routes/_app.brand'
 import { Route as AppAdminRouteImport } from './routes/_app.admin'
 import { Route as AppCommitteeTypeRouteImport } from './routes/_app.committee.$type'
+import { Route as AppAdminWeeklyRouteImport } from './routes/_app.admin.weekly'
 import { Route as AppAdminUsersRouteImport } from './routes/_app.admin.users'
 import { Route as AppAdminTasksRouteImport } from './routes/_app.admin.tasks'
 import { Route as ApiPublicHooksTaskDeadlineCheckRouteImport } from './routes/api.public.hooks.task-deadline-check'
@@ -138,6 +139,11 @@ const AppCommitteeTypeRoute = AppCommitteeTypeRouteImport.update({
   path: '/committee/$type',
   getParentRoute: () => AppRoute,
 } as any)
+const AppAdminWeeklyRoute = AppAdminWeeklyRouteImport.update({
+  id: '/weekly',
+  path: '/weekly',
+  getParentRoute: () => AppAdminRoute,
+} as any)
 const AppAdminUsersRoute = AppAdminUsersRouteImport.update({
   id: '/users',
   path: '/users',
@@ -177,6 +183,7 @@ export interface FileRoutesByFullPath {
   '/survey/women-talents': typeof SurveyWomenTalentsRoute
   '/admin/tasks': typeof AppAdminTasksRoute
   '/admin/users': typeof AppAdminUsersRoute
+  '/admin/weekly': typeof AppAdminWeeklyRoute
   '/committee/$type': typeof AppCommitteeTypeRoute
   '/api/public/hooks/task-deadline-check': typeof ApiPublicHooksTaskDeadlineCheckRoute
 }
@@ -202,6 +209,7 @@ export interface FileRoutesByTo {
   '/survey/women-talents': typeof SurveyWomenTalentsRoute
   '/admin/tasks': typeof AppAdminTasksRoute
   '/admin/users': typeof AppAdminUsersRoute
+  '/admin/weekly': typeof AppAdminWeeklyRoute
   '/committee/$type': typeof AppCommitteeTypeRoute
   '/api/public/hooks/task-deadline-check': typeof ApiPublicHooksTaskDeadlineCheckRoute
 }
@@ -229,6 +237,7 @@ export interface FileRoutesById {
   '/survey/women-talents': typeof SurveyWomenTalentsRoute
   '/_app/admin/tasks': typeof AppAdminTasksRoute
   '/_app/admin/users': typeof AppAdminUsersRoute
+  '/_app/admin/weekly': typeof AppAdminWeeklyRoute
   '/_app/committee/$type': typeof AppCommitteeTypeRoute
   '/api/public/hooks/task-deadline-check': typeof ApiPublicHooksTaskDeadlineCheckRoute
 }
@@ -256,6 +265,7 @@ export interface FileRouteTypes {
     | '/survey/women-talents'
     | '/admin/tasks'
     | '/admin/users'
+    | '/admin/weekly'
     | '/committee/$type'
     | '/api/public/hooks/task-deadline-check'
   fileRoutesByTo: FileRoutesByTo
@@ -281,6 +291,7 @@ export interface FileRouteTypes {
     | '/survey/women-talents'
     | '/admin/tasks'
     | '/admin/users'
+    | '/admin/weekly'
     | '/committee/$type'
     | '/api/public/hooks/task-deadline-check'
   id:
@@ -307,6 +318,7 @@ export interface FileRouteTypes {
     | '/survey/women-talents'
     | '/_app/admin/tasks'
     | '/_app/admin/users'
+    | '/_app/admin/weekly'
     | '/_app/committee/$type'
     | '/api/public/hooks/task-deadline-check'
   fileRoutesById: FileRoutesById
@@ -472,6 +484,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppCommitteeTypeRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/admin/weekly': {
+      id: '/_app/admin/weekly'
+      path: '/weekly'
+      fullPath: '/admin/weekly'
+      preLoaderRoute: typeof AppAdminWeeklyRouteImport
+      parentRoute: typeof AppAdminRoute
+    }
     '/_app/admin/users': {
       id: '/_app/admin/users'
       path: '/users'
@@ -499,11 +518,13 @@ declare module '@tanstack/react-router' {
 interface AppAdminRouteChildren {
   AppAdminTasksRoute: typeof AppAdminTasksRoute
   AppAdminUsersRoute: typeof AppAdminUsersRoute
+  AppAdminWeeklyRoute: typeof AppAdminWeeklyRoute
 }
 
 const AppAdminRouteChildren: AppAdminRouteChildren = {
   AppAdminTasksRoute: AppAdminTasksRoute,
   AppAdminUsersRoute: AppAdminUsersRoute,
+  AppAdminWeeklyRoute: AppAdminWeeklyRoute,
 }
 
 const AppAdminRouteWithChildren = AppAdminRoute._addFileChildren(
