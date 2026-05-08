@@ -230,15 +230,19 @@ export function AppShell({ children, restricted = false, restrictedToCommitteeTy
       )}
 
       <div className="flex-1 flex flex-col min-w-0">
-        {/* Mobile-only floating menu trigger (top header removed per request) */}
+        {/* Mobile-only top header. Standard committee members rely solely on the bottom bar (no hamburger). */}
         <div className="lg:hidden sticky top-0 z-30 bg-background/80 backdrop-blur border-b flex items-center justify-between px-3 h-12">
-          <button
-            className="p-2 rounded-lg hover:bg-accent"
-            onClick={() => setOpen(true)}
-            aria-label="فتح القائمة"
-          >
-            <Menu className="h-5 w-5" />
-          </button>
+          {isStandardMember ? (
+            <span aria-hidden className="h-9 w-9" />
+          ) : (
+            <button
+              className="p-2 rounded-lg hover:bg-accent"
+              onClick={() => setOpen(true)}
+              aria-label="فتح القائمة"
+            >
+              <Menu className="h-5 w-5" />
+            </button>
+          )}
           <NotificationBell />
         </div>
 
@@ -246,15 +250,19 @@ export function AppShell({ children, restricted = false, restrictedToCommitteeTy
           {children}
         </main>
 
-        <nav className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-background border-t border-border shadow-[0_-2px_10px_rgba(0,0,0,0.04)]">
+        <nav
+          dir="rtl"
+          className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-white dark:bg-card border-t border-border shadow-[0_-4px_16px_rgba(0,0,0,0.08)]"
+          style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+        >
           <div className={`grid h-16 ${isStandardMember ? "grid-cols-3" : "grid-cols-5"}`}>
             {(isStandardMember
               ? [
+                  { to: "/admin/tasks", label: "الرئيسية", icon: Target },
                   ...(restrictedToCommitteeType && myCommitteeMeta
                     ? [{ to: `/committee/${restrictedToCommitteeType}`, label: "لجنتي", icon: myCommitteeMeta.icon }]
                     : []),
-                  { to: "/ideas", label: "الأفكار", icon: Lightbulb },
-                  { to: "__menu", label: "القائمة", icon: Menu },
+                  { to: "/ideas", label: "بنك الأفكار", icon: Lightbulb },
                 ]
               : [
                   ...(isAdminUser && canSeeDashboard
@@ -279,8 +287,8 @@ export function AppShell({ children, restricted = false, restrictedToCommitteeTy
               const Icon = item.icon;
               const inner = (
                 <>
-                  <Icon className={`h-5 w-5 ${active ? "text-primary" : "text-muted-foreground"}`} />
-                  <span className={`text-[10px] mt-0.5 ${active ? "text-primary font-bold" : "text-muted-foreground"}`}>{item.label}</span>
+                  <Icon className={`h-5 w-5 ${active ? "text-[#064e3b]" : "text-muted-foreground"}`} />
+                  <span className={`text-[11px] mt-1 leading-none ${active ? "text-[#064e3b] font-bold" : "text-muted-foreground"}`}>{item.label}</span>
                 </>
               );
               if (isMenu) {
@@ -288,7 +296,7 @@ export function AppShell({ children, restricted = false, restrictedToCommitteeTy
                   <button
                     key="menu"
                     onClick={() => setOpen(true)}
-                    className="flex flex-col items-center justify-center gap-0"
+                    className="flex flex-col items-center justify-center gap-0 active:scale-95 transition-transform"
                   >
                     {inner}
                   </button>
@@ -299,7 +307,7 @@ export function AppShell({ children, restricted = false, restrictedToCommitteeTy
                   <button
                     key="purchase"
                     onClick={() => setPurchaseOpen(true)}
-                    className="flex flex-col items-center justify-center gap-0"
+                    className="flex flex-col items-center justify-center gap-0 active:scale-95 transition-transform"
                   >
                     {inner}
                   </button>
@@ -309,7 +317,7 @@ export function AppShell({ children, restricted = false, restrictedToCommitteeTy
                 <Link
                   key={item.to}
                   to={item.to}
-                  className="flex flex-col items-center justify-center gap-0"
+                  className="flex flex-col items-center justify-center gap-0 active:scale-95 transition-transform"
                 >
                   {inner}
                 </Link>
