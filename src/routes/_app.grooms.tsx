@@ -66,7 +66,7 @@ const STATUS_BADGE: Record<string, { label: string; cls: string }> = {
   completed: { label: "مكتمل", cls: "bg-gradient-gold text-gold-foreground" },
 };
 
-function GroomsPage() {
+export function GroomsPage() {
   const [grooms, setGrooms] = useState<Groom[]>([]);
   const [open, setOpen] = useState(false);
   const registrationUrl = useRegistrationUrl();
