@@ -10,6 +10,7 @@ import {
 import {
   CalendarRange, CheckCircle2, ClipboardList, HeartHandshake, Loader2,
   Wallet, TrendingUp, BarChart3, Scale, Target, RefreshCw, FileDown,
+  Banknote,
 } from "lucide-react";
 import { exportDashboardPdf } from "@/lib/dashboard-pdf";
 import {
@@ -43,6 +44,9 @@ const AVAILABLE_YEARS = (() => {
   return [cur, cur - 1, cur - 2, cur - 3, cur - 4];
 })();
 
+// Fixed allocated support per registered groom (SAR)
+export const ALLOCATED_SUPPORT_PER_GROOM = 10000;
+
 // ---- Component ----
 export function AnalyticsDashboard() {
   return <PageGate pageKey="admin">{() => <Inner />}</PageGate>;
@@ -63,6 +67,19 @@ function Inner() {
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "committee_tasks" },
+        () => { void load(); },
+      )
+      .subscribe();
+    return () => { void supabase.removeChannel(channel); };
+  }, []);
+
+  // Real-time subscription on grooms so allocated-funds KPI updates instantly.
+  useEffect(() => {
+    const channel = supabase
+      .channel("dashboard-grooms")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "grooms" },
         () => { void load(); },
       )
       .subscribe();
@@ -103,9 +120,16 @@ function Inner() {
     const paymentsY = data.payments.filter((p: any) => inRange(p.created_at, r));
     const expenses = paymentsY.filter((p: any) => p.status === "paid").reduce((s: number, p: any) => s + Number(p.amount || 0), 0);
     const revenues = groomsY.reduce((s: number, g: any) => s + Number(g.groom_contribution || 0), 0);
-    const netBalance = revenues - expenses;
+    // Allocated support = total grooms × fixed allocation (treated as projected expense)
+    const allocatedFunds = totalMarriages * ALLOCATED_SUPPORT_PER_GROOM;
+    const projectedExpenses = expenses + allocatedFunds;
+    const netBalance = revenues - projectedExpenses;
 
-    return { totalTasks, completed, completionRate, totalMarriages, revenues, expenses, netBalance, tasksY, groomsY, paymentsY };
+    return {
+      totalTasks, completed, completionRate, totalMarriages,
+      revenues, expenses, allocatedFunds, projectedExpenses, netBalance,
+      tasksY, groomsY, paymentsY,
+    };
   }, [data, year]);
 
   const charts = useMemo(() => {
