@@ -355,7 +355,7 @@ function Inner() {
             <YAxis tick={{ fontSize: 11 }} allowDecimals={false} />
             <Tooltip />
             <Legend />
-            <Bar dataKey="marriages" name="عدد الزيجات" fill="#ec4899" radius={[8, 8, 0, 0]} />
+            <Bar dataKey="marriages" name="عدد العرسان" fill="#1E3A8A" radius={[8, 8, 0, 0]} />
             <Bar dataKey="tasksDone" name="مهام مُنجزة" fill="#0e7490" radius={[8, 8, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
