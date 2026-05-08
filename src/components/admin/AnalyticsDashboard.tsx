@@ -214,7 +214,7 @@ function Inner() {
   }
 
   return (
-    <div className="space-y-6" dir="rtl">
+    <div className="space-y-6 text-right" dir="rtl">
       {/* Filter bar */}
       <Card className="border-primary/10">
         <CardContent className="p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -263,8 +263,9 @@ function Inner() {
         </CardContent>
       </Card>
 
-      <Tabs defaultValue="live" className="w-full">
-        <TabsList className="grid w-full sm:w-auto grid-cols-2 sm:inline-grid bg-muted/60 p-1 rounded-xl">
+      <Tabs defaultValue="live" dir="rtl" className="w-full">
+        <div className="flex justify-start">
+          <TabsList className="grid w-full sm:w-auto grid-cols-2 sm:inline-flex bg-muted/60 p-1 rounded-xl">
           <TabsTrigger
             value="live"
             className="rounded-lg data-[state=active]:bg-[#064e3b] data-[state=active]:text-white data-[state=active]:shadow-sm font-bold"
@@ -277,7 +278,8 @@ function Inner() {
           >
             الملخص الأسبوعي
           </TabsTrigger>
-        </TabsList>
+          </TabsList>
+        </div>
 
         <TabsContent value="live" className="space-y-6 mt-6 focus-visible:outline-none">
       {/* Unified KPI cards */}
