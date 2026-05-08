@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { PageGate } from "@/components/PageGate";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,7 +10,7 @@ import {
 import {
   Activity, AlertTriangle, CheckCircle2, ClipboardList, HeartHandshake,
   ListTodo, Loader2, ShieldCheck, TrendingUp, UserPlus, Users, Wallet,
-  Target, Inbox, FileBarChart, Settings2, ChevronDown,
+  Inbox, Settings2, ChevronDown,
 } from "lucide-react";
 import {
   Bar, BarChart, CartesianGrid, Cell, Legend, Line, LineChart, Pie, PieChart,
@@ -237,20 +236,36 @@ function Inner() {
         </div>
       </div>
 
-      {/* Primary actions — large, clear, friendly */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-        <PrimaryAction to="/admin/tasks" icon={Target} label="مركز المهام" hint="تابع وأنشئ المهام" />
-        <PrimaryAction to="/grooms" icon={HeartHandshake} label="سجل العرسان" hint="عرض وإدارة العرسان" />
-        <PrimaryAction to="/communications" icon={Inbox} label="الطلبات والمراسلات" hint={`${k.pendingRequests} بانتظار الرد`} />
-        <PrimaryAction to="/reports" icon={FileBarChart} label="التقارير والجودة" hint="تقارير وتقييمات" />
-      </div>
-
-      {/* Quick summary — only the essentials */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <Kpi label="نسبة الإنجاز" value={`${k.completionRate}%`} sub={`${k.completedAll} مكتملة`} icon={CheckCircle2} tone="text-emerald-600 bg-emerald-500/10" />
-        <Kpi label="مهام نشطة" value={k.active} sub={`${k.overdue} متأخرة`} icon={ClipboardList} tone="text-sky-600 bg-sky-500/10" />
-        <Kpi label="عدد العرسان" value={k.totalGrooms} sub={`+${k.newGrooms} ${PERIOD_LABEL[period]}`} icon={HeartHandshake} tone="text-pink-600 bg-pink-500/10" />
-        <Kpi label="طلبات معلّقة" value={k.pendingRequests} sub={`+${k.newRequests} ${PERIOD_LABEL[period]}`} icon={UserPlus} tone="text-violet-600 bg-violet-500/10" />
+      {/* Primary KPIs — top of dashboard, modern styled */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <HeroKpi
+          label="عدد العرسان"
+          value={k.totalGrooms}
+          sub={`+${k.newGrooms} ${PERIOD_LABEL[period]}`}
+          icon={HeartHandshake}
+          accent="from-pink-500/15 to-pink-500/0 text-pink-600 ring-pink-500/20"
+        />
+        <HeroKpi
+          label="طلبات معلّقة"
+          value={k.pendingRequests}
+          sub={`+${k.newRequests} ${PERIOD_LABEL[period]}`}
+          icon={Inbox}
+          accent="from-violet-500/15 to-violet-500/0 text-violet-600 ring-violet-500/20"
+        />
+        <HeroKpi
+          label="مهام نشطة"
+          value={k.active}
+          sub={`${k.overdue} متأخرة`}
+          icon={ClipboardList}
+          accent="from-sky-500/15 to-sky-500/0 text-sky-600 ring-sky-500/20"
+        />
+        <HeroKpi
+          label="نسبة الإنجاز"
+          value={`${k.completionRate}%`}
+          sub={`${k.completedAll} مكتملة`}
+          icon={CheckCircle2}
+          accent="from-emerald-500/15 to-emerald-500/0 text-emerald-600 ring-emerald-500/20"
+        />
       </div>
 
       {/* Advanced: hidden by default */}
@@ -382,20 +397,20 @@ function Inner() {
   );
 }
 
-function PrimaryAction({ to, icon: Icon, label, hint }: { to: string; icon: any; label: string; hint?: string }) {
+function HeroKpi({ label, value, sub, icon: Icon, accent }: { label: string; value: string | number; sub?: string; icon: any; accent: string }) {
   return (
-    <Link
-      to={to}
-      className="group rounded-2xl border bg-card p-5 hover:border-primary hover:shadow-elegant hover:-translate-y-0.5 transition-all flex items-center gap-4"
-    >
-      <div className="h-14 w-14 rounded-2xl bg-primary/10 text-primary flex items-center justify-center shrink-0 group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
-        <Icon className="h-7 w-7" />
+    <div className={`relative overflow-hidden rounded-2xl border bg-gradient-to-br ${accent} bg-card p-5 shadow-sm hover:shadow-md transition-shadow`}>
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-xs font-medium text-muted-foreground">{label}</p>
+          <p className="mt-2 text-3xl font-extrabold tracking-tight tabular-nums">{value}</p>
+          {sub && <p className="text-xs text-muted-foreground mt-1 truncate">{sub}</p>}
+        </div>
+        <div className={`h-11 w-11 rounded-xl bg-background/70 ring-1 ${accent.split(" ").find(c => c.startsWith("ring-")) ?? ""} flex items-center justify-center shrink-0`}>
+          <Icon className="h-5 w-5" />
+        </div>
       </div>
-      <div className="min-w-0">
-        <p className="text-base font-bold leading-tight">{label}</p>
-        {hint && <p className="text-xs text-muted-foreground mt-1 truncate">{hint}</p>}
-      </div>
-    </Link>
+    </div>
   );
 }
 
