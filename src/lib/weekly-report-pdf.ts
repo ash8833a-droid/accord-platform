@@ -169,7 +169,6 @@ export async function exportWeeklyReportPdf(args: Args): Promise<void> {
       footer { position:relative; margin-top: 16px; text-align:center; color:#94A3B8; font-size: 10px; }
     </style>`;
 
-  const container = document.createElement("div");
   // Render inside an isolated iframe so the app's CSS (which uses oklch())
   // never reaches html2canvas. html2canvas chokes on oklch and freezes the tab.
   const iframe = document.createElement("iframe");
@@ -193,8 +192,6 @@ export async function exportWeeklyReportPdf(args: Args): Promise<void> {
     });
     setTimeout(resolve, 1500); // safety timeout
   });
-  container.appendChild(doc.body.firstElementChild as HTMLElement);
-
   try {
     await (html2pdf() as any)
       .from(doc.body)
