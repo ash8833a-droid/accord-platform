@@ -16,6 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { WeeklyReport } from "@/components/admin/WeeklyReport";
 import { AdminAlertsPanel } from "@/components/admin/AdminAlertsPanel";
 import { useAuth } from "@/lib/auth";
+import { toast } from "sonner";
 import {
   Bar, BarChart, CartesianGrid, Legend, Line, LineChart,
   PolarAngleAxis, PolarGrid, PolarRadiusAxis, Radar, RadarChart,
@@ -219,6 +220,31 @@ function Inner() {
 
     return { perCommittee, yoy, finance };
   }, [data, k, year]);
+
+  async function handleExportDashboard() {
+    if (!k || !charts || exporting) return;
+    setExporting(true);
+    try {
+      await exportDashboardPdf({
+        year,
+        kpis: {
+          totalTasks: k.totalTasks,
+          completionRate: k.completionRate,
+          totalMarriages: k.totalMarriages,
+          netBalance: k.netBalance,
+        },
+        finance: charts.finance,
+        committees: charts.perCommittee,
+        revenues: k.revenues,
+        expenses: k.expenses,
+      });
+    } catch (error) {
+      console.error("Dashboard export failed", error);
+      toast.error("تعذّر تجهيز التقرير للطباعة");
+    } finally {
+      setExporting(false);
+    }
+  }
 
   if (loading || !data || !k || !charts) {
     return (
