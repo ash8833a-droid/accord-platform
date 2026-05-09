@@ -136,7 +136,7 @@ export function NotificationBell() {
         align="end"
         sideOffset={10}
         dir="rtl"
-        className="w-[350px] p-0 rounded-2xl shadow-xl border border-slate-100 bg-white overflow-hidden animate-in fade-in-0 slide-in-from-top-2 duration-200"
+        className="w-[350px] p-0 rounded-2xl shadow-xl border border-slate-100 bg-white overflow-hidden animate-fade-in"
       >
         {/* Header */}
         <div className="flex items-center justify-between gap-3 px-5 py-3.5 border-b border-slate-100">
@@ -208,15 +208,17 @@ export function NotificationBell() {
                         )}
                         <p className="text-[10.5px] text-slate-400 mt-1.5">{relativeAr(n.created_at)}</p>
                       </div>
-                      <button
+                      <span
+                        role="button"
+                        tabIndex={0}
                         onClick={(e) => { e.stopPropagation(); e.preventDefault(); deleteOne(n.id); }}
+                        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.stopPropagation(); e.preventDefault(); deleteOne(n.id); } }}
                         title="حذف"
-                        aria-label="حذف"
-                        className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-md text-slate-300 hover:text-rose-500 hover:bg-rose-50 shrink-0 self-start"
+                        aria-label="حذف الإشعار"
+                        className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-md text-slate-300 hover:text-rose-500 hover:bg-rose-50 shrink-0 self-start cursor-pointer"
                       >
-                        <Check className="h-3 w-3 hidden" />
                         <Trash2 className="h-3.5 w-3.5" />
-                      </button>
+                      </span>
                     </button>
                   </li>
                 );
