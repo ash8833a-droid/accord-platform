@@ -1224,7 +1224,6 @@ function CommitteePage() {
         </p>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {(["todo", "in_progress", "completed"] as const).map((col) => {
-            const priorityRank: Record<string, number> = { urgent: 0, high: 1, medium: 2, low: 3 };
             const inCol = visibleTasks.filter((t) => t.status === col);
             const manualIds = (taskOrder[col] ?? []).filter((id) => inCol.some((t) => t.id === id));
             const ordered: Task[] = manualIds
@@ -1233,11 +1232,9 @@ function CommitteePage() {
             const remainder = inCol
               .filter((t) => !manualIds.includes(t.id))
               .sort((a, b) => {
-                const pr = (priorityRank[a.priority] ?? 9) - (priorityRank[b.priority] ?? 9);
-                if (pr !== 0) return pr;
                 const ad = (a as any).created_at ? new Date((a as any).created_at).getTime() : 0;
                 const bd = (b as any).created_at ? new Date((b as any).created_at).getTime() : 0;
-                return bd - ad;
+                return ad - bd;
               });
             const colTasks: Task[] = [...ordered, ...remainder];
             const colTaskIds = colTasks.map((t) => t.id);
@@ -1282,16 +1279,6 @@ function CommitteePage() {
                           dragOverTaskId === t.id && dragId !== t.id ? "before:absolute before:inset-x-0 before:-top-1 before:h-1 before:bg-primary before:rounded-full" : ""
                         }`}
                       >
-                        {/* Priority accent bar */}
-                        <span
-                          className={`absolute top-0 bottom-0 start-0 w-1.5 ${
-                            t.priority === "urgent" ? "bg-rose-500" :
-                            t.priority === "high" ? "bg-amber-500" :
-                            t.priority === "medium" ? "bg-sky-500" : "bg-muted-foreground/30"
-                          }`}
-                          aria-hidden
-                        />
-
                         {/* === SECTION 1: Header (title + meta) === */}
                         <div className="ps-4 pe-3.5 pt-3.5 pb-2.5 cursor-grab active:cursor-grabbing">
                           {isFirstUrgent && (
@@ -1314,9 +1301,6 @@ function CommitteePage() {
                                       {phase}
                                     </Badge>
                                   )}
-                                  <Badge variant="secondary" className={`${PRIORITY_TONE[t.priority]} text-[10px] font-medium px-1.5 py-0 h-5 rounded-md`}>
-                                    {PRIORITY_LABELS[t.priority]}
-                                  </Badge>
                                 </div>
                                 <div className="flex items-start gap-1.5">
                                   <GripVertical className="h-4 w-4 text-muted-foreground/40 mt-0.5 shrink-0 group-hover:text-muted-foreground transition" />
