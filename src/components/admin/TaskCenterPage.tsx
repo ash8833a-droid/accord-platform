@@ -614,7 +614,7 @@ function KanbanBoard({
               )}
             </div>
             {/* Kanban — single layout for desktop & mobile (touch DnD enabled via polyfill) */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 p-3">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-0 lg:gap-3 p-0 lg:p-3">
               {cols.map((status) => {
                 const meta = STATUS_META[status];
                 const statusItems = group.list.filter((t) => t.status === status).sort(comparePmp);
@@ -647,7 +647,7 @@ function KanbanBoard({
                       }
                       setDragId(null); setDragOverId(null); setDragOverPos(null); setDragOverColKey(null);
                     }}
-                    className={`rounded-lg lg:border lg:bg-muted/20 p-0 lg:p-3 lg:min-h-[220px] transition-all ${
+                    className={`lg:rounded-lg lg:border lg:bg-muted/20 p-0 lg:p-3 lg:min-h-[220px] transition-all ${
                       dragOverColKey === `${group.cid}-${status}` && dragId
                         ? "border-primary border-2 bg-primary/5 shadow-lg shadow-primary/20 ring-2 ring-primary/30"
                         : ""
@@ -672,7 +672,7 @@ function KanbanBoard({
                       />
                     </button>
                     <div
-                      className={`space-y-2 transform-gpu will-change-transform transition-[opacity] duration-200 ${
+                      className={`space-y-0 lg:space-y-2 transform-gpu will-change-transform transition-[opacity] duration-200 ${
                         isOpen(`${group.cid}-${status}`) ? "block" : "hidden"
                       } lg:!block`}
                     >
