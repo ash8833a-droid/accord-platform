@@ -14,15 +14,12 @@ import { COMMITTEES, committeeByType, type CommitteeType } from "@/lib/committee
 import { BRAND_LOGO_SVG } from "@/assets/brand-logo";
 
 type TaskStatus = "todo" | "in_progress" | "completed";
-type TaskPriority = "low" | "medium" | "high" | "urgent";
-
 interface RawTask {
   id: string;
   committee_id: string;
   title: string;
   description: string | null;
   status: TaskStatus;
-  priority: TaskPriority;
   due_date: string | null;
   assigned_to: string | null;
   updated_at: string;
@@ -128,7 +125,7 @@ export function QualityAuditPanel() {
     setLoading(true);
     const [{ data: cs }, { data: ts }] = await Promise.all([
       supabase.from("committees").select("id, name, type, budget_allocated, budget_spent").order("name"),
-      supabase.from("committee_tasks").select("id, committee_id, title, description, status, priority, due_date, assigned_to, updated_at"),
+      supabase.from("committee_tasks").select("id, committee_id, title, description, status, due_date, assigned_to, updated_at"),
     ]);
     setCommittees(((cs ?? []) as any[]).filter((c) => c.type !== "quality") as CommitteeRow[]);
     setTasks((ts ?? []) as RawTask[]);
@@ -312,9 +309,6 @@ export function QualityAuditPanel() {
                                 <Badge variant="outline" className={`${STATUS_TONE[t.status]} text-[10px]`}>
                                   {STATUS_LABELS[t.status]}
                                 </Badge>
-                                <Badge variant="secondary" className="text-[10px]">
-                                  {PRIORITY_LABELS[t.priority]}
-                                </Badge>
                                 <Badge variant="outline" className={`${TIME_TONE[ts]} text-[10px] border`}>
                                   {ts === "overdue" && <AlertTriangle className="h-2.5 w-2.5 ms-1" />}
                                   {ts !== "overdue" && <Clock className="h-2.5 w-2.5 ms-1" />}
@@ -433,7 +427,6 @@ function buildReportHTML(c: CommitteeRow, tasks: RawTask[]): string {
           <div class="title">${escapeHtml(clean)}</div>
           ${body ? `<div class="desc">${escapeHtml(body)}</div>` : ""}
         </td>
-        <td><span class="pri pri-${t.priority}">${PRIORITY_LABELS[t.priority]}</span></td>
         <td><span class="status ${statusCls}">${statusLabel}</span></td>
         <td><span class="tstat ${tCls}">${TIME_LABELS[ts]}</span></td>
         <td class="audit-cell">${
