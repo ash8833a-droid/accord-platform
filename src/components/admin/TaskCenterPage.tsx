@@ -673,7 +673,6 @@ function KanbanBoard({
                       {statusItems.length === 0 && <p className="text-xs text-muted-foreground text-center py-6">لا توجد مهام</p>}
                       {statusItems.map((t, idx) => {
                 const cm = cmMap.get(t.committee_id);
-                const cmeta = cm ? committeeByType(cm.type) : null;
                 const overdue = isOverdue(t);
                 const isDragging = dragId === t.id;
                 const showBefore = dragOverId === t.id && dragOverPos === "before";
