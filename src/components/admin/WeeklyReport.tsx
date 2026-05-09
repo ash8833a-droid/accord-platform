@@ -226,7 +226,7 @@ function Inner() {
               <Crown className="h-6 w-6" />
             </div>
             <div className="min-w-0">
-              <p className="text-[11px] font-semibold tracking-wider text-[#0D7C66] uppercase">نبض القيادة</p>
+              <p className="text-[11px] font-semibold tracking-wider text-[#0D7C66] uppercase">ملخص الأداء التنفيذي</p>
               <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 mt-1">
                 التقرير الأسبوعي للأداء العام
               </h1>
@@ -336,8 +336,8 @@ function Inner() {
             tone="urgent"
             icon={ShieldAlert}
             title="تنبيه عاجل"
-            subtitle="اختناقات تتطلب تدخل الأمانة"
-            recommendation="توصية: يتطلب دعم لوجستي وقرار عاجل من الأمانة العامة."
+            subtitle="اختناقات تتطلب تدخل إدارة اللجنة"
+            recommendation="توصية: يتطلب دعم لوجستي وقرار عاجل من إدارة اللجنة."
             empty="لا توجد تنبيهات عاجلة — أداء سليم."
             items={urgent}
           />
@@ -348,11 +348,11 @@ function Inner() {
       <div className="hidden print:block mt-12 pt-6 border-t border-slate-300">
         <div className="grid grid-cols-2 gap-12 text-sm">
           <div>
-            <p className="text-slate-500 mb-10">إعداد: الأمانة العامة</p>
+            <p className="text-slate-500 mb-10">إعداد: إدارة اللجنة</p>
             <div className="border-t border-slate-400 pt-2 text-slate-700">التوقيع</div>
           </div>
           <div>
-            <p className="text-slate-500 mb-10">اعتماد الأمانة العامة</p>
+            <p className="text-slate-500 mb-10">اعتماد اللجنة المنظمة</p>
             <div className="border-t border-slate-400 pt-2 text-slate-700">التوقيع والتاريخ</div>
           </div>
         </div>
