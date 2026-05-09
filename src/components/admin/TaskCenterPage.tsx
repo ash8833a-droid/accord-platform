@@ -9,19 +9,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import {
-  Plus, Target, Search, Loader2, ListTodo, PlayCircle, CheckCircle2,
-  AlertTriangle, Trash2, ExternalLink, LayoutGrid, Rows3, CalendarClock,
+  Plus, Search, Loader2, ListTodo, PlayCircle, CheckCircle2,
+  Trash2, LayoutGrid, Rows3, CalendarClock,
   ArrowUp, ArrowDown, ChevronDown,
   RefreshCw,
 } from "lucide-react";
-import { Bell, PartyPopper, GripVertical } from "lucide-react";
+import { GripVertical } from "lucide-react";
 import { toast } from "sonner";
 import { CreateTaskDialog } from "@/components/admin/CreateTaskDialog";
 import { TaskDetailsDialog } from "@/components/admin/TaskDetailsDialog";
@@ -150,26 +149,6 @@ function TaskCenterInner({ canEdit }: { canEdit: boolean }) {
         || cn.toLowerCase().includes(q);
     });
   }, [scopedTasks, isPrivileged, committeeFilter, search, cmMap]);
-
-  const stats = useMemo(() => {
-    const active = scopedTasks.filter((t) => t.status !== "completed");
-    const completed = scopedTasks.filter((t) => t.status === "completed").length;
-    const overdue = scopedTasks.filter(isOverdue).length;
-    const total = scopedTasks.length;
-    const completionRate = total === 0 ? 0 : Math.round((completed / total) * 100);
-    const committeesWithTasks = new Set(scopedTasks.map((t) => t.committee_id));
-    const empty = scopedCommittees.filter((c) => !committeesWithTasks.has(c.id)).length;
-    return { activeCount: active.length, completionRate, overdue, empty };
-  }, [scopedTasks, scopedCommittees]);
-
-  // Oldest active task (FIFO): the next thing the team should work on.
-  const urgentTask = useMemo(() => {
-    const active = scopedTasks.filter((t) => t.status === "todo" || t.status === "in_progress");
-    if (active.length === 0) return null;
-    return [...active].sort((a, b) =>
-      new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-    )[0];
-  }, [scopedTasks]);
 
   const moveTask = async (id: string, to: TaskRow["status"]) => {
     const prev = tasks;
