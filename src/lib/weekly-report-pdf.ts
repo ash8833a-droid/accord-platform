@@ -36,14 +36,21 @@ function deltaColor(d: number | null): string {
   return d > 0 ? TEAL : RED;
 }
 
-function spotlightHtml(title: string, subtitle: string, accent: string, items: InsightItem[], rec: string, empty: string): string {
+function sectionHtml(opts: {
+  number: string; title: string; subtitle: string; accent: string;
+  items: InsightItem[]; empty: string;
+}): string {
+  const { number, title, subtitle, accent, items, empty } = opts;
   return `
-    <section class="spot" style="border-right: 4px solid ${accent}">
-      <div class="spot-head">
-        <h3>${title}</h3>
-        <span class="spot-count" style="background:${accent}1A; color:${accent}">${items.length}</span>
+    <section class="sec" style="border-right: 3px solid ${accent}">
+      <div class="sec-head">
+        <span class="sec-num" style="color:${accent}">${number}</span>
+        <div class="sec-titles">
+          <h3>${title}</h3>
+          <p class="sec-sub">${subtitle}</p>
+        </div>
+        <span class="sec-count" style="background:${accent}14; color:${accent}; border:1px solid ${accent}33">${items.length}</span>
       </div>
-      <p class="spot-sub">${subtitle}</p>
       ${items.length === 0
         ? `<p class="empty">${empty}</p>`
         : `<ul>${items.map((i) => `
@@ -54,10 +61,15 @@ function spotlightHtml(title: string, subtitle: string, accent: string, items: I
                 <div class="item-detail">${i.detail}</div>
               </div>
             </li>`).join("")}</ul>`}
-      <div class="rec" style="background:${accent}10; border:1px solid ${accent}33; color:${accent === GOLD ? "#92400E" : accent}">
-        <b>توصية:</b> ${rec}
-      </div>
     </section>`;
+}
+
+function buildRecommendations(leaders: InsightItem[], monitoring: InsightItem[], urgent: InsightItem[]): InsightItem[] {
+  const recs: InsightItem[] = [];
+  urgent.forEach((u) => recs.push({ name: u.name, detail: "تدخّل فوري من إدارة اللجنة لإزالة الاختناقات وإعادة جدولة المهام المتأخرة." }));
+  monitoring.forEach((m) => recs.push({ name: m.name, detail: "متابعة أسبوعية مع رئيس اللجنة وتحديد تواريخ نهائية واضحة." }));
+  leaders.forEach((l) => recs.push({ name: l.name, detail: "تعميم تجربة اللجنة كنموذج تشغيلي على بقية اللجان." }));
+  return recs.slice(0, 6);
 }
 
 export function getWeeklyReportPrintHtml(args: Args): string {
@@ -76,7 +88,7 @@ export function getWeeklyReportPrintHtml(args: Args): string {
       <header>
         <img src="${logo}" alt="logo" class="brand-logo" />
         <div class="head-text">
-          <p class="kicker">نبض القيادة · مذكرة تنفيذية</p>
+          <p class="kicker">ملخص الأداء التنفيذي · مذكرة رسمية</p>
           <h1>التقرير الأسبوعي للأداء العام</h1>
           <p class="meta">أسبوع ${week} · تاريخ التصدير: ${today}</p>
         </div>
@@ -104,17 +116,17 @@ export function getWeeklyReportPrintHtml(args: Args): string {
         </div>
       </div>
 
-      ${spotlightHtml("الرواد", "لجان تجاوزت المستهدف", TEAL, leaders, "إبراز التجربة وتعميمها كنموذج على بقية اللجان.", "لا توجد لجان ضمن مستوى الريادة هذا الأسبوع.")}
-      ${spotlightHtml("تحت المتابعة", "تأخر يسير في بعض المهام", GOLD, monitoring, "تواصل دوري مع رؤساء اللجان لإزالة العوائق التشغيلية.", "لا توجد لجان تحت المتابعة.")}
-      ${spotlightHtml("تنبيه عاجل", "اختناقات تتطلب تدخل الأمانة", RED, urgent, "يتطلب دعم لوجستي وقرار عاجل من الأمانة العامة.", "لا توجد تنبيهات عاجلة.")}
+      ${sectionHtml({ number: "01", title: "إنجازات الأسبوع", subtitle: "أبرز اللجان التي تجاوزت المستهدف", accent: TEAL, items: leaders, empty: "لا توجد إنجازات بارزة هذا الأسبوع." })}
+      ${sectionHtml({ number: "02", title: "تحديات العمل", subtitle: "مهام متأخرة واختناقات تستوجب الاهتمام", accent: AMBER, items: [...urgent, ...monitoring].slice(0, 6), empty: "لا توجد تحديات تشغيلية هذا الأسبوع." })}
+      ${sectionHtml({ number: "03", title: "توصيات التحسين", subtitle: "إجراءات مقترحة لكل لجنة", accent: GOLD, items: buildRecommendations(leaders, monitoring, urgent), empty: "لا توجد توصيات إضافية — الأداء العام مستقر." })}
 
       <div class="signature">
         <div class="sig-block">
-          <div class="sig-label">إعداد: الأمانة العامة</div>
+          <div class="sig-label">إعداد: إدارة اللجنة</div>
           <div class="sig-line">التوقيع</div>
         </div>
         <div class="sig-block">
-          <div class="sig-label">اعتماد الأمانة العامة</div>
+          <div class="sig-label">اعتماد اللجنة المنظمة</div>
           <div class="sig-line">التوقيع والتاريخ</div>
         </div>
       </div>
@@ -147,19 +159,20 @@ export function getWeeklyReportPrintHtml(args: Args): string {
       .kpi-delta { font-size: 12px; font-weight: 700; }
       .kpi-sub { font-size: 10px; color: ${SLATE_500}; margin-top: 4px; }
 
-      .spot { position:relative; background:#fff; border:1px solid ${SLATE_100}; border-radius: 12px; padding: 14px 16px; margin-bottom: 12px; page-break-inside: avoid; }
-      .spot-head { display:flex; justify-content:space-between; align-items:center; }
-      .spot-head h3 { margin:0; font-size: 14px; font-weight: 700; color:${SLATE_900}; }
-      .spot-count { font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 999px; }
-      .spot-sub { margin: 2px 0 10px; font-size: 11px; color: ${SLATE_500}; }
-      .spot ul { list-style: none; padding: 0; margin: 0 0 10px; }
-      .spot li { display:flex; gap: 9px; padding: 6px 0; border-bottom: 1px solid ${SLATE_100}; }
-      .spot li:last-child { border-bottom: none; }
+      .sec { position:relative; background:#fff; border:1px solid ${SLATE_100}; border-radius: 10px; padding: 16px 18px; margin-bottom: 12px; page-break-inside: avoid; }
+      .sec-head { display:flex; align-items:flex-start; gap: 12px; padding-bottom: 10px; margin-bottom: 10px; border-bottom: 1px solid ${SLATE_100}; }
+      .sec-num { font-size: 22px; font-weight: 800; line-height: 1; letter-spacing: 1px; min-width: 36px; }
+      .sec-titles { flex: 1; }
+      .sec-titles h3 { margin: 0; font-size: 15px; font-weight: 800; color:${SLATE_900}; letter-spacing: -0.2px; }
+      .sec-sub { margin: 2px 0 0; font-size: 11px; color: ${SLATE_500}; }
+      .sec-count { font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 999px; align-self: center; }
+      .sec ul { list-style: none; padding: 0; margin: 0; }
+      .sec li { display:flex; gap: 10px; padding: 7px 0; border-bottom: 1px solid ${SLATE_100}; }
+      .sec li:last-child { border-bottom: none; }
       .bullet { width:7px; height:7px; border-radius:50%; margin-top: 6px; flex-shrink: 0; display:inline-block; }
       .item-name { font-size: 12px; font-weight: 700; color: ${SLATE_900}; }
-      .item-detail { font-size: 10.5px; color: ${SLATE_700}; margin-top: 1px; }
+      .item-detail { font-size: 10.5px; color: ${SLATE_700}; margin-top: 2px; line-height: 1.55; }
       .empty { color: ${SLATE_500}; font-size: 11px; padding: 4px 0 8px; margin: 0; }
-      .rec { font-size: 10.5px; padding: 8px 10px; border-radius: 8px; line-height: 1.6; }
 
       .signature { position:relative; display:flex; gap: 32px; margin-top: 22px; padding-top: 14px; border-top: 1px dashed ${SLATE_300}; page-break-inside: avoid; }
       .sig-block { flex:1; }
