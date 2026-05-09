@@ -43,10 +43,6 @@ const STATUS_TONE: Record<TaskStatus, string> = {
   in_progress: "bg-sky-500/15 text-sky-700 dark:text-sky-300 border-sky-500/30",
   completed: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30",
 };
-const PRIORITY_LABELS: Record<TaskPriority, string> = {
-  low: "منخفضة", medium: "متوسطة", high: "عالية", urgent: "عاجلة",
-};
-
 const AUDIT_TAG_RE = /\n?\[تدقيق الجودة\]([\s\S]*?)\[\/تدقيق الجودة\]/;
 
 // ===== Time tracking (60-day soft cap from system activation date) =====
@@ -573,14 +569,13 @@ function buildReportHTML(c: CommitteeRow, tasks: RawTask[]): string {
         <tr>
           <th>#</th>
           <th>المهمة</th>
-          <th>الأولوية</th>
           <th>الحالة</th>
           <th>الحالة الزمنية</th>
           <th>ملاحظات لجنة الجودة</th>
         </tr>
       </thead>
       <tbody>
-        ${rows || `<tr><td colspan="6" style="text-align:center;color:#888;padding:18px">لا توجد مهام مسجّلة لهذه اللجنة.</td></tr>`}
+        ${rows || `<tr><td colspan="5" style="text-align:center;color:#888;padding:18px">لا توجد مهام مسجّلة لهذه اللجنة.</td></tr>`}
       </tbody>
     </table>
 
