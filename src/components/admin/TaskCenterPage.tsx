@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import "drag-drop-touch";
-import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { committeeByType } from "@/lib/committees";
@@ -375,24 +374,6 @@ function TaskCenterInner({ canEdit }: { canEdit: boolean }) {
   );
 }
 
-function KpiCard({ label, value, icon: Icon, tone, overdue }: { label: string; value: string; icon: any; tone: string; overdue?: boolean }) {
-  return (
-    <Card className="bg-white dark:bg-card border border-slate-100 dark:border-border shadow-sm hover:shadow-md transition-shadow rounded-2xl">
-      <CardContent className="p-6 flex items-center gap-5">
-        <div className={`h-12 w-12 rounded-2xl flex items-center justify-center ${tone}`}>
-          <Icon className="h-5 w-5" />
-        </div>
-        <div className="min-w-0 flex-1">
-          <p className="text-[12px] font-medium text-slate-500 tracking-wide">{label}</p>
-          <div className="flex items-center gap-2 mt-1">
-            <p className={`text-4xl font-bold tabular-nums leading-none ${overdue ? "text-rose-600" : "text-slate-800 dark:text-foreground"}`}>{value}</p>
-            {overdue && <span className="h-2 w-2 rounded-full bg-rose-500 animate-pulse" aria-hidden />}
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
 
 function ProgressRing({ value, size = 44 }: { value: number; size?: number }) {
   const stroke = 4;
