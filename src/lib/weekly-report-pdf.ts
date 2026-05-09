@@ -170,14 +170,34 @@ export async function exportWeeklyReportPdf(args: Args): Promise<void> {
     </style>`;
 
   const container = document.createElement("div");
-  // Isolate from app CSS (oklch tokens) so html2canvas can parse all colors.
-  container.style.cssText = "all: initial; position: fixed; inset: 0; z-index: -1; background: #ffffff; color: #0F172A; width: 794px; pointer-events: none;";
-  container.innerHTML = html;
-  document.body.appendChild(container);
+  // Render inside an isolated iframe so the app's CSS (which uses oklch())
+  // never reaches html2canvas. html2canvas chokes on oklch and freezes the tab.
+  const iframe = document.createElement("iframe");
+  iframe.setAttribute("aria-hidden", "true");
+  iframe.style.cssText =
+    "position: fixed; left: -10000px; top: 0; width: 820px; height: 1200px; border: 0; opacity: 0; pointer-events: none;";
+  document.body.appendChild(iframe);
+  const doc = iframe.contentDocument!;
+  doc.open();
+  doc.write(`<!doctype html><html dir="rtl"><head><meta charset="utf-8"></head><body style="margin:0;background:#fff;color:#0F172A;font-family:'Segoe UI','Tahoma',sans-serif;">${html}</body></html>`);
+  doc.close();
+  // Wait for images (logo) to load so html2canvas captures them.
+  await new Promise<void>((resolve) => {
+    const imgs = Array.from(doc.images);
+    if (imgs.length === 0) return resolve();
+    let pending = imgs.length;
+    const done = () => { if (--pending <= 0) resolve(); };
+    imgs.forEach((img) => {
+      if (img.complete) done();
+      else { img.addEventListener("load", done); img.addEventListener("error", done); }
+    });
+    setTimeout(resolve, 1500); // safety timeout
+  });
+  container.appendChild(doc.body.firstElementChild as HTMLElement);
 
   try {
     await (html2pdf() as any)
-      .from(container)
+      .from(doc.body)
       .set({
         margin: [12, 10, 14, 10],
         filename: `weekly-leadership-${weekStart.toISOString().slice(0, 10)}.pdf`,
@@ -201,6 +221,6 @@ export async function exportWeeklyReportPdf(args: Args): Promise<void> {
       })
       .save();
   } finally {
-    document.body.removeChild(container);
+    if (iframe.parentNode) iframe.parentNode.removeChild(iframe);
   }
 }
