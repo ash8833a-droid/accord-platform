@@ -613,21 +613,21 @@ function KanbanBoard({
         const todoPct = pct(todoCount);
         const inProgressPct = pct(inProgressCount);
         return (
-          <section key={group.cid} className="rounded-xl border bg-card overflow-hidden">
-            <div className="border-b bg-muted/20 px-4 py-3 space-y-3">
+          <section key={group.cid} className="rounded-2xl border border-slate-100 lg:border bg-white lg:bg-card overflow-hidden shadow-sm lg:shadow-none">
+            <div className="lg:border-b lg:bg-muted/20 px-4 py-3 space-y-3">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center gap-2">
                   {gmeta && (
-                    <div className={`h-9 w-9 rounded-lg flex items-center justify-center ${gmeta.tone}`}>
+                    <div className={`h-9 w-9 rounded-lg flex items-center justify-center hidden lg:flex ${gmeta.tone}`}>
                       <gmeta.icon className="h-4 w-4" />
                     </div>
                   )}
                   <div>
-                    <h3 className="font-bold text-sm">{group.name}</h3>
-                    <p className="text-[11px] text-muted-foreground">منهجية PMP: انتظار ← تنفيذ ← إغلاق</p>
+                    <h3 className="font-bold text-sm text-slate-900 lg:text-foreground">{group.name}</h3>
+                    <p className="text-[11px] text-muted-foreground hidden lg:block">منهجية PMP: انتظار ← تنفيذ ← إغلاق</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2 flex-wrap">
+                <div className="hidden lg:flex items-center gap-2 flex-wrap">
                   <Badge variant="outline">{total} مهمة</Badge>
                   <Badge variant="outline" className="bg-slate-500/10 text-slate-700 border-slate-500/30">
                     انتظار {todoCount} ({todoPct}%)
@@ -639,8 +639,12 @@ function KanbanBoard({
                     إغلاق {completed} ({rate}%)
                   </Badge>
                 </div>
+                <span className="lg:hidden text-[11px] text-slate-500 tabular-nums">
+                  {completed}/{total}
+                </span>
               </div>
               {total > 0 && (
+              <div className="hidden lg:block">
                 <div className="space-y-1.5">
                   <div className="flex h-2.5 w-full overflow-hidden rounded-full bg-muted">
                     <div className="bg-slate-400 h-full transition-all" style={{ width: `${todoPct}%` }} title={`انتظار ${todoPct}%`} />
@@ -652,14 +656,11 @@ function KanbanBoard({
                     <span className="font-semibold text-emerald-700 dark:text-emerald-400">إنجاز {rate}%</span>
                   </div>
                 </div>
+              </div>
               )}
             </div>
             {/* Kanban — single layout for desktop & mobile (touch DnD enabled via polyfill) */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 p-3">
-              <div className="lg:hidden -mb-1 flex items-center gap-2 text-[11px] text-muted-foreground bg-sky-50 dark:bg-sky-950/30 border border-sky-200/60 dark:border-sky-800/60 rounded-md px-2.5 py-1.5">
-                <GripVertical className="h-3.5 w-3.5" />
-                <span>اضغط مطوّلاً على المقبض لسحب البطاقة. التمرير العادي يعمل بشكل طبيعي.</span>
-              </div>
               {cols.map((status) => {
                 const meta = STATUS_META[status];
                 const statusItems = group.list.filter((t) => t.status === status).sort(comparePmp);
@@ -692,7 +693,7 @@ function KanbanBoard({
                       }
                       setDragId(null); setDragOverId(null); setDragOverPos(null); setDragOverColKey(null);
                     }}
-                    className={`rounded-lg border bg-muted/20 p-3 min-h-[220px] transition-all ${
+                    className={`rounded-lg lg:border lg:bg-muted/20 p-0 lg:p-3 lg:min-h-[220px] transition-all ${
                       dragOverColKey === `${group.cid}-${status}` && dragId
                         ? "border-primary border-2 bg-primary/5 shadow-lg shadow-primary/20 ring-2 ring-primary/30"
                         : ""
@@ -701,16 +702,17 @@ function KanbanBoard({
                     <button
                       type="button"
                       onClick={() => toggleOpen(`${group.cid}-${status}`)}
-                      className="w-full flex items-center justify-between mb-3 lg:cursor-default lg:pointer-events-none min-h-[44px] lg:min-h-0"
+                      className="w-full flex items-center justify-between mb-2 lg:mb-3 lg:cursor-default lg:pointer-events-none min-h-[40px] lg:min-h-0 px-1 lg:px-0"
                       aria-expanded={isOpen(`${group.cid}-${status}`)}
                     >
                       <div className="flex items-center gap-2">
-                        <meta.icon className="h-4 w-4 text-muted-foreground" />
-                        <h4 className="font-bold text-sm lg:text-xs">{meta.label}</h4>
-                        <Badge variant="outline" className="text-[10px]">{statusItems.length}</Badge>
+                        <span className={`h-2 w-2 rounded-full lg:hidden ${STATUS_DOT[status]}`} aria-hidden />
+                        <meta.icon className="h-4 w-4 text-muted-foreground hidden lg:inline-block" />
+                        <h4 className="font-semibold lg:font-bold text-[13px] lg:text-xs text-slate-700 lg:text-foreground">{meta.label}</h4>
+                        <span className="text-[11px] text-slate-400 tabular-nums">({statusItems.length})</span>
                       </div>
                       <ChevronDown
-                        className={`h-5 w-5 text-muted-foreground transition-transform lg:hidden ${
+                        className={`h-4 w-4 text-slate-400 transition-transform lg:hidden ${
                           isOpen(`${group.cid}-${status}`) ? "rotate-180" : ""
                         }`}
                       />
