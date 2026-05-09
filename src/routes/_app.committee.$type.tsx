@@ -1153,30 +1153,16 @@ function CommitteePage() {
                 <form onSubmit={saveTask} className="space-y-3 pt-2">
                   <div className="space-y-2"><Label>العنوان</Label><Input value={tTitle} onChange={(e) => setTTitle(e.target.value)} required /></div>
                   <div className="space-y-2"><Label>الوصف</Label><Textarea value={tDesc} onChange={(e) => setTDesc(e.target.value)} rows={3} /></div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-2">
-                      <Label>الحالة</Label>
-                      <Select value={tStatus} onValueChange={(v) => setTStatus(v as Task["status"])}>
-                        <SelectTrigger><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="todo">قائمة الانتظار</SelectItem>
-                          <SelectItem value="in_progress">قيد التنفيذ</SelectItem>
-                          <SelectItem value="completed">مكتملة</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label>الأولوية</Label>
-                      <Select value={tPriority} onValueChange={(v) => setTPriority(v as Task["priority"])}>
-                        <SelectTrigger><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="low">منخفضة</SelectItem>
-                          <SelectItem value="medium">متوسطة</SelectItem>
-                          <SelectItem value="high">عالية</SelectItem>
-                          <SelectItem value="urgent">عاجلة</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
+                  <div className="space-y-2">
+                    <Label>الحالة</Label>
+                    <Select value={tStatus} onValueChange={(v) => setTStatus(v as Task["status"])}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="todo">قائمة الانتظار</SelectItem>
+                        <SelectItem value="in_progress">قيد التنفيذ</SelectItem>
+                        <SelectItem value="completed">مكتملة</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div className="space-y-2">
                     <Label className="flex items-center gap-1.5"><Users className="h-3.5 w-3.5" /> تعيين المهمة إلى</Label>
