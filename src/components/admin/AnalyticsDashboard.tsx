@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { PageGate } from "@/components/PageGate";
 import { Button } from "@/components/ui/button";
@@ -60,7 +60,10 @@ function Inner() {
   const isAdmin = hasRole("admin");
   const [year, setYear] = useState<YearKey>(new Date().getFullYear());
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const [data, setData] = useState<any>(null);
+  const loadInFlight = useRef(false);
 
   useEffect(() => { void load(); }, []);
 
@@ -72,7 +75,7 @@ function Inner() {
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "committee_tasks" },
-        () => { void load(); },
+        () => { void load({ silent: true }); },
       )
       .subscribe();
     return () => { void supabase.removeChannel(channel); };
@@ -85,29 +88,38 @@ function Inner() {
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "grooms" },
-        () => { void load(); },
+        () => { void load({ silent: true }); },
       )
       .subscribe();
     return () => { void supabase.removeChannel(channel); };
   }, []);
 
-  async function load() {
-    setLoading(true);
-    const [committeesRes, tasksRes, groomsRes, paymentsRes, familyRes] = await Promise.all([
-      supabase.from("committees").select("id, name, type, budget_allocated, budget_spent"),
-      supabase.from("committee_tasks").select("id, status, committee_id, created_at, updated_at"),
-      supabase.from("grooms").select("id, status, created_at, wedding_date, groom_contribution"),
-      supabase.from("payment_requests").select("id, amount, status, created_at"),
-      supabase.from("family_contributions").select("id, amount, contribution_date"),
-    ]);
-    setData({
-      committees: committeesRes.data ?? [],
-      tasks: tasksRes.data ?? [],
-      grooms: groomsRes.data ?? [],
-      payments: paymentsRes.data ?? [],
-      family: familyRes.data ?? [],
-    });
-    setLoading(false);
+  async function load(options: { silent?: boolean } = {}) {
+    if (loadInFlight.current) return;
+    loadInFlight.current = true;
+    if (options.silent) setRefreshing(true);
+    else setLoading(true);
+
+    try {
+      const [committeesRes, tasksRes, groomsRes, paymentsRes, familyRes] = await Promise.all([
+        supabase.from("committees").select("id, name, type, budget_allocated, budget_spent"),
+        supabase.from("committee_tasks").select("id, status, committee_id, created_at, updated_at"),
+        supabase.from("grooms").select("id, status, created_at, wedding_date, groom_contribution"),
+        supabase.from("payment_requests").select("id, amount, status, created_at"),
+        supabase.from("family_contributions").select("id, amount, contribution_date"),
+      ]);
+      setData({
+        committees: committeesRes.data ?? [],
+        tasks: tasksRes.data ?? [],
+        grooms: groomsRes.data ?? [],
+        payments: paymentsRes.data ?? [],
+        family: familyRes.data ?? [],
+      });
+    } finally {
+      loadInFlight.current = false;
+      setRefreshing(false);
+      setLoading(false);
+    }
   }
 
   // Real-time subscription on family_contributions for live KPI updates.
@@ -117,7 +129,7 @@ function Inner() {
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "family_contributions" },
-        () => { void load(); },
+        () => { void load({ silent: true }); },
       )
       .subscribe();
     return () => { void supabase.removeChannel(channel); };
