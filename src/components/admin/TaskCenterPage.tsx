@@ -17,7 +17,7 @@ import {
   Plus, Search, Loader2, ListTodo, PlayCircle, CheckCircle2,
   Trash2, LayoutGrid, Rows3, CalendarClock,
   ArrowUp, ArrowDown, ChevronDown,
-  RefreshCw,
+  RefreshCw, Eye, Activity, Table2,
 } from "lucide-react";
 import { GripVertical } from "lucide-react";
 import { toast } from "sonner";
@@ -98,7 +98,7 @@ function TaskCenterInner({ canEdit }: { canEdit: boolean }) {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [committeeFilter, setCommitteeFilter] = useState<string>("all");
-  const [view, setView] = useState<"kanban" | "list">("kanban");
+  const [view, setView] = useState<"summary" | "kanban" | "list">("summary");
   const [createOpen, setCreateOpen] = useState(false);
   const [details, setDetails] = useState<TaskRow | null>(null);
 
@@ -283,6 +283,14 @@ function TaskCenterInner({ canEdit }: { canEdit: boolean }) {
           <div className="inline-flex rounded-2xl bg-slate-100/80 p-1 shrink-0">
             <button
               type="button"
+              onClick={() => setView("summary")}
+              aria-label="ملخص اللجان"
+              className={`h-9 w-9 rounded-xl inline-flex items-center justify-center transition-transform duration-150 active:scale-[0.94] ${view === "summary" ? "bg-white shadow-sm text-emerald-700" : "text-slate-500"}`}
+            >
+              <Table2 className="h-4 w-4" />
+            </button>
+            <button
+              type="button"
               onClick={() => setView("list")}
               aria-label="عرض قائمة"
               className={`h-9 w-9 rounded-xl inline-flex items-center justify-center transition-transform duration-150 active:scale-[0.94] ${view === "list" ? "bg-white shadow-sm text-emerald-700" : "text-slate-500"}`}
@@ -317,6 +325,26 @@ function TaskCenterInner({ canEdit }: { canEdit: boolean }) {
               className="pr-10 h-11 rounded-xl bg-white border-0 shadow-sm focus-visible:ring-2 focus-visible:ring-primary/20"
             />
           </div>
+          <div className="inline-flex rounded-xl bg-white border border-slate-100 p-1 shadow-sm shrink-0">
+            <button
+              type="button"
+              onClick={() => setView("summary")}
+              aria-label="ملخص اللجان"
+              title="ملخص اللجان"
+              className={`h-9 w-9 rounded-lg inline-flex items-center justify-center transition-colors ${view === "summary" ? "bg-teal-700 text-white shadow-sm" : "text-slate-500 hover:bg-slate-50"}`}
+            >
+              <Table2 className="h-4 w-4" />
+            </button>
+            <button
+              type="button"
+              onClick={() => setView("kanban")}
+              aria-label="عرض كانبان"
+              title="عرض كانبان"
+              className={`h-9 w-9 rounded-lg inline-flex items-center justify-center transition-colors ${view === "kanban" ? "bg-teal-700 text-white shadow-sm" : "text-slate-500 hover:bg-slate-50"}`}
+            >
+              <LayoutGrid className="h-4 w-4" />
+            </button>
+          </div>
           {canEdit && (
             <Button
               size="sm"
@@ -328,15 +356,17 @@ function TaskCenterInner({ canEdit }: { canEdit: boolean }) {
           )}
         </div>
 
-        <KanbanBoard tasks={filtered} cmMap={cmMap} canEdit={canEdit} onMove={moveTask} onReorder={reorderTask} onStep={stepTask} onOpen={setDetails} onDelete={deleteTask} />
+        {view === "summary"
+          ? <CommitteesSummaryTable tasks={filtered} cmMap={cmMap} onOpenCommittee={(cid) => { setCommitteeFilter(cid); setView("kanban"); }} />
+          : <KanbanBoard tasks={filtered} cmMap={cmMap} canEdit={canEdit} onMove={moveTask} onReorder={reorderTask} onStep={stepTask} onOpen={setDetails} onDelete={deleteTask} />
+        }
       </div>
 
       {/* Mobile keeps existing list/kanban toggle */}
       <div className="lg:hidden">
-        {view === "kanban"
-          ? <KanbanBoard tasks={filtered} cmMap={cmMap} canEdit={canEdit} onMove={moveTask} onReorder={reorderTask} onStep={stepTask} onOpen={setDetails} onDelete={deleteTask} />
-          : <ListView tasks={filtered} cmMap={cmMap} canEdit={canEdit} onMove={moveTask} onOpen={setDetails} onDelete={deleteTask} />
-        }
+        {view === "summary" && <CommitteesSummaryTable tasks={filtered} cmMap={cmMap} onOpenCommittee={(cid) => { setCommitteeFilter(cid); setView("kanban"); }} />}
+        {view === "kanban" && <KanbanBoard tasks={filtered} cmMap={cmMap} canEdit={canEdit} onMove={moveTask} onReorder={reorderTask} onStep={stepTask} onOpen={setDetails} onDelete={deleteTask} />}
+        {view === "list" && <ListView tasks={filtered} cmMap={cmMap} canEdit={canEdit} onMove={moveTask} onOpen={setDetails} onDelete={deleteTask} />}
       </div>
 
       {createOpen && (
@@ -841,6 +871,126 @@ function MobileColumns({
         );
       })}
     </Tabs>
+  );
+}
+
+function CommitteesSummaryTable({
+  tasks, cmMap, onOpenCommittee,
+}: {
+  tasks: TaskRow[];
+  cmMap: Map<string, CommitteeRow>;
+  onOpenCommittee: (committeeId: string) => void;
+}) {
+  const rows = useMemo(() => {
+    const grouped = new Map<string, TaskRow[]>();
+    for (const t of tasks) {
+      if (!grouped.has(t.committee_id)) grouped.set(t.committee_id, []);
+      grouped.get(t.committee_id)!.push(t);
+    }
+    return Array.from(grouped.entries()).map(([cid, list]) => {
+      const cm = cmMap.get(cid);
+      const total = list.length;
+      const completed = list.filter((t) => t.status === "completed").length;
+      const active = list.filter((t) => t.status === "in_progress").length;
+      const todo = list.filter((t) => t.status === "todo").length;
+      const overdue = list.filter(isOverdue).length;
+      const rate = total === 0 ? 0 : Math.round((completed / total) * 100);
+      let tier: "ok" | "warn" | "crit" = "crit";
+      if (rate >= 70 && overdue === 0) tier = "ok";
+      else if (rate >= 40 && overdue <= 2) tier = "warn";
+      return { cid, name: cm?.name ?? "—", type: cm?.type ?? "", total, completed, active, todo, overdue, rate, tier };
+    }).sort((a, b) => b.rate - a.rate);
+  }, [tasks, cmMap]);
+
+  if (rows.length === 0) {
+    return <Card><CardContent className="p-12 text-center text-sm text-muted-foreground">لا توجد بيانات للجان</CardContent></Card>;
+  }
+
+  const tierMeta = {
+    ok:   { label: "منضبط",      dot: "bg-emerald-500", chip: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+    warn: { label: "تأخير بسيط", dot: "bg-amber-500",   chip: "bg-amber-50 text-amber-700 border-amber-200" },
+    crit: { label: "حرج",         dot: "bg-rose-500",    chip: "bg-rose-50 text-rose-700 border-rose-200" },
+  } as const;
+
+  return (
+    <div className="rounded-2xl bg-white shadow-sm border border-slate-100 overflow-hidden" dir="rtl">
+      <div className="flex items-center justify-between gap-3 px-5 py-4 border-b border-slate-100">
+        <h3 className="text-base font-bold text-slate-800 inline-flex items-center gap-2">
+          <Activity className="h-4 w-4 text-teal-700" />
+          قائمة اللجان النشطة
+        </h3>
+        <div className="hidden sm:flex items-center gap-3 text-[11px] text-slate-500">
+          <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-emerald-500" /> منضبط</span>
+          <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-amber-500" /> تأخير بسيط</span>
+          <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-rose-500" /> حرج</span>
+        </div>
+      </div>
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="text-[11px] uppercase tracking-wide text-slate-400 border-b border-slate-100">
+              <th className="text-right font-semibold px-5 py-3">اللجنة</th>
+              <th className="text-right font-semibold px-3 py-3">المسار</th>
+              <th className="text-right font-semibold px-3 py-3">المهام</th>
+              <th className="text-right font-semibold px-3 py-3">قيد التنفيذ</th>
+              <th className="text-right font-semibold px-3 py-3">المكتملة</th>
+              <th className="text-right font-semibold px-3 py-3 min-w-[160px]">نسبة الإنجاز</th>
+              <th className="text-right font-semibold px-3 py-3">المتأخرة</th>
+              <th className="text-right font-semibold px-3 py-3">الحالة</th>
+              <th className="px-3 py-3 w-10" />
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((r) => {
+              const cmeta = r.type ? committeeByType(r.type) : null;
+              const tm = tierMeta[r.tier];
+              return (
+                <tr
+                  key={r.cid}
+                  onClick={() => onOpenCommittee(r.cid)}
+                  className="border-b border-slate-100 last:border-b-0 hover:bg-slate-50/60 cursor-pointer transition-colors"
+                >
+                  <td className="px-5 py-4 font-bold text-slate-800 text-[13.5px]">{r.name}</td>
+                  <td className="px-3 py-4">
+                    {cmeta ? (
+                      <span className={`inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-full ${cmeta.tone}`}>
+                        <cmeta.icon className="h-3 w-3" />{cmeta.label}
+                      </span>
+                    ) : <span className="text-slate-400">—</span>}
+                  </td>
+                  <td className="px-3 py-4 font-bold text-slate-800 tabular-nums">{r.total}</td>
+                  <td className="px-3 py-4 font-semibold text-amber-600 tabular-nums">{r.active}</td>
+                  <td className="px-3 py-4 font-semibold text-emerald-600 tabular-nums">{r.completed}</td>
+                  <td className="px-3 py-4">
+                    <div className="flex items-center gap-2.5">
+                      <span className="text-[12px] font-bold text-slate-800 tabular-nums w-9">{r.rate}%</span>
+                      <div className="flex-1 h-1.5 rounded-full bg-slate-100 overflow-hidden min-w-[80px]">
+                        <div
+                          className="h-full rounded-full bg-teal-700 transition-all"
+                          style={{ width: `${r.rate}%` }}
+                        />
+                      </div>
+                    </div>
+                  </td>
+                  <td className={`px-3 py-4 font-semibold tabular-nums ${r.overdue > 0 ? "text-rose-600" : "text-slate-400"}`}>
+                    {r.overdue}
+                  </td>
+                  <td className="px-3 py-4">
+                    <span className={`inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-full border ${tm.chip}`}>
+                      <span className={`h-1.5 w-1.5 rounded-full ${tm.dot}`} />
+                      {tm.label}
+                    </span>
+                  </td>
+                  <td className="px-3 py-4 text-slate-400">
+                    <Eye className="h-4 w-4" />
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </div>
   );
 }
 
