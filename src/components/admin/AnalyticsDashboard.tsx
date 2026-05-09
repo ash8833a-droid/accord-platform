@@ -15,6 +15,7 @@ import { exportDashboardPdf } from "@/lib/dashboard-pdf";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { WeeklyReport } from "@/components/admin/WeeklyReport";
 import { AdminAlertsPanel } from "@/components/admin/AdminAlertsPanel";
+import { SmartRecommendations } from "@/components/admin/SmartRecommendations";
 import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
 import {
@@ -383,6 +384,15 @@ function Inner() {
           tone={k.netBalance >= 0 ? "teal" : "rose"}
         />
       </div>
+
+      <SmartRecommendations
+        committees={charts.perCommittee}
+        completionRate={k.completionRate}
+        netBalance={k.netBalance}
+        totalMarriages={k.totalMarriages}
+        allocatedFunds={k.allocatedFunds}
+        revenues={k.revenues}
+      />
 
       {/* Task & Committee Management */}
       <SectionTitle title="أداء اللجان" subtitle="مستويات الإنجاز والمقارنة" />
