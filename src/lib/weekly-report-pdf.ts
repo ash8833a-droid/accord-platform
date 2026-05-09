@@ -66,7 +66,7 @@ function sectionHtml(opts: {
 
 function buildRecommendations(leaders: InsightItem[], monitoring: InsightItem[], urgent: InsightItem[]): InsightItem[] {
   const recs: InsightItem[] = [];
-  urgent.forEach((u) => recs.push({ name: u.name, detail: "تدخّل فوري من إدارة اللجنة لإزالة الاختناقات وإعادة جدولة المهام المتأخرة." }));
+  urgent.forEach((u) => recs.push({ name: u.name, detail: "تدخّل مؤسسي من إدارة اللجنة لمعالجة المهام المتعثّرة وإعادة جدولتها وفق الأولوية." }));
   monitoring.forEach((m) => recs.push({ name: m.name, detail: "متابعة أسبوعية مع رئيس اللجنة وتحديد تواريخ نهائية واضحة." }));
   leaders.forEach((l) => recs.push({ name: l.name, detail: "تعميم تجربة اللجنة كنموذج تشغيلي على بقية اللجان." }));
   return recs.slice(0, 6);
@@ -105,7 +105,7 @@ export function getWeeklyReportPrintHtml(args: Args): string {
           <div class="kpi-sub">مقارنة بالأسبوع السابق</div>
         </div>
         <div class="kpi">
-          <div class="kpi-label">اختناقات حرجة</div>
+          <div class="kpi-label">مهام تستوجب المعالجة</div>
           <div class="kpi-row"><span class="kpi-value" style="color:${overdueTasks > 0 ? RED : TEAL}">${overdueTasks}</span></div>
           <div class="kpi-sub">${overdueTasks === 0 ? "لا توجد مهام عالقة" : "مهام تحتاج تدخّل"}</div>
         </div>
@@ -117,7 +117,7 @@ export function getWeeklyReportPrintHtml(args: Args): string {
       </div>
 
       ${sectionHtml({ number: "01", title: "إنجازات الأسبوع", subtitle: "أبرز اللجان التي تجاوزت المستهدف", accent: TEAL, items: leaders, empty: "لا توجد إنجازات بارزة هذا الأسبوع." })}
-      ${sectionHtml({ number: "02", title: "تحديات العمل", subtitle: "مهام متأخرة واختناقات تستوجب الاهتمام", accent: AMBER, items: [...urgent, ...monitoring].slice(0, 6), empty: "لا توجد تحديات تشغيلية هذا الأسبوع." })}
+      ${sectionHtml({ number: "02", title: "تحديات العمل", subtitle: "مهام متأخرة تستوجب المعالجة والمتابعة", accent: AMBER, items: [...urgent, ...monitoring].slice(0, 6), empty: "لا توجد تحديات تشغيلية هذا الأسبوع." })}
       ${sectionHtml({ number: "03", title: "توصيات التحسين", subtitle: "إجراءات مقترحة لكل لجنة", accent: GOLD, items: buildRecommendations(leaders, monitoring, urgent), empty: "لا توجد توصيات إضافية — الأداء العام مستقر." })}
 
       <div class="signature">
