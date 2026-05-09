@@ -567,7 +567,7 @@ function KanbanBoard({
         const todoPct = pct(todoCount);
         const inProgressPct = pct(inProgressCount);
         return (
-          <section key={group.cid} className="lg:rounded-2xl lg:border bg-white lg:bg-card overflow-hidden lg:shadow-none border-b border-slate-100 lg:border-b">
+          <section key={group.cid} className="lg:rounded-2xl lg:border bg-transparent lg:bg-card overflow-visible lg:shadow-none lg:border-b">
             <div className="lg:border-b lg:bg-muted/20 px-1 lg:px-4 py-3 lg:py-3 space-y-3">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center gap-2">
@@ -674,7 +674,7 @@ function KanbanBoard({
                     <div
                       className={`space-y-0 lg:space-y-2 transform-gpu will-change-transform transition-[opacity] duration-200 ${
                         isOpen(`${group.cid}-${status}`) ? "block" : "hidden"
-                      } lg:!block`}
+                      } lg:!block scrollbar-hide`}
                     >
                       {statusItems.length === 0 && <p className="text-xs text-muted-foreground text-center py-6">لا توجد مهام</p>}
                       {statusItems.map((t, idx) => {
@@ -687,7 +687,11 @@ function KanbanBoard({
                 const isFirstInGroup = idx === 0;
                 const isLastInGroup = idx === statusItems.length - 1;
                 return (
-                  <div key={t.id}>
+                  <div
+                    key={t.id}
+                    className="animate-task-enter mb-2.5 lg:mb-0 last:mb-0"
+                    style={{ animationDelay: `${Math.min(idx, 10) * 35}ms` }}
+                  >
                     {showBefore && <div className="h-1 bg-primary rounded mb-1" />}
                   <div
                     draggable={canEdit}
@@ -715,7 +719,7 @@ function KanbanBoard({
                     }}
                     onClick={() => onOpen(t)}
                     style={{ touchAction: "pan-y" }}
-                    className={`group relative lg:rounded-xl lg:border lg:bg-card bg-white py-3.5 ps-9 lg:ps-9 pe-2 lg:p-3.5 cursor-grab active:cursor-grabbing lg:shadow-none hover:lg:shadow-md hover:lg:-translate-y-0.5 transform-gpu will-change-transform transition-all select-none border-b border-slate-100 last:border-b-0 lg:border-b ${isDragging ? "opacity-40 lg:rotate-1 lg:shadow-xl lg:ring-2 lg:ring-primary/40" : ""}`}
+                    className={`group relative rounded-2xl lg:rounded-xl lg:border lg:bg-card bg-white py-3.5 ps-9 lg:ps-9 pe-2 lg:p-3.5 cursor-grab active:cursor-grabbing shadow-[0_4px_20px_-4px_rgba(15,23,42,0.06)] lg:shadow-none hover:lg:shadow-md hover:lg:-translate-y-0.5 transform-gpu will-change-transform transition-transform duration-150 active:scale-[0.98] select-none lg:border-b ${isDragging ? "opacity-40 lg:rotate-1 lg:shadow-xl lg:ring-2 lg:ring-primary/40" : ""}`}
                   >
                     {/* Visible drag handle (also acts as a touch-friendly affordance) */}
                     <div
