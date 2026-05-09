@@ -20,7 +20,6 @@ export type EditorTask = {
   title: string;
   description?: string | null;
   status: "todo" | "in_progress" | "completed";
-  priority: "low" | "medium" | "high" | "urgent";
   due_date?: string | null;
   committee_id: string;
 };
@@ -29,13 +28,6 @@ const STATUS_META = {
   todo:        { label: "قائمة الانتظار", icon: ListTodo,     btn: "bg-slate-500/10 text-slate-700 border-slate-500/30 hover:bg-slate-500/20",   active: "bg-slate-600 text-white border-slate-700" },
   in_progress: { label: "قيد التنفيذ",   icon: PlayCircle,   btn: "bg-amber-500/10 text-amber-700 border-amber-500/30 hover:bg-amber-500/20", active: "bg-amber-600 text-white border-amber-700" },
   completed:   { label: "مكتملة",        icon: CheckCircle2, btn: "bg-emerald-500/10 text-emerald-700 border-emerald-500/30 hover:bg-emerald-500/20", active: "bg-emerald-600 text-white border-emerald-700" },
-} as const;
-
-const PRIORITY_META = {
-  low:    { label: "منخفضة", cls: "bg-slate-500/10 text-slate-600 border-slate-500/30",   active: "bg-slate-600 text-white border-slate-700" },
-  medium: { label: "متوسطة", cls: "bg-sky-500/10 text-sky-600 border-sky-500/30",         active: "bg-sky-600 text-white border-sky-700" },
-  high:   { label: "عالية",  cls: "bg-orange-500/10 text-orange-600 border-orange-500/30", active: "bg-orange-600 text-white border-orange-700" },
-  urgent: { label: "عاجلة",  cls: "bg-rose-500/10 text-rose-600 border-rose-500/30",       active: "bg-rose-600 text-white border-rose-700" },
 } as const;
 
 interface Props {
@@ -55,7 +47,6 @@ export function TaskEditorDialog({ task, open, onOpenChange, onSaved }: Props) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [status, setStatus] = useState<EditorTask["status"]>("todo");
-  const [priority, setPriority] = useState<EditorTask["priority"]>("medium");
   const [dueDate, setDueDate] = useState("");
   const [saving, setSaving] = useState(false);
   const [dirty, setDirty] = useState(false);
@@ -65,7 +56,6 @@ export function TaskEditorDialog({ task, open, onOpenChange, onSaved }: Props) {
     setTitle(task.title);
     setDescription(task.description ?? "");
     setStatus(task.status);
-    setPriority(task.priority);
     setDueDate(task.due_date ?? "");
     setDirty(false);
   }, [task?.id]);
@@ -89,24 +79,6 @@ export function TaskEditorDialog({ task, open, onOpenChange, onSaved }: Props) {
       return;
     }
     toast.success(`تم النقل إلى «${STATUS_META[next].label}»`);
-    onSaved?.();
-  };
-
-  // Quick priority change (instant)
-  const quickPriority = async (next: EditorTask["priority"]) => {
-    if (next === priority) return;
-    const prev = priority;
-    setPriority(next);
-    const { error } = await supabase
-      .from("committee_tasks")
-      .update({ priority: next })
-      .eq("id", task.id);
-    if (error) {
-      setPriority(prev);
-      toast.error("تعذّر تغيير الأولوية", { description: error.message });
-      return;
-    }
-    toast.success(`تم تعيين الأولوية: ${PRIORITY_META[next].label}`);
     onSaved?.();
   };
 
@@ -164,31 +136,6 @@ export function TaskEditorDialog({ task, open, onOpenChange, onSaved }: Props) {
                   }`}
                 >
                   <Icon className="h-3.5 w-3.5" />
-                  {m.label}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Priority pills — saves instantly */}
-        <div className="space-y-1.5">
-          <Label className="text-[11px] text-muted-foreground inline-flex items-center gap-1.5">
-            <Flag className="h-3 w-3" /> الأولوية
-          </Label>
-          <div className="grid grid-cols-4 gap-1.5">
-            {(Object.keys(PRIORITY_META) as Array<EditorTask["priority"]>).map((p) => {
-              const m = PRIORITY_META[p];
-              const isActive = priority === p;
-              return (
-                <button
-                  key={p}
-                  type="button"
-                  onClick={() => quickPriority(p)}
-                  className={`rounded-lg border px-2 py-1.5 text-xs font-bold transition ${
-                    isActive ? m.active : m.cls + " hover:brightness-95"
-                  }`}
-                >
                   {m.label}
                 </button>
               );
