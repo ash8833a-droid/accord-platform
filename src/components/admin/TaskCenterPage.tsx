@@ -570,54 +570,30 @@ function KanbanBoard({
         const todoPct = pct(todoCount);
         const inProgressPct = pct(inProgressCount);
         return (
-          <section key={group.cid} className="lg:rounded-2xl lg:border bg-transparent lg:bg-card overflow-visible lg:shadow-none lg:border-b">
-            <div className="lg:border-b lg:bg-muted/20 px-1 lg:px-4 py-3 lg:py-3 space-y-3">
+          <section key={group.cid} className="lg:rounded-2xl lg:bg-white dark:lg:bg-card lg:shadow-sm lg:border lg:border-slate-100 overflow-visible">
+            <div className="px-1 lg:px-5 py-3 lg:py-4">
               <div className="flex flex-wrap items-center justify-between gap-3">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-3 min-w-0">
                   {gmeta && (
-                    <div className={`h-9 w-9 rounded-lg flex items-center justify-center hidden lg:flex ${gmeta.tone}`}>
+                    <div className={`h-9 w-9 rounded-xl items-center justify-center hidden lg:flex ${gmeta.tone}`}>
                       <gmeta.icon className="h-4 w-4" />
                     </div>
                   )}
-                  <div>
-                    <h3 className="font-bold text-sm text-slate-900 lg:text-foreground">{group.name}</h3>
-                    <p className="text-[11px] text-muted-foreground hidden lg:block">منهجية PMP: انتظار ← تنفيذ ← إغلاق</p>
+                  <div className="min-w-0">
+                    <h3 className="font-bold text-[15px] text-slate-800 lg:text-slate-800 dark:text-foreground truncate">{group.name}</h3>
+                    <p className="text-[11px] text-slate-500 hidden lg:block mt-0.5">{total} مهمة · انتظار {todoCount} · تنفيذ {inProgressCount} · إغلاق {completed}</p>
                   </div>
                 </div>
-                <div className="hidden lg:flex items-center gap-2 flex-wrap">
-                  <Badge variant="outline">{total} مهمة</Badge>
-                  <Badge variant="outline" className="bg-slate-500/10 text-slate-700 border-slate-500/30">
-                    انتظار {todoCount} ({todoPct}%)
-                  </Badge>
-                  <Badge variant="outline" className="bg-amber-500/10 text-amber-700 border-amber-500/30">
-                    تنفيذ {inProgressCount} ({inProgressPct}%)
-                  </Badge>
-                  <Badge variant="outline" className="bg-emerald-500/10 text-emerald-700 border-emerald-500/30">
-                    إغلاق {completed} ({rate}%)
-                  </Badge>
+                <div className="hidden lg:flex items-center gap-3 shrink-0">
+                  <ProgressRing value={rate} />
                 </div>
                 <span className="lg:hidden text-[11px] text-slate-500 tabular-nums">
                   {completed}/{total}
                 </span>
               </div>
-              {total > 0 && (
-              <div className="hidden lg:block">
-                <div className="space-y-1.5">
-                  <div className="flex h-2.5 w-full overflow-hidden rounded-full bg-muted">
-                    <div className="bg-slate-400 h-full transition-all" style={{ width: `${todoPct}%` }} title={`انتظار ${todoPct}%`} />
-                    <div className="bg-amber-500 h-full transition-all" style={{ width: `${inProgressPct}%` }} title={`تنفيذ ${inProgressPct}%`} />
-                    <div className="bg-emerald-500 h-full transition-all" style={{ width: `${rate}%` }} title={`إغلاق ${rate}%`} />
-                  </div>
-                  <div className="flex items-center justify-between text-[10px] text-muted-foreground">
-                    <span>التقدم الكلي</span>
-                    <span className="font-semibold text-emerald-700 dark:text-emerald-400">إنجاز {rate}%</span>
-                  </div>
-                </div>
-              </div>
-              )}
             </div>
             {/* Kanban — single layout for desktop & mobile (touch DnD enabled via polyfill) */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-0 lg:gap-3 p-0 lg:p-3">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-0 lg:gap-4 p-0 lg:p-5 lg:pt-0">
               {cols.map((status) => {
                 const meta = STATUS_META[status];
                 const statusItems = group.list.filter((t) => t.status === status).sort(comparePmp);
@@ -650,9 +626,9 @@ function KanbanBoard({
                       }
                       setDragId(null); setDragOverId(null); setDragOverPos(null); setDragOverColKey(null);
                     }}
-                    className={`lg:rounded-lg lg:border lg:bg-muted/20 p-0 lg:p-3 lg:min-h-[220px] transition-all ${
+                    className={`lg:rounded-2xl lg:bg-slate-50/60 dark:lg:bg-muted/20 p-0 lg:p-3 lg:min-h-[220px] transition-all ${
                       dragOverColKey === `${group.cid}-${status}` && dragId
-                        ? "border-primary border-2 bg-primary/5 shadow-lg shadow-primary/20 ring-2 ring-primary/30"
+                        ? "lg:bg-primary/5 ring-2 ring-primary/25"
                         : ""
                     }`}
                   >
