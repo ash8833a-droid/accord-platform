@@ -567,8 +567,8 @@ function KanbanBoard({
         const todoPct = pct(todoCount);
         const inProgressPct = pct(inProgressCount);
         return (
-          <section key={group.cid} className="rounded-2xl border border-slate-100 lg:border bg-white lg:bg-card overflow-hidden shadow-sm lg:shadow-none">
-            <div className="lg:border-b lg:bg-muted/20 px-4 py-3 space-y-3">
+          <section key={group.cid} className="lg:rounded-2xl lg:border bg-white lg:bg-card overflow-hidden lg:shadow-none border-b border-slate-100 lg:border-b">
+            <div className="lg:border-b lg:bg-muted/20 px-1 lg:px-4 py-3 lg:py-3 space-y-3">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center gap-2">
                   {gmeta && (
@@ -715,7 +715,7 @@ function KanbanBoard({
                     }}
                     onClick={() => onOpen(t)}
                     style={{ touchAction: "pan-y" }}
-                    className={`group relative rounded-xl border border-slate-100 lg:border bg-white lg:bg-card p-3.5 ps-10 lg:ps-9 cursor-grab active:cursor-grabbing shadow-sm lg:shadow-none hover:shadow-md hover:-translate-y-0.5 transform-gpu will-change-transform transition-all select-none ${isDragging ? "opacity-40 rotate-1 shadow-xl ring-2 ring-primary/40" : ""}`}
+                    className={`group relative lg:rounded-xl lg:border lg:bg-card bg-white py-3.5 ps-9 lg:ps-9 pe-2 lg:p-3.5 cursor-grab active:cursor-grabbing lg:shadow-none hover:lg:shadow-md hover:lg:-translate-y-0.5 transform-gpu will-change-transform transition-all select-none border-b border-slate-100 last:border-b-0 lg:border-b ${isDragging ? "opacity-40 lg:rotate-1 lg:shadow-xl lg:ring-2 lg:ring-primary/40" : ""}`}
                   >
                     {/* Visible drag handle (also acts as a touch-friendly affordance) */}
                     <div
