@@ -759,20 +759,26 @@ function KanbanBoard({
                     }}
                     onClick={() => onOpen(t)}
                     style={{ touchAction: "pan-y" }}
-                    className={`group relative rounded-lg border bg-card p-3.5 ps-10 lg:ps-9 cursor-grab active:cursor-grabbing hover:shadow-md hover:-translate-y-0.5 transform-gpu will-change-transform transition-all select-none ${isDragging ? "opacity-40 rotate-1 shadow-xl ring-2 ring-primary/40" : ""}`}
+                    className={`group relative rounded-xl border border-slate-100 lg:border bg-white lg:bg-card p-3.5 ps-10 lg:ps-9 cursor-grab active:cursor-grabbing shadow-sm lg:shadow-none hover:shadow-md hover:-translate-y-0.5 transform-gpu will-change-transform transition-all select-none ${isDragging ? "opacity-40 rotate-1 shadow-xl ring-2 ring-primary/40" : ""}`}
                   >
                     {/* Visible drag handle (also acts as a touch-friendly affordance) */}
                     <div
                       aria-hidden
-                      className="absolute inset-y-0 start-0 w-7 flex items-center justify-center text-muted-foreground/60 group-hover:text-primary border-e border-dashed border-border/60 bg-muted/30 rounded-s-lg"
+                      className="absolute inset-y-0 start-0 w-7 flex items-center justify-center text-slate-300 lg:text-muted-foreground/60 group-hover:text-primary lg:border-e lg:border-dashed lg:border-border/60 lg:bg-muted/30 rounded-s-xl"
                     >
                       <GripVertical className="h-4 w-4" />
                     </div>
                     <div className="flex items-start justify-between gap-2">
-                      <p className="text-base lg:text-sm font-bold flex-1 leading-snug break-words [overflow-wrap:anywhere]">
-                        <span className="text-[10px] text-muted-foreground me-1">#{idx + 1}</span>
-                        {t.title}
-                      </p>
+                      <div className="flex items-start gap-2 flex-1 min-w-0">
+                        <span
+                          aria-hidden
+                          className={`mt-1.5 h-2 w-2 rounded-full shrink-0 lg:hidden ${STATUS_DOT[t.status]}`}
+                        />
+                        <p className="text-[15px] lg:text-sm font-semibold lg:font-bold text-slate-900 lg:text-foreground flex-1 leading-snug break-words [overflow-wrap:anywhere]">
+                          <span className="text-[10px] text-muted-foreground me-1 hidden lg:inline">#{idx + 1}</span>
+                          {t.title}
+                        </p>
+                      </div>
                       {canEdit && (
                         <div className="flex items-center gap-1 shrink-0">
                           <button
@@ -804,7 +810,18 @@ function KanbanBoard({
                         </div>
                       )}
                     </div>
-                    <div className="flex items-center flex-wrap gap-1 mt-2">
+                    <div className="mt-2 flex items-center gap-2 text-[11px] text-slate-500 lg:hidden">
+                      {cm && <span className="truncate">{cm.name}</span>}
+                      <span className="text-slate-300">•</span>
+                      <span>{relativeTimeAr(t.created_at)}</span>
+                      {overdue && (
+                        <>
+                          <span className="text-slate-300">•</span>
+                          <span className="text-red-600 font-semibold">متأخرة</span>
+                        </>
+                      )}
+                    </div>
+                    <div className="hidden lg:flex items-center flex-wrap gap-1 mt-2">
                       {cmeta && (
                         <span className={`inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded ${cmeta.tone}`}>
                           <cmeta.icon className="h-3 w-3" />{cm?.name}
@@ -812,7 +829,7 @@ function KanbanBoard({
                       )}
                     </div>
                     {t.due_date && (
-                      <div className="mt-2 flex items-center justify-between gap-2">
+                      <div className="mt-2 hidden lg:flex items-center justify-between gap-2">
                         <span
                           className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-1 rounded-md border ${
                             overdue
