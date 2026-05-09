@@ -51,6 +51,28 @@ function isOverdue(t: TaskRow): boolean {
   return new Date(t.due_date).getTime() < Date.now() - 86400000;
 }
 
+/** Arabic relative time, e.g. "منذ ساعتين". */
+function relativeTimeAr(iso: string): string {
+  const diff = Date.now() - new Date(iso).getTime();
+  if (diff < 60_000) return "الآن";
+  const m = Math.floor(diff / 60_000);
+  if (m < 60) return m === 1 ? "منذ دقيقة" : m === 2 ? "منذ دقيقتين" : `منذ ${m} دقيقة`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return h === 1 ? "منذ ساعة" : h === 2 ? "منذ ساعتين" : `منذ ${h} ساعات`;
+  const d = Math.floor(h / 24);
+  if (d < 30) return d === 1 ? "منذ يوم" : d === 2 ? "منذ يومين" : `منذ ${d} أيام`;
+  const mo = Math.floor(d / 30);
+  if (mo < 12) return mo === 1 ? "منذ شهر" : mo === 2 ? "منذ شهرين" : `منذ ${mo} أشهر`;
+  const y = Math.floor(mo / 12);
+  return y === 1 ? "منذ سنة" : y === 2 ? "منذ سنتين" : `منذ ${y} سنوات`;
+}
+
+const STATUS_DOT: Record<TaskRow["status"], string> = {
+  todo: "bg-slate-400",
+  in_progress: "bg-amber-500",
+  completed: "bg-emerald-500",
+};
+
 /**
  * FIFO comparator: oldest tasks first, newest at the bottom.
  * Manual sort_order (drag-and-drop) acts as a fine-grained tiebreaker.
