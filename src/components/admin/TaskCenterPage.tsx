@@ -371,61 +371,50 @@ function TaskCenterInner({ canEdit }: { canEdit: boolean }) {
         </div>
       )}
 
-      {/* Unified header + toolbar */}
-      <div className="rounded-2xl bg-white dark:bg-card border border-slate-100 dark:border-border shadow-sm overflow-hidden">
-        <div className="flex items-center justify-between gap-3 px-5 py-4">
-          <div className="min-w-0">
-            <h1 className="text-lg font-bold leading-tight truncate text-slate-800 dark:text-foreground">
-              {isPrivileged ? "إدارة ومتابعة المهام" : `مهام لجنتك${committeeId && cmMap.get(committeeId) ? ` — ${cmMap.get(committeeId)!.name}` : ""}`}
-            </h1>
-            <p className="text-xs text-slate-500 truncate mt-0.5">
-              {isPrivileged ? "كل اللجان في مكان واحد" : "المهام المعنية بلجنتك فقط"}
-            </p>
-          </div>
-          {canEdit && (
-            <div className="flex items-center gap-2 shrink-0">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={async () => { await load(); toast.success("تم التحديث"); }}
-                className="gap-2 h-9 text-slate-600 hover:bg-slate-100"
-              >
-                <RefreshCw className="h-3.5 w-3.5" /> تحديث
-              </Button>
-              <Button
-                size="sm"
-                onClick={() => setCreateOpen(true)}
-                className="gap-2 h-9 px-4 bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl"
-              >
-                <Plus className="h-4 w-4" /> إضافة مهمة
-              </Button>
-            </div>
-          )}
+      {/* Single flat page header — title + primary action */}
+      <div className="flex items-center justify-between gap-4 flex-wrap">
+        <div className="min-w-0">
+          <h1 className="text-2xl font-bold leading-tight text-slate-800 dark:text-foreground">
+            {isPrivileged ? "إدارة ومتابعة المهام" : `مهام لجنتك${committeeId && cmMap.get(committeeId) ? ` — ${cmMap.get(committeeId)!.name}` : ""}`}
+          </h1>
+          <p className="text-sm text-slate-500 mt-1">
+            {isPrivileged ? "كل اللجان في مكان واحد" : "المهام المعنية بلجنتك فقط"}
+          </p>
         </div>
-        {/* Flat toolbar row */}
-        <div className="border-t border-slate-100 dark:border-border bg-slate-50/70 dark:bg-muted/20 px-3 py-2.5 flex flex-wrap items-center gap-2">
-          <div className="relative flex-1 min-w-[220px]">
-            <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-            <Input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="ابحث في المهام..."
-              className="pr-9 h-10 rounded-xl bg-white border-0 shadow-none focus-visible:ring-2 focus-visible:ring-primary/20"
-            />
-          </div>
-          {isPrivileged && (
-            <Select value={committeeFilter} onValueChange={setCommitteeFilter}>
-              <SelectTrigger className="w-[200px] h-10 rounded-xl bg-white border-0 shadow-none"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">كل اللجان</SelectItem>
-                {committees.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
-              </SelectContent>
-            </Select>
-          )}
-          <div className="inline-flex rounded-xl bg-white p-1">
-            <button onClick={() => setView("kanban")} className={`px-3 py-1.5 text-xs rounded-lg inline-flex items-center gap-1.5 transition-colors ${view === "kanban" ? "bg-primary text-primary-foreground" : "text-slate-500"}`}><LayoutGrid className="h-3.5 w-3.5" />كانبان</button>
-            <button onClick={() => setView("list")} className={`px-3 py-1.5 text-xs rounded-lg inline-flex items-center gap-1.5 transition-colors ${view === "list" ? "bg-primary text-primary-foreground" : "text-slate-500"}`}><Rows3 className="h-3.5 w-3.5" />قائمة</button>
-          </div>
+        {canEdit && (
+          <Button
+            size="sm"
+            onClick={() => setCreateOpen(true)}
+            className="gap-2 h-10 px-5 bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl shadow-sm"
+          >
+            <Plus className="h-4 w-4" /> إضافة مهمة
+          </Button>
+        )}
+      </div>
+
+      {/* Single flat toolbar — search + filter + view toggle */}
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="relative flex-1 min-w-[240px]">
+          <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+          <Input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="ابحث في المهام..."
+            className="pr-10 h-11 rounded-xl bg-white border border-slate-200/80 shadow-sm focus-visible:ring-2 focus-visible:ring-primary/20"
+          />
+        </div>
+        {isPrivileged && (
+          <Select value={committeeFilter} onValueChange={setCommitteeFilter}>
+            <SelectTrigger className="w-[220px] h-11 rounded-xl bg-white border border-slate-200/80 shadow-sm"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">كل اللجان</SelectItem>
+              {committees.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        )}
+        <div className="inline-flex rounded-xl bg-white border border-slate-200/80 shadow-sm p-1 h-11">
+          <button onClick={() => setView("kanban")} className={`px-3.5 text-xs rounded-lg inline-flex items-center gap-1.5 transition-colors ${view === "kanban" ? "bg-primary text-primary-foreground" : "text-slate-500"}`}><LayoutGrid className="h-3.5 w-3.5" />كانبان</button>
+          <button onClick={() => setView("list")} className={`px-3.5 text-xs rounded-lg inline-flex items-center gap-1.5 transition-colors ${view === "list" ? "bg-primary text-primary-foreground" : "text-slate-500"}`}><Rows3 className="h-3.5 w-3.5" />قائمة</button>
         </div>
       </div>
 
@@ -596,8 +585,8 @@ function KanbanBoard({
         const todoPct = pct(todoCount);
         const inProgressPct = pct(inProgressCount);
         return (
-          <section key={group.cid} className="lg:rounded-2xl lg:bg-white dark:lg:bg-card lg:shadow-sm lg:border lg:border-slate-100 overflow-visible">
-            <div className="px-1 lg:px-5 py-3 lg:py-4">
+          <section key={group.cid} className="overflow-visible">
+            <div className="px-1 lg:px-2 py-3 lg:py-2">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center gap-3 min-w-0">
                   {gmeta && (
@@ -619,7 +608,7 @@ function KanbanBoard({
               </div>
             </div>
             {/* Kanban — single layout for desktop & mobile (touch DnD enabled via polyfill) */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-0 lg:gap-4 p-0 lg:p-5 lg:pt-0">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-0 lg:gap-8 p-0 lg:p-2 lg:pt-2">
               {cols.map((status) => {
                 const meta = STATUS_META[status];
                 const statusItems = group.list.filter((t) => t.status === status).sort(comparePmp);
@@ -652,9 +641,9 @@ function KanbanBoard({
                       }
                       setDragId(null); setDragOverId(null); setDragOverPos(null); setDragOverColKey(null);
                     }}
-                    className={`lg:rounded-2xl lg:bg-slate-50/60 dark:lg:bg-muted/20 p-0 lg:p-3 lg:min-h-[220px] transition-all ${
+                    className={`p-0 lg:p-0 lg:min-h-[220px] transition-all ${
                       dragOverColKey === `${group.cid}-${status}` && dragId
-                        ? "lg:bg-primary/5 ring-2 ring-primary/25"
+                        ? "lg:rounded-2xl lg:bg-primary/5 lg:ring-2 lg:ring-primary/25"
                         : ""
                     }`}
                   >
@@ -684,7 +673,6 @@ function KanbanBoard({
                       {statusItems.length === 0 && <p className="text-xs text-muted-foreground text-center py-6">لا توجد مهام</p>}
                       {statusItems.map((t, idx) => {
                 const cm = cmMap.get(t.committee_id);
-                const cmeta = cm ? committeeByType(cm.type) : null;
                 const overdue = isOverdue(t);
                 const isDragging = dragId === t.id;
                 const showBefore = dragOverId === t.id && dragOverPos === "before";
@@ -724,12 +712,12 @@ function KanbanBoard({
                     }}
                     onClick={() => onOpen(t)}
                     style={{ touchAction: "pan-y" }}
-                    className={`group relative rounded-2xl lg:rounded-xl lg:border-0 lg:bg-white bg-white py-3.5 ps-9 lg:ps-9 pe-2 lg:p-3.5 cursor-grab active:cursor-grabbing shadow-[0_4px_20px_-4px_rgba(15,23,42,0.06)] lg:shadow-[0_2px_8px_-2px_rgba(15,23,42,0.06)] hover:lg:shadow-[0_6px_18px_-6px_rgba(15,23,42,0.12)] hover:lg:-translate-y-0.5 transform-gpu will-change-transform transition-all duration-150 active:scale-[0.98] select-none ${isDragging ? "opacity-40 lg:rotate-1 lg:shadow-xl lg:ring-2 lg:ring-primary/40" : ""}`}
+                    className={`group relative rounded-2xl bg-white py-3.5 ps-9 pe-2 lg:p-6 cursor-grab active:cursor-grabbing shadow-[0_4px_20px_-4px_rgba(15,23,42,0.06)] lg:shadow-sm hover:lg:shadow-md hover:lg:-translate-y-0.5 transform-gpu will-change-transform transition-all duration-150 active:scale-[0.98] select-none ${isDragging ? "opacity-40 lg:rotate-1 lg:shadow-xl lg:ring-2 lg:ring-primary/40" : ""}`}
                   >
-                    {/* Visible drag handle (also acts as a touch-friendly affordance) */}
+                    {/* Mobile-only drag handle */}
                     <div
                       aria-hidden
-                      className="absolute inset-y-0 start-0 w-7 flex items-center justify-center text-slate-300 lg:text-muted-foreground/60 group-hover:text-primary lg:border-e lg:border-dashed lg:border-border/60 lg:bg-muted/30 rounded-s-xl"
+                      className="absolute inset-y-0 start-0 w-7 flex items-center justify-center text-slate-300 lg:hidden"
                     >
                       <GripVertical className="h-4 w-4" />
                     </div>
@@ -739,8 +727,7 @@ function KanbanBoard({
                           aria-hidden
                           className={`mt-1.5 h-2 w-2 rounded-full shrink-0 lg:hidden ${STATUS_DOT[t.status]}`}
                         />
-                        <p className="text-[15px] lg:text-sm font-semibold lg:font-bold text-slate-900 lg:text-foreground flex-1 leading-snug break-words [overflow-wrap:anywhere]">
-                          <span className="text-[10px] text-muted-foreground me-1 hidden lg:inline">#{idx + 1}</span>
+                        <p className="text-[15px] lg:text-[15px] font-semibold text-slate-800 dark:text-foreground flex-1 leading-snug break-words [overflow-wrap:anywhere]">
                           {t.title}
                         </p>
                       </div>
@@ -786,33 +773,16 @@ function KanbanBoard({
                         </>
                       )}
                     </div>
-                    <div className="hidden lg:flex items-center flex-wrap gap-1 mt-2">
-                      {cmeta && (
-                        <span className={`inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded ${cmeta.tone}`}>
-                          <cmeta.icon className="h-3 w-3" />{cm?.name}
+                    <div className="hidden lg:flex items-center justify-between gap-3 mt-3 text-[12px] text-slate-500">
+                      <span className="truncate">{cm?.name ?? "—"}</span>
+                      {t.due_date && (
+                        <span className={`inline-flex items-center gap-1.5 tabular-nums ${overdue ? "text-rose-600 font-semibold" : ""}`}>
+                          <CalendarClock className="h-3.5 w-3.5" />
+                          {new Date(t.due_date).toLocaleDateString("ar-SA")}
+                          {overdue && <span className="ms-1">· متأخرة</span>}
                         </span>
                       )}
                     </div>
-                    {t.due_date && (
-                      <div className="mt-2 hidden lg:flex items-center justify-between gap-2">
-                        <span
-                          className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-1 rounded-md border ${
-                            overdue
-                              ? "bg-rose-500/10 text-rose-600 border-rose-500/40"
-                              : "bg-muted text-foreground/80 border-border"
-                          }`}
-                          title={overdue ? "تاريخ متأخر" : "تاريخ الاستحقاق"}
-                        >
-                          <CalendarClock className="h-3 w-3" />
-                          {new Date(t.due_date).toLocaleDateString("ar-SA")}
-                        </span>
-                        {overdue && (
-                          <span className="inline-flex items-center gap-1 text-[10px] font-bold text-rose-600">
-                            <AlertTriangle className="h-3 w-3" />متأخرة
-                          </span>
-                        )}
-                      </div>
-                    )}
                   </div>
                     {showAfter && <div className="h-1 bg-primary rounded mt-1" />}
                   </div>
