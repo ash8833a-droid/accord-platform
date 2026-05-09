@@ -160,7 +160,7 @@ function Inner() {
         name: r.name,
         detail: r.overdue > 0
           ? `${r.overdue} مهمة متأخرة · إنجاز ${r.rate}%`
-          : `إنجاز ${r.rate}% فقط — اختناق حرج`,
+          : `إنجاز ${r.rate}% فقط — أداء يستوجب المعالجة`,
       }));
     return { leaders: leadersR, monitoring: monitoringR, urgent: urgentR };
   }, [rows]);
@@ -293,7 +293,7 @@ function Inner() {
             sublabel={prevOverall === null ? "لا توجد لقطة سابقة للمقارنة" : `الأسبوع السابق: ${prevOverall}%`}
           />
           <SnapshotKpi
-            label="اختناقات حرجة"
+            label="مهام تستوجب المعالجة"
             value={overdueTasks}
             sublabel={overdueTasks === 0 ? "لا توجد مهام عالقة" : `${overdueTasks} مهمة تحتاج تدخّل`}
             tone={overdueTasks > 0 ? "rose" : "teal"}
@@ -336,7 +336,7 @@ function Inner() {
             tone="urgent"
             icon={ShieldAlert}
             title="تنبيه عاجل"
-            subtitle="اختناقات تتطلب تدخل إدارة اللجنة"
+            subtitle="حالات تستوجب تدخّل إدارة اللجنة"
             recommendation="توصية: يتطلب دعم لوجستي وقرار عاجل من إدارة اللجنة."
             empty="لا توجد تنبيهات عاجلة — أداء سليم."
             items={urgent}
