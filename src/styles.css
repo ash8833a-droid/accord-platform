@@ -292,3 +292,17 @@
 /* Hide scrollbars while keeping scroll functionality */
 .no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
 .no-scrollbar::-webkit-scrollbar { display: none; width: 0; height: 0; }
+
+/* Hide scrollbar (alias) — for native-app-feel lists */
+.scrollbar-hide { scrollbar-width: none; -ms-overflow-style: none; -webkit-overflow-scrolling: touch; }
+.scrollbar-hide::-webkit-scrollbar { display: none; width: 0; height: 0; }
+
+/* Staggered entrance animation for task list items */
+@keyframes task-enter {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-task-enter {
+  animation: task-enter 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
+  will-change: opacity, transform;
+}
