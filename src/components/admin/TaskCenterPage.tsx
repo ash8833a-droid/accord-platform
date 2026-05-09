@@ -17,7 +17,7 @@ import {
   Plus, Search, Loader2, ListTodo, PlayCircle, CheckCircle2,
   Trash2, LayoutGrid, Rows3, CalendarClock,
   ArrowUp, ArrowDown, ChevronDown,
-  RefreshCw,
+  RefreshCw, Eye, Activity, Table2,
 } from "lucide-react";
 import { GripVertical } from "lucide-react";
 import { toast } from "sonner";
@@ -98,7 +98,7 @@ function TaskCenterInner({ canEdit }: { canEdit: boolean }) {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [committeeFilter, setCommitteeFilter] = useState<string>("all");
-  const [view, setView] = useState<"kanban" | "list">("kanban");
+  const [view, setView] = useState<"summary" | "kanban" | "list">("summary");
   const [createOpen, setCreateOpen] = useState(false);
   const [details, setDetails] = useState<TaskRow | null>(null);
 
@@ -283,6 +283,14 @@ function TaskCenterInner({ canEdit }: { canEdit: boolean }) {
           <div className="inline-flex rounded-2xl bg-slate-100/80 p-1 shrink-0">
             <button
               type="button"
+              onClick={() => setView("summary")}
+              aria-label="ملخص اللجان"
+              className={`h-9 w-9 rounded-xl inline-flex items-center justify-center transition-transform duration-150 active:scale-[0.94] ${view === "summary" ? "bg-white shadow-sm text-emerald-700" : "text-slate-500"}`}
+            >
+              <Table2 className="h-4 w-4" />
+            </button>
+            <button
+              type="button"
               onClick={() => setView("list")}
               aria-label="عرض قائمة"
               className={`h-9 w-9 rounded-xl inline-flex items-center justify-center transition-transform duration-150 active:scale-[0.94] ${view === "list" ? "bg-white shadow-sm text-emerald-700" : "text-slate-500"}`}
@@ -317,6 +325,26 @@ function TaskCenterInner({ canEdit }: { canEdit: boolean }) {
               className="pr-10 h-11 rounded-xl bg-white border-0 shadow-sm focus-visible:ring-2 focus-visible:ring-primary/20"
             />
           </div>
+          <div className="inline-flex rounded-xl bg-white border border-slate-100 p-1 shadow-sm shrink-0">
+            <button
+              type="button"
+              onClick={() => setView("summary")}
+              aria-label="ملخص اللجان"
+              title="ملخص اللجان"
+              className={`h-9 w-9 rounded-lg inline-flex items-center justify-center transition-colors ${view === "summary" ? "bg-teal-700 text-white shadow-sm" : "text-slate-500 hover:bg-slate-50"}`}
+            >
+              <Table2 className="h-4 w-4" />
+            </button>
+            <button
+              type="button"
+              onClick={() => setView("kanban")}
+              aria-label="عرض كانبان"
+              title="عرض كانبان"
+              className={`h-9 w-9 rounded-lg inline-flex items-center justify-center transition-colors ${view === "kanban" ? "bg-teal-700 text-white shadow-sm" : "text-slate-500 hover:bg-slate-50"}`}
+            >
+              <LayoutGrid className="h-4 w-4" />
+            </button>
+          </div>
           {canEdit && (
             <Button
               size="sm"
@@ -328,15 +356,17 @@ function TaskCenterInner({ canEdit }: { canEdit: boolean }) {
           )}
         </div>
 
-        <KanbanBoard tasks={filtered} cmMap={cmMap} canEdit={canEdit} onMove={moveTask} onReorder={reorderTask} onStep={stepTask} onOpen={setDetails} onDelete={deleteTask} />
+        {view === "summary"
+          ? <CommitteesSummaryTable tasks={filtered} cmMap={cmMap} onOpenCommittee={(cid) => { setCommitteeFilter(cid); setView("kanban"); }} />
+          : <KanbanBoard tasks={filtered} cmMap={cmMap} canEdit={canEdit} onMove={moveTask} onReorder={reorderTask} onStep={stepTask} onOpen={setDetails} onDelete={deleteTask} />
+        }
       </div>
 
       {/* Mobile keeps existing list/kanban toggle */}
       <div className="lg:hidden">
-        {view === "kanban"
-          ? <KanbanBoard tasks={filtered} cmMap={cmMap} canEdit={canEdit} onMove={moveTask} onReorder={reorderTask} onStep={stepTask} onOpen={setDetails} onDelete={deleteTask} />
-          : <ListView tasks={filtered} cmMap={cmMap} canEdit={canEdit} onMove={moveTask} onOpen={setDetails} onDelete={deleteTask} />
-        }
+        {view === "summary" && <CommitteesSummaryTable tasks={filtered} cmMap={cmMap} onOpenCommittee={(cid) => { setCommitteeFilter(cid); setView("kanban"); }} />}
+        {view === "kanban" && <KanbanBoard tasks={filtered} cmMap={cmMap} canEdit={canEdit} onMove={moveTask} onReorder={reorderTask} onStep={stepTask} onOpen={setDetails} onDelete={deleteTask} />}
+        {view === "list" && <ListView tasks={filtered} cmMap={cmMap} canEdit={canEdit} onMove={moveTask} onOpen={setDetails} onDelete={deleteTask} />}
       </div>
 
       {createOpen && (
