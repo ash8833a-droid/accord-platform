@@ -84,7 +84,7 @@ function AuthPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background" dir="rtl">
+    <div className="relative min-h-screen overflow-hidden bg-background" dir="rtl">
       {/* Decorative brand pattern — top-left accent */}
       <DotsPattern
         fade="br"
