@@ -8,6 +8,7 @@ import {
   TrendingDown, Minus, AlertOctagon, CheckCircle2, BadgeCheck,
 } from "lucide-react";
 import { exportWeeklyReportPdf } from "@/lib/weekly-report-pdf";
+import { ReportGenerationOverlay } from "@/components/admin/ReportGenerationOverlay";
 import { toast } from "sonner";
 import logo from "@/assets/logo.png";
 
@@ -206,6 +207,7 @@ function Inner() {
 
   return (
     <div dir="rtl" className="bg-[#F8FAFC] min-h-screen -m-4 sm:-m-6 lg:-m-8 p-6 sm:p-8 lg:p-10 space-y-8 print:m-0 print:p-0 print:bg-white">
+      <ReportGenerationOverlay open={exporting} />
       {/* Header — Leadership Pulse */}
       <div
         className="relative rounded-3xl bg-white shadow-sm overflow-hidden animate-fade-in print:shadow-none print:border print:border-slate-200"

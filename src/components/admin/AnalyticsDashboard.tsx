@@ -16,6 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { WeeklyReport } from "@/components/admin/WeeklyReport";
 import { AdminAlertsPanel } from "@/components/admin/AdminAlertsPanel";
 import { SmartRecommendations } from "@/components/admin/SmartRecommendations";
+import { ReportGenerationOverlay } from "@/components/admin/ReportGenerationOverlay";
 import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
 import {
@@ -254,16 +255,16 @@ function Inner() {
   async function handleExportCsv() {
     if (!charts || exportingCsv) return;
     setExportingCsv(true);
-    const tid = toast.loading("جاري تجهيز ملف البيانات...");
+    const tid = toast.loading("جاري تجهيز ملف تدقيق الأداء...");
     try {
       // Defer to next tick so the spinner paints before any sync work.
       await new Promise((r) => setTimeout(r, 0));
       const headers = [
-        "اسم اللجنة",
+        "اللجنة",
         "نسبة الإنجاز %",
-        "عدد المهام",
+        "المهام قيد التنفيذ",
         "المهام المتأخرة",
-        "إجمالي الوفورات الاقتصادية (ر.س)",
+        "كفاءة الموارد %",
       ];
       const escape = (v: string | number) => {
         const s = String(v ?? "");
@@ -271,22 +272,26 @@ function Inner() {
       };
       const lines = [headers.join(",")];
       charts.perCommittee.forEach((c: any) => {
-        lines.push([c.name, c.rate, c.total, c.overdue, c.savings].map(escape).join(","));
+        const pending = Math.max(0, (c.total ?? 0) - (c.done ?? 0));
+        // Resource Efficiency = completion rate weighted by punctuality (no overdue = 100%)
+        const punctuality = c.total > 0 ? Math.max(0, 100 - Math.round(((c.overdue ?? 0) / c.total) * 100)) : 100;
+        const efficiency = Math.round(((c.rate ?? 0) * 0.6) + (punctuality * 0.4));
+        lines.push([c.name, c.rate, pending, c.overdue ?? 0, efficiency].map(escape).join(","));
       });
       const csv = "\uFEFF" + lines.join("\n");
       const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `أداء-اللجان-${year === "all" ? "كل-السنوات" : year}.csv`;
+      a.download = `تدقيق-الأداء-${year === "all" ? "كل-السنوات" : year}.csv`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       setTimeout(() => URL.revokeObjectURL(url), 1000);
-      toast.success("تم تجهيز ملف البيانات", { id: tid });
+      toast.success("تم تجهيز ملف تدقيق الأداء", { id: tid });
     } catch (error) {
       console.error("CSV export failed", error);
-      toast.error("تعذّر تجهيز ملف البيانات", { id: tid });
+      toast.error("تعذّر تجهيز ملف تدقيق الأداء", { id: tid });
     } finally {
       setExportingCsv(false);
     }
@@ -302,6 +307,7 @@ function Inner() {
 
   return (
     <div className="bg-[#F8FAFC] min-h-screen -m-4 sm:-m-6 lg:-m-8 p-6 sm:p-8 lg:p-10 space-y-8 text-right" dir="rtl">
+      <ReportGenerationOverlay open={exporting} />
       {/* Header — flat, no card wrapper */}
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
         <div>
