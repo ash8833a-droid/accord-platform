@@ -713,12 +713,12 @@ function KanbanBoard({
                     }}
                     onClick={() => onOpen(t)}
                     style={{ touchAction: "pan-y" }}
-                    className={`group relative rounded-2xl lg:rounded-xl lg:border-0 lg:bg-white bg-white py-3.5 ps-9 lg:ps-9 pe-2 lg:p-3.5 cursor-grab active:cursor-grabbing shadow-[0_4px_20px_-4px_rgba(15,23,42,0.06)] lg:shadow-[0_2px_8px_-2px_rgba(15,23,42,0.06)] hover:lg:shadow-[0_6px_18px_-6px_rgba(15,23,42,0.12)] hover:lg:-translate-y-0.5 transform-gpu will-change-transform transition-all duration-150 active:scale-[0.98] select-none ${isDragging ? "opacity-40 lg:rotate-1 lg:shadow-xl lg:ring-2 lg:ring-primary/40" : ""}`}
+                    className={`group relative rounded-2xl bg-white py-3.5 ps-9 pe-2 lg:p-6 cursor-grab active:cursor-grabbing shadow-[0_4px_20px_-4px_rgba(15,23,42,0.06)] lg:shadow-sm hover:lg:shadow-md hover:lg:-translate-y-0.5 transform-gpu will-change-transform transition-all duration-150 active:scale-[0.98] select-none ${isDragging ? "opacity-40 lg:rotate-1 lg:shadow-xl lg:ring-2 lg:ring-primary/40" : ""}`}
                   >
-                    {/* Visible drag handle (also acts as a touch-friendly affordance) */}
+                    {/* Mobile-only drag handle */}
                     <div
                       aria-hidden
-                      className="absolute inset-y-0 start-0 w-7 flex items-center justify-center text-slate-300 lg:text-muted-foreground/60 group-hover:text-primary lg:border-e lg:border-dashed lg:border-border/60 lg:bg-muted/30 rounded-s-xl"
+                      className="absolute inset-y-0 start-0 w-7 flex items-center justify-center text-slate-300 lg:hidden"
                     >
                       <GripVertical className="h-4 w-4" />
                     </div>
@@ -728,8 +728,7 @@ function KanbanBoard({
                           aria-hidden
                           className={`mt-1.5 h-2 w-2 rounded-full shrink-0 lg:hidden ${STATUS_DOT[t.status]}`}
                         />
-                        <p className="text-[15px] lg:text-sm font-semibold lg:font-bold text-slate-900 lg:text-foreground flex-1 leading-snug break-words [overflow-wrap:anywhere]">
-                          <span className="text-[10px] text-muted-foreground me-1 hidden lg:inline">#{idx + 1}</span>
+                        <p className="text-[15px] lg:text-[15px] font-semibold text-slate-800 dark:text-foreground flex-1 leading-snug break-words [overflow-wrap:anywhere]">
                           {t.title}
                         </p>
                       </div>
@@ -775,33 +774,16 @@ function KanbanBoard({
                         </>
                       )}
                     </div>
-                    <div className="hidden lg:flex items-center flex-wrap gap-1 mt-2">
-                      {cmeta && (
-                        <span className={`inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded ${cmeta.tone}`}>
-                          <cmeta.icon className="h-3 w-3" />{cm?.name}
+                    <div className="hidden lg:flex items-center justify-between gap-3 mt-3 text-[12px] text-slate-500">
+                      <span className="truncate">{cm?.name ?? "—"}</span>
+                      {t.due_date && (
+                        <span className={`inline-flex items-center gap-1.5 tabular-nums ${overdue ? "text-rose-600 font-semibold" : ""}`}>
+                          <CalendarClock className="h-3.5 w-3.5" />
+                          {new Date(t.due_date).toLocaleDateString("ar-SA")}
+                          {overdue && <span className="ms-1">· متأخرة</span>}
                         </span>
                       )}
                     </div>
-                    {t.due_date && (
-                      <div className="mt-2 hidden lg:flex items-center justify-between gap-2">
-                        <span
-                          className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-1 rounded-md border ${
-                            overdue
-                              ? "bg-rose-500/10 text-rose-600 border-rose-500/40"
-                              : "bg-muted text-foreground/80 border-border"
-                          }`}
-                          title={overdue ? "تاريخ متأخر" : "تاريخ الاستحقاق"}
-                        >
-                          <CalendarClock className="h-3 w-3" />
-                          {new Date(t.due_date).toLocaleDateString("ar-SA")}
-                        </span>
-                        {overdue && (
-                          <span className="inline-flex items-center gap-1 text-[10px] font-bold text-rose-600">
-                            <AlertTriangle className="h-3 w-3" />متأخرة
-                          </span>
-                        )}
-                      </div>
-                    )}
                   </div>
                     {showAfter && <div className="h-1 bg-primary rounded mt-1" />}
                   </div>
