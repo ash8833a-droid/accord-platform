@@ -26,7 +26,6 @@ export function CreateTaskDialog({ open, onOpenChange, committees, defaultCommit
   const [committeeId, setCommitteeId] = useState<string>(defaultCommitteeId ?? "");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [priority, setPriority] = useState<"low" | "medium" | "high" | "urgent">("medium");
   const [dueDate, setDueDate] = useState("");
   const [assignedTo, setAssignedTo] = useState<string>("none");
   const [members, setMembers] = useState<MemberRow[]>([]);
@@ -44,7 +43,7 @@ export function CreateTaskDialog({ open, onOpenChange, committees, defaultCommit
 
   const reset = () => {
     setCommitteeId(defaultCommitteeId ?? "");
-    setTitle(""); setDescription(""); setPriority("medium"); setDueDate(""); setAssignedTo("none");
+    setTitle(""); setDescription(""); setDueDate(""); setAssignedTo("none");
   };
 
   const submit = async () => {
@@ -58,7 +57,6 @@ export function CreateTaskDialog({ open, onOpenChange, committees, defaultCommit
       committee_id: committeeId,
       title: title.trim(),
       description: description.trim() || null,
-      priority,
       status: "todo",
       due_date: dueDate || null,
       assigned_to: assignedTo === "none" ? null : assignedTo,
@@ -109,26 +107,12 @@ export function CreateTaskDialog({ open, onOpenChange, committees, defaultCommit
               <Textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} placeholder="تفاصيل المهمة، النتائج المتوقعة..." />
             </div>
           )}
-          <div className={isMobile ? "space-y-3" : "grid grid-cols-2 gap-3"}>
+          {!isMobile && (
             <div className="space-y-1.5">
-              <Label>الأولوية</Label>
-              <Select value={priority} onValueChange={(v) => setPriority(v as any)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="low">منخفضة</SelectItem>
-                  <SelectItem value="medium">متوسطة</SelectItem>
-                  <SelectItem value="high">عالية</SelectItem>
-                  <SelectItem value="urgent">عاجلة</SelectItem>
-                </SelectContent>
-              </Select>
+              <Label>تاريخ الاستحقاق</Label>
+              <Input dir="ltr" type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} className="text-right" />
             </div>
-            {!isMobile && (
-              <div className="space-y-1.5">
-                <Label>تاريخ الاستحقاق</Label>
-                <Input dir="ltr" type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} className="text-right" />
-              </div>
-            )}
-          </div>
+          )}
           <div className="space-y-1.5">
             <Label>تعيين عضو</Label>
             <Select value={assignedTo} onValueChange={setAssignedTo} disabled={!committeeId}>
