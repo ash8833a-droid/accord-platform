@@ -1395,7 +1395,6 @@ function CommitteePage() {
                                 title: t.title,
                                 description: t.description,
                                 status: t.status,
-                                priority: t.priority,
                                 due_date: t.due_date ?? null,
                                 committee_id: committee.id,
                               })}
