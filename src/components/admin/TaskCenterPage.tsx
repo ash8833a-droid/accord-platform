@@ -270,9 +270,6 @@ function TaskCenterInner({ canEdit }: { canEdit: boolean }) {
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-[11px] font-semibold uppercase tracking-wide text-sky-700 dark:text-sky-300">المهمة النشطة الحالية</span>
-                <Badge variant="outline" className={PRIORITY_META[urgentTask.priority].cls}>
-                  {PRIORITY_META[urgentTask.priority].label}
-                </Badge>
                 <Badge variant="outline" className={STATUS_META[urgentTask.status].color}>
                   {STATUS_META[urgentTask.status].label}
                 </Badge>
@@ -367,13 +364,6 @@ function TaskCenterInner({ canEdit }: { canEdit: boolean }) {
             <button onClick={() => setView("kanban")} className={`px-3 py-1.5 text-xs rounded-md inline-flex items-center gap-1.5 ${view === "kanban" ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}><LayoutGrid className="h-3.5 w-3.5" />كانبان</button>
             <button onClick={() => setView("list")} className={`px-3 py-1.5 text-xs rounded-md inline-flex items-center gap-1.5 ${view === "list" ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}><Rows3 className="h-3.5 w-3.5" />قائمة</button>
           </div>
-          <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-            <SelectTrigger className="w-[140px] order-2"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">كل الأولويات</SelectItem>
-              {Object.entries(PRIORITY_META).map(([k, v]) => <SelectItem key={k} value={k}>{v.label}</SelectItem>)}
-            </SelectContent>
-          </Select>
           {isPrivileged && (
             <Select value={committeeFilter} onValueChange={setCommitteeFilter}>
               <SelectTrigger className="w-[180px] order-3"><SelectValue /></SelectTrigger>
