@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import {
-  Bell, BellOff, Check, Plus, Pencil, CheckCircle2, AlarmClock,
+  Bell, BellOff, Plus, Pencil, CheckCircle2, AlarmClock,
   Receipt, ListTodo, MessageSquare, Trash2,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
