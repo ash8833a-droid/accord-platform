@@ -206,20 +206,12 @@ export function AppShell({ children, restricted = false, restrictedToCommitteeTy
         <div className="lg:hidden sticky top-0 z-30 bg-background/80 backdrop-blur border-b flex items-center justify-between px-3 h-14">
           {isStandardMember ? (
             <>
-              {/* Right side (RTL first child): prominent Idea Bank button */}
-              <Link
-                to="/ideas"
-                aria-label="بنك الأفكار"
-                className="inline-flex items-center gap-2 h-11 min-w-11 px-3 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-500 text-amber-950 shadow-md active:scale-95 transition-transform font-bold"
-              >
-                <Lightbulb className="h-5 w-5" />
-                <span className="text-sm">بنك الأفكار</span>
-              </Link>
-              {/* Left side: minimal logout */}
+              {/* Minimalist top header — Idea Bank lives in the bottom nav, no duplication */}
+              <span aria-hidden />
               <button
                 onClick={handleLogout}
                 aria-label="تسجيل خروج"
-                className="inline-flex items-center justify-center h-11 w-11 rounded-xl text-muted-foreground hover:bg-accent active:scale-95 transition-transform"
+                className="inline-flex items-center justify-center h-10 w-10 rounded-xl text-muted-foreground hover:bg-accent active:scale-95 transition-transform"
               >
                 <LogOut className="h-5 w-5" />
               </button>
