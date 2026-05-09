@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { Bell, ListTodo, Receipt, CheckCheck, Trash2, AlarmClock, Check } from "lucide-react";
+import {
+  Bell, BellOff, Check, Plus, Pencil, CheckCircle2, AlarmClock,
+  Receipt, ListTodo, MessageSquare, Trash2,
+} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -13,6 +16,37 @@ interface Notif {
   link: string | null;
   is_read: boolean;
   created_at: string;
+}
+
+/** Arabic relative time, e.g. "منذ 10 دقائق". */
+function relativeAr(iso: string): string {
+  const diff = Date.now() - new Date(iso).getTime();
+  if (diff < 60_000) return "الآن";
+  const m = Math.floor(diff / 60_000);
+  if (m < 60) return m === 1 ? "منذ دقيقة" : m === 2 ? "منذ دقيقتين" : `منذ ${m} دقائق`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return h === 1 ? "منذ ساعة" : h === 2 ? "منذ ساعتين" : `منذ ${h} ساعات`;
+  const d = Math.floor(h / 24);
+  if (d < 30) return d === 1 ? "منذ يوم" : d === 2 ? "منذ يومين" : `منذ ${d} أيام`;
+  const mo = Math.floor(d / 30);
+  return mo === 1 ? "منذ شهر" : mo === 2 ? "منذ شهرين" : `منذ ${mo} أشهر`;
+}
+
+/** Map notification.type → contextual icon + soft tone. */
+function iconForType(type: string): { Icon: typeof Bell; tone: string } {
+  if (type === "task_completed" || /completed|complete|done/i.test(type))
+    return { Icon: CheckCircle2, tone: "bg-emerald-50 text-emerald-600" };
+  if (type === "task_created" || type === "task_assigned" || /add|create|new/i.test(type))
+    return { Icon: Plus, tone: "bg-sky-50 text-sky-600" };
+  if (type === "task_updated" || /edit|update/i.test(type))
+    return { Icon: Pencil, tone: "bg-amber-50 text-amber-600" };
+  if (type === "task_deadline" || type === "task_reminder")
+    return { Icon: AlarmClock, tone: "bg-rose-50 text-rose-600" };
+  if (/payment|expense|invoice|receipt/i.test(type))
+    return { Icon: Receipt, tone: "bg-violet-50 text-violet-600" };
+  if (/comment|message|reply/i.test(type))
+    return { Icon: MessageSquare, tone: "bg-teal-50 text-teal-700" };
+  return { Icon: ListTodo, tone: "bg-slate-100 text-slate-600" };
 }
 
 export function NotificationBell() {
@@ -79,100 +113,115 @@ export function NotificationBell() {
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <button
-          className="relative p-2 rounded-lg hover:bg-accent transition-colors"
+          className="relative p-2 rounded-xl hover:bg-slate-100/80 transition-colors"
           aria-label={`الإشعارات${unread > 0 ? ` (${unread} غير مقروء)` : ""}`}
         >
-          <Bell className={`h-5 w-5 ${hasUrgent ? "text-rose-500" : "text-muted-foreground"}`} />
-          {hasUrgent && (
-            <span className="absolute inset-0 rounded-lg ring-2 ring-rose-500/60 animate-ping pointer-events-none" />
-          )}
+          <Bell className={`h-5 w-5 ${hasUrgent ? "text-rose-500" : "text-slate-600"}`} />
           {unread > 0 && (
-            <span className={`absolute -top-0.5 -right-0.5 min-w-4 h-4 px-1 rounded-full bg-rose-500 text-white text-[9px] font-bold flex items-center justify-center ring-2 ring-background ${hasUrgent ? "animate-pulse" : ""}`}>
-              {unread > 9 ? "9+" : unread}
-            </span>
+            <>
+              <span
+                aria-hidden
+                className={`absolute top-1 right-1 h-2 w-2 rounded-full bg-rose-500 ring-2 ring-white ${hasUrgent ? "animate-pulse" : ""}`}
+              />
+              {unread > 1 && (
+                <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-rose-500 text-white text-[10px] font-bold flex items-center justify-center ring-2 ring-white">
+                  {unread > 9 ? "9+" : unread}
+                </span>
+              )}
+            </>
           )}
         </button>
       </PopoverTrigger>
-      <PopoverContent align="end" sideOffset={8} className="w-[340px] sm:w-[380px] p-0 overflow-hidden" dir="rtl">
-        <div className="flex items-center justify-between px-4 py-3 border-b bg-gradient-to-l from-primary/5 to-transparent">
-          <div className="flex items-center gap-2">
-            <Bell className="h-4 w-4 text-primary" />
-            <h3 className="font-bold text-sm">الإشعارات</h3>
-            {unread > 0 && <span className="text-[10px] bg-primary/15 text-primary rounded-full px-2 py-0.5 font-bold">{unread}</span>}
-          </div>
+      <PopoverContent
+        align="end"
+        sideOffset={10}
+        dir="rtl"
+        className="w-[350px] p-0 rounded-2xl shadow-xl border border-slate-100 bg-white overflow-hidden animate-in fade-in-0 slide-in-from-top-2 duration-200"
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between gap-3 px-5 py-3.5 border-b border-slate-100">
+          <h3 className="text-[15px] font-bold text-slate-800">التنبيهات</h3>
           <div className="flex items-center gap-3">
             {unread > 0 && (
-              <button onClick={markAll} className="text-[11px] text-primary hover:underline inline-flex items-center gap-1">
-                <CheckCheck className="h-3 w-3" /> تعليم الكل
+              <button
+                onClick={markAll}
+                className="text-[11px] font-semibold text-teal-600 hover:text-teal-700 transition-colors"
+              >
+                تحديد الكل كمقروء
               </button>
             )}
             {notifs.length > 0 && (
-              <button onClick={clearAll} className="text-[11px] text-rose-600 hover:underline inline-flex items-center gap-1">
-                <Trash2 className="h-3 w-3" /> مسح الكل
+              <button
+                onClick={clearAll}
+                className="text-[11px] text-slate-400 hover:text-rose-600 transition-colors"
+                title="مسح الكل"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
               </button>
             )}
           </div>
         </div>
 
-        <div className="max-h-[60vh] overflow-y-auto divide-y">
+        {/* List */}
+        <div className="max-h-[420px] overflow-y-auto scrollbar-hide">
           {notifs.length === 0 ? (
-            <div className="text-center py-10 text-muted-foreground">
-              <Bell className="h-8 w-8 mx-auto mb-2 opacity-30" />
-              <p className="text-xs">لا توجد إشعارات بعد</p>
+            <div className="flex flex-col items-center justify-center text-center py-12 px-5">
+              <div className="h-12 w-12 rounded-full bg-slate-50 flex items-center justify-center mb-3">
+                <BellOff className="h-5 w-5 text-slate-400" />
+              </div>
+              <p className="text-[13px] font-semibold text-slate-700">لا توجد تنبيهات</p>
+              <p className="text-[11px] text-slate-400 mt-1">سنعلمك فور وصول أي تحديث جديد</p>
             </div>
           ) : (
-            notifs.map((n) => {
-              const isDeadline = n.type === "task_deadline" || n.type === "task_reminder";
-              const Icon = isDeadline ? AlarmClock : n.type === "task_assigned" ? ListTodo : Receipt;
-              const target = n.link && n.link.startsWith("/committee/") ? n.link : null;
-              return (
-                <div
-                  key={n.id}
-                  className={`group relative flex items-start gap-3 p-3.5 hover:bg-muted/40 transition-colors ${n.is_read ? "" : "bg-primary/5"}`}
-                >
-                  <button
-                    onClick={() => {
-                      markOne(n.id);
-                      setOpen(false);
-                      if (target) navigate({ to: target });
-                    }}
-                    className="flex-1 text-start flex items-start gap-3 min-w-0"
-                  >
-                    <span className={`h-8 w-8 rounded-lg flex items-center justify-center shrink-0 ${
-                      isDeadline ? "bg-rose-500/10 text-rose-600"
-                        : n.type === "task_assigned" ? "bg-primary/10 text-primary"
-                        : "bg-gold/15 text-gold-foreground"
-                    }`}>
-                      <Icon className="h-4 w-4" />
-                    </span>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-bold leading-snug">{n.title}</p>
-                      {n.body && <p className="text-[11px] text-muted-foreground line-clamp-2 mt-0.5">{n.body}</p>}
-                      <p className="text-[10px] text-muted-foreground/70 mt-1">{new Date(n.created_at).toLocaleString("ar-SA")}</p>
-                    </div>
-                    {!n.is_read && <span className="h-2 w-2 rounded-full bg-primary mt-1.5 shrink-0" />}
-                  </button>
-                  <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    {!n.is_read && (
-                      <button
-                        onClick={(e) => { e.stopPropagation(); markOne(n.id); }}
-                        title="تعليم كمقروء"
-                        className="p-1 rounded hover:bg-primary/15 text-primary"
-                      >
-                        <Check className="h-3 w-3" />
-                      </button>
-                    )}
+            <ul className="divide-y divide-slate-100">
+              {notifs.map((n) => {
+                const { Icon, tone } = iconForType(n.type);
+                const target = n.link && n.link.startsWith("/") ? n.link : null;
+                return (
+                  <li key={n.id}>
                     <button
-                      onClick={(e) => { e.stopPropagation(); deleteOne(n.id); }}
-                      title="حذف"
-                      className="p-1 rounded hover:bg-rose-500/15 text-rose-600"
+                      onClick={() => {
+                        if (!n.is_read) markOne(n.id);
+                        setOpen(false);
+                        if (target) navigate({ to: target });
+                      }}
+                      className={`group w-full text-start flex items-start gap-3 px-4 py-3.5 transition-colors hover:bg-slate-50/80 ${
+                        n.is_read ? "bg-white" : "bg-slate-50/70"
+                      }`}
                     >
-                      <Trash2 className="h-3 w-3" />
+                      <span className={`h-9 w-9 rounded-full flex items-center justify-center shrink-0 ${tone}`}>
+                        <Icon className="h-4 w-4" />
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start gap-2">
+                          <p className="flex-1 text-[12.5px] font-bold leading-snug text-slate-800 line-clamp-1">
+                            {n.title}
+                          </p>
+                          {!n.is_read && (
+                            <span aria-hidden className="mt-1.5 h-2 w-2 rounded-full bg-teal-600 shrink-0" />
+                          )}
+                        </div>
+                        {n.body && (
+                          <p className="text-[11.5px] text-slate-500 leading-relaxed line-clamp-2 mt-0.5">
+                            {n.body}
+                          </p>
+                        )}
+                        <p className="text-[10.5px] text-slate-400 mt-1.5">{relativeAr(n.created_at)}</p>
+                      </div>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); e.preventDefault(); deleteOne(n.id); }}
+                        title="حذف"
+                        aria-label="حذف"
+                        className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-md text-slate-300 hover:text-rose-500 hover:bg-rose-50 shrink-0 self-start"
+                      >
+                        <Check className="h-3 w-3 hidden" />
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
                     </button>
-                  </div>
-                </div>
-              );
-            })
+                  </li>
+                );
+              })}
+            </ul>
           )}
         </div>
       </PopoverContent>
