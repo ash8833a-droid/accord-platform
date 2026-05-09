@@ -758,7 +758,6 @@ function ListView({
             <TableHead className="text-right">المهمة</TableHead>
             <TableHead className="text-right">اللجنة</TableHead>
             <TableHead className="text-right">الحالة</TableHead>
-            <TableHead className="text-right">الأولوية</TableHead>
             <TableHead className="text-right">تاريخ الاستحقاق</TableHead>
             <TableHead className="text-right">إجراءات</TableHead>
           </TableRow>
@@ -788,7 +787,6 @@ function ListView({
                     <Badge variant="outline" className={STATUS_META[t.status].color}>{STATUS_META[t.status].label}</Badge>
                   )}
                 </TableCell>
-                <TableCell><Badge variant="outline" className={PRIORITY_META[t.priority].cls}>{PRIORITY_META[t.priority].label}</Badge></TableCell>
                 <TableCell className="text-xs">{t.due_date ? new Date(t.due_date).toLocaleDateString("ar-SA") : "—"}</TableCell>
                 <TableCell onClick={(e) => e.stopPropagation()}>
                   {canEdit && (
@@ -852,7 +850,7 @@ function MobileColumns({
                 <div
                   key={t.id}
                   onClick={() => onOpen(t)}
-                  className={`rounded-lg border bg-card p-3 active:bg-muted/40 transition-colors ${PRIORITY_BORDER[t.priority]}`}
+                  className="rounded-lg border bg-card p-3 active:bg-muted/40 transition-colors"
                 >
                   <div className="flex items-start justify-between gap-2">
                     <p className="text-sm font-bold flex-1 line-clamp-2">
@@ -875,7 +873,6 @@ function MobileColumns({
                         <cmeta.icon className="h-3 w-3" />{cm?.name}
                       </span>
                     )}
-                    <Badge variant="outline" className={`text-[10px] ${PRIORITY_META[t.priority].cls}`}>{PRIORITY_META[t.priority].label}</Badge>
                   </div>
                   {t.due_date && (
                     <div className="mt-2">
