@@ -1,6 +1,7 @@
 @import "tailwindcss" source(none);
 @source "../src";
 @import "tw-animate-css";
+@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;900&display=swap');
 
 @custom-variant dark (&:is(.dark *));
 
@@ -286,9 +287,6 @@
 .shadow-elegant { box-shadow: var(--shadow-elegant); }
 .shadow-gold { box-shadow: var(--shadow-gold); }
 .shadow-soft { box-shadow: var(--shadow-soft); }
-
-/* Tajawal font for Arabic */
-@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;900&display=swap');
 
 /* Hide scrollbars while keeping scroll functionality */
 .no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
