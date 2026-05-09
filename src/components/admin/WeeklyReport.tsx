@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { PageGate } from "@/components/PageGate";
 import { Button } from "@/components/ui/button";
 import {
-  Trophy, AlertTriangle, Loader2, FileDown, RefreshCw,
+  Loader2, FileDown, RefreshCw,
   CalendarClock, Save, ShieldAlert, Sparkles, Activity,
   Clock, Users2, TrendingUp,
 } from "lucide-react";
@@ -346,5 +346,3 @@ function InsightCard({
 
 // keep export to avoid breakage in case some import survives
 export type { CommitteeRow };
-// Trophy & AlertTriangle still imported intentionally for potential reuse
-void Trophy; void AlertTriangle;
