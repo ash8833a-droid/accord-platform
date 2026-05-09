@@ -698,7 +698,7 @@ function KanbanBoard({
                     }}
                     onClick={() => onOpen(t)}
                     style={{ touchAction: "pan-y" }}
-                    className={`group relative rounded-2xl lg:rounded-xl lg:border lg:bg-card bg-white py-3.5 ps-9 lg:ps-9 pe-2 lg:p-3.5 cursor-grab active:cursor-grabbing shadow-[0_4px_20px_-4px_rgba(15,23,42,0.06)] lg:shadow-none hover:lg:shadow-md hover:lg:-translate-y-0.5 transform-gpu will-change-transform transition-transform duration-150 active:scale-[0.98] select-none lg:border-b ${isDragging ? "opacity-40 lg:rotate-1 lg:shadow-xl lg:ring-2 lg:ring-primary/40" : ""}`}
+                    className={`group relative rounded-2xl lg:rounded-xl lg:border-0 lg:bg-white bg-white py-3.5 ps-9 lg:ps-9 pe-2 lg:p-3.5 cursor-grab active:cursor-grabbing shadow-[0_4px_20px_-4px_rgba(15,23,42,0.06)] lg:shadow-[0_2px_8px_-2px_rgba(15,23,42,0.06)] hover:lg:shadow-[0_6px_18px_-6px_rgba(15,23,42,0.12)] hover:lg:-translate-y-0.5 transform-gpu will-change-transform transition-all duration-150 active:scale-[0.98] select-none ${isDragging ? "opacity-40 lg:rotate-1 lg:shadow-xl lg:ring-2 lg:ring-primary/40" : ""}`}
                   >
                     {/* Visible drag handle (also acts as a touch-friendly affordance) */}
                     <div
