@@ -469,6 +469,19 @@ function TaskCenterInner({ canEdit }: { canEdit: boolean }) {
           onChanged={load}
         />
       )}
+
+      {/* Mobile-only Floating Action Button — bottom-left for RTL thumb reach */}
+      {canEdit && (
+        <button
+          type="button"
+          onClick={() => setCreateOpen(true)}
+          aria-label="إضافة مهمة جديدة"
+          className="lg:hidden fixed left-4 z-40 h-14 w-14 rounded-full bg-emerald-700 hover:bg-emerald-800 text-white shadow-[0_10px_25px_-5px_rgba(6,78,59,0.55)] flex items-center justify-center transition-transform duration-150 ease-out active:scale-90 hover:scale-105 focus:outline-none focus:ring-4 focus:ring-emerald-500/30 animate-scale-in"
+          style={{ bottom: "calc(env(safe-area-inset-bottom) + 5rem)" }}
+        >
+          <Plus className="h-7 w-7" strokeWidth={2.5} />
+        </button>
+      )}
     </div>
   );
 }
