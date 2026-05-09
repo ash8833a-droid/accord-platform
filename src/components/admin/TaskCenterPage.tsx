@@ -281,7 +281,7 @@ function TaskCenterInner({ canEdit }: { canEdit: boolean }) {
   }
 
   return (
-    <div className="p-3 sm:p-4 lg:p-10 space-y-4 lg:space-y-8 bg-background min-h-screen overscroll-y-contain" dir="rtl">
+    <div className="p-3 sm:p-4 lg:p-10 space-y-4 lg:space-y-8 bg-[#F8FAFC] min-h-screen overscroll-y-contain" dir="rtl">
       {/* ============ MOBILE: Sleek institutional toolbar (no hero, no clutter) ============ */}
       <div className="lg:hidden -mx-3 sm:-mx-4 px-3 sm:px-4 sticky top-0 z-40 backdrop-blur-md bg-white/85 supports-[backdrop-filter]:bg-white/75 border-b border-slate-100/80 py-2.5">
         <div className="flex items-center gap-2">
@@ -323,137 +323,43 @@ function TaskCenterInner({ canEdit }: { canEdit: boolean }) {
         </div>
       </div>
 
-      {/* ============ DESKTOP: existing rich layout ============ */}
-      <div className="hidden lg:block">
-      {/* Active task alert banner */}
-      {urgentTask ? (
-        <div className="rounded-2xl bg-white dark:bg-card border border-slate-100 dark:border-border shadow-sm border-r-4 border-r-primary px-5 py-4">
-          <div className="flex items-center gap-4 flex-col sm:flex-row">
-            <div className="h-10 w-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
-              <Bell className="h-5 w-5" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-[11px] font-semibold tracking-wide text-slate-500">المهمة النشطة الحالية</span>
-                <Badge variant="outline" className={STATUS_META[urgentTask.status].color}>
-                  {STATUS_META[urgentTask.status].label}
-                </Badge>
-              </div>
-              <h2 className="text-base sm:text-lg font-bold mt-1 truncate text-slate-800 dark:text-foreground">{urgentTask.title}</h2>
-              <div className="flex items-center gap-3 text-xs text-slate-500 mt-1 flex-wrap">
-                {urgentTask.due_date && (
-                  <span className="inline-flex items-center gap-1">
-                    <CalendarClock className="h-3.5 w-3.5" />
-                    تاريخ الاستحقاق: {new Date(urgentTask.due_date).toLocaleDateString("ar-SA")}
-                  </span>
-                )}
-                {cmMap.get(urgentTask.committee_id) && (
-                  <span className="truncate">{cmMap.get(urgentTask.committee_id)!.name}</span>
-                )}
-              </div>
-            </div>
-            <Button size="sm" variant="ghost" onClick={() => setDetails(urgentTask)} className="gap-2 shrink-0 text-primary hover:text-primary hover:bg-primary/10 ms-auto">
-              <ExternalLink className="h-3.5 w-3.5" /> عرض التفاصيل
-            </Button>
-          </div>
-        </div>
-      ) : (
-        <div className="rounded-2xl bg-white dark:bg-card border border-slate-100 dark:border-border shadow-sm border-r-4 border-r-emerald-600 px-5 py-4">
-          <div className="flex items-center gap-4">
-            <div className="h-10 w-10 rounded-xl bg-emerald-500/10 text-emerald-700 flex items-center justify-center shrink-0">
-              <PartyPopper className="h-5 w-5" />
-            </div>
-            <div className="min-w-0">
-              <h2 className="text-base sm:text-lg font-bold text-slate-800 dark:text-foreground">تم إنجاز جميع المهام</h2>
-              <p className="text-xs text-slate-500">لا توجد مهام معلقة حالياً. عمل رائع!</p>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Single flat page header — title + primary action */}
-      <div className="flex items-center justify-between gap-4 flex-wrap">
-        <div className="min-w-0">
-          <h1 className="text-2xl font-bold leading-tight text-slate-800 dark:text-foreground">
-            {isPrivileged ? "إدارة ومتابعة المهام" : `مهام لجنتك${committeeId && cmMap.get(committeeId) ? ` — ${cmMap.get(committeeId)!.name}` : ""}`}
+      {/* ============ DESKTOP: ultra-minimal header + board ============ */}
+      <div className="hidden lg:block space-y-8">
+        {/* Single flat header: title + search + add button. Nothing else. */}
+        <div className="flex items-center gap-6">
+          <h1 className="text-2xl font-bold leading-tight text-slate-800 dark:text-foreground shrink-0">
+            مركز المهام
           </h1>
-          <p className="text-sm text-slate-500 mt-1">
-            {isPrivileged ? "كل اللجان في مكان واحد" : "المهام المعنية بلجنتك فقط"}
-          </p>
+          <div className="relative flex-1 max-w-xl">
+            <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+            <Input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="ابحث في المهام..."
+              className="pr-10 h-11 rounded-xl bg-white border-0 shadow-sm focus-visible:ring-2 focus-visible:ring-primary/20"
+            />
+          </div>
+          {canEdit && (
+            <Button
+              size="sm"
+              onClick={() => setCreateOpen(true)}
+              className="gap-2 h-11 px-5 bg-teal-700 hover:bg-teal-800 text-white rounded-xl shadow-sm shrink-0"
+            >
+              <Plus className="h-4 w-4" /> إضافة مهمة
+            </Button>
+          )}
         </div>
-        {canEdit && (
-          <Button
-            size="sm"
-            onClick={() => setCreateOpen(true)}
-            className="gap-2 h-10 px-5 bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl shadow-sm"
-          >
-            <Plus className="h-4 w-4" /> إضافة مهمة
-          </Button>
-        )}
+
+        <KanbanBoard tasks={filtered} cmMap={cmMap} canEdit={canEdit} onMove={moveTask} onReorder={reorderTask} onStep={stepTask} onOpen={setDetails} onDelete={deleteTask} />
       </div>
 
-      {/* Single flat toolbar — search + filter + view toggle */}
-      <div className="flex flex-wrap items-center gap-3">
-        <div className="relative flex-1 min-w-[240px]">
-          <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-          <Input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="ابحث في المهام..."
-            className="pr-10 h-11 rounded-xl bg-white border border-slate-200/80 shadow-sm focus-visible:ring-2 focus-visible:ring-primary/20"
-          />
-        </div>
-        {isPrivileged && (
-          <Select value={committeeFilter} onValueChange={setCommitteeFilter}>
-            <SelectTrigger className="w-[220px] h-11 rounded-xl bg-white border border-slate-200/80 shadow-sm"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">كل اللجان</SelectItem>
-              {committees.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
-            </SelectContent>
-          </Select>
-        )}
-        <div className="inline-flex rounded-xl bg-white border border-slate-200/80 shadow-sm p-1 h-11">
-          <button onClick={() => setView("kanban")} className={`px-3.5 text-xs rounded-lg inline-flex items-center gap-1.5 transition-colors ${view === "kanban" ? "bg-primary text-primary-foreground" : "text-slate-500"}`}><LayoutGrid className="h-3.5 w-3.5" />كانبان</button>
-          <button onClick={() => setView("list")} className={`px-3.5 text-xs rounded-lg inline-flex items-center gap-1.5 transition-colors ${view === "list" ? "bg-primary text-primary-foreground" : "text-slate-500"}`}><Rows3 className="h-3.5 w-3.5" />قائمة</button>
-        </div>
+      {/* Mobile keeps existing list/kanban toggle */}
+      <div className="lg:hidden">
+        {view === "kanban"
+          ? <KanbanBoard tasks={filtered} cmMap={cmMap} canEdit={canEdit} onMove={moveTask} onReorder={reorderTask} onStep={stepTask} onOpen={setDetails} onDelete={deleteTask} />
+          : <ListView tasks={filtered} cmMap={cmMap} canEdit={canEdit} onMove={moveTask} onOpen={setDetails} onDelete={deleteTask} />
+        }
       </div>
-
-      {/* Global KPI cards — only for admins/quality. Members see their own scoped quick stats. */}
-      {isPrivileged ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          <KpiCard label="إجمالي المهام النشطة" value={String(stats.activeCount)} icon={ListTodo} tone="text-primary bg-primary/10" />
-          <KpiCard label="نسبة الإنجاز الكلية" value={`${stats.completionRate}%`} icon={CheckCircle2} tone="text-emerald-700 bg-emerald-500/10" />
-          <KpiCard label="المهام المتأخرة" value={String(stats.overdue)} icon={AlertTriangle} tone="text-rose-600 bg-rose-500/10" overdue={stats.overdue > 0} />
-        </div>
-      ) : (
-        <div className="flex flex-wrap gap-2 text-xs">
-          <span className="rounded-full bg-white border border-slate-100 text-slate-700 px-3 py-1 shadow-sm">نشطة: <b>{stats.activeCount}</b></span>
-          <span className="rounded-full bg-white border border-slate-100 text-emerald-700 px-3 py-1 shadow-sm">إنجاز: <b>{stats.completionRate}%</b></span>
-          <span className="rounded-full bg-white border border-slate-100 text-rose-600 px-3 py-1 shadow-sm">متأخرة: <b>{stats.overdue}</b></span>
-        </div>
-      )}
-
-      </div>
-
-      <Tabs defaultValue="board" dir="rtl" className="w-full">
-        <TabsList className="hidden lg:inline-flex">
-          <TabsTrigger value="board">المهام</TabsTrigger>
-          {isPrivileged && <TabsTrigger value="performance">أداء اللجان</TabsTrigger>}
-        </TabsList>
-
-        <TabsContent value="board" className="mt-4">
-          {view === "kanban"
-            ? <KanbanBoard tasks={filtered} cmMap={cmMap} canEdit={canEdit} onMove={moveTask} onReorder={reorderTask} onStep={stepTask} onOpen={setDetails} onDelete={deleteTask} />
-            : <ListView tasks={filtered} cmMap={cmMap} canEdit={canEdit} onMove={moveTask} onOpen={setDetails} onDelete={deleteTask} />
-          }
-        </TabsContent>
-
-        {isPrivileged && (
-          <TabsContent value="performance" className="mt-4">
-            <PerformanceGrid committees={committees} tasks={tasks} />
-          </TabsContent>
-        )}
-      </Tabs>
 
       {createOpen && (
         <CreateTaskDialog
