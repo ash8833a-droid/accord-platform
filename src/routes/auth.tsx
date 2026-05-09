@@ -12,6 +12,7 @@ import { COMMITTEES } from "@/lib/committees";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Loader2, HeartHandshake, Building2, BookOpen, HandHeart } from "lucide-react";
+import { DotsPattern } from "@/components/decor/DotsPattern";
 
 export const Route = createFileRoute("/auth")({
   component: AuthPage,
@@ -84,6 +85,13 @@ function AuthPage() {
 
   return (
     <div className="min-h-screen bg-background" dir="rtl">
+      {/* Decorative brand pattern — top-left accent */}
+      <DotsPattern
+        fade="br"
+        cols={9}
+        rows={6}
+        className="absolute top-0 left-0 h-44 w-72 text-emerald-600/20"
+      />
       <div className="mx-auto w-full max-w-md min-h-screen bg-transparent px-5 pt-8 pb-10 flex flex-col gap-6">
         <header className="flex items-center justify-between">
           <div>
