@@ -50,6 +50,7 @@ export function WeeklyReport() {
 function Inner() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const [rows, setRows] = useState<CommitteeRow[]>([]);
 
   const thisWeek = useMemo(() => startOfWeek(new Date()), []);
@@ -243,14 +244,31 @@ function Inner() {
             <div className="flex flex-wrap items-center gap-2">
               <Button
                 size="sm"
-                onClick={() => exportWeeklyReportPdf({
-                  weekStart: thisWeek, overallRate, overallDelta,
-                  overdueTasks, topCommittee: topCommittee ? { name: topCommittee.name, rate: topCommittee.rate } : null,
-                  leaders, monitoring, urgent, statusLabel: reportStatus.label,
-                })}
-                className="gap-2 bg-[#0D7C66] hover:bg-[#0a6655] text-white rounded-xl shadow-sm"
+                disabled={exporting}
+                onClick={async (e) => {
+                  e.stopPropagation();
+                  if (exporting) return;
+                  setExporting(true);
+                  const tid = toast.loading("جاري تجهيز التقرير...");
+                  try {
+                    await exportWeeklyReportPdf({
+                      weekStart: thisWeek, overallRate, overallDelta,
+                      overdueTasks,
+                      topCommittee: topCommittee ? { name: topCommittee.name, rate: topCommittee.rate } : null,
+                      leaders, monitoring, urgent, statusLabel: reportStatus.label,
+                    });
+                    toast.success("تم تجهيز التقرير", { id: tid });
+                  } catch (err) {
+                    console.error("PDF export failed", err);
+                    toast.error("تعذّر تصدير التقرير", { id: tid });
+                  } finally {
+                    setExporting(false);
+                  }
+                }}
+                className="gap-2 bg-[#0D7C66] hover:bg-[#0a6655] text-white rounded-xl shadow-sm disabled:opacity-70"
               >
-                <FileDown className="h-4 w-4" /> طباعة / تصدير PDF
+                {exporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileDown className="h-4 w-4" />}
+                {exporting ? "جاري التجهيز..." : "طباعة / تصدير PDF"}
               </Button>
               <Button variant="outline" size="sm" onClick={() => void load()} className="gap-2 bg-white border-0 shadow-sm text-slate-700 hover:bg-slate-50">
                 <RefreshCw className="h-4 w-4" /> تحديث
