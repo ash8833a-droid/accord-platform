@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import "drag-drop-touch";
-import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { committeeByType } from "@/lib/committees";
@@ -9,19 +8,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import {
-  Plus, Target, Search, Loader2, ListTodo, PlayCircle, CheckCircle2,
-  AlertTriangle, Trash2, ExternalLink, LayoutGrid, Rows3, CalendarClock,
+  Plus, Search, Loader2, ListTodo, PlayCircle, CheckCircle2,
+  Trash2, LayoutGrid, Rows3, CalendarClock,
   ArrowUp, ArrowDown, ChevronDown,
   RefreshCw,
 } from "lucide-react";
-import { Bell, PartyPopper, GripVertical } from "lucide-react";
+import { GripVertical } from "lucide-react";
 import { toast } from "sonner";
 import { CreateTaskDialog } from "@/components/admin/CreateTaskDialog";
 import { TaskDetailsDialog } from "@/components/admin/TaskDetailsDialog";
@@ -151,26 +149,6 @@ function TaskCenterInner({ canEdit }: { canEdit: boolean }) {
     });
   }, [scopedTasks, isPrivileged, committeeFilter, search, cmMap]);
 
-  const stats = useMemo(() => {
-    const active = scopedTasks.filter((t) => t.status !== "completed");
-    const completed = scopedTasks.filter((t) => t.status === "completed").length;
-    const overdue = scopedTasks.filter(isOverdue).length;
-    const total = scopedTasks.length;
-    const completionRate = total === 0 ? 0 : Math.round((completed / total) * 100);
-    const committeesWithTasks = new Set(scopedTasks.map((t) => t.committee_id));
-    const empty = scopedCommittees.filter((c) => !committeesWithTasks.has(c.id)).length;
-    return { activeCount: active.length, completionRate, overdue, empty };
-  }, [scopedTasks, scopedCommittees]);
-
-  // Oldest active task (FIFO): the next thing the team should work on.
-  const urgentTask = useMemo(() => {
-    const active = scopedTasks.filter((t) => t.status === "todo" || t.status === "in_progress");
-    if (active.length === 0) return null;
-    return [...active].sort((a, b) =>
-      new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-    )[0];
-  }, [scopedTasks]);
-
   const moveTask = async (id: string, to: TaskRow["status"]) => {
     const prev = tasks;
     setTasks((s) => s.map((t) => (t.id === id ? { ...t, status: to } : t)));
@@ -281,7 +259,7 @@ function TaskCenterInner({ canEdit }: { canEdit: boolean }) {
   }
 
   return (
-    <div className="p-3 sm:p-4 lg:p-10 space-y-4 lg:space-y-8 bg-background min-h-screen overscroll-y-contain" dir="rtl">
+    <div className="p-3 sm:p-4 lg:p-10 space-y-4 lg:space-y-8 bg-[#F8FAFC] min-h-screen overscroll-y-contain" dir="rtl">
       {/* ============ MOBILE: Sleek institutional toolbar (no hero, no clutter) ============ */}
       <div className="lg:hidden -mx-3 sm:-mx-4 px-3 sm:px-4 sticky top-0 z-40 backdrop-blur-md bg-white/85 supports-[backdrop-filter]:bg-white/75 border-b border-slate-100/80 py-2.5">
         <div className="flex items-center gap-2">
@@ -323,137 +301,43 @@ function TaskCenterInner({ canEdit }: { canEdit: boolean }) {
         </div>
       </div>
 
-      {/* ============ DESKTOP: existing rich layout ============ */}
-      <div className="hidden lg:block">
-      {/* Active task alert banner */}
-      {urgentTask ? (
-        <div className="rounded-2xl bg-white dark:bg-card border border-slate-100 dark:border-border shadow-sm border-r-4 border-r-primary px-5 py-4">
-          <div className="flex items-center gap-4 flex-col sm:flex-row">
-            <div className="h-10 w-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
-              <Bell className="h-5 w-5" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-[11px] font-semibold tracking-wide text-slate-500">المهمة النشطة الحالية</span>
-                <Badge variant="outline" className={STATUS_META[urgentTask.status].color}>
-                  {STATUS_META[urgentTask.status].label}
-                </Badge>
-              </div>
-              <h2 className="text-base sm:text-lg font-bold mt-1 truncate text-slate-800 dark:text-foreground">{urgentTask.title}</h2>
-              <div className="flex items-center gap-3 text-xs text-slate-500 mt-1 flex-wrap">
-                {urgentTask.due_date && (
-                  <span className="inline-flex items-center gap-1">
-                    <CalendarClock className="h-3.5 w-3.5" />
-                    تاريخ الاستحقاق: {new Date(urgentTask.due_date).toLocaleDateString("ar-SA")}
-                  </span>
-                )}
-                {cmMap.get(urgentTask.committee_id) && (
-                  <span className="truncate">{cmMap.get(urgentTask.committee_id)!.name}</span>
-                )}
-              </div>
-            </div>
-            <Button size="sm" variant="ghost" onClick={() => setDetails(urgentTask)} className="gap-2 shrink-0 text-primary hover:text-primary hover:bg-primary/10 ms-auto">
-              <ExternalLink className="h-3.5 w-3.5" /> عرض التفاصيل
-            </Button>
-          </div>
-        </div>
-      ) : (
-        <div className="rounded-2xl bg-white dark:bg-card border border-slate-100 dark:border-border shadow-sm border-r-4 border-r-emerald-600 px-5 py-4">
-          <div className="flex items-center gap-4">
-            <div className="h-10 w-10 rounded-xl bg-emerald-500/10 text-emerald-700 flex items-center justify-center shrink-0">
-              <PartyPopper className="h-5 w-5" />
-            </div>
-            <div className="min-w-0">
-              <h2 className="text-base sm:text-lg font-bold text-slate-800 dark:text-foreground">تم إنجاز جميع المهام</h2>
-              <p className="text-xs text-slate-500">لا توجد مهام معلقة حالياً. عمل رائع!</p>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Single flat page header — title + primary action */}
-      <div className="flex items-center justify-between gap-4 flex-wrap">
-        <div className="min-w-0">
-          <h1 className="text-2xl font-bold leading-tight text-slate-800 dark:text-foreground">
-            {isPrivileged ? "إدارة ومتابعة المهام" : `مهام لجنتك${committeeId && cmMap.get(committeeId) ? ` — ${cmMap.get(committeeId)!.name}` : ""}`}
+      {/* ============ DESKTOP: ultra-minimal header + board ============ */}
+      <div className="hidden lg:block space-y-8">
+        {/* Single flat header: title + search + add button. Nothing else. */}
+        <div className="flex items-center gap-6">
+          <h1 className="text-2xl font-bold leading-tight text-slate-800 dark:text-foreground shrink-0">
+            مركز المهام
           </h1>
-          <p className="text-sm text-slate-500 mt-1">
-            {isPrivileged ? "كل اللجان في مكان واحد" : "المهام المعنية بلجنتك فقط"}
-          </p>
+          <div className="relative flex-1 max-w-xl">
+            <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+            <Input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="ابحث في المهام..."
+              className="pr-10 h-11 rounded-xl bg-white border-0 shadow-sm focus-visible:ring-2 focus-visible:ring-primary/20"
+            />
+          </div>
+          {canEdit && (
+            <Button
+              size="sm"
+              onClick={() => setCreateOpen(true)}
+              className="gap-2 h-11 px-5 bg-teal-700 hover:bg-teal-800 text-white rounded-xl shadow-sm shrink-0"
+            >
+              <Plus className="h-4 w-4" /> إضافة مهمة
+            </Button>
+          )}
         </div>
-        {canEdit && (
-          <Button
-            size="sm"
-            onClick={() => setCreateOpen(true)}
-            className="gap-2 h-10 px-5 bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl shadow-sm"
-          >
-            <Plus className="h-4 w-4" /> إضافة مهمة
-          </Button>
-        )}
+
+        <KanbanBoard tasks={filtered} cmMap={cmMap} canEdit={canEdit} onMove={moveTask} onReorder={reorderTask} onStep={stepTask} onOpen={setDetails} onDelete={deleteTask} />
       </div>
 
-      {/* Single flat toolbar — search + filter + view toggle */}
-      <div className="flex flex-wrap items-center gap-3">
-        <div className="relative flex-1 min-w-[240px]">
-          <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-          <Input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="ابحث في المهام..."
-            className="pr-10 h-11 rounded-xl bg-white border border-slate-200/80 shadow-sm focus-visible:ring-2 focus-visible:ring-primary/20"
-          />
-        </div>
-        {isPrivileged && (
-          <Select value={committeeFilter} onValueChange={setCommitteeFilter}>
-            <SelectTrigger className="w-[220px] h-11 rounded-xl bg-white border border-slate-200/80 shadow-sm"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">كل اللجان</SelectItem>
-              {committees.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
-            </SelectContent>
-          </Select>
-        )}
-        <div className="inline-flex rounded-xl bg-white border border-slate-200/80 shadow-sm p-1 h-11">
-          <button onClick={() => setView("kanban")} className={`px-3.5 text-xs rounded-lg inline-flex items-center gap-1.5 transition-colors ${view === "kanban" ? "bg-primary text-primary-foreground" : "text-slate-500"}`}><LayoutGrid className="h-3.5 w-3.5" />كانبان</button>
-          <button onClick={() => setView("list")} className={`px-3.5 text-xs rounded-lg inline-flex items-center gap-1.5 transition-colors ${view === "list" ? "bg-primary text-primary-foreground" : "text-slate-500"}`}><Rows3 className="h-3.5 w-3.5" />قائمة</button>
-        </div>
+      {/* Mobile keeps existing list/kanban toggle */}
+      <div className="lg:hidden">
+        {view === "kanban"
+          ? <KanbanBoard tasks={filtered} cmMap={cmMap} canEdit={canEdit} onMove={moveTask} onReorder={reorderTask} onStep={stepTask} onOpen={setDetails} onDelete={deleteTask} />
+          : <ListView tasks={filtered} cmMap={cmMap} canEdit={canEdit} onMove={moveTask} onOpen={setDetails} onDelete={deleteTask} />
+        }
       </div>
-
-      {/* Global KPI cards — only for admins/quality. Members see their own scoped quick stats. */}
-      {isPrivileged ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          <KpiCard label="إجمالي المهام النشطة" value={String(stats.activeCount)} icon={ListTodo} tone="text-primary bg-primary/10" />
-          <KpiCard label="نسبة الإنجاز الكلية" value={`${stats.completionRate}%`} icon={CheckCircle2} tone="text-emerald-700 bg-emerald-500/10" />
-          <KpiCard label="المهام المتأخرة" value={String(stats.overdue)} icon={AlertTriangle} tone="text-rose-600 bg-rose-500/10" overdue={stats.overdue > 0} />
-        </div>
-      ) : (
-        <div className="flex flex-wrap gap-2 text-xs">
-          <span className="rounded-full bg-white border border-slate-100 text-slate-700 px-3 py-1 shadow-sm">نشطة: <b>{stats.activeCount}</b></span>
-          <span className="rounded-full bg-white border border-slate-100 text-emerald-700 px-3 py-1 shadow-sm">إنجاز: <b>{stats.completionRate}%</b></span>
-          <span className="rounded-full bg-white border border-slate-100 text-rose-600 px-3 py-1 shadow-sm">متأخرة: <b>{stats.overdue}</b></span>
-        </div>
-      )}
-
-      </div>
-
-      <Tabs defaultValue="board" dir="rtl" className="w-full">
-        <TabsList className="hidden lg:inline-flex">
-          <TabsTrigger value="board">المهام</TabsTrigger>
-          {isPrivileged && <TabsTrigger value="performance">أداء اللجان</TabsTrigger>}
-        </TabsList>
-
-        <TabsContent value="board" className="mt-4">
-          {view === "kanban"
-            ? <KanbanBoard tasks={filtered} cmMap={cmMap} canEdit={canEdit} onMove={moveTask} onReorder={reorderTask} onStep={stepTask} onOpen={setDetails} onDelete={deleteTask} />
-            : <ListView tasks={filtered} cmMap={cmMap} canEdit={canEdit} onMove={moveTask} onOpen={setDetails} onDelete={deleteTask} />
-          }
-        </TabsContent>
-
-        {isPrivileged && (
-          <TabsContent value="performance" className="mt-4">
-            <PerformanceGrid committees={committees} tasks={tasks} />
-          </TabsContent>
-        )}
-      </Tabs>
 
       {createOpen && (
         <CreateTaskDialog
@@ -490,24 +374,6 @@ function TaskCenterInner({ canEdit }: { canEdit: boolean }) {
   );
 }
 
-function KpiCard({ label, value, icon: Icon, tone, overdue }: { label: string; value: string; icon: any; tone: string; overdue?: boolean }) {
-  return (
-    <Card className="bg-white dark:bg-card border border-slate-100 dark:border-border shadow-sm hover:shadow-md transition-shadow rounded-2xl">
-      <CardContent className="p-6 flex items-center gap-5">
-        <div className={`h-12 w-12 rounded-2xl flex items-center justify-center ${tone}`}>
-          <Icon className="h-5 w-5" />
-        </div>
-        <div className="min-w-0 flex-1">
-          <p className="text-[12px] font-medium text-slate-500 tracking-wide">{label}</p>
-          <div className="flex items-center gap-2 mt-1">
-            <p className={`text-4xl font-bold tabular-nums leading-none ${overdue ? "text-rose-600" : "text-slate-800 dark:text-foreground"}`}>{value}</p>
-            {overdue && <span className="h-2 w-2 rounded-full bg-rose-500 animate-pulse" aria-hidden />}
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
 
 function ProgressRing({ value, size = 44 }: { value: number; size?: number }) {
   const stroke = 4;
@@ -978,63 +844,3 @@ function MobileColumns({
   );
 }
 
-function PerformanceGrid({ committees, tasks }: { committees: CommitteeRow[]; tasks: TaskRow[] }) {
-  return (
-    <div className="space-y-4">
-      {committees.map((c) => {
-        const ct = tasks.filter((t) => t.committee_id === c.id);
-        const completed = ct.filter((t) => t.status === "completed").length;
-        const total = ct.length;
-        const rate = total === 0 ? 0 : Math.round((completed / total) * 100);
-        const overdue = ct.filter(isOverdue).length;
-        const meta = committeeByType(c.type);
-        return (
-          <Card key={c.id} className="bg-white dark:bg-card border-slate-200/70 dark:border-border shadow-sm hover:shadow-md transition-shadow rounded-2xl">
-            <CardContent className="p-5 lg:p-6">
-              <div className="flex items-center gap-4 lg:gap-6">
-                {meta && (
-                  <div className={`h-14 w-14 lg:h-16 lg:w-16 rounded-2xl flex items-center justify-center shrink-0 ${meta.tone}`}>
-                    <meta.icon className="h-6 w-6 lg:h-7 lg:w-7" />
-                  </div>
-                )}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between gap-3 mb-2 flex-wrap">
-                    <div className="min-w-0">
-                      <h3 className="font-bold text-base lg:text-lg leading-tight truncate">{c.name}</h3>
-                      <p className="text-xs text-muted-foreground mt-0.5">مسار اللجنة</p>
-                    </div>
-                    <div className="flex items-center gap-3 shrink-0">
-                      <span className="text-2xl lg:text-3xl font-extrabold tabular-nums text-emerald-700 dark:text-emerald-400 leading-none">{rate}%</span>
-                      <Link to="/committee/$type" params={{ type: c.type }} className="text-xs text-primary hover:underline inline-flex items-center gap-1 font-semibold">
-                        فتح <ExternalLink className="h-3 w-3" />
-                      </Link>
-                    </div>
-                  </div>
-                  <Progress value={rate} className="h-3 rounded-full" />
-                  <div className="flex items-center justify-between gap-3 mt-2 text-xs flex-wrap">
-                    <div className="text-muted-foreground tabular-nums">
-                      <span className="font-semibold text-foreground">{total}</span> مهمة
-                      <span className="mx-1.5">•</span>
-                      <span className="font-semibold text-foreground">{completed}</span> مكتملة
-                      {total - completed > 0 && (
-                        <>
-                          <span className="mx-1.5">•</span>
-                          <span className="font-semibold text-foreground">{total - completed}</span> قيد العمل
-                        </>
-                      )}
-                    </div>
-                    {overdue > 0 && (
-                      <div className="text-rose-600 inline-flex items-center gap-1 font-semibold">
-                        <AlertTriangle className="h-3.5 w-3.5" /> {overdue} متأخرة
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        );
-      })}
-    </div>
-  );
-}
