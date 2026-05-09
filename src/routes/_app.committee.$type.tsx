@@ -82,7 +82,6 @@ interface Task {
   title: string;
   description?: string | null;
   status: "todo" | "in_progress" | "completed";
-  priority: "low" | "medium" | "high" | "urgent";
   assigned_to?: string | null;
   due_date?: string | null;
 }
@@ -95,16 +94,6 @@ interface TeamMember {
   committee_id?: string;
   committee_name?: string;
 }
-
-const PRIORITY_LABELS: Record<Task["priority"], string> = {
-  low: "منخفضة", medium: "متوسطة", high: "عالية", urgent: "عاجلة",
-};
-const PRIORITY_TONE: Record<Task["priority"], string> = {
-  low: "bg-muted text-muted-foreground",
-  medium: "bg-sky-500/15 text-sky-700 dark:text-sky-300",
-  high: "bg-amber-500/15 text-amber-700 dark:text-amber-300",
-  urgent: "bg-destructive/15 text-destructive",
-};
 
 const PHASE_TONE: Record<string, string> = {
   "البدء": "bg-violet-500/15 text-violet-700 dark:text-violet-300 border-violet-500/30",
@@ -175,7 +164,6 @@ function CommitteePage() {
   const [tTitle, setTTitle] = useState("");
   const [tDesc, setTDesc] = useState("");
   const [tStatus, setTStatus] = useState<Task["status"]>("todo");
-  const [tPriority, setTPriority] = useState<Task["priority"]>("medium");
   const [tAssignee, setTAssignee] = useState<string>("none");
 
   const [prOpen, setPrOpen] = useState(false);
@@ -209,9 +197,9 @@ function CommitteePage() {
 
     const [{ data: t }, { data: p }, { data: m }, { data: am }, { data: rolesInCommittee }, { data: allRoles }, { data: rsp }] = await Promise.all([
       supabase.from("committee_tasks")
-        .select("id, title, description, status, priority, assigned_to, due_date, created_at")
+        .select("id, title, description, status, assigned_to, due_date, created_at")
         .eq("committee_id", c.id)
-        .order("created_at", { ascending: false }),
+        .order("created_at", { ascending: true }),
       supabase.from("payment_requests").select("id, title, amount, status, created_at, invoice_url").eq("committee_id", c.id).order("created_at", { ascending: false }),
       supabase.from("team_members").select("id, full_name, role_title, is_head").eq("committee_id", c.id).order("display_order"),
       supabase.from("team_members").select("id, full_name, role_title, is_head, committee_id, committees(name)").order("display_order"),
@@ -347,7 +335,7 @@ function CommitteePage() {
   const mineCount = myMemberId ? tasks.filter((t) => t.assigned_to === myMemberId).length : 0;
   const resetTaskForm = () => {
     setEditingId(null);
-    setTTitle(""); setTDesc(""); setTStatus("todo"); setTPriority("medium"); setTAssignee("none");
+    setTTitle(""); setTDesc(""); setTStatus("todo"); setTAssignee("none");
   };
 
   const openNewTask = () => {
@@ -360,7 +348,6 @@ function CommitteePage() {
     setTTitle(t.title);
     setTDesc(t.description ?? "");
     setTStatus(t.status);
-    setTPriority(t.priority);
     setTAssignee(t.assigned_to ?? "none");
     setTaskOpen(true);
   };
@@ -411,13 +398,13 @@ function CommitteePage() {
 
     if (editingId) {
       const { error } = await supabase.from("committee_tasks")
-        .update({ title: tTitle, description: tDesc, status: tStatus, priority: tPriority, assigned_to })
+        .update({ title: tTitle, description: tDesc, status: tStatus, assigned_to })
         .eq("id", editingId);
       if (error) return toast.error("تعذر التحديث", { description: error.message });
       toast.success("تم تحديث المهمة");
     } else {
       const { error } = await supabase.from("committee_tasks").insert({
-        committee_id: committee.id, title: tTitle, description: tDesc, status: tStatus, priority: tPriority, assigned_to,
+        committee_id: committee.id, title: tTitle, description: tDesc, status: tStatus, assigned_to,
       });
       if (error) return toast.error("تعذرت الإضافة", { description: error.message });
       toast.success("تمت إضافة المهمة");
@@ -1166,30 +1153,16 @@ function CommitteePage() {
                 <form onSubmit={saveTask} className="space-y-3 pt-2">
                   <div className="space-y-2"><Label>العنوان</Label><Input value={tTitle} onChange={(e) => setTTitle(e.target.value)} required /></div>
                   <div className="space-y-2"><Label>الوصف</Label><Textarea value={tDesc} onChange={(e) => setTDesc(e.target.value)} rows={3} /></div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-2">
-                      <Label>الحالة</Label>
-                      <Select value={tStatus} onValueChange={(v) => setTStatus(v as Task["status"])}>
-                        <SelectTrigger><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="todo">قائمة الانتظار</SelectItem>
-                          <SelectItem value="in_progress">قيد التنفيذ</SelectItem>
-                          <SelectItem value="completed">مكتملة</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label>الأولوية</Label>
-                      <Select value={tPriority} onValueChange={(v) => setTPriority(v as Task["priority"])}>
-                        <SelectTrigger><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="low">منخفضة</SelectItem>
-                          <SelectItem value="medium">متوسطة</SelectItem>
-                          <SelectItem value="high">عالية</SelectItem>
-                          <SelectItem value="urgent">عاجلة</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
+                  <div className="space-y-2">
+                    <Label>الحالة</Label>
+                    <Select value={tStatus} onValueChange={(v) => setTStatus(v as Task["status"])}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="todo">قائمة الانتظار</SelectItem>
+                        <SelectItem value="in_progress">قيد التنفيذ</SelectItem>
+                        <SelectItem value="completed">مكتملة</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div className="space-y-2">
                     <Label className="flex items-center gap-1.5"><Users className="h-3.5 w-3.5" /> تعيين المهمة إلى</Label>
@@ -1251,7 +1224,6 @@ function CommitteePage() {
         </p>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {(["todo", "in_progress", "completed"] as const).map((col) => {
-            const priorityRank: Record<string, number> = { urgent: 0, high: 1, medium: 2, low: 3 };
             const inCol = visibleTasks.filter((t) => t.status === col);
             const manualIds = (taskOrder[col] ?? []).filter((id) => inCol.some((t) => t.id === id));
             const ordered: Task[] = manualIds
@@ -1260,11 +1232,9 @@ function CommitteePage() {
             const remainder = inCol
               .filter((t) => !manualIds.includes(t.id))
               .sort((a, b) => {
-                const pr = (priorityRank[a.priority] ?? 9) - (priorityRank[b.priority] ?? 9);
-                if (pr !== 0) return pr;
                 const ad = (a as any).created_at ? new Date((a as any).created_at).getTime() : 0;
                 const bd = (b as any).created_at ? new Date((b as any).created_at).getTime() : 0;
-                return bd - ad;
+                return ad - bd;
               });
             const colTasks: Task[] = [...ordered, ...remainder];
             const colTaskIds = colTasks.map((t) => t.id);
@@ -1309,16 +1279,6 @@ function CommitteePage() {
                           dragOverTaskId === t.id && dragId !== t.id ? "before:absolute before:inset-x-0 before:-top-1 before:h-1 before:bg-primary before:rounded-full" : ""
                         }`}
                       >
-                        {/* Priority accent bar */}
-                        <span
-                          className={`absolute top-0 bottom-0 start-0 w-1.5 ${
-                            t.priority === "urgent" ? "bg-rose-500" :
-                            t.priority === "high" ? "bg-amber-500" :
-                            t.priority === "medium" ? "bg-sky-500" : "bg-muted-foreground/30"
-                          }`}
-                          aria-hidden
-                        />
-
                         {/* === SECTION 1: Header (title + meta) === */}
                         <div className="ps-4 pe-3.5 pt-3.5 pb-2.5 cursor-grab active:cursor-grabbing">
                           {isFirstUrgent && (
@@ -1341,9 +1301,6 @@ function CommitteePage() {
                                       {phase}
                                     </Badge>
                                   )}
-                                  <Badge variant="secondary" className={`${PRIORITY_TONE[t.priority]} text-[10px] font-medium px-1.5 py-0 h-5 rounded-md`}>
-                                    {PRIORITY_LABELS[t.priority]}
-                                  </Badge>
                                 </div>
                                 <div className="flex items-start gap-1.5">
                                   <GripVertical className="h-4 w-4 text-muted-foreground/40 mt-0.5 shrink-0 group-hover:text-muted-foreground transition" />
@@ -1438,7 +1395,6 @@ function CommitteePage() {
                                 title: t.title,
                                 description: t.description,
                                 status: t.status,
-                                priority: t.priority,
                                 due_date: t.due_date ?? null,
                                 committee_id: committee.id,
                               })}
