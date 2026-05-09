@@ -78,7 +78,6 @@ function TaskCenterInner({ canEdit }: { canEdit: boolean }) {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [committeeFilter, setCommitteeFilter] = useState<string>("all");
-  const [priorityFilter, setPriorityFilter] = useState<string>("all");
   const [view, setView] = useState<"kanban" | "list">("kanban");
   const [createOpen, setCreateOpen] = useState(false);
   const [details, setDetails] = useState<TaskRow | null>(null);
@@ -88,12 +87,11 @@ function TaskCenterInner({ canEdit }: { canEdit: boolean }) {
     const [{ data: cm }, { data: tk }] = await Promise.all([
       supabase.from("committees").select("id, name, type").order("name"),
       supabase.from("committee_tasks")
-        .select("id, title, description, committee_id, status, priority, assigned_to, due_date, created_at, sort_order")
-        .order("sort_order", { ascending: true })
-        .order("created_at", { ascending: false }),
+        .select("id, title, description, committee_id, status, assigned_to, due_date, created_at, sort_order")
+        .order("created_at", { ascending: true }),
     ]);
     setCommittees((cm ?? []) as CommitteeRow[]);
-    setTasks((tk ?? []) as TaskRow[]);
+    setTasks(((tk ?? []) as unknown) as TaskRow[]);
     setLoading(false);
   };
 
@@ -123,14 +121,13 @@ function TaskCenterInner({ canEdit }: { canEdit: boolean }) {
     const q = search.trim().toLowerCase();
     return scopedTasks.filter((t) => {
       if (isPrivileged && committeeFilter !== "all" && t.committee_id !== committeeFilter) return false;
-      if (priorityFilter !== "all" && t.priority !== priorityFilter) return false;
       if (!q) return true;
       const cn = cmMap.get(t.committee_id)?.name ?? "";
       return t.title.toLowerCase().includes(q)
         || (t.description ?? "").toLowerCase().includes(q)
         || cn.toLowerCase().includes(q);
     });
-  }, [scopedTasks, isPrivileged, committeeFilter, priorityFilter, search, cmMap]);
+  }, [scopedTasks, isPrivileged, committeeFilter, search, cmMap]);
 
   const stats = useMemo(() => {
     const active = scopedTasks.filter((t) => t.status !== "completed");
@@ -143,19 +140,13 @@ function TaskCenterInner({ canEdit }: { canEdit: boolean }) {
     return { activeCount: active.length, completionRate, overdue, empty };
   }, [scopedTasks, scopedCommittees]);
 
-  // Most urgent active task for the current scope (committee member sees their committee).
+  // Oldest active task (FIFO): the next thing the team should work on.
   const urgentTask = useMemo(() => {
-    const order: Record<TaskRow["priority"], number> = { urgent: 0, high: 1, medium: 2, low: 3 };
     const active = scopedTasks.filter((t) => t.status === "todo" || t.status === "in_progress");
     if (active.length === 0) return null;
-    return [...active].sort((a, b) => {
-      const pa = order[a.priority] ?? 9;
-      const pb = order[b.priority] ?? 9;
-      if (pa !== pb) return pa - pb;
-      const da = a.due_date ? new Date(a.due_date).getTime() : Number.POSITIVE_INFINITY;
-      const db = b.due_date ? new Date(b.due_date).getTime() : Number.POSITIVE_INFINITY;
-      return da - db;
-    })[0];
+    return [...active].sort((a, b) =>
+      new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+    )[0];
   }, [scopedTasks]);
 
   const moveTask = async (id: string, to: TaskRow["status"]) => {
