@@ -585,8 +585,8 @@ function KanbanBoard({
         const todoPct = pct(todoCount);
         const inProgressPct = pct(inProgressCount);
         return (
-          <section key={group.cid} className="lg:rounded-2xl lg:bg-white dark:lg:bg-card lg:shadow-sm lg:border lg:border-slate-100 overflow-visible">
-            <div className="px-1 lg:px-5 py-3 lg:py-4">
+          <section key={group.cid} className="overflow-visible">
+            <div className="px-1 lg:px-2 py-3 lg:py-2">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center gap-3 min-w-0">
                   {gmeta && (
@@ -608,7 +608,7 @@ function KanbanBoard({
               </div>
             </div>
             {/* Kanban — single layout for desktop & mobile (touch DnD enabled via polyfill) */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-0 lg:gap-4 p-0 lg:p-5 lg:pt-0">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-0 lg:gap-8 p-0 lg:p-2 lg:pt-2">
               {cols.map((status) => {
                 const meta = STATUS_META[status];
                 const statusItems = group.list.filter((t) => t.status === status).sort(comparePmp);
@@ -641,9 +641,9 @@ function KanbanBoard({
                       }
                       setDragId(null); setDragOverId(null); setDragOverPos(null); setDragOverColKey(null);
                     }}
-                    className={`lg:rounded-2xl lg:bg-slate-50/60 dark:lg:bg-muted/20 p-0 lg:p-3 lg:min-h-[220px] transition-all ${
+                    className={`p-0 lg:p-0 lg:min-h-[220px] transition-all ${
                       dragOverColKey === `${group.cid}-${status}` && dragId
-                        ? "lg:bg-primary/5 ring-2 ring-primary/25"
+                        ? "lg:rounded-2xl lg:bg-primary/5 lg:ring-2 lg:ring-primary/25"
                         : ""
                     }`}
                   >
