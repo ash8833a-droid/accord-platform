@@ -51,6 +51,28 @@ function isOverdue(t: TaskRow): boolean {
   return new Date(t.due_date).getTime() < Date.now() - 86400000;
 }
 
+/** Arabic relative time, e.g. "منذ ساعتين". */
+function relativeTimeAr(iso: string): string {
+  const diff = Date.now() - new Date(iso).getTime();
+  if (diff < 60_000) return "الآن";
+  const m = Math.floor(diff / 60_000);
+  if (m < 60) return m === 1 ? "منذ دقيقة" : m === 2 ? "منذ دقيقتين" : `منذ ${m} دقيقة`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return h === 1 ? "منذ ساعة" : h === 2 ? "منذ ساعتين" : `منذ ${h} ساعات`;
+  const d = Math.floor(h / 24);
+  if (d < 30) return d === 1 ? "منذ يوم" : d === 2 ? "منذ يومين" : `منذ ${d} أيام`;
+  const mo = Math.floor(d / 30);
+  if (mo < 12) return mo === 1 ? "منذ شهر" : mo === 2 ? "منذ شهرين" : `منذ ${mo} أشهر`;
+  const y = Math.floor(mo / 12);
+  return y === 1 ? "منذ سنة" : y === 2 ? "منذ سنتين" : `منذ ${y} سنوات`;
+}
+
+const STATUS_DOT: Record<TaskRow["status"], string> = {
+  todo: "bg-slate-400",
+  in_progress: "bg-amber-500",
+  completed: "bg-emerald-500",
+};
+
 /**
  * FIFO comparator: oldest tasks first, newest at the bottom.
  * Manual sort_order (drag-and-drop) acts as a fine-grained tiebreaker.
@@ -259,7 +281,106 @@ function TaskCenterInner({ canEdit }: { canEdit: boolean }) {
   }
 
   return (
-    <div className="p-3 sm:p-4 lg:p-10 space-y-6 lg:space-y-8 bg-[#f8fafc] dark:bg-background min-h-screen" dir="rtl">
+    <div className="p-3 sm:p-4 lg:p-10 space-y-4 lg:space-y-8 bg-white lg:bg-[#f8fafc] dark:bg-background min-h-screen" dir="rtl">
+      {/* ============ MOBILE: Minimalist Hero + Toolbar ============ */}
+      <div className="lg:hidden space-y-3">
+        {/* Unified Active Task hero card */}
+        <div className="relative rounded-2xl bg-white border border-slate-100 shadow-sm p-5">
+          <p className="text-[10px] font-bold text-emerald-700 uppercase tracking-[0.15em] mb-2">
+            المهمة النشطة
+          </p>
+          {urgentTask ? (
+            <>
+              <h2 className="text-lg font-bold text-slate-900 leading-snug break-words [overflow-wrap:anywhere]">
+                {urgentTask.title}
+              </h2>
+              {cmMap.get(urgentTask.committee_id) && (
+                <p className="mt-1 text-xs text-slate-500 truncate">
+                  {cmMap.get(urgentTask.committee_id)!.name}
+                </p>
+              )}
+            </>
+          ) : (
+            <h2 className="text-lg font-bold text-slate-900 leading-snug">
+              لا توجد مهام نشطة حالياً
+            </h2>
+          )}
+          <div className="mt-4 pt-3 border-t border-slate-100 flex items-center gap-3 text-xs text-slate-600">
+            <span>نشطة: <b className="text-slate-900 tabular-nums">{stats.activeCount}</b></span>
+            <span className="text-slate-300">•</span>
+            <span className={stats.overdue > 0 ? "text-red-600 inline-flex items-center gap-1" : "inline-flex items-center gap-1"}>
+              {stats.overdue > 0 && <span className="h-1.5 w-1.5 rounded-full bg-red-500" />}
+              تأخير: <b className="tabular-nums">{stats.overdue}</b>
+            </span>
+            <span className="text-slate-300">•</span>
+            <span>إنجاز: <b className="text-slate-900 tabular-nums">{stats.completionRate}%</b></span>
+          </div>
+
+          {/* Ergonomic + button overlapping bottom-left edge (RTL) */}
+          {canEdit && (
+            <button
+              type="button"
+              onClick={() => setCreateOpen(true)}
+              aria-label="إضافة مهمة جديدة"
+              className="absolute -bottom-5 left-5 h-12 w-12 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-600/30 flex items-center justify-center transition-transform duration-150 active:scale-90 hover:scale-105 focus:outline-none focus:ring-4 focus:ring-emerald-500/25"
+            >
+              <Plus className="h-6 w-6" strokeWidth={2.5} />
+            </button>
+          )}
+
+          {urgentTask && (
+            <button
+              type="button"
+              onClick={() => setDetails(urgentTask)}
+              className="absolute top-4 left-4 text-[11px] font-semibold text-emerald-700 hover:text-emerald-800"
+            >
+              التفاصيل
+            </button>
+          )}
+        </div>
+
+        {/* Streamlined action toolbar */}
+        <div className="flex items-center gap-2 pt-2">
+          <div className="relative flex-1 min-w-0">
+            <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+            <Input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="ابحث..."
+              className="pr-10 h-10 rounded-full bg-slate-50 border-slate-200 text-sm focus-visible:ring-emerald-500/30"
+            />
+          </div>
+          <button
+            type="button"
+            onClick={async () => { await load(); toast.success("تم التحديث"); }}
+            aria-label="تحديث"
+            className="h-10 w-10 rounded-full bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-100 active:scale-95 transition shrink-0"
+          >
+            <RefreshCw className="h-4 w-4" />
+          </button>
+          <div className="inline-flex rounded-full border border-slate-200 bg-slate-50 p-0.5 shrink-0">
+            <button
+              type="button"
+              onClick={() => setView("list")}
+              aria-label="عرض قائمة"
+              className={`h-9 w-9 rounded-full inline-flex items-center justify-center transition ${view === "list" ? "bg-white shadow-sm text-emerald-700" : "text-slate-500"}`}
+            >
+              <Rows3 className="h-4 w-4" />
+            </button>
+            <button
+              type="button"
+              onClick={() => setView("kanban")}
+              aria-label="عرض كانبان"
+              className={`h-9 w-9 rounded-full inline-flex items-center justify-center transition ${view === "kanban" ? "bg-white shadow-sm text-emerald-700" : "text-slate-500"}`}
+            >
+              <LayoutGrid className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* ============ DESKTOP: existing rich layout ============ */}
+      <div className="hidden lg:block">
       {/* Active task alert banner */}
       {urgentTask ? (
         <div className="rounded-xl border-2 border-sky-300/60 dark:border-sky-700/60 bg-sky-50/80 dark:bg-sky-950/30 px-4 py-3 shadow-sm">
@@ -379,9 +500,10 @@ function TaskCenterInner({ canEdit }: { canEdit: boolean }) {
           </div>
         </CardContent>
       </Card>
+      </div>
 
       <Tabs defaultValue="board" dir="rtl" className="w-full">
-        <TabsList>
+        <TabsList className="hidden lg:inline-flex">
           <TabsTrigger value="board">المهام</TabsTrigger>
           {isPrivileged && <TabsTrigger value="performance">أداء اللجان</TabsTrigger>}
         </TabsList>
@@ -421,17 +543,6 @@ function TaskCenterInner({ canEdit }: { canEdit: boolean }) {
       )}
 
       {/* Mobile-only Floating Action Button — bottom-left for RTL thumb reach */}
-      {canEdit && (
-        <button
-          type="button"
-          onClick={() => setCreateOpen(true)}
-          aria-label="إضافة مهمة جديدة"
-          className="lg:hidden fixed left-4 z-40 h-14 w-14 rounded-full bg-emerald-700 hover:bg-emerald-800 text-white shadow-[0_10px_25px_-5px_rgba(6,78,59,0.55)] flex items-center justify-center transition-transform duration-150 ease-out active:scale-90 hover:scale-105 focus:outline-none focus:ring-4 focus:ring-emerald-500/30 animate-scale-in"
-          style={{ bottom: "calc(env(safe-area-inset-bottom) + 5rem)" }}
-        >
-          <Plus className="h-7 w-7" strokeWidth={2.5} />
-        </button>
-      )}
     </div>
   );
 }
@@ -502,21 +613,21 @@ function KanbanBoard({
         const todoPct = pct(todoCount);
         const inProgressPct = pct(inProgressCount);
         return (
-          <section key={group.cid} className="rounded-xl border bg-card overflow-hidden">
-            <div className="border-b bg-muted/20 px-4 py-3 space-y-3">
+          <section key={group.cid} className="rounded-2xl border border-slate-100 lg:border bg-white lg:bg-card overflow-hidden shadow-sm lg:shadow-none">
+            <div className="lg:border-b lg:bg-muted/20 px-4 py-3 space-y-3">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center gap-2">
                   {gmeta && (
-                    <div className={`h-9 w-9 rounded-lg flex items-center justify-center ${gmeta.tone}`}>
+                    <div className={`h-9 w-9 rounded-lg flex items-center justify-center hidden lg:flex ${gmeta.tone}`}>
                       <gmeta.icon className="h-4 w-4" />
                     </div>
                   )}
                   <div>
-                    <h3 className="font-bold text-sm">{group.name}</h3>
-                    <p className="text-[11px] text-muted-foreground">منهجية PMP: انتظار ← تنفيذ ← إغلاق</p>
+                    <h3 className="font-bold text-sm text-slate-900 lg:text-foreground">{group.name}</h3>
+                    <p className="text-[11px] text-muted-foreground hidden lg:block">منهجية PMP: انتظار ← تنفيذ ← إغلاق</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2 flex-wrap">
+                <div className="hidden lg:flex items-center gap-2 flex-wrap">
                   <Badge variant="outline">{total} مهمة</Badge>
                   <Badge variant="outline" className="bg-slate-500/10 text-slate-700 border-slate-500/30">
                     انتظار {todoCount} ({todoPct}%)
@@ -528,8 +639,12 @@ function KanbanBoard({
                     إغلاق {completed} ({rate}%)
                   </Badge>
                 </div>
+                <span className="lg:hidden text-[11px] text-slate-500 tabular-nums">
+                  {completed}/{total}
+                </span>
               </div>
               {total > 0 && (
+              <div className="hidden lg:block">
                 <div className="space-y-1.5">
                   <div className="flex h-2.5 w-full overflow-hidden rounded-full bg-muted">
                     <div className="bg-slate-400 h-full transition-all" style={{ width: `${todoPct}%` }} title={`انتظار ${todoPct}%`} />
@@ -541,14 +656,11 @@ function KanbanBoard({
                     <span className="font-semibold text-emerald-700 dark:text-emerald-400">إنجاز {rate}%</span>
                   </div>
                 </div>
+              </div>
               )}
             </div>
             {/* Kanban — single layout for desktop & mobile (touch DnD enabled via polyfill) */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 p-3">
-              <div className="lg:hidden -mb-1 flex items-center gap-2 text-[11px] text-muted-foreground bg-sky-50 dark:bg-sky-950/30 border border-sky-200/60 dark:border-sky-800/60 rounded-md px-2.5 py-1.5">
-                <GripVertical className="h-3.5 w-3.5" />
-                <span>اضغط مطوّلاً على المقبض لسحب البطاقة. التمرير العادي يعمل بشكل طبيعي.</span>
-              </div>
               {cols.map((status) => {
                 const meta = STATUS_META[status];
                 const statusItems = group.list.filter((t) => t.status === status).sort(comparePmp);
@@ -581,7 +693,7 @@ function KanbanBoard({
                       }
                       setDragId(null); setDragOverId(null); setDragOverPos(null); setDragOverColKey(null);
                     }}
-                    className={`rounded-lg border bg-muted/20 p-3 min-h-[220px] transition-all ${
+                    className={`rounded-lg lg:border lg:bg-muted/20 p-0 lg:p-3 lg:min-h-[220px] transition-all ${
                       dragOverColKey === `${group.cid}-${status}` && dragId
                         ? "border-primary border-2 bg-primary/5 shadow-lg shadow-primary/20 ring-2 ring-primary/30"
                         : ""
@@ -590,16 +702,17 @@ function KanbanBoard({
                     <button
                       type="button"
                       onClick={() => toggleOpen(`${group.cid}-${status}`)}
-                      className="w-full flex items-center justify-between mb-3 lg:cursor-default lg:pointer-events-none min-h-[44px] lg:min-h-0"
+                      className="w-full flex items-center justify-between mb-2 lg:mb-3 lg:cursor-default lg:pointer-events-none min-h-[40px] lg:min-h-0 px-1 lg:px-0"
                       aria-expanded={isOpen(`${group.cid}-${status}`)}
                     >
                       <div className="flex items-center gap-2">
-                        <meta.icon className="h-4 w-4 text-muted-foreground" />
-                        <h4 className="font-bold text-sm lg:text-xs">{meta.label}</h4>
-                        <Badge variant="outline" className="text-[10px]">{statusItems.length}</Badge>
+                        <span className={`h-2 w-2 rounded-full lg:hidden ${STATUS_DOT[status]}`} aria-hidden />
+                        <meta.icon className="h-4 w-4 text-muted-foreground hidden lg:inline-block" />
+                        <h4 className="font-semibold lg:font-bold text-[13px] lg:text-xs text-slate-700 lg:text-foreground">{meta.label}</h4>
+                        <span className="text-[11px] text-slate-400 tabular-nums">({statusItems.length})</span>
                       </div>
                       <ChevronDown
-                        className={`h-5 w-5 text-muted-foreground transition-transform lg:hidden ${
+                        className={`h-4 w-4 text-slate-400 transition-transform lg:hidden ${
                           isOpen(`${group.cid}-${status}`) ? "rotate-180" : ""
                         }`}
                       />
@@ -648,20 +761,26 @@ function KanbanBoard({
                     }}
                     onClick={() => onOpen(t)}
                     style={{ touchAction: "pan-y" }}
-                    className={`group relative rounded-lg border bg-card p-3.5 ps-10 lg:ps-9 cursor-grab active:cursor-grabbing hover:shadow-md hover:-translate-y-0.5 transform-gpu will-change-transform transition-all select-none ${isDragging ? "opacity-40 rotate-1 shadow-xl ring-2 ring-primary/40" : ""}`}
+                    className={`group relative rounded-xl border border-slate-100 lg:border bg-white lg:bg-card p-3.5 ps-10 lg:ps-9 cursor-grab active:cursor-grabbing shadow-sm lg:shadow-none hover:shadow-md hover:-translate-y-0.5 transform-gpu will-change-transform transition-all select-none ${isDragging ? "opacity-40 rotate-1 shadow-xl ring-2 ring-primary/40" : ""}`}
                   >
                     {/* Visible drag handle (also acts as a touch-friendly affordance) */}
                     <div
                       aria-hidden
-                      className="absolute inset-y-0 start-0 w-7 flex items-center justify-center text-muted-foreground/60 group-hover:text-primary border-e border-dashed border-border/60 bg-muted/30 rounded-s-lg"
+                      className="absolute inset-y-0 start-0 w-7 flex items-center justify-center text-slate-300 lg:text-muted-foreground/60 group-hover:text-primary lg:border-e lg:border-dashed lg:border-border/60 lg:bg-muted/30 rounded-s-xl"
                     >
                       <GripVertical className="h-4 w-4" />
                     </div>
                     <div className="flex items-start justify-between gap-2">
-                      <p className="text-base lg:text-sm font-bold flex-1 leading-snug break-words [overflow-wrap:anywhere]">
-                        <span className="text-[10px] text-muted-foreground me-1">#{idx + 1}</span>
-                        {t.title}
-                      </p>
+                      <div className="flex items-start gap-2 flex-1 min-w-0">
+                        <span
+                          aria-hidden
+                          className={`mt-1.5 h-2 w-2 rounded-full shrink-0 lg:hidden ${STATUS_DOT[t.status]}`}
+                        />
+                        <p className="text-[15px] lg:text-sm font-semibold lg:font-bold text-slate-900 lg:text-foreground flex-1 leading-snug break-words [overflow-wrap:anywhere]">
+                          <span className="text-[10px] text-muted-foreground me-1 hidden lg:inline">#{idx + 1}</span>
+                          {t.title}
+                        </p>
+                      </div>
                       {canEdit && (
                         <div className="flex items-center gap-1 shrink-0">
                           <button
@@ -693,7 +812,18 @@ function KanbanBoard({
                         </div>
                       )}
                     </div>
-                    <div className="flex items-center flex-wrap gap-1 mt-2">
+                    <div className="mt-2 flex items-center gap-2 text-[11px] text-slate-500 lg:hidden">
+                      {cm && <span className="truncate">{cm.name}</span>}
+                      <span className="text-slate-300">•</span>
+                      <span>{relativeTimeAr(t.created_at)}</span>
+                      {overdue && (
+                        <>
+                          <span className="text-slate-300">•</span>
+                          <span className="text-red-600 font-semibold">متأخرة</span>
+                        </>
+                      )}
+                    </div>
+                    <div className="hidden lg:flex items-center flex-wrap gap-1 mt-2">
                       {cmeta && (
                         <span className={`inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded ${cmeta.tone}`}>
                           <cmeta.icon className="h-3 w-3" />{cm?.name}
@@ -701,7 +831,7 @@ function KanbanBoard({
                       )}
                     </div>
                     {t.due_date && (
-                      <div className="mt-2 flex items-center justify-between gap-2">
+                      <div className="mt-2 hidden lg:flex items-center justify-between gap-2">
                         <span
                           className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-1 rounded-md border ${
                             overdue
