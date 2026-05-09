@@ -455,6 +455,7 @@ function TaskCenterInner({ canEdit }: { canEdit: boolean }) {
           open={createOpen}
           onOpenChange={setCreateOpen}
           committees={committees}
+          defaultCommitteeId={!isPrivileged ? committeeId : null}
           onCreated={() => { setCreateOpen(false); load(); }}
         />
       )}
