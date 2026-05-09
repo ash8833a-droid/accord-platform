@@ -3,13 +3,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { PageGate } from "@/components/PageGate";
 import { Button } from "@/components/ui/button";
 import {
-  Trophy, AlertTriangle, Loader2, FileDown, RefreshCw,
-  TrendingUp, TrendingDown, Minus, CalendarClock, Save,
-  ListChecks, CheckCircle2, Users2, Clock,
+  Loader2, FileDown, RefreshCw,
+  CalendarClock, Save, ShieldAlert, Sparkles, Activity,
+  Clock, Users2, TrendingUp,
 } from "lucide-react";
-import {
-  Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis,
-} from "recharts";
 import { exportWeeklyReportPdf } from "@/lib/weekly-report-pdf";
 import { toast } from "sonner";
 
@@ -22,6 +19,11 @@ interface CommitteeRow {
   rate: number;
   prevRate: number | null;
   delta: number | null;
+}
+
+export interface InsightItem {
+  name: string;
+  detail: string;
 }
 
 function startOfWeek(d: Date): Date {
@@ -107,16 +109,48 @@ function Inner() {
     setLoading(false);
   }
 
-  const top = rows.filter((r) => r.total > 0 && r.rate === 100);
-  const delayed = rows.filter((r) => r.total === 0 || r.rate < 100 || r.overdue > 0);
+  // KPIs
+  const activeCommittees = rows.filter((r) => r.total > 0).length;
   const totalTasks = rows.reduce((s, r) => s + r.total, 0);
   const doneTasks = rows.reduce((s, r) => s + r.done, 0);
   const overdueTasks = rows.reduce((s, r) => s + r.overdue, 0);
-  const avgRate = rows.length ? Math.round(rows.reduce((s, r) => s + r.rate, 0) / rows.length) : 0;
+  const overallRate = totalTasks > 0 ? Math.round((doneTasks / totalTasks) * 100) : 0;
 
-  const chartData = rows
-    .filter((r) => r.total > 0)
-    .map((r) => ({ name: r.name, rate: r.rate }));
+  // Insights — concise 3-bullet summaries
+  const { excellence, weakness, critical } = useMemo(() => {
+    const active = rows.filter((r) => r.total > 0);
+
+    const excellenceRows = active
+      .filter((r) => r.rate >= 80 && r.overdue === 0)
+      .sort((a, b) => b.rate - a.rate || (b.delta ?? 0) - (a.delta ?? 0))
+      .slice(0, 3)
+      .map<InsightItem>((r) => ({
+        name: r.name,
+        detail: `إنجاز ${r.rate}% — ${r.done} من ${r.total} مهمة${r.delta && r.delta > 0 ? ` · تحسّن +${r.delta}%` : ""}`,
+      }));
+
+    const weaknessRows = active
+      .filter((r) => r.rate >= 40 && r.rate < 80 && r.overdue === 0)
+      .sort((a, b) => a.rate - b.rate)
+      .slice(0, 3)
+      .map<InsightItem>((r) => ({
+        name: r.name,
+        detail: `إنجاز ${r.rate}% — تقدّم بطيء يحتاج إلى دعم ومتابعة`,
+      }));
+
+    const criticalRows = active
+      .filter((r) => r.rate < 40 || r.overdue > 0)
+      .sort((a, b) => b.overdue - a.overdue || a.rate - b.rate)
+      .slice(0, 3)
+      .map<InsightItem>((r) => ({
+        name: r.name,
+        detail: r.overdue > 0
+          ? `${r.overdue} مهمة متأخرة · إنجاز ${r.rate}% — تدخل عاجل`
+          : `إنجاز ${r.rate}% فقط — اختناق في سير العمل`,
+      }));
+
+    return { excellence: excellenceRows, weakness: weaknessRows, critical: criticalRows };
+  }, [rows]);
 
   async function saveSnapshot() {
     setSaving(true);
@@ -152,10 +186,22 @@ function Inner() {
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">التقرير الدوري للأمانة</h1>
           <p className="text-sm text-slate-500 mt-1.5 flex items-center gap-2">
             <CalendarClock className="h-4 w-4 text-teal-700" />
-            أسبوع يبدأ من {thisWeek.toLocaleDateString("ar-SA-u-ca-gregory")}
+            ملخص تنفيذي · أسبوع يبدأ من {thisWeek.toLocaleDateString("ar-SA-u-ca-gregory")}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => exportWeeklyReportPdf({
+              weekStart: thisWeek,
+              overallRate, activeCommittees, overdueTasks,
+              excellence, weakness, critical,
+            })}
+            className="gap-2 bg-white border border-teal-700 text-teal-700 hover:bg-teal-50 hover:text-teal-800 rounded-xl shadow-sm"
+          >
+            <FileDown className="h-4 w-4" /> طباعة / تصدير PDF
+          </Button>
           <Button variant="outline" size="sm" onClick={() => void load()} className="gap-2 bg-white border-0 shadow-sm text-slate-700 hover:bg-slate-50">
             <RefreshCw className="h-4 w-4" /> تحديث
           </Button>
@@ -163,66 +209,58 @@ function Inner() {
             {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
             حفظ لقطة الأسبوع
           </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => exportWeeklyReportPdf({ weekStart: thisWeek, top, delayed })}
-            className="gap-2 bg-white border border-teal-700 text-teal-700 hover:bg-teal-50 hover:text-teal-800 rounded-xl shadow-sm"
-          >
-            <FileDown className="h-4 w-4" /> طباعة التقرير
-          </Button>
         </div>
       </div>
 
-      {/* KPI Row */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Kpi label="عدد اللجان" value={rows.length} icon={Users2} />
-        <Kpi label="متوسط الإنجاز" value={`${avgRate}%`} icon={CheckCircle2} />
-        <Kpi label="إجمالي المهام" value={`${doneTasks}/${totalTasks}`} icon={ListChecks} />
-        <Kpi label="مهام متأخرة" value={overdueTasks} icon={Clock} tone={overdueTasks > 0 ? "rose" : "teal"} />
-      </div>
-
-      {/* Bar chart */}
+      {/* Executive Overview — 3 KPIs */}
       <div className="space-y-3">
-        <SectionTitle title="مستوى إنجاز اللجان" subtitle="نسبة المهام المنجزة لكل لجنة" />
-        <div className="rounded-2xl bg-white shadow-sm p-8">
-          {chartData.length === 0 ? (
-            <div className="h-[280px] flex items-center justify-center text-sm text-slate-400">لا توجد بيانات</div>
-          ) : (
-            <ResponsiveContainer width="100%" height={320}>
-              <BarChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 10 }}>
-                <CartesianGrid strokeDasharray="4 4" stroke="#F1F5F9" vertical={false} />
-                <XAxis dataKey="name" tick={{ fontSize: 11, fill: "#64748B" }} axisLine={false} tickLine={false} interval={0} angle={-15} textAnchor="end" height={60} />
-                <YAxis domain={[0, 100]} tick={{ fontSize: 11, fill: "#94A3B8" }} axisLine={false} tickLine={false} tickFormatter={(v) => `${v}%`} />
-                <Tooltip cursor={{ fill: "#F1F5F9" }} formatter={(v: number) => `${v}%`} />
-                <Bar dataKey="rate" name="نسبة الإنجاز" fill="#0F766E" radius={[10, 10, 0, 0]} maxBarSize={48} />
-              </BarChart>
-            </ResponsiveContainer>
-          )}
+        <SectionTitle title="نظرة عامة" subtitle="مؤشرات الأداء التنفيذية" />
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+          <Kpi label="نسبة الإنجاز الكلي" value={`${overallRate}%`} icon={TrendingUp} />
+          <Kpi label="إجمالي المهام المتأخرة" value={overdueTasks} icon={Clock} tone={overdueTasks > 0 ? "rose" : "teal"} />
+          <Kpi label="اللجان النشطة" value={`${activeCommittees}/${rows.length}`} icon={Users2} />
         </div>
       </div>
 
-      {/* Top + Delayed */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <ListCard
-          icon={Trophy}
-          title="الأفضل أداءً"
-          subtitle="لجان أنجزت 100% من مهامها"
-          count={top.length}
-          empty="لا توجد لجان وصلت إلى الإنجاز الكامل بعد."
-          rows={top}
-          tone="success"
-        />
-        <ListCard
-          icon={AlertTriangle}
-          title="تحتاج إلى متابعة"
-          subtitle="لجان لم تكتمل أو لديها مهام متأخرة"
-          count={delayed.length}
-          empty="ممتاز — لا توجد لجان متأخرة هذا الأسبوع."
-          rows={delayed}
-          tone="warning"
-        />
+      {/* Analytical grid — 3 insight cards */}
+      <div className="space-y-3">
+        <SectionTitle title="القراءة التحليلية" subtitle="ملخص مكثّف لرفعه إلى الأمانة" />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <InsightCard
+            tone="excellence"
+            icon={Sparkles}
+            title="نقاط التميّز"
+            subtitle="لجان متقدّمة في الإنجاز"
+            empty="لم تُسجَّل لجان عند مستوى تميّز هذا الأسبوع."
+            items={excellence}
+          />
+          <InsightCard
+            tone="weakness"
+            icon={Activity}
+            title="نقاط الضعف"
+            subtitle="تقدّم بطيء يحتاج إلى دعم"
+            empty="لا توجد لجان ضمن مرحلة الضعف."
+            items={weakness}
+          />
+          <InsightCard
+            tone="critical"
+            icon={ShieldAlert}
+            title="مواطن الخلل"
+            subtitle="تدخّل عاجل من الأمانة"
+            empty="لا توجد اختناقات حرجة هذا الأسبوع."
+            items={critical}
+          />
+        </div>
       </div>
+    </div>
+  );
+}
+
+function SectionTitle({ title, subtitle }: { title: string; subtitle?: string }) {
+  return (
+    <div className="px-1">
+      <h2 className="text-lg font-bold text-slate-800">{title}</h2>
+      {subtitle && <p className="text-xs text-slate-500 mt-0.5">{subtitle}</p>}
     </div>
   );
 }
@@ -240,98 +278,71 @@ function Kpi({ label, value, icon: Icon, tone = "teal" }: { label: string; value
   );
 }
 
-function SectionTitle({ title, subtitle }: { title: string; subtitle?: string }) {
-  return (
-    <div className="px-1">
-      <h2 className="text-lg font-bold text-slate-800">{title}</h2>
-      {subtitle && <p className="text-xs text-slate-500 mt-0.5">{subtitle}</p>}
-    </div>
-  );
-}
-
-function ListCard({
-  icon: Icon, title, subtitle, count, empty, rows, tone,
+function InsightCard({
+  tone, icon: Icon, title, subtitle, items, empty,
 }: {
-  icon: any; title: string; subtitle: string; count: number; empty: string;
-  rows: CommitteeRow[]; tone: "success" | "warning";
+  tone: "excellence" | "weakness" | "critical";
+  icon: any;
+  title: string;
+  subtitle: string;
+  items: InsightItem[];
+  empty: string;
 }) {
-  const iconBg = tone === "success" ? "bg-teal-50 text-teal-700" : "bg-amber-50 text-amber-700";
-  const badgeBg = tone === "success" ? "bg-teal-50 text-teal-700" : "bg-amber-50 text-amber-700";
+  const cfg = {
+    excellence: {
+      border: "border-r-4 border-r-teal-600",
+      iconBg: "bg-teal-50 text-teal-700",
+      bullet: "bg-teal-600",
+      countBg: "bg-teal-50 text-teal-700",
+    },
+    weakness: {
+      border: "border-r-4 border-r-amber-500",
+      iconBg: "bg-amber-50 text-amber-700",
+      bullet: "bg-amber-500",
+      countBg: "bg-amber-50 text-amber-700",
+    },
+    critical: {
+      border: "border-r-4 border-r-red-500",
+      iconBg: "bg-red-50 text-red-700",
+      bullet: "bg-red-500",
+      countBg: "bg-red-50 text-red-700",
+    },
+  }[tone];
+
   return (
-    <div className="rounded-2xl bg-white shadow-sm overflow-hidden">
-      <div className="flex items-start justify-between gap-3 p-6 border-b border-slate-50">
-        <div className="flex items-start gap-3">
-          <div className={`h-9 w-9 rounded-lg ${iconBg} flex items-center justify-center shrink-0`}>
+    <div className={`rounded-2xl bg-white shadow-sm overflow-hidden ${cfg.border}`}>
+      <div className="flex items-start justify-between gap-3 p-6">
+        <div className="flex items-start gap-3 min-w-0">
+          <div className={`h-9 w-9 rounded-lg ${cfg.iconBg} flex items-center justify-center shrink-0`}>
             <Icon className="h-4 w-4" />
           </div>
-          <div>
+          <div className="min-w-0">
             <h3 className="text-sm font-bold text-slate-800">{title}</h3>
             <p className="text-xs text-slate-500 mt-0.5">{subtitle}</p>
           </div>
         </div>
-        <span className={`text-xs font-bold rounded-full px-2.5 py-1 ${badgeBg}`}>{count}</span>
+        <span className={`text-xs font-bold rounded-full px-2.5 py-1 tabular-nums ${cfg.countBg}`}>{items.length}</span>
       </div>
-      <div className="px-6">
-        {rows.length === 0 ? (
-          <div className="text-sm text-slate-400 py-10 text-center">{empty}</div>
+      <div className="px-6 pb-6">
+        {items.length === 0 ? (
+          <div className="text-sm text-slate-400 py-6 text-center">{empty}</div>
         ) : (
-          rows.map((r) => <CommitteeRowItem key={r.id} row={r} />)
+          <ul className="space-y-4">
+            {items.map((it, i) => (
+              <li key={`${it.name}-${i}`} className="flex items-start gap-3">
+                <span className={`mt-1.5 h-2 w-2 rounded-full ${cfg.bullet} shrink-0`} />
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-slate-800 truncate">{it.name}</p>
+                  <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">{it.detail}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
         )}
       </div>
     </div>
   );
 }
 
-function CommitteeRowItem({ row }: { row: CommitteeRow }) {
-  return (
-    <div className="py-4 border-b border-slate-50 last:border-b-0">
-      <div className="flex items-center justify-between gap-2 mb-2">
-        <div className="flex items-center gap-2 min-w-0">
-          <span className="font-semibold text-slate-800 truncate">{row.name}</span>
-          <DeltaBadge delta={row.delta} />
-        </div>
-        <span className="text-sm tabular-nums shrink-0 text-slate-500">
-          <span className="font-bold text-slate-900">{row.rate}%</span>{" "}
-          <span>· {row.done}/{row.total}</span>
-        </span>
-      </div>
-      <div className="h-1.5 rounded-full bg-slate-100 overflow-hidden">
-        <div
-          className="h-full bg-teal-700 transition-all"
-          style={{ width: `${Math.max(0, Math.min(100, row.rate))}%` }}
-        />
-      </div>
-      {row.overdue > 0 && (
-        <div className="mt-2 text-xs text-rose-600 flex items-center gap-1">
-          <AlertTriangle className="h-3.5 w-3.5" />
-          {row.overdue} مهمة متأخرة عن تاريخ الاستحقاق
-        </div>
-      )}
-    </div>
-  );
-}
-
-function DeltaBadge({ delta }: { delta: number | null }) {
-  if (delta === null) {
-    return <span className="text-[10px] text-slate-400 bg-slate-50 rounded-full px-1.5 py-0.5">جديد</span>;
-  }
-  if (delta === 0) {
-    return (
-      <span className="text-[11px] inline-flex items-center gap-0.5 text-slate-400">
-        <Minus className="h-3 w-3" /> 0%
-      </span>
-    );
-  }
-  if (delta > 0) {
-    return (
-      <span className="text-[11px] inline-flex items-center gap-0.5 text-teal-700 font-semibold">
-        <TrendingUp className="h-3 w-3" /> +{delta}%
-      </span>
-    );
-  }
-  return (
-    <span className="text-[11px] inline-flex items-center gap-0.5 text-rose-600 font-semibold">
-      <TrendingDown className="h-3 w-3" /> {delta}%
-    </span>
-  );
-}
+// keep export to avoid breakage in case some import survives
+export type { CommitteeRow };

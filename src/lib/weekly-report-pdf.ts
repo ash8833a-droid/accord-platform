@@ -1,54 +1,59 @@
 import html2pdf from "html2pdf.js";
 import logo from "@/assets/logo.png";
 
-const PRIMARY = "#064e3b";
-const SUCCESS = "#059669";
-const WARNING = "#dc2626";
+const PRIMARY = "#0F766E";
+const TEAL = "#0F766E";
+const AMBER = "#D97706";
+const RED = "#DC2626";
+const SLATE_900 = "#0F172A";
+const SLATE_500 = "#64748B";
+const SLATE_100 = "#F1F5F9";
 
-interface Row {
-  id: string;
+interface InsightItem {
   name: string;
-  total: number;
-  done: number;
-  overdue: number;
-  rate: number;
-  delta: number | null;
+  detail: string;
 }
 
 interface Args {
   weekStart: Date;
-  top: Row[];
-  delayed: Row[];
+  overallRate: number;
+  activeCommittees: number;
+  overdueTasks: number;
+  excellence: InsightItem[];
+  weakness: InsightItem[];
+  critical: InsightItem[];
 }
 
-function deltaText(d: number | null): string {
-  if (d === null) return "—";
-  if (d === 0) return "0%";
-  return d > 0 ? `+${d}%` : `${d}%`;
-}
-
-function deltaColor(d: number | null): string {
-  if (d === null || d === 0) return "#6b7280";
-  return d > 0 ? SUCCESS : WARNING;
-}
-
-function rowHtml(r: Row, accent: string): string {
-  const fill = Math.max(0, Math.min(100, r.rate));
+function kpiHtml(label: string, value: string | number): string {
   return `
-    <div class="row">
-      <div class="row-head">
-        <div class="row-name">
-          <span class="dot" style="background:${accent}"></span>
-          ${r.name}
-          <span class="delta" style="color:${deltaColor(r.delta)}">${deltaText(r.delta)}</span>
-        </div>
-        <div class="row-meta"><b>${r.rate}%</b> · ${r.done}/${r.total}${r.overdue > 0 ? ` · <span style="color:${WARNING}">${r.overdue} متأخرة</span>` : ""}</div>
-      </div>
-      <div class="bar"><div class="bar-fill" style="width:${fill}%; background:${accent}"></div></div>
+    <div class="kpi">
+      <div class="kpi-value">${value}</div>
+      <div class="kpi-label">${label}</div>
     </div>`;
 }
 
-export async function exportWeeklyReportPdf({ weekStart, top, delayed }: Args): Promise<void> {
+function insightHtml(title: string, subtitle: string, accent: string, items: InsightItem[], empty: string): string {
+  return `
+    <section class="insight" style="border-right: 4px solid ${accent}">
+      <div class="insight-head">
+        <h2 style="color:${SLATE_900}">${title}</h2>
+        <p>${subtitle}</p>
+      </div>
+      ${items.length === 0
+        ? `<p class="empty">${empty}</p>`
+        : `<ul>${items.map((i) => `
+            <li>
+              <span class="bullet" style="background:${accent}"></span>
+              <div>
+                <div class="item-name">${i.name}</div>
+                <div class="item-detail">${i.detail}</div>
+              </div>
+            </li>`).join("")}</ul>`}
+    </section>`;
+}
+
+export async function exportWeeklyReportPdf(args: Args): Promise<void> {
+  const { weekStart, overallRate, activeCommittees, overdueTasks, excellence, weakness, critical } = args;
   const today = new Date().toLocaleDateString("ar-SA-u-ca-gregory", {
     year: "numeric", month: "long", day: "numeric",
   });
@@ -61,45 +66,48 @@ export async function exportWeeklyReportPdf({ weekStart, top, delayed }: Args): 
       <header>
         <img src="${logo}" alt="logo" />
         <div>
-          <h1>الملخص الأسبوعي للأداء</h1>
+          <h1>الملخص التنفيذي للأمانة</h1>
           <p>أسبوع يبدأ من ${week} · تاريخ التصدير: ${today}</p>
         </div>
       </header>
 
-      <section>
-        <h2 style="color:${SUCCESS}">الأفضل أداءً (${top.length})</h2>
-        ${top.length === 0
-          ? `<p class="empty">لا توجد لجان وصلت إلى 100% بعد.</p>`
-          : top.map((r) => rowHtml(r, SUCCESS)).join("")}
-      </section>
+      <div class="kpis">
+        ${kpiHtml("نسبة الإنجاز الكلي", `${overallRate}%`)}
+        ${kpiHtml("المهام المتأخرة", overdueTasks)}
+        ${kpiHtml("اللجان النشطة", activeCommittees)}
+      </div>
 
-      <section>
-        <h2 style="color:${WARNING}">تحتاج إلى متابعة (${delayed.length})</h2>
-        ${delayed.length === 0
-          ? `<p class="empty">لا توجد لجان متأخرة هذا الأسبوع.</p>`
-          : delayed.map((r) => rowHtml(r, WARNING)).join("")}
-      </section>
+      ${insightHtml("نقاط التميّز", "لجان متقدّمة في الإنجاز", TEAL, excellence, "لم تُسجَّل لجان عند مستوى تميّز هذا الأسبوع.")}
+      ${insightHtml("نقاط الضعف", "تقدّم بطيء يحتاج إلى دعم", AMBER, weakness, "لا توجد لجان ضمن مرحلة الضعف.")}
+      ${insightHtml("مواطن الخلل", "تدخّل عاجل من الأمانة", RED, critical, "لا توجد اختناقات حرجة هذا الأسبوع.")}
 
-      <footer>منظومة لجنة الزواج الجماعي · تقرير تلقائي</footer>
+      <footer>منظومة لجنة الزواج الجماعي · تقرير تنفيذي تلقائي</footer>
     </div>
 
     <style>
-      .page { font-family: 'Noto Naskh Arabic','Segoe UI',sans-serif; color:#111827; padding: 24px; }
-      header { display:flex; gap:16px; align-items:center; border-bottom: 3px solid ${PRIMARY}; padding-bottom: 12px; margin-bottom: 16px; }
+      .page { font-family: 'Noto Naskh Arabic','Segoe UI',sans-serif; color:${SLATE_900}; padding: 28px; }
+      header { display:flex; gap:16px; align-items:center; border-bottom: 2px solid ${PRIMARY}; padding-bottom: 14px; margin-bottom: 22px; }
       header img { width: 56px; height: 56px; object-fit: contain; }
-      header h1 { margin:0; color:${PRIMARY}; font-size: 22px; }
-      header p { margin:4px 0 0; color:#6b7280; font-size: 12px; }
-      h2 { font-size: 16px; margin: 18px 0 10px; }
-      .row { padding: 8px 10px; margin-bottom: 8px; border:1px solid #e5e7eb; border-radius: 8px; }
-      .row-head { display:flex; justify-content:space-between; align-items:center; gap:8px; font-size: 13px; margin-bottom: 6px; }
-      .row-name { display:flex; align-items:center; gap:8px; font-weight:600; }
-      .dot { width:8px; height:8px; border-radius:50%; display:inline-block; }
-      .delta { font-size: 11px; font-weight: 700; margin-right: 4px; }
-      .row-meta { font-size: 12px; color:#374151; }
-      .bar { background:#f3f4f6; height: 8px; border-radius: 999px; overflow:hidden; }
-      .bar-fill { height: 100%; }
-      .empty { color:#6b7280; font-size: 12px; padding: 8px 0; }
-      footer { margin-top: 24px; text-align:center; color:#9ca3af; font-size: 11px; border-top: 1px solid #e5e7eb; padding-top: 8px; }
+      header h1 { margin:0; color:${PRIMARY}; font-size: 22px; font-weight: 700; }
+      header p { margin:4px 0 0; color:${SLATE_500}; font-size: 12px; }
+
+      .kpis { display:flex; gap: 14px; margin-bottom: 22px; }
+      .kpi { flex:1; background:#fff; border:1px solid ${SLATE_100}; border-radius: 14px; padding: 16px 18px; }
+      .kpi-value { font-size: 26px; font-weight: 700; color: ${SLATE_900}; }
+      .kpi-label { font-size: 12px; color: ${SLATE_500}; margin-top: 4px; }
+
+      .insight { background:#fff; border:1px solid ${SLATE_100}; border-radius: 14px; padding: 18px 20px; margin-bottom: 14px; }
+      .insight-head h2 { margin:0; font-size: 15px; font-weight: 700; }
+      .insight-head p { margin: 2px 0 12px; font-size: 11px; color: ${SLATE_500}; }
+      .insight ul { list-style: none; padding: 0; margin: 0; }
+      .insight li { display:flex; gap: 10px; padding: 8px 0; border-bottom: 1px solid ${SLATE_100}; }
+      .insight li:last-child { border-bottom: none; }
+      .bullet { width:8px; height:8px; border-radius:50%; margin-top: 7px; flex-shrink: 0; }
+      .item-name { font-size: 13px; font-weight: 600; color: ${SLATE_900}; }
+      .item-detail { font-size: 11px; color: ${SLATE_500}; margin-top: 2px; }
+      .empty { color: ${SLATE_500}; font-size: 12px; padding: 4px 0 0; margin: 0; }
+
+      footer { margin-top: 24px; text-align:center; color:#94A3B8; font-size: 11px; border-top: 1px solid ${SLATE_100}; padding-top: 10px; }
     </style>`;
 
   const container = document.createElement("div");
@@ -110,7 +118,7 @@ export async function exportWeeklyReportPdf({ weekStart, top, delayed }: Args): 
     .from(container)
     .set({
       margin: 10,
-      filename: `weekly-performance-${weekStart.toISOString().slice(0, 10)}.pdf`,
+      filename: `executive-summary-${weekStart.toISOString().slice(0, 10)}.pdf`,
       image: { type: "jpeg", quality: 0.98 },
       html2canvas: { scale: 2, useCORS: true },
       jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
