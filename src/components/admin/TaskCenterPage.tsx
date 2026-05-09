@@ -648,7 +648,7 @@ function KanbanBoard({
                     }}
                     onClick={() => onOpen(t)}
                     style={{ touchAction: "pan-y" }}
-                    className={`group relative rounded-lg border bg-card p-3.5 ps-10 lg:ps-9 cursor-grab active:cursor-grabbing hover:shadow-md hover:-translate-y-0.5 transform-gpu will-change-transform transition-all select-none ${PRIORITY_BORDER[t.priority]} ${isDragging ? "opacity-40 rotate-1 shadow-xl ring-2 ring-primary/40" : ""}`}
+                    className={`group relative rounded-lg border bg-card p-3.5 ps-10 lg:ps-9 cursor-grab active:cursor-grabbing hover:shadow-md hover:-translate-y-0.5 transform-gpu will-change-transform transition-all select-none ${isDragging ? "opacity-40 rotate-1 shadow-xl ring-2 ring-primary/40" : ""}`}
                   >
                     {/* Visible drag handle (also acts as a touch-friendly affordance) */}
                     <div
@@ -699,7 +699,6 @@ function KanbanBoard({
                           <cmeta.icon className="h-3 w-3" />{cm?.name}
                         </span>
                       )}
-                      <Badge variant="outline" className={`text-[10px] ${PRIORITY_META[t.priority].cls}`}>{PRIORITY_META[t.priority].label}</Badge>
                     </div>
                     {t.due_date && (
                       <div className="mt-2 flex items-center justify-between gap-2">
