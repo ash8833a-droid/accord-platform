@@ -218,9 +218,6 @@ function Inner() {
 
   return (
     <div className="bg-[#F8FAFC] min-h-screen -m-4 sm:-m-6 lg:-m-8 p-6 sm:p-8 lg:p-10 space-y-8 text-right" dir="rtl">
-      {/* Action-required alerts — synced with the red sidebar badge */}
-      <AdminAlertsPanel enabled={isAdmin} />
-
       {/* Header — flat, no card wrapper */}
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
         <div>
@@ -228,6 +225,7 @@ function Inner() {
           <p className="text-sm text-slate-500 mt-1">نظرة شاملة على أداء لجنة الزواج الجماعي</p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
+          <AdminAlertsPanel enabled={isAdmin} />
           <div className="flex items-center gap-2 rounded-xl bg-white px-3 py-2 shadow-sm">
             <CalendarRange className="h-4 w-4 text-teal-700" />
               <Select value={String(year)} onValueChange={(v) => setYear(v === "all" ? "all" : Number(v))}>
