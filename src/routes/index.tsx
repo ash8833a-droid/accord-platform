@@ -17,6 +17,7 @@ import {
   BookOpen,
   Handshake,
 } from "lucide-react";
+import { DotsPattern } from "@/components/decor/DotsPattern";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -131,6 +132,18 @@ function PublicHome() {
         <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-gold/60 to-transparent" />
         <div className="absolute -top-24 right-1/3 w-[420px] h-[420px] rounded-full bg-gold/10 blur-3xl pointer-events-none" />
         <div className="absolute -bottom-24 left-1/3 w-[420px] h-[420px] rounded-full bg-primary/10 blur-3xl pointer-events-none" />
+        <DotsPattern
+          fade="br"
+          cols={12}
+          rows={6}
+          className="absolute top-0 left-0 h-40 w-[440px] text-primary/20"
+        />
+        <DotsPattern
+          fade="tl"
+          cols={10}
+          rows={5}
+          className="absolute bottom-0 right-0 h-32 w-80 text-gold/25"
+        />
 
         <div className="relative max-w-5xl mx-auto px-4 sm:px-8 py-12 lg:py-16 text-center">
           <div className="inline-flex items-center gap-2 rounded-full border border-gold/30 bg-gold/10 px-4 py-1.5 text-[11px] sm:text-xs font-bold text-gold tracking-wider mb-6">

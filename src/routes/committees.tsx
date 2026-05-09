@@ -7,6 +7,7 @@ import {
   ArrowRight, Compass, Crown, Eye, Flag, HeartHandshake, Lightbulb,
   ListChecks, ShieldCheck, Sparkles, Target, Users,
 } from "lucide-react";
+import { DotsPattern } from "@/components/decor/DotsPattern";
 
 export const Route = createFileRoute("/committees")({
   head: () => ({
@@ -163,6 +164,12 @@ function PublicCommitteesPage() {
       <section className="relative overflow-hidden">
         <div className="absolute -top-24 -right-24 w-[420px] h-[420px] rounded-full bg-gold/10 blur-3xl pointer-events-none" />
         <div className="absolute -bottom-32 -left-24 w-[460px] h-[460px] rounded-full bg-primary/10 blur-3xl pointer-events-none" />
+        <DotsPattern
+          fade="br"
+          cols={12}
+          rows={6}
+          className="absolute top-0 left-0 h-40 w-[420px] text-primary/20"
+        />
         <div className="relative max-w-5xl mx-auto px-4 lg:px-8 py-14 lg:py-20 text-center">
           <div className="inline-flex items-center gap-2 rounded-full border border-gold/30 bg-gold/10 px-3 py-1 mb-5 text-[11px] sm:text-xs font-semibold text-gold tracking-wider">
             <Sparkles className="h-3 w-3" />
@@ -213,6 +220,12 @@ function PublicCommitteesPage() {
         <div className="relative overflow-hidden rounded-3xl border bg-gradient-card p-8 lg:p-10 shadow-soft text-center">
           <div className="absolute -top-10 -right-10 h-40 w-40 rounded-full bg-gold/15 blur-3xl" />
           <div className="absolute -bottom-10 -left-10 h-40 w-40 rounded-full bg-primary/15 blur-3xl" />
+          <DotsPattern
+            fade="tr"
+            cols={10}
+            rows={5}
+            className="absolute bottom-0 left-0 h-28 w-72 text-primary/20"
+          />
           <div className="relative max-w-2xl mx-auto">
             <h3 className="text-xl lg:text-2xl font-bold leading-tight">
               هل ترغب في الانضمام لإحدى اللجان؟
