@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface CommitteeRow { id: string; name: string; type: string }
 interface MemberRow { id: string; full_name: string; is_head: boolean }
@@ -21,6 +22,7 @@ interface Props {
 }
 
 export function CreateTaskDialog({ open, onOpenChange, committees, defaultCommitteeId, onCreated }: Props) {
+  const isMobile = useIsMobile();
   const [committeeId, setCommitteeId] = useState<string>(defaultCommitteeId ?? "");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -71,11 +73,22 @@ export function CreateTaskDialog({ open, onOpenChange, committees, defaultCommit
 
   return (
     <Dialog open={open} onOpenChange={(v) => { onOpenChange(v); if (!v) reset(); }}>
-      <DialogContent dir="rtl" className="max-w-lg">
+      <DialogContent
+        dir="rtl"
+        className={
+          isMobile
+            ? "max-w-full w-full rounded-t-2xl rounded-b-none p-5 fixed left-0 right-0 bottom-0 top-auto translate-x-0 translate-y-0 data-[state=open]:animate-in data-[state=open]:slide-in-from-bottom data-[state=closed]:animate-out data-[state=closed]:slide-out-to-bottom border-t-4 border-emerald-700"
+            : "max-w-lg"
+        }
+      >
+        {isMobile && (
+          <div className="mx-auto -mt-2 mb-2 h-1.5 w-12 rounded-full bg-muted-foreground/30" aria-hidden />
+        )}
         <DialogHeader>
           <DialogTitle>إنشاء مهمة جديدة</DialogTitle>
         </DialogHeader>
         <div className="space-y-3">
+          {(!isMobile || !defaultCommitteeId) && (
           <div className="space-y-1.5">
             <Label>اللجنة *</Label>
             <Select value={committeeId} onValueChange={setCommitteeId}>
@@ -85,15 +98,18 @@ export function CreateTaskDialog({ open, onOpenChange, committees, defaultCommit
               </SelectContent>
             </Select>
           </div>
+          )}
           <div className="space-y-1.5">
             <Label>العنوان *</Label>
             <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="ما المهمة المطلوب إنجازها؟" />
           </div>
-          <div className="space-y-1.5">
-            <Label>الوصف</Label>
-            <Textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} placeholder="تفاصيل المهمة، النتائج المتوقعة..." />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
+          {!isMobile && (
+            <div className="space-y-1.5">
+              <Label>الوصف</Label>
+              <Textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} placeholder="تفاصيل المهمة، النتائج المتوقعة..." />
+            </div>
+          )}
+          <div className={isMobile ? "space-y-3" : "grid grid-cols-2 gap-3"}>
             <div className="space-y-1.5">
               <Label>الأولوية</Label>
               <Select value={priority} onValueChange={(v) => setPriority(v as any)}>
@@ -106,10 +122,12 @@ export function CreateTaskDialog({ open, onOpenChange, committees, defaultCommit
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-1.5">
-              <Label>تاريخ الاستحقاق</Label>
-              <Input dir="ltr" type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} className="text-right" />
-            </div>
+            {!isMobile && (
+              <div className="space-y-1.5">
+                <Label>تاريخ الاستحقاق</Label>
+                <Input dir="ltr" type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} className="text-right" />
+              </div>
+            )}
           </div>
           <div className="space-y-1.5">
             <Label>تعيين عضو</Label>
@@ -124,9 +142,9 @@ export function CreateTaskDialog({ open, onOpenChange, committees, defaultCommit
             </Select>
           </div>
         </div>
-        <DialogFooter>
-          <Button variant="ghost" onClick={() => onOpenChange(false)} disabled={saving}>إلغاء</Button>
-          <Button onClick={submit} disabled={saving} className="gap-2 bg-gradient-gold text-gold-foreground">
+        <DialogFooter className={isMobile ? "flex-col-reverse gap-2 sm:flex-row" : ""}>
+          <Button variant="ghost" onClick={() => onOpenChange(false)} disabled={saving} className={isMobile ? "w-full h-11" : ""}>إلغاء</Button>
+          <Button onClick={submit} disabled={saving} className={`gap-2 bg-gradient-gold text-gold-foreground ${isMobile ? "w-full h-12 text-base" : ""}`}>
             {saving && <Loader2 className="h-4 w-4 animate-spin" />}
             إنشاء المهمة
           </Button>
