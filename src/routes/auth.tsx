@@ -1,16 +1,17 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth";
-import { Logo, AnimatedRings } from "@/components/Logo";
+import { Logo } from "@/components/Logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import { COMMITTEES } from "@/lib/committees";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
+import { Loader2, HeartHandshake, Building2, BookOpen, HandHeart } from "lucide-react";
 
 export const Route = createFileRoute("/auth")({
   component: AuthPage,
@@ -29,6 +30,7 @@ function AuthPage() {
   const [committees, setCommittees] = useState<{ id: string; name: string; type: string }[]>([]);
   const [notes, setNotes] = useState("");
   const [busy, setBusy] = useState(false);
+  const [agreed, setAgreed] = useState(true);
 
   useEffect(() => {
     if (user && !loading) {
@@ -52,6 +54,10 @@ function AuthPage() {
     e.preventDefault();
     if (!isValidSaPhone(phone)) {
       toast.error("رقم الجوال غير صحيح", { description: "يجب أن يبدأ بـ 05 ويتكون من 10 أرقام" });
+      return;
+    }
+    if (!agreed) {
+      toast.error("يجب الموافقة على سياسة الخصوصية أولاً");
       return;
     }
     setBusy(true);
