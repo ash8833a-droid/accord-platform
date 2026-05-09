@@ -257,7 +257,10 @@ function Inner() {
                       weekStart: thisWeek, overallRate, overallDelta,
                       overdueTasks,
                       topCommittee: topCommittee ? { name: topCommittee.name, rate: topCommittee.rate } : null,
-                      leaders, monitoring, urgent, statusLabel: reportStatus.label,
+                      committees: rows.map((r) => ({
+                        name: r.name, total: r.total, done: r.done,
+                        overdue: r.overdue, rate: r.rate, delta: r.delta,
+                      })),
                     });
                     toast.success("تم تجهيز التقرير", { id: tid });
                   } catch (err) {
@@ -346,19 +349,7 @@ function Inner() {
         </div>
       </div>
 
-      {/* Print-only signature footer */}
-      <div className="hidden print:block mt-12 pt-6 border-t border-slate-300">
-        <div className="grid grid-cols-2 gap-12 text-sm">
-          <div>
-            <p className="text-slate-500 mb-10">إعداد: إدارة اللجنة</p>
-            <div className="border-t border-slate-400 pt-2 text-slate-700">التوقيع</div>
-          </div>
-          <div>
-            <p className="text-slate-500 mb-10">اعتماد اللجنة المنظمة</p>
-            <div className="border-t border-slate-400 pt-2 text-slate-700">التوقيع والتاريخ</div>
-          </div>
-        </div>
-      </div>
+      {/* signature block removed per institutional report cleanup */}
     </div>
   );
 }
