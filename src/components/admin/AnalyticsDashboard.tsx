@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { PageGate } from "@/components/PageGate";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import {
@@ -218,19 +217,19 @@ function Inner() {
   }
 
   return (
-    <div className="space-y-6 text-right" dir="rtl">
+    <div className="bg-[#F8FAFC] min-h-screen -m-4 sm:-m-6 lg:-m-8 p-6 sm:p-8 lg:p-10 space-y-8 text-right" dir="rtl">
       {/* Action-required alerts — synced with the red sidebar badge */}
       <AdminAlertsPanel enabled={isAdmin} />
-      {/* Filter bar */}
-      <Card className="border-primary/10">
-        <CardContent className="p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">لوحة الأداء التنفيذية</h1>
-            <p className="text-sm text-muted-foreground mt-1">نظرة شاملة على أداء لجنة الزواج الجماعي</p>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-2 rounded-xl border bg-card px-3 py-2">
-              <CalendarRange className="h-4 w-4 text-primary" />
+
+      {/* Header — flat, no card wrapper */}
+      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">لوحة الأداء التنفيذية</h1>
+          <p className="text-sm text-slate-500 mt-1">نظرة شاملة على أداء لجنة الزواج الجماعي</p>
+        </div>
+        <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex items-center gap-2 rounded-xl bg-white px-3 py-2 shadow-sm">
+            <CalendarRange className="h-4 w-4 text-teal-700" />
               <Select value={String(year)} onValueChange={(v) => setYear(v === "all" ? "all" : Number(v))}>
                 <SelectTrigger className="h-8 w-[160px] border-0 shadow-none focus:ring-0">
                   <SelectValue />
@@ -243,7 +242,7 @@ function Inner() {
                 </SelectContent>
               </Select>
             </div>
-            <Button variant="outline" size="sm" onClick={load} className="gap-2">
+            <Button variant="outline" size="sm" onClick={load} className="gap-2 bg-white border-0 shadow-sm text-slate-700 hover:bg-slate-50">
               <RefreshCw className="h-4 w-4" /> تحديث
             </Button>
             <Button
@@ -261,76 +260,65 @@ function Inner() {
                 revenues: k.revenues,
                 expenses: k.expenses,
               })}
-              className="gap-2 bg-[#064e3b] hover:bg-[#053f30] text-white"
+              className="gap-2 bg-teal-700 hover:bg-teal-800 text-white rounded-xl shadow-sm"
             >
               <FileDown className="h-4 w-4" /> تصدير PDF
             </Button>
-          </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       <Tabs defaultValue="live" dir="rtl" className="w-full">
         <div className="flex justify-start">
-          <TabsList className="grid w-full sm:w-auto grid-cols-2 sm:inline-flex bg-muted/60 p-1 rounded-xl">
+          <TabsList className="grid w-full sm:w-auto grid-cols-2 sm:inline-flex bg-white shadow-sm p-1 rounded-xl">
           <TabsTrigger
             value="live"
-            className="rounded-lg data-[state=active]:bg-[#064e3b] data-[state=active]:text-white data-[state=active]:shadow-sm font-bold"
+            className="rounded-lg data-[state=active]:bg-teal-700 data-[state=active]:text-white data-[state=active]:shadow-sm font-semibold text-slate-600"
           >
             الأداء اللحظي
           </TabsTrigger>
           <TabsTrigger
             value="weekly"
-            className="rounded-lg data-[state=active]:bg-gradient-gold data-[state=active]:text-gold-foreground data-[state=active]:shadow-sm font-bold"
+            className="rounded-lg data-[state=active]:bg-amber-600 data-[state=active]:text-white data-[state=active]:shadow-sm font-semibold text-slate-600"
           >
             الملخص الأسبوعي
           </TabsTrigger>
           </TabsList>
         </div>
 
-        <TabsContent value="live" className="space-y-6 mt-6 focus-visible:outline-none">
+        <TabsContent value="live" className="space-y-8 mt-8 focus-visible:outline-none">
+      {/* Section title outside cards */}
+      <SectionTitle title="ملخص الأداء" subtitle="المؤشرات الرئيسية للجنة" />
       {/* Unified KPI cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-        <HeroKpi label="إجمالي المهام" value={k.totalTasks} sub={`${k.completed} مُنجزة`}
-          icon={ClipboardList} accent="from-sky-500/15 to-sky-500/0 text-sky-600 ring-sky-500/20" />
-        <HeroKpi label="نسبة الإنجاز العامة" value={`${k.completionRate}%`} sub="عبر كل اللجان"
-          icon={CheckCircle2} accent="from-emerald-500/15 to-emerald-500/0 text-emerald-600 ring-emerald-500/20" />
-        <HeroKpi label="إجمالي العرسان" value={k.totalMarriages} sub={year === "all" ? "تراكمي" : `سنة ${year}`}
-          icon={HeartHandshake} accent="from-pink-500/15 to-pink-500/0 text-pink-600 ring-pink-500/20" />
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
+        <HeroKpi label="إجمالي المهام" value={k.totalTasks} sub={`${k.completed} مُنجزة`} icon={ClipboardList} />
+        <HeroKpi label="نسبة الإنجاز العامة" value={`${k.completionRate}%`} sub="عبر كل اللجان" icon={CheckCircle2} />
+        <HeroKpi label="إجمالي العرسان" value={k.totalMarriages} sub={year === "all" ? "تراكمي" : `سنة ${year}`} icon={HeartHandshake} />
+        <HeroKpi label="مساهمات أفراد العائلة" value={fmtSar(k.familyContributions)} sub="إيراد حقيقي" icon={HandCoins} />
+        <HeroKpi label="المبالغ المخصصة للعرسان" value={fmtSar(k.allocatedFunds)} sub={`${k.totalMarriages} عريس × ${fmtSar(ALLOCATED_SUPPORT_PER_GROOM)}`} icon={Banknote} />
         <HeroKpi
-          label="إجمالي مساهمات أفراد العائلة"
-          value={fmtSar(k.familyContributions)}
-          sub="إيراد حقيقي"
-          icon={HandCoins}
-          accent="from-emerald-500/15 to-emerald-500/0 text-emerald-600 ring-emerald-500/20" />
-        <HeroKpi
-          label="إجمالي المبالغ المخصصة للعرسان"
-          value={fmtSar(k.allocatedFunds)}
-          sub={`${k.totalMarriages} عريس × ${fmtSar(ALLOCATED_SUPPORT_PER_GROOM)}`}
-          icon={Banknote}
-          accent="from-rose-500/15 to-rose-500/0 text-rose-600 ring-rose-500/20" />
-        <HeroKpi label="صافي الرصيد المالي"
+          label="صافي الرصيد المالي"
           value={fmtSar(k.netBalance)}
           sub={k.netBalance >= 0 ? "فائض" : "عجز"}
           icon={Scale}
-          accent={k.netBalance >= 0
-            ? "from-teal-500/15 to-teal-500/0 text-teal-600 ring-teal-500/20"
-            : "from-rose-500/15 to-rose-500/0 text-rose-600 ring-rose-500/20"} />
+          tone={k.netBalance >= 0 ? "teal" : "rose"}
+        />
       </div>
 
       {/* Task & Committee Management */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <SectionTitle title="أداء اللجان" subtitle="مستويات الإنجاز والمقارنة" />
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <SectionCard title="مستويات إنجاز اللجان الفرعية" subtitle="نسبة الإنجاز لكل لجنة" icon={Target}>
           <div className="space-y-3">
             {charts.perCommittee.length === 0 && <Empty text="لا توجد بيانات" />}
             {charts.perCommittee.map((c: any) => (
-              <div key={c.name}>
-                <div className="flex items-center justify-between text-sm mb-1.5">
-                  <span className="font-medium truncate">{c.name}</span>
-                  <span className="text-muted-foreground tabular-nums shrink-0">
-                    <span className="font-bold text-foreground">{c.rate}%</span> · {c.done}/{c.total}
+              <div key={c.name} className="py-2 border-b border-slate-50 last:border-b-0">
+                <div className="flex items-center justify-between text-sm mb-2">
+                  <span className="font-medium text-slate-700 truncate">{c.name}</span>
+                  <span className="text-slate-500 tabular-nums shrink-0">
+                    <span className="font-bold text-slate-900">{c.rate}%</span> · {c.done}/{c.total}
                   </span>
                 </div>
-                <Progress value={Math.max(0, Math.min(100, c.rate))} className="h-2" />
+                <Progress value={Math.max(0, Math.min(100, c.rate))} className="h-1.5 bg-slate-100" />
               </div>
             ))}
           </div>
@@ -342,11 +330,10 @@ function Inner() {
           ) : (
             <ResponsiveContainer width="100%" height={300}>
               <RadarChart data={charts.perCommittee}>
-                <PolarGrid />
-                <PolarAngleAxis dataKey="name" tick={{ fontSize: 10 }} />
-                <PolarRadiusAxis angle={90} domain={[0, 100]} tick={{ fontSize: 10 }} />
-                <Radar name="نسبة الإنجاز %" dataKey="rate" stroke="hsl(var(--primary))"
-                  fill="hsl(var(--primary))" fillOpacity={0.35} />
+                <PolarGrid stroke="#F1F5F9" />
+                <PolarAngleAxis dataKey="name" tick={{ fontSize: 10, fill: "#64748B" }} />
+                <PolarRadiusAxis angle={90} domain={[0, 100]} tick={{ fontSize: 10, fill: "#94A3B8" }} />
+                <Radar name="نسبة الإنجاز %" dataKey="rate" stroke="#0F766E" fill="#0F766E" fillOpacity={0.25} />
                 <Tooltip />
               </RadarChart>
             </ResponsiveContainer>
@@ -355,50 +342,52 @@ function Inner() {
       </div>
 
       {/* Comparative Analytics */}
+      <SectionTitle title="التحليل المقارن" subtitle="نظرة سنوية على المؤشرات" />
       <SectionCard title="التحليل المقارن السنوي" subtitle="مقارنة الأداء عبر السنوات الثلاث الأخيرة" icon={TrendingUp}>
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={charts.yoy}>
-            <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
-            <XAxis dataKey="year" tick={{ fontSize: 12 }} />
-            <YAxis tick={{ fontSize: 11 }} allowDecimals={false} />
+            <CartesianGrid strokeDasharray="4 4" stroke="#F1F5F9" vertical={false} />
+            <XAxis dataKey="year" tick={{ fontSize: 12, fill: "#64748B" }} axisLine={false} tickLine={false} />
+            <YAxis tick={{ fontSize: 11, fill: "#94A3B8" }} allowDecimals={false} axisLine={false} tickLine={false} />
             <Tooltip />
             <Legend />
-            <Bar dataKey="marriages" name="عدد العرسان" fill="#1E3A8A" radius={[8, 8, 0, 0]} />
-            <Bar dataKey="tasksDone" name="مهام مُنجزة" fill="#0e7490" radius={[8, 8, 0, 0]} />
+            <Bar dataKey="marriages" name="عدد العرسان" fill="#0F766E" radius={[8, 8, 0, 0]} />
+            <Bar dataKey="tasksDone" name="مهام مُنجزة" fill="#D4A95E" radius={[8, 8, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </SectionCard>
 
       {/* Financial Overview */}
+      <SectionTitle title="الصحة المالية" subtitle="الإيرادات والمصروفات" />
       <SectionCard
         title="الصحة المالية"
         subtitle={`الإيرادات مقابل المصروفات · ${year === "all" ? AVAILABLE_YEARS[0] : year}`}
         icon={Wallet}
         right={
-          <div className="flex items-center flex-wrap gap-x-4 gap-y-1 text-xs">
-            <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-emerald-500" /> مساهمات العائلة: <b className="tabular-nums text-emerald-700">{fmtSar(k.familyContributions)}</b></span>
-            <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-emerald-400" /> إيرادات أخرى: <b className="tabular-nums text-emerald-700">{fmtSar(k.groomRevenues)}</b></span>
-            <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-rose-500" /> مصروفات: <b className="tabular-nums">{fmtSar(k.expenses)}</b></span>
-            <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-rose-400" /> دعم مخصص للعرسان: <b className="tabular-nums">{fmtSar(k.allocatedFunds)}</b></span>
-            <span className="flex items-center gap-1.5 border-r pr-3 mr-1"><span className="h-2.5 w-2.5 rounded-full bg-rose-700" /> إجمالي المصروفات المتوقعة: <b className="tabular-nums">{fmtSar(k.projectedExpenses)}</b></span>
+          <div className="flex items-center flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500">
+            <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-teal-700" /> مساهمات العائلة: <b className="tabular-nums text-slate-800">{fmtSar(k.familyContributions)}</b></span>
+            <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-teal-500" /> إيرادات أخرى: <b className="tabular-nums text-slate-800">{fmtSar(k.groomRevenues)}</b></span>
+            <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-amber-600" /> مصروفات: <b className="tabular-nums text-slate-800">{fmtSar(k.expenses)}</b></span>
+            <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-amber-400" /> دعم مخصص: <b className="tabular-nums text-slate-800">{fmtSar(k.allocatedFunds)}</b></span>
+            <span className="flex items-center gap-1.5 border-r border-slate-200 pr-3 mr-1"><span className="h-2 w-2 rounded-full bg-slate-700" /> إجمالي متوقع: <b className="tabular-nums text-slate-900">{fmtSar(k.projectedExpenses)}</b></span>
           </div>
         }
       >
         <ResponsiveContainer width="100%" height={300}>
           <LineChart data={charts.finance}>
-            <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
-            <XAxis dataKey="label" tick={{ fontSize: 11 }} />
-            <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => Intl.NumberFormat("ar-SA", { notation: "compact" }).format(v as number)} />
+            <CartesianGrid strokeDasharray="4 4" stroke="#F1F5F9" vertical={false} />
+            <XAxis dataKey="label" tick={{ fontSize: 11, fill: "#64748B" }} axisLine={false} tickLine={false} />
+            <YAxis tick={{ fontSize: 11, fill: "#94A3B8" }} axisLine={false} tickLine={false} tickFormatter={(v) => Intl.NumberFormat("ar-SA", { notation: "compact" }).format(v as number)} />
             <Tooltip formatter={(v: number) => fmtSar(v)} />
             <Legend />
-            <Line type="monotone" dataKey="revenues" name="الإيرادات" stroke="#10b981" strokeWidth={2.5} dot={{ r: 3 }} />
-            <Line type="monotone" dataKey="expenses" name="المصروفات" stroke="#f43f5e" strokeWidth={2.5} dot={{ r: 3 }} />
+            <Line type="monotone" dataKey="revenues" name="الإيرادات" stroke="#0F766E" strokeWidth={2.5} dot={{ r: 3, fill: "#0F766E" }} />
+            <Line type="monotone" dataKey="expenses" name="المصروفات" stroke="#D4A95E" strokeWidth={2.5} dot={{ r: 3, fill: "#D4A95E" }} />
           </LineChart>
         </ResponsiveContainer>
       </SectionCard>
         </TabsContent>
 
-        <TabsContent value="weekly" className="mt-6 focus-visible:outline-none">
+        <TabsContent value="weekly" className="mt-8 focus-visible:outline-none">
           <WeeklyReport />
         </TabsContent>
       </Tabs>
@@ -406,44 +395,51 @@ function Inner() {
   );
 }
 
-function HeroKpi({ label, value, sub, icon: Icon, accent }: { label: string; value: string | number; sub?: string; icon: any; accent: string }) {
-  const ring = accent.split(" ").find((c) => c.startsWith("ring-")) ?? "";
+function HeroKpi({ label, value, sub, icon: Icon, tone = "teal" }: { label: string; value: string | number; sub?: string; icon: any; tone?: "teal" | "rose" }) {
+  const iconBg = tone === "rose" ? "bg-rose-50 text-rose-700" : "bg-teal-50 text-teal-700";
   return (
-    <div className={`relative overflow-hidden rounded-2xl border bg-gradient-to-br ${accent} bg-card p-5 shadow-sm hover:shadow-md transition-shadow`}>
+    <div className="rounded-2xl bg-white p-6 shadow-sm hover:shadow-md transition-shadow">
       <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="text-xs font-medium text-muted-foreground">{label}</p>
-          <p className="mt-2 text-3xl font-extrabold tracking-tight tabular-nums truncate">{value}</p>
-          {sub && <p className="text-xs text-muted-foreground mt-1 truncate">{sub}</p>}
-        </div>
-        <div className={`h-11 w-11 rounded-xl bg-background/70 ring-1 ${ring} flex items-center justify-center shrink-0`}>
+        <div className={`h-11 w-11 rounded-xl ${iconBg} flex items-center justify-center shrink-0`}>
           <Icon className="h-5 w-5" />
         </div>
       </div>
+      <p className="mt-5 text-3xl font-bold tracking-tight tabular-nums text-slate-900 truncate">{value}</p>
+      <p className="mt-2 text-sm text-slate-500 truncate">{label}</p>
+      {sub && <p className="text-xs text-slate-400 mt-1 truncate">{sub}</p>}
+    </div>
+  );
+}
+
+function SectionTitle({ title, subtitle }: { title: string; subtitle?: string }) {
+  return (
+    <div className="px-1">
+      <h2 className="text-lg font-bold text-slate-800">{title}</h2>
+      {subtitle && <p className="text-xs text-slate-500 mt-0.5">{subtitle}</p>}
     </div>
   );
 }
 
 function SectionCard({ title, subtitle, icon: Icon, right, children }: { title: string; subtitle?: string; icon: any; right?: React.ReactNode; children: React.ReactNode }) {
   return (
-    <Card>
-      <CardHeader className="pb-3">
-        <div className="flex items-start justify-between gap-3 flex-wrap">
-          <div>
-            <CardTitle className="flex items-center gap-2 text-base">
-              <Icon className="h-4 w-4 text-primary" />
-              {title}
-            </CardTitle>
-            {subtitle && <p className="text-xs text-muted-foreground mt-1">{subtitle}</p>}
+    <div className="rounded-2xl bg-white shadow-sm overflow-hidden">
+      <div className="flex items-start justify-between gap-3 flex-wrap p-6 border-b border-slate-50">
+        <div className="flex items-start gap-3">
+          <div className="h-9 w-9 rounded-lg bg-teal-50 text-teal-700 flex items-center justify-center shrink-0">
+            <Icon className="h-4 w-4" />
           </div>
-          {right}
+          <div>
+            <h3 className="text-sm font-bold text-slate-800">{title}</h3>
+            {subtitle && <p className="text-xs text-slate-500 mt-0.5">{subtitle}</p>}
+          </div>
         </div>
-      </CardHeader>
-      <CardContent>{children}</CardContent>
-    </Card>
+        {right}
+      </div>
+      <div className="p-6">{children}</div>
+    </div>
   );
 }
 
 function Empty({ text }: { text: string }) {
-  return <div className="h-[200px] flex items-center justify-center text-sm text-muted-foreground">{text}</div>;
+  return <div className="h-[200px] flex items-center justify-center text-sm text-slate-400">{text}</div>;
 }
