@@ -282,88 +282,32 @@ function TaskCenterInner({ canEdit }: { canEdit: boolean }) {
 
   return (
     <div className="p-3 sm:p-4 lg:p-10 space-y-4 lg:space-y-8 bg-white lg:bg-[#f8fafc] dark:bg-background min-h-screen" dir="rtl">
-      {/* ============ MOBILE: Minimalist Hero + Toolbar ============ */}
-      <div className="lg:hidden space-y-3">
-        {/* Unified Active Task hero card */}
-        <div className="relative rounded-2xl bg-white border border-slate-100 shadow-sm p-5">
-          <p className="text-[10px] font-bold text-emerald-700 uppercase tracking-[0.15em] mb-2">
-            المهمة النشطة
-          </p>
-          {urgentTask ? (
-            <>
-              <h2 className="text-lg font-bold text-slate-900 leading-snug break-words [overflow-wrap:anywhere]">
-                {urgentTask.title}
-              </h2>
-              {cmMap.get(urgentTask.committee_id) && (
-                <p className="mt-1 text-xs text-slate-500 truncate">
-                  {cmMap.get(urgentTask.committee_id)!.name}
-                </p>
-              )}
-            </>
-          ) : (
-            <h2 className="text-lg font-bold text-slate-900 leading-snug">
-              لا توجد مهام نشطة حالياً
-            </h2>
-          )}
-          <div className="mt-4 pt-3 border-t border-slate-100 flex items-center gap-3 text-xs text-slate-600">
-            <span>نشطة: <b className="text-slate-900 tabular-nums">{stats.activeCount}</b></span>
-            <span className="text-slate-300">•</span>
-            <span className={stats.overdue > 0 ? "text-red-600 inline-flex items-center gap-1" : "inline-flex items-center gap-1"}>
-              {stats.overdue > 0 && <span className="h-1.5 w-1.5 rounded-full bg-red-500" />}
-              تأخير: <b className="tabular-nums">{stats.overdue}</b>
-            </span>
-            <span className="text-slate-300">•</span>
-            <span>إنجاز: <b className="text-slate-900 tabular-nums">{stats.completionRate}%</b></span>
-          </div>
-
-          {/* Ergonomic + button overlapping bottom-left edge (RTL) */}
-          {canEdit && (
-            <button
-              type="button"
-              onClick={() => setCreateOpen(true)}
-              aria-label="إضافة مهمة جديدة"
-              className="absolute -bottom-5 left-5 h-12 w-12 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-600/30 flex items-center justify-center transition-transform duration-150 active:scale-90 hover:scale-105 focus:outline-none focus:ring-4 focus:ring-emerald-500/25"
-            >
-              <Plus className="h-6 w-6" strokeWidth={2.5} />
-            </button>
-          )}
-
-          {urgentTask && (
-            <button
-              type="button"
-              onClick={() => setDetails(urgentTask)}
-              className="absolute top-4 left-4 text-[11px] font-semibold text-emerald-700 hover:text-emerald-800"
-            >
-              التفاصيل
-            </button>
-          )}
-        </div>
-
-        {/* Streamlined action toolbar */}
-        <div className="flex items-center gap-2 pt-2">
+      {/* ============ MOBILE: Sleek institutional toolbar (no hero, no clutter) ============ */}
+      <div className="lg:hidden">
+        <div className="flex items-center gap-2">
           <div className="relative flex-1 min-w-0">
             <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
             <Input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="ابحث..."
-              className="pr-10 h-10 rounded-full bg-slate-50 border-slate-200 text-sm focus-visible:ring-emerald-500/30"
+              className="pr-10 h-11 rounded-2xl bg-slate-50 border-0 text-sm focus-visible:ring-2 focus-visible:ring-emerald-500/25"
             />
           </div>
           <button
             type="button"
             onClick={async () => { await load(); toast.success("تم التحديث"); }}
             aria-label="تحديث"
-            className="h-10 w-10 rounded-full bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-100 active:scale-95 transition shrink-0"
+            className="h-11 w-11 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-600 hover:bg-slate-100 active:scale-95 transition shrink-0"
           >
             <RefreshCw className="h-4 w-4" />
           </button>
-          <div className="inline-flex rounded-full border border-slate-200 bg-slate-50 p-0.5 shrink-0">
+          <div className="inline-flex rounded-2xl bg-slate-50 p-1 shrink-0">
             <button
               type="button"
               onClick={() => setView("list")}
               aria-label="عرض قائمة"
-              className={`h-9 w-9 rounded-full inline-flex items-center justify-center transition ${view === "list" ? "bg-white shadow-sm text-emerald-700" : "text-slate-500"}`}
+              className={`h-9 w-9 rounded-xl inline-flex items-center justify-center transition ${view === "list" ? "bg-white shadow-sm text-emerald-700" : "text-slate-500"}`}
             >
               <Rows3 className="h-4 w-4" />
             </button>
@@ -371,7 +315,7 @@ function TaskCenterInner({ canEdit }: { canEdit: boolean }) {
               type="button"
               onClick={() => setView("kanban")}
               aria-label="عرض كانبان"
-              className={`h-9 w-9 rounded-full inline-flex items-center justify-center transition ${view === "kanban" ? "bg-white shadow-sm text-emerald-700" : "text-slate-500"}`}
+              className={`h-9 w-9 rounded-xl inline-flex items-center justify-center transition ${view === "kanban" ? "bg-white shadow-sm text-emerald-700" : "text-slate-500"}`}
             >
               <LayoutGrid className="h-4 w-4" />
             </button>
@@ -542,7 +486,17 @@ function TaskCenterInner({ canEdit }: { canEdit: boolean }) {
         />
       )}
 
-      {/* Mobile-only Floating Action Button — bottom-left for RTL thumb reach */}
+      {/* Mobile-only Floating Action Button — fixed bottom-left, above the bottom nav */}
+      {canEdit && (
+        <button
+          type="button"
+          onClick={() => setCreateOpen(true)}
+          aria-label="إضافة مهمة جديدة"
+          className="lg:hidden fixed bottom-24 left-6 z-40 h-14 w-14 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white shadow-xl shadow-emerald-600/30 flex items-center justify-center transition-transform duration-150 active:scale-90 hover:scale-105 focus:outline-none focus:ring-4 focus:ring-emerald-500/25"
+        >
+          <Plus className="h-7 w-7" strokeWidth={2.5} />
+        </button>
+      )}
     </div>
   );
 }
@@ -613,8 +567,8 @@ function KanbanBoard({
         const todoPct = pct(todoCount);
         const inProgressPct = pct(inProgressCount);
         return (
-          <section key={group.cid} className="rounded-2xl border border-slate-100 lg:border bg-white lg:bg-card overflow-hidden shadow-sm lg:shadow-none">
-            <div className="lg:border-b lg:bg-muted/20 px-4 py-3 space-y-3">
+          <section key={group.cid} className="lg:rounded-2xl lg:border bg-white lg:bg-card overflow-hidden lg:shadow-none border-b border-slate-100 lg:border-b">
+            <div className="lg:border-b lg:bg-muted/20 px-1 lg:px-4 py-3 lg:py-3 space-y-3">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center gap-2">
                   {gmeta && (
@@ -660,7 +614,7 @@ function KanbanBoard({
               )}
             </div>
             {/* Kanban — single layout for desktop & mobile (touch DnD enabled via polyfill) */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 p-3">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-0 lg:gap-3 p-0 lg:p-3">
               {cols.map((status) => {
                 const meta = STATUS_META[status];
                 const statusItems = group.list.filter((t) => t.status === status).sort(comparePmp);
@@ -693,7 +647,7 @@ function KanbanBoard({
                       }
                       setDragId(null); setDragOverId(null); setDragOverPos(null); setDragOverColKey(null);
                     }}
-                    className={`rounded-lg lg:border lg:bg-muted/20 p-0 lg:p-3 lg:min-h-[220px] transition-all ${
+                    className={`lg:rounded-lg lg:border lg:bg-muted/20 p-0 lg:p-3 lg:min-h-[220px] transition-all ${
                       dragOverColKey === `${group.cid}-${status}` && dragId
                         ? "border-primary border-2 bg-primary/5 shadow-lg shadow-primary/20 ring-2 ring-primary/30"
                         : ""
@@ -718,7 +672,7 @@ function KanbanBoard({
                       />
                     </button>
                     <div
-                      className={`space-y-2 transform-gpu will-change-transform transition-[opacity] duration-200 ${
+                      className={`space-y-0 lg:space-y-2 transform-gpu will-change-transform transition-[opacity] duration-200 ${
                         isOpen(`${group.cid}-${status}`) ? "block" : "hidden"
                       } lg:!block`}
                     >
@@ -761,7 +715,7 @@ function KanbanBoard({
                     }}
                     onClick={() => onOpen(t)}
                     style={{ touchAction: "pan-y" }}
-                    className={`group relative rounded-xl border border-slate-100 lg:border bg-white lg:bg-card p-3.5 ps-10 lg:ps-9 cursor-grab active:cursor-grabbing shadow-sm lg:shadow-none hover:shadow-md hover:-translate-y-0.5 transform-gpu will-change-transform transition-all select-none ${isDragging ? "opacity-40 rotate-1 shadow-xl ring-2 ring-primary/40" : ""}`}
+                    className={`group relative lg:rounded-xl lg:border lg:bg-card bg-white py-3.5 ps-9 lg:ps-9 pe-2 lg:p-3.5 cursor-grab active:cursor-grabbing lg:shadow-none hover:lg:shadow-md hover:lg:-translate-y-0.5 transform-gpu will-change-transform transition-all select-none border-b border-slate-100 last:border-b-0 lg:border-b ${isDragging ? "opacity-40 lg:rotate-1 lg:shadow-xl lg:ring-2 lg:ring-primary/40" : ""}`}
                   >
                     {/* Visible drag handle (also acts as a touch-friendly affordance) */}
                     <div
