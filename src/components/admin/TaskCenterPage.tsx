@@ -507,7 +507,7 @@ function KanbanBoard({
   const [dragOverColKey, setDragOverColKey] = useState<string | null>(null);
   // Mobile-only collapsible state: which column is expanded inside each committee group.
   const [mobileOpen, setMobileOpen] = useState<Record<string, boolean>>({});
-  const isOpen = (key: string) => mobileOpen[key] ?? key.endsWith("-in_progress");
+  const isOpen = (key: string) => mobileOpen[key] ?? true;
   const toggleOpen = (key: string) => setMobileOpen((prev) => ({ ...prev, [key]: !isOpen(key) }));
 
   const committeeGroups = useMemo(() => {
