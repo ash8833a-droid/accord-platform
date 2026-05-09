@@ -34,7 +34,6 @@ interface TaskRow {
   description: string | null;
   committee_id: string;
   status: "todo" | "in_progress" | "completed";
-  priority: "low" | "medium" | "high" | "urgent";
   assigned_to: string | null;
   due_date: string | null;
   created_at: string;
@@ -47,50 +46,20 @@ const STATUS_META = {
   completed:   { label: "مكتملة",        icon: CheckCircle2, color: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/30" },
 } as const;
 
-const PRIORITY_META: Record<TaskRow["priority"], { label: string; cls: string }> = {
-  low:    { label: "منخفضة", cls: "bg-slate-500/10 text-slate-600 border-slate-500/30" },
-  medium: { label: "متوسطة", cls: "bg-sky-500/10 text-sky-600 border-sky-500/30" },
-  high:   { label: "عالية",  cls: "bg-orange-500/10 text-orange-600 border-orange-500/30" },
-  urgent: { label: "عاجلة",  cls: "bg-rose-500/10 text-rose-600 border-rose-500/30" },
-};
-
-// Thick colored left-border per priority (renders on the right in RTL via border-r)
-const PRIORITY_BORDER: Record<TaskRow["priority"], string> = {
-  urgent: "border-r-4 border-r-rose-500",
-  high:   "border-r-4 border-r-orange-500",
-  medium: "border-r-4 border-r-amber-400",
-  low:    "border-r-4 border-r-slate-300",
-};
-
 function isOverdue(t: TaskRow): boolean {
   if (!t.due_date || t.status === "completed") return false;
   return new Date(t.due_date).getTime() < Date.now() - 86400000;
 }
 
-// PMP-style priority ranking (Urgent → High → Medium → Low)
-const PRIORITY_RANK: Record<TaskRow["priority"], number> = {
-  urgent: 1, high: 2, medium: 3, low: 4,
-};
-
 /**
- * Comparator following project-management best practice:
- * 1) Overdue items first (most days late on top)
- * 2) Higher priority first (Urgent > High > Medium > Low)
- * 3) Earlier due date first (nulls last)
- * 4) Manual sort_order (drag-and-drop) as a fine-grained tiebreaker
- * 5) Older created_at as a final stable tiebreaker
+ * FIFO comparator: oldest tasks first, newest at the bottom.
+ * Manual sort_order (drag-and-drop) acts as a fine-grained tiebreaker.
  */
 function comparePmp(a: TaskRow, b: TaskRow): number {
-  const ao = isOverdue(a) ? 0 : 1;
-  const bo = isOverdue(b) ? 0 : 1;
-  if (ao !== bo) return ao - bo;
-  const pr = PRIORITY_RANK[a.priority] - PRIORITY_RANK[b.priority];
-  if (pr !== 0) return pr;
-  const ad = a.due_date ? new Date(a.due_date).getTime() : Number.POSITIVE_INFINITY;
-  const bd = b.due_date ? new Date(b.due_date).getTime() : Number.POSITIVE_INFINITY;
-  if (ad !== bd) return ad - bd;
-  if (a.sort_order !== b.sort_order) return a.sort_order - b.sort_order;
-  return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+  const at = new Date(a.created_at).getTime();
+  const bt = new Date(b.created_at).getTime();
+  if (at !== bt) return at - bt;
+  return a.sort_order - b.sort_order;
 }
 
 export function TaskCenterPage() {
