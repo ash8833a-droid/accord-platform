@@ -83,8 +83,8 @@ function AuthPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50" dir="rtl">
-      <div className="mx-auto w-full max-w-md min-h-screen bg-slate-50 px-5 pt-8 pb-10 flex flex-col gap-6">
+    <div className="min-h-screen bg-background" dir="rtl">
+      <div className="mx-auto w-full max-w-md min-h-screen bg-transparent px-5 pt-8 pb-10 flex flex-col gap-6">
         <header className="flex items-center justify-between">
           <div>
             <p className="text-xs text-slate-500">أهلاً وسهلاً</p>
