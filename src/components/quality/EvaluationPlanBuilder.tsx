@@ -66,7 +66,7 @@ export function EvaluationPlanBuilder() {
     if (!comms?.length) return map;
     const { data: tasks } = await supabase
       .from("committee_tasks")
-      .select("committee_id, title, status, priority, created_at")
+      .select("committee_id, title, status, created_at")
       .in("status", ["todo", "in_progress"])
       .order("created_at", { ascending: true });
     const byCommittee = new Map<string, string>();

@@ -21,7 +21,6 @@ interface Task {
   description: string | null;
   committee_id: string;
   status: "todo" | "in_progress" | "completed";
-  priority: "low" | "medium" | "high" | "urgent";
   assigned_to: string | null;
   due_date: string | null;
 }
@@ -39,7 +38,6 @@ export function TaskDetailsDialog({
   const [title, setTitle] = useState(task.title);
   const [description, setDescription] = useState(task.description ?? "");
   const [status, setStatus] = useState(task.status);
-  const [priority, setPriority] = useState(task.priority);
   const [dueDate, setDueDate] = useState(task.due_date ?? "");
   const [assignedTo, setAssignedTo] = useState(task.assigned_to ?? "none");
   const [members, setMembers] = useState<MemberRow[]>([]);
@@ -58,7 +56,7 @@ export function TaskDetailsDialog({
     const { error } = await supabase.from("committee_tasks").update({
       title: title.trim(),
       description: description.trim() || null,
-      status, priority,
+      status,
       due_date: dueDate || null,
       assigned_to: assignedTo === "none" ? null : assignedTo,
     }).eq("id", task.id);
@@ -97,7 +95,7 @@ export function TaskDetailsDialog({
                 <Label>الوصف</Label>
                 <Textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={4} />
               </div>
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div className="space-y-1.5">
                   <Label>الحالة</Label>
                   <Select value={status} onValueChange={(v) => setStatus(v as Task["status"])}>
@@ -106,18 +104,6 @@ export function TaskDetailsDialog({
                       <SelectItem value="todo">قائمة الانتظار</SelectItem>
                       <SelectItem value="in_progress">قيد التنفيذ</SelectItem>
                       <SelectItem value="completed">مكتملة</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-1.5">
-                  <Label>الأولوية</Label>
-                  <Select value={priority} onValueChange={(v) => setPriority(v as Task["priority"])}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="low">منخفضة</SelectItem>
-                      <SelectItem value="medium">متوسطة</SelectItem>
-                      <SelectItem value="high">عالية</SelectItem>
-                      <SelectItem value="urgent">عاجلة</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

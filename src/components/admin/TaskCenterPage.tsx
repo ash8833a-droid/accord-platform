@@ -34,7 +34,6 @@ interface TaskRow {
   description: string | null;
   committee_id: string;
   status: "todo" | "in_progress" | "completed";
-  priority: "low" | "medium" | "high" | "urgent";
   assigned_to: string | null;
   due_date: string | null;
   created_at: string;
@@ -47,50 +46,20 @@ const STATUS_META = {
   completed:   { label: "مكتملة",        icon: CheckCircle2, color: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/30" },
 } as const;
 
-const PRIORITY_META: Record<TaskRow["priority"], { label: string; cls: string }> = {
-  low:    { label: "منخفضة", cls: "bg-slate-500/10 text-slate-600 border-slate-500/30" },
-  medium: { label: "متوسطة", cls: "bg-sky-500/10 text-sky-600 border-sky-500/30" },
-  high:   { label: "عالية",  cls: "bg-orange-500/10 text-orange-600 border-orange-500/30" },
-  urgent: { label: "عاجلة",  cls: "bg-rose-500/10 text-rose-600 border-rose-500/30" },
-};
-
-// Thick colored left-border per priority (renders on the right in RTL via border-r)
-const PRIORITY_BORDER: Record<TaskRow["priority"], string> = {
-  urgent: "border-r-4 border-r-rose-500",
-  high:   "border-r-4 border-r-orange-500",
-  medium: "border-r-4 border-r-amber-400",
-  low:    "border-r-4 border-r-slate-300",
-};
-
 function isOverdue(t: TaskRow): boolean {
   if (!t.due_date || t.status === "completed") return false;
   return new Date(t.due_date).getTime() < Date.now() - 86400000;
 }
 
-// PMP-style priority ranking (Urgent → High → Medium → Low)
-const PRIORITY_RANK: Record<TaskRow["priority"], number> = {
-  urgent: 1, high: 2, medium: 3, low: 4,
-};
-
 /**
- * Comparator following project-management best practice:
- * 1) Overdue items first (most days late on top)
- * 2) Higher priority first (Urgent > High > Medium > Low)
- * 3) Earlier due date first (nulls last)
- * 4) Manual sort_order (drag-and-drop) as a fine-grained tiebreaker
- * 5) Older created_at as a final stable tiebreaker
+ * FIFO comparator: oldest tasks first, newest at the bottom.
+ * Manual sort_order (drag-and-drop) acts as a fine-grained tiebreaker.
  */
 function comparePmp(a: TaskRow, b: TaskRow): number {
-  const ao = isOverdue(a) ? 0 : 1;
-  const bo = isOverdue(b) ? 0 : 1;
-  if (ao !== bo) return ao - bo;
-  const pr = PRIORITY_RANK[a.priority] - PRIORITY_RANK[b.priority];
-  if (pr !== 0) return pr;
-  const ad = a.due_date ? new Date(a.due_date).getTime() : Number.POSITIVE_INFINITY;
-  const bd = b.due_date ? new Date(b.due_date).getTime() : Number.POSITIVE_INFINITY;
-  if (ad !== bd) return ad - bd;
-  if (a.sort_order !== b.sort_order) return a.sort_order - b.sort_order;
-  return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+  const at = new Date(a.created_at).getTime();
+  const bt = new Date(b.created_at).getTime();
+  if (at !== bt) return at - bt;
+  return a.sort_order - b.sort_order;
 }
 
 export function TaskCenterPage() {
@@ -109,7 +78,6 @@ function TaskCenterInner({ canEdit }: { canEdit: boolean }) {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [committeeFilter, setCommitteeFilter] = useState<string>("all");
-  const [priorityFilter, setPriorityFilter] = useState<string>("all");
   const [view, setView] = useState<"kanban" | "list">("kanban");
   const [createOpen, setCreateOpen] = useState(false);
   const [details, setDetails] = useState<TaskRow | null>(null);
@@ -119,12 +87,11 @@ function TaskCenterInner({ canEdit }: { canEdit: boolean }) {
     const [{ data: cm }, { data: tk }] = await Promise.all([
       supabase.from("committees").select("id, name, type").order("name"),
       supabase.from("committee_tasks")
-        .select("id, title, description, committee_id, status, priority, assigned_to, due_date, created_at, sort_order")
-        .order("sort_order", { ascending: true })
-        .order("created_at", { ascending: false }),
+        .select("id, title, description, committee_id, status, assigned_to, due_date, created_at, sort_order")
+        .order("created_at", { ascending: true }),
     ]);
     setCommittees((cm ?? []) as CommitteeRow[]);
-    setTasks((tk ?? []) as TaskRow[]);
+    setTasks(((tk ?? []) as unknown) as TaskRow[]);
     setLoading(false);
   };
 
@@ -154,14 +121,13 @@ function TaskCenterInner({ canEdit }: { canEdit: boolean }) {
     const q = search.trim().toLowerCase();
     return scopedTasks.filter((t) => {
       if (isPrivileged && committeeFilter !== "all" && t.committee_id !== committeeFilter) return false;
-      if (priorityFilter !== "all" && t.priority !== priorityFilter) return false;
       if (!q) return true;
       const cn = cmMap.get(t.committee_id)?.name ?? "";
       return t.title.toLowerCase().includes(q)
         || (t.description ?? "").toLowerCase().includes(q)
         || cn.toLowerCase().includes(q);
     });
-  }, [scopedTasks, isPrivileged, committeeFilter, priorityFilter, search, cmMap]);
+  }, [scopedTasks, isPrivileged, committeeFilter, search, cmMap]);
 
   const stats = useMemo(() => {
     const active = scopedTasks.filter((t) => t.status !== "completed");
@@ -174,19 +140,13 @@ function TaskCenterInner({ canEdit }: { canEdit: boolean }) {
     return { activeCount: active.length, completionRate, overdue, empty };
   }, [scopedTasks, scopedCommittees]);
 
-  // Most urgent active task for the current scope (committee member sees their committee).
+  // Oldest active task (FIFO): the next thing the team should work on.
   const urgentTask = useMemo(() => {
-    const order: Record<TaskRow["priority"], number> = { urgent: 0, high: 1, medium: 2, low: 3 };
     const active = scopedTasks.filter((t) => t.status === "todo" || t.status === "in_progress");
     if (active.length === 0) return null;
-    return [...active].sort((a, b) => {
-      const pa = order[a.priority] ?? 9;
-      const pb = order[b.priority] ?? 9;
-      if (pa !== pb) return pa - pb;
-      const da = a.due_date ? new Date(a.due_date).getTime() : Number.POSITIVE_INFINITY;
-      const db = b.due_date ? new Date(b.due_date).getTime() : Number.POSITIVE_INFINITY;
-      return da - db;
-    })[0];
+    return [...active].sort((a, b) =>
+      new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+    )[0];
   }, [scopedTasks]);
 
   const moveTask = async (id: string, to: TaskRow["status"]) => {
@@ -310,9 +270,6 @@ function TaskCenterInner({ canEdit }: { canEdit: boolean }) {
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-[11px] font-semibold uppercase tracking-wide text-sky-700 dark:text-sky-300">المهمة النشطة الحالية</span>
-                <Badge variant="outline" className={PRIORITY_META[urgentTask.priority].cls}>
-                  {PRIORITY_META[urgentTask.priority].label}
-                </Badge>
                 <Badge variant="outline" className={STATUS_META[urgentTask.status].color}>
                   {STATUS_META[urgentTask.status].label}
                 </Badge>
@@ -407,13 +364,6 @@ function TaskCenterInner({ canEdit }: { canEdit: boolean }) {
             <button onClick={() => setView("kanban")} className={`px-3 py-1.5 text-xs rounded-md inline-flex items-center gap-1.5 ${view === "kanban" ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}><LayoutGrid className="h-3.5 w-3.5" />كانبان</button>
             <button onClick={() => setView("list")} className={`px-3 py-1.5 text-xs rounded-md inline-flex items-center gap-1.5 ${view === "list" ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}><Rows3 className="h-3.5 w-3.5" />قائمة</button>
           </div>
-          <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-            <SelectTrigger className="w-[140px] order-2"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">كل الأولويات</SelectItem>
-              {Object.entries(PRIORITY_META).map(([k, v]) => <SelectItem key={k} value={k}>{v.label}</SelectItem>)}
-            </SelectContent>
-          </Select>
           {isPrivileged && (
             <Select value={committeeFilter} onValueChange={setCommitteeFilter}>
               <SelectTrigger className="w-[180px] order-3"><SelectValue /></SelectTrigger>
@@ -698,7 +648,7 @@ function KanbanBoard({
                     }}
                     onClick={() => onOpen(t)}
                     style={{ touchAction: "pan-y" }}
-                    className={`group relative rounded-lg border bg-card p-3.5 ps-10 lg:ps-9 cursor-grab active:cursor-grabbing hover:shadow-md hover:-translate-y-0.5 transform-gpu will-change-transform transition-all select-none ${PRIORITY_BORDER[t.priority]} ${isDragging ? "opacity-40 rotate-1 shadow-xl ring-2 ring-primary/40" : ""}`}
+                    className={`group relative rounded-lg border bg-card p-3.5 ps-10 lg:ps-9 cursor-grab active:cursor-grabbing hover:shadow-md hover:-translate-y-0.5 transform-gpu will-change-transform transition-all select-none ${isDragging ? "opacity-40 rotate-1 shadow-xl ring-2 ring-primary/40" : ""}`}
                   >
                     {/* Visible drag handle (also acts as a touch-friendly affordance) */}
                     <div
@@ -749,7 +699,6 @@ function KanbanBoard({
                           <cmeta.icon className="h-3 w-3" />{cm?.name}
                         </span>
                       )}
-                      <Badge variant="outline" className={`text-[10px] ${PRIORITY_META[t.priority].cls}`}>{PRIORITY_META[t.priority].label}</Badge>
                     </div>
                     {t.due_date && (
                       <div className="mt-2 flex items-center justify-between gap-2">
@@ -809,7 +758,6 @@ function ListView({
             <TableHead className="text-right">المهمة</TableHead>
             <TableHead className="text-right">اللجنة</TableHead>
             <TableHead className="text-right">الحالة</TableHead>
-            <TableHead className="text-right">الأولوية</TableHead>
             <TableHead className="text-right">تاريخ الاستحقاق</TableHead>
             <TableHead className="text-right">إجراءات</TableHead>
           </TableRow>
@@ -839,7 +787,6 @@ function ListView({
                     <Badge variant="outline" className={STATUS_META[t.status].color}>{STATUS_META[t.status].label}</Badge>
                   )}
                 </TableCell>
-                <TableCell><Badge variant="outline" className={PRIORITY_META[t.priority].cls}>{PRIORITY_META[t.priority].label}</Badge></TableCell>
                 <TableCell className="text-xs">{t.due_date ? new Date(t.due_date).toLocaleDateString("ar-SA") : "—"}</TableCell>
                 <TableCell onClick={(e) => e.stopPropagation()}>
                   {canEdit && (
@@ -903,7 +850,7 @@ function MobileColumns({
                 <div
                   key={t.id}
                   onClick={() => onOpen(t)}
-                  className={`rounded-lg border bg-card p-3 active:bg-muted/40 transition-colors ${PRIORITY_BORDER[t.priority]}`}
+                  className="rounded-lg border bg-card p-3 active:bg-muted/40 transition-colors"
                 >
                   <div className="flex items-start justify-between gap-2">
                     <p className="text-sm font-bold flex-1 line-clamp-2">
@@ -926,7 +873,6 @@ function MobileColumns({
                         <cmeta.icon className="h-3 w-3" />{cm?.name}
                       </span>
                     )}
-                    <Badge variant="outline" className={`text-[10px] ${PRIORITY_META[t.priority].cls}`}>{PRIORITY_META[t.priority].label}</Badge>
                   </div>
                   {t.due_date && (
                     <div className="mt-2">

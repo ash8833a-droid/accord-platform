@@ -1,0 +1,1 @@
+ALTER TABLE public.committee_tasks DROP COLUMN IF EXISTS priority;
