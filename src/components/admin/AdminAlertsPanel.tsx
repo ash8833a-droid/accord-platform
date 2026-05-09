@@ -1,8 +1,7 @@
 import { Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { AlertTriangle, BellRing, Check, X, ExternalLink, ShieldAlert, ChevronDown, ChevronUp } from "lucide-react";
+import { BellRing, Check, X, ExternalLink, ShieldAlert, ShieldCheck, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useAdminAlerts } from "@/hooks/use-admin-alerts";
 
 interface Props {
@@ -10,134 +9,120 @@ interface Props {
 }
 
 /**
- * Top-of-page panel that mirrors the red badge on the "الأداء العام" sidebar link.
- * Currently surfaces pending membership requests; dismissing an alert decreases
- * the sidebar badge instantly via a shared hook.
+ * Compact alert bell for the admin dashboard. Renders a small icon button;
+ * clicking it opens a popover with the pending membership-request alerts.
+ * Mirrors the red badge on the "الأداء العام" sidebar link.
  */
 export function AdminAlertsPanel({ enabled }: Props) {
   const { alerts, count, dismiss, dismissAll } = useAdminAlerts(enabled);
-  const STORAGE_KEY = "admin_alerts_panel_collapsed_v1";
-  const [collapsed, setCollapsed] = useState<boolean>(() => {
-    if (typeof window === "undefined") return false;
-    return localStorage.getItem(STORAGE_KEY) === "1";
-  });
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      localStorage.setItem(STORAGE_KEY, collapsed ? "1" : "0");
-    }
-  }, [collapsed]);
 
   if (!enabled) return null;
 
-  // Collapsed: minimal pill toggle
-  if (collapsed) {
-    return (
-      <button
-        onClick={() => setCollapsed(false)}
-        dir="rtl"
-        className="w-full flex items-center justify-between gap-3 rounded-xl border bg-card px-3 py-2 hover:bg-accent/50 transition-colors"
-        aria-label="إظهار لوحة التنبيهات"
-      >
-        <span className="flex items-center gap-2 text-sm font-semibold">
-          <ShieldAlert className={`h-4 w-4 ${count > 0 ? "text-rose-600" : "text-emerald-600"}`} />
-          {count > 0 ? `تنبيهات هامة (${count})` : "لا توجد تنبيهات"}
-        </span>
-        <ChevronDown className="h-4 w-4 text-muted-foreground" />
-      </button>
-    );
-  }
-
-  if (count === 0) {
-    return (
-      <div dir="rtl" className="rounded-2xl border-2 border-emerald-300/60 dark:border-emerald-700/60 bg-emerald-50/80 dark:bg-emerald-950/30 px-4 py-3 flex items-center gap-3">
-        <div className="h-10 w-10 rounded-xl bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 flex items-center justify-center shrink-0">
-          <Check className="h-5 w-5" />
-        </div>
-        <div className="min-w-0 flex-1">
-          <h3 className="text-sm sm:text-base font-bold text-emerald-800 dark:text-emerald-200">لا توجد تنبيهات هامة</h3>
-          <p className="text-xs text-emerald-700/80 dark:text-emerald-300/80">جميع طلبات الانضمام تمت مراجعتها.</p>
-        </div>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => setCollapsed(true)}
-          aria-label="إخفاء"
-          title="إخفاء"
-          className="shrink-0 h-8 w-8 p-0 text-emerald-700 dark:text-emerald-300"
-        >
-          <ChevronUp className="h-4 w-4" />
-        </Button>
-      </div>
-    );
-  }
+  const hasAlerts = count > 0;
 
   return (
-    <div className="rounded-2xl border-2 border-rose-300/70 dark:border-rose-800/60 bg-rose-50/70 dark:bg-rose-950/30 shadow-sm overflow-hidden" dir="rtl">
-      <div className="flex items-center justify-between gap-3 px-4 py-3 border-b border-rose-200/70 dark:border-rose-800/60 bg-rose-100/50 dark:bg-rose-950/40">
-        <div className="flex items-center gap-3 min-w-0">
-          <div className="h-10 w-10 rounded-xl bg-rose-500/15 text-rose-700 dark:text-rose-300 flex items-center justify-center shrink-0">
-            <ShieldAlert className="h-5 w-5" />
-          </div>
-          <div className="min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <h3 className="text-sm sm:text-base font-bold text-rose-800 dark:text-rose-200">تنبيهات هامة — تتطلب إجراءً</h3>
-              <Badge className="bg-rose-600 text-white hover:bg-rose-600 tabular-nums">{count}</Badge>
+    <Popover>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          aria-label={hasAlerts ? `تنبيهات هامة (${count})` : "لا توجد تنبيهات"}
+          title={hasAlerts ? `تنبيهات هامة (${count})` : "لا توجد تنبيهات"}
+          className={`relative inline-flex h-10 w-10 items-center justify-center rounded-xl bg-white shadow-sm border transition-colors ${
+            hasAlerts
+              ? "border-rose-200 hover:bg-rose-50"
+              : "border-slate-100 hover:bg-slate-50"
+          }`}
+        >
+          {hasAlerts ? (
+            <ShieldAlert className="h-5 w-5 text-rose-600" />
+          ) : (
+            <ShieldCheck className="h-5 w-5 text-emerald-600" />
+          )}
+          {hasAlerts && (
+            <>
+              <span className="absolute -top-1 -left-1 min-w-[18px] h-[18px] px-1 rounded-full bg-rose-600 text-white text-[10px] font-bold flex items-center justify-center ring-2 ring-white tabular-nums">
+                {count > 9 ? "9+" : count}
+              </span>
+              <span className="absolute inset-0 rounded-xl ring-2 ring-rose-400/40 animate-ping pointer-events-none" />
+            </>
+          )}
+        </button>
+      </PopoverTrigger>
+      <PopoverContent
+        align="start"
+        sideOffset={10}
+        className="w-[360px] sm:w-[400px] p-0 overflow-hidden rounded-2xl border-slate-100 shadow-xl"
+        dir="rtl"
+      >
+        <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between gap-3 bg-slate-50/60">
+          <div className="flex items-center gap-2 min-w-0">
+            <div className={`h-9 w-9 rounded-lg flex items-center justify-center shrink-0 ${
+              hasAlerts ? "bg-rose-50 text-rose-600" : "bg-emerald-50 text-emerald-600"
+            }`}>
+              {hasAlerts ? <ShieldAlert className="h-4 w-4" /> : <ShieldCheck className="h-4 w-4" />}
             </div>
-            <p className="text-[11px] sm:text-xs text-rose-700/80 dark:text-rose-300/80">
-              المصدر: طلبات انضمام بانتظار المراجعة من إدارة المستخدمين.
-            </p>
+            <div className="min-w-0">
+              <h3 className="text-sm font-bold text-slate-900 truncate">
+                {hasAlerts ? "تنبيهات هامة — تتطلب إجراءً" : "لا توجد تنبيهات"}
+              </h3>
+              <p className="text-[11px] text-slate-500 truncate">
+                {hasAlerts ? "طلبات انضمام بانتظار المراجعة" : "تمت مراجعة جميع الطلبات"}
+              </p>
+            </div>
           </div>
-        </div>
-        <div className="flex items-center gap-1 shrink-0">
-          {count > 1 && (
-            <Button variant="ghost" size="sm" onClick={dismissAll} className="text-rose-700 hover:bg-rose-100 dark:text-rose-200">
+          {hasAlerts && count > 1 && (
+            <Button variant="ghost" size="sm" onClick={dismissAll} className="text-rose-700 hover:bg-rose-50 h-8 text-xs">
               تجاهل الكل
             </Button>
           )}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setCollapsed(true)}
-            aria-label="إخفاء اللوحة"
-            title="إخفاء اللوحة"
-            className="h-8 w-8 p-0 text-rose-700 dark:text-rose-300"
-          >
-            <ChevronUp className="h-4 w-4" />
-          </Button>
         </div>
-      </div>
-      <ul className="divide-y divide-rose-200/60 dark:divide-rose-800/50">
-        {alerts.map((a) => (
-          <li key={a.id} className="px-4 py-3 flex items-center gap-3 bg-white/70 dark:bg-card/40">
-            <div className="h-9 w-9 rounded-lg bg-rose-500/10 text-rose-700 dark:text-rose-300 flex items-center justify-center shrink-0">
-              <BellRing className="h-4 w-4" />
+
+        {hasAlerts ? (
+          <ul className="max-h-[60vh] overflow-y-auto divide-y divide-slate-100">
+            {alerts.map((a) => (
+              <li key={a.id} className="px-4 py-3 flex items-center gap-3 hover:bg-slate-50/60 transition-colors">
+                <div className="h-9 w-9 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center shrink-0">
+                  <BellRing className="h-4 w-4" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-slate-800 truncate">{a.title}</p>
+                  <p className="text-xs text-slate-500 truncate">{a.body}</p>
+                </div>
+                <Link to={a.link} className="shrink-0">
+                  <Button size="sm" variant="outline" className="gap-1 h-8 border-slate-200">
+                    <ExternalLink className="h-3.5 w-3.5" /> مراجعة
+                  </Button>
+                </Link>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => dismiss(a.id)}
+                  aria-label="تجاهل"
+                  title="تجاهل"
+                  className="shrink-0 h-8 w-8 p-0 text-slate-400 hover:text-slate-700"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <div className="px-6 py-10 text-center text-slate-500">
+            <div className="h-12 w-12 mx-auto rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mb-3">
+              <Check className="h-6 w-6" />
             </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold truncate">{a.title}</p>
-              <p className="text-xs text-muted-foreground truncate">{a.body}</p>
-            </div>
-            <Link to={a.link} className="shrink-0">
-              <Button size="sm" variant="outline" className="gap-1 h-8">
-                <ExternalLink className="h-3.5 w-3.5" /> مراجعة
-              </Button>
-            </Link>
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => dismiss(a.id)}
-              aria-label="تحديد كمقروء"
-              title="تحديد كمقروء"
-              className="shrink-0 h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          </li>
-        ))}
-      </ul>
-      <div className="px-4 py-2 text-[11px] text-rose-700/70 dark:text-rose-300/70 bg-rose-100/30 dark:bg-rose-950/30 flex items-center gap-1.5">
-        <AlertTriangle className="h-3.5 w-3.5" />
-        التجاهل يخفي التنبيه من الشريط الجانبي فوراً، ولا يلغي الطلب.
-      </div>
-    </div>
+            <p className="text-sm font-semibold text-slate-700">كل شيء على ما يرام</p>
+            <p className="text-xs mt-1">لا توجد طلبات بانتظار المراجعة حالياً.</p>
+          </div>
+        )}
+
+        {hasAlerts && (
+          <div className="px-4 py-2 text-[11px] text-slate-500 bg-slate-50/60 border-t border-slate-100 flex items-center gap-1.5">
+            <AlertTriangle className="h-3.5 w-3.5 text-amber-500" />
+            التجاهل يخفي التنبيه من الشريط الجانبي فوراً، ولا يلغي الطلب.
+          </div>
+        )}
+      </PopoverContent>
+    </Popover>
   );
 }
