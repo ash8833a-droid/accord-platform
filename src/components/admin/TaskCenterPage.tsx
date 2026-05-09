@@ -371,61 +371,50 @@ function TaskCenterInner({ canEdit }: { canEdit: boolean }) {
         </div>
       )}
 
-      {/* Unified header + toolbar */}
-      <div className="rounded-2xl bg-white dark:bg-card border border-slate-100 dark:border-border shadow-sm overflow-hidden">
-        <div className="flex items-center justify-between gap-3 px-5 py-4">
-          <div className="min-w-0">
-            <h1 className="text-lg font-bold leading-tight truncate text-slate-800 dark:text-foreground">
-              {isPrivileged ? "إدارة ومتابعة المهام" : `مهام لجنتك${committeeId && cmMap.get(committeeId) ? ` — ${cmMap.get(committeeId)!.name}` : ""}`}
-            </h1>
-            <p className="text-xs text-slate-500 truncate mt-0.5">
-              {isPrivileged ? "كل اللجان في مكان واحد" : "المهام المعنية بلجنتك فقط"}
-            </p>
-          </div>
-          {canEdit && (
-            <div className="flex items-center gap-2 shrink-0">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={async () => { await load(); toast.success("تم التحديث"); }}
-                className="gap-2 h-9 text-slate-600 hover:bg-slate-100"
-              >
-                <RefreshCw className="h-3.5 w-3.5" /> تحديث
-              </Button>
-              <Button
-                size="sm"
-                onClick={() => setCreateOpen(true)}
-                className="gap-2 h-9 px-4 bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl"
-              >
-                <Plus className="h-4 w-4" /> إضافة مهمة
-              </Button>
-            </div>
-          )}
+      {/* Single flat page header — title + primary action */}
+      <div className="flex items-center justify-between gap-4 flex-wrap">
+        <div className="min-w-0">
+          <h1 className="text-2xl font-bold leading-tight text-slate-800 dark:text-foreground">
+            {isPrivileged ? "إدارة ومتابعة المهام" : `مهام لجنتك${committeeId && cmMap.get(committeeId) ? ` — ${cmMap.get(committeeId)!.name}` : ""}`}
+          </h1>
+          <p className="text-sm text-slate-500 mt-1">
+            {isPrivileged ? "كل اللجان في مكان واحد" : "المهام المعنية بلجنتك فقط"}
+          </p>
         </div>
-        {/* Flat toolbar row */}
-        <div className="border-t border-slate-100 dark:border-border bg-slate-50/70 dark:bg-muted/20 px-3 py-2.5 flex flex-wrap items-center gap-2">
-          <div className="relative flex-1 min-w-[220px]">
-            <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-            <Input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="ابحث في المهام..."
-              className="pr-9 h-10 rounded-xl bg-white border-0 shadow-none focus-visible:ring-2 focus-visible:ring-primary/20"
-            />
-          </div>
-          {isPrivileged && (
-            <Select value={committeeFilter} onValueChange={setCommitteeFilter}>
-              <SelectTrigger className="w-[200px] h-10 rounded-xl bg-white border-0 shadow-none"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">كل اللجان</SelectItem>
-                {committees.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
-              </SelectContent>
-            </Select>
-          )}
-          <div className="inline-flex rounded-xl bg-white p-1">
-            <button onClick={() => setView("kanban")} className={`px-3 py-1.5 text-xs rounded-lg inline-flex items-center gap-1.5 transition-colors ${view === "kanban" ? "bg-primary text-primary-foreground" : "text-slate-500"}`}><LayoutGrid className="h-3.5 w-3.5" />كانبان</button>
-            <button onClick={() => setView("list")} className={`px-3 py-1.5 text-xs rounded-lg inline-flex items-center gap-1.5 transition-colors ${view === "list" ? "bg-primary text-primary-foreground" : "text-slate-500"}`}><Rows3 className="h-3.5 w-3.5" />قائمة</button>
-          </div>
+        {canEdit && (
+          <Button
+            size="sm"
+            onClick={() => setCreateOpen(true)}
+            className="gap-2 h-10 px-5 bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl shadow-sm"
+          >
+            <Plus className="h-4 w-4" /> إضافة مهمة
+          </Button>
+        )}
+      </div>
+
+      {/* Single flat toolbar — search + filter + view toggle */}
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="relative flex-1 min-w-[240px]">
+          <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+          <Input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="ابحث في المهام..."
+            className="pr-10 h-11 rounded-xl bg-white border border-slate-200/80 shadow-sm focus-visible:ring-2 focus-visible:ring-primary/20"
+          />
+        </div>
+        {isPrivileged && (
+          <Select value={committeeFilter} onValueChange={setCommitteeFilter}>
+            <SelectTrigger className="w-[220px] h-11 rounded-xl bg-white border border-slate-200/80 shadow-sm"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">كل اللجان</SelectItem>
+              {committees.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        )}
+        <div className="inline-flex rounded-xl bg-white border border-slate-200/80 shadow-sm p-1 h-11">
+          <button onClick={() => setView("kanban")} className={`px-3.5 text-xs rounded-lg inline-flex items-center gap-1.5 transition-colors ${view === "kanban" ? "bg-primary text-primary-foreground" : "text-slate-500"}`}><LayoutGrid className="h-3.5 w-3.5" />كانبان</button>
+          <button onClick={() => setView("list")} className={`px-3.5 text-xs rounded-lg inline-flex items-center gap-1.5 transition-colors ${view === "list" ? "bg-primary text-primary-foreground" : "text-slate-500"}`}><Rows3 className="h-3.5 w-3.5" />قائمة</button>
         </div>
       </div>
 
