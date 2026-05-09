@@ -1,5 +1,5 @@
-import html2pdf from "html2pdf.js";
 import logo from "@/assets/logo.png";
+import { printHtmlDocument } from "@/lib/print-frame";
 
 const PRIMARY = "#0D7C66";
 const GOLD = "#D4A95E";
@@ -60,7 +60,7 @@ function spotlightHtml(title: string, subtitle: string, accent: string, items: I
     </section>`;
 }
 
-export async function exportWeeklyReportPdf(args: Args): Promise<void> {
+export function getWeeklyReportPrintHtml(args: Args): string {
   const { weekStart, overallRate, overallDelta, overdueTasks, topCommittee, leaders, monitoring, urgent, statusLabel } = args;
   const today = new Date().toLocaleDateString("ar-SA-u-ca-gregory", {
     year: "numeric", month: "long", day: "numeric",
@@ -69,7 +69,7 @@ export async function exportWeeklyReportPdf(args: Args): Promise<void> {
     year: "numeric", month: "long", day: "numeric",
   });
 
-  const html = `
+  return `
     <div dir="rtl" class="page">
       <div class="watermark"></div>
 
@@ -167,57 +167,12 @@ export async function exportWeeklyReportPdf(args: Args): Promise<void> {
       .sig-line { font-size: 11px; color: ${SLATE_700}; border-top: 1px solid ${SLATE_300}; padding-top: 6px; }
 
       footer { position:relative; margin-top: 16px; text-align:center; color:#94A3B8; font-size: 10px; }
+      @page { size: A4 portrait; margin: 12mm 10mm 14mm; }
+      @media print { html, body { margin:0; background:#fff; } .page { padding:0; } }
     </style>`;
+}
 
-  // Render inside an isolated iframe so the app's CSS (which uses oklch())
-  // never reaches html2canvas. html2canvas chokes on oklch and freezes the tab.
-  const iframe = document.createElement("iframe");
-  iframe.setAttribute("aria-hidden", "true");
-  iframe.style.cssText =
-    "position: fixed; left: -10000px; top: 0; width: 820px; height: 1200px; border: 0; opacity: 0; pointer-events: none;";
-  document.body.appendChild(iframe);
-  const doc = iframe.contentDocument!;
-  doc.open();
-  doc.write(`<!doctype html><html dir="rtl"><head><meta charset="utf-8"></head><body style="margin:0;background:#fff;color:#0F172A;font-family:'Segoe UI','Tahoma',sans-serif;">${html}</body></html>`);
-  doc.close();
-  // Wait for images (logo) to load so html2canvas captures them.
-  await new Promise<void>((resolve) => {
-    const imgs = Array.from(doc.images);
-    if (imgs.length === 0) return resolve();
-    let pending = imgs.length;
-    const done = () => { if (--pending <= 0) resolve(); };
-    imgs.forEach((img) => {
-      if (img.complete) done();
-      else { img.addEventListener("load", done); img.addEventListener("error", done); }
-    });
-    setTimeout(resolve, 1500); // safety timeout
-  });
-  try {
-    await (html2pdf() as any)
-      .from(doc.body)
-      .set({
-        margin: [12, 10, 14, 10],
-        filename: `weekly-leadership-${weekStart.toISOString().slice(0, 10)}.pdf`,
-        image: { type: "jpeg", quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true, backgroundColor: "#ffffff" },
-        jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
-        pagebreak: { mode: ["avoid-all", "css", "legacy"] },
-      })
-      .toPdf()
-      .get("pdf")
-      .then((pdf: any) => {
-        const total = pdf.internal.getNumberOfPages();
-        for (let i = 1; i <= total; i++) {
-          pdf.setPage(i);
-          pdf.setFontSize(8);
-          pdf.setTextColor(148, 163, 184);
-          const w = pdf.internal.pageSize.getWidth();
-          const h = pdf.internal.pageSize.getHeight();
-          pdf.text(`صفحة ${i} من ${total}`, w / 2, h - 5, { align: "center" });
-        }
-      })
-      .save();
-  } finally {
-    if (iframe.parentNode) iframe.parentNode.removeChild(iframe);
-  }
+export async function exportWeeklyReportPdf(args: Args): Promise<void> {
+  const html = getWeeklyReportPrintHtml(args);
+  await printHtmlDocument(html, `weekly-leadership-${args.weekStart.toISOString().slice(0, 10)}`);
 }

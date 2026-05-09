@@ -1,5 +1,5 @@
-import html2pdf from "html2pdf.js";
 import logo from "@/assets/logo.png";
+import { printHtmlDocument } from "@/lib/print-frame";
 
 const PRIMARY = "#064e3b";
 const ACCENT = "#d97706";
@@ -22,7 +22,7 @@ export interface DashboardPdfData {
   expenses: number;
 }
 
-export async function exportDashboardPdf(data: DashboardPdfData): Promise<void> {
+export function getDashboardPrintHtml(data: DashboardPdfData): string {
   const today = new Date().toLocaleDateString("ar-SA-u-ca-gregory", {
     year: "numeric", month: "long", day: "numeric",
   });
@@ -56,7 +56,7 @@ export async function exportDashboardPdf(data: DashboardPdfData): Promise<void> 
       <td class="num"><b style="color:${PRIMARY}">${c.rate}%</b></td>
     </tr>`).join("");
 
-  const html = `
+  return `
   <div dir="rtl" lang="ar" style="font-family: 'Segoe UI', Tahoma, Arial, sans-serif; color:#111; padding: 24px; background:#fff;">
     <style>
       .hdr { display:flex; align-items:center; justify-content:space-between; gap:16px;
@@ -93,6 +93,8 @@ export async function exportDashboardPdf(data: DashboardPdfData): Promise<void> 
                 font-size: 10px; color:#666; display:flex; justify-content:space-between; }
       .badge { display:inline-block; background:${ACCENT}; color:#fff;
                padding: 3px 10px; border-radius:12px; font-size:10px; font-weight:700; }
+      @page { size: A4 portrait; margin: 10mm; }
+      @media print { html, body { margin:0; background:#fff; } }
     </style>
 
     <div class="hdr">
@@ -150,28 +152,11 @@ export async function exportDashboardPdf(data: DashboardPdfData): Promise<void> 
       <span>تم التوليد آلياً من لوحة الأداء التنفيذية</span>
     </div>
   </div>`;
+}
 
-  const container = document.createElement("div");
-  container.style.position = "fixed";
-  container.style.left = "-10000px";
-  container.style.top = "0";
-  container.style.width = "794px"; // A4 width @ 96dpi
-  container.innerHTML = html;
-  document.body.appendChild(container);
-
-  try {
-    await (html2pdf as any)()
-      .set({
-        margin: [10, 10, 10, 10],
-        filename: `تقرير-الأداء-${data.year === "all" ? "كل-السنوات" : data.year}.pdf`,
-        image: { type: "jpeg", quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true, backgroundColor: "#ffffff" },
-        jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
-        pagebreak: { mode: ["avoid-all", "css", "legacy"] },
-      })
-      .from(container.firstElementChild as HTMLElement)
-      .save();
-  } finally {
-    document.body.removeChild(container);
-  }
+export async function exportDashboardPdf(data: DashboardPdfData): Promise<void> {
+  await printHtmlDocument(
+    getDashboardPrintHtml(data),
+    `تقرير-الأداء-${data.year === "all" ? "كل-السنوات" : data.year}`,
+  );
 }

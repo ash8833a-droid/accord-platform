@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { PageGate } from "@/components/PageGate";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { WeeklyReport } from "@/components/admin/WeeklyReport";
 import { AdminAlertsPanel } from "@/components/admin/AdminAlertsPanel";
 import { useAuth } from "@/lib/auth";
+import { toast } from "sonner";
 import {
   Bar, BarChart, CartesianGrid, Legend, Line, LineChart,
   PolarAngleAxis, PolarGrid, PolarRadiusAxis, Radar, RadarChart,
@@ -60,7 +61,10 @@ function Inner() {
   const isAdmin = hasRole("admin");
   const [year, setYear] = useState<YearKey>(new Date().getFullYear());
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const [data, setData] = useState<any>(null);
+  const loadInFlight = useRef(false);
 
   useEffect(() => { void load(); }, []);
 
@@ -72,7 +76,7 @@ function Inner() {
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "committee_tasks" },
-        () => { void load(); },
+        () => { void load({ silent: true }); },
       )
       .subscribe();
     return () => { void supabase.removeChannel(channel); };
@@ -85,29 +89,38 @@ function Inner() {
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "grooms" },
-        () => { void load(); },
+        () => { void load({ silent: true }); },
       )
       .subscribe();
     return () => { void supabase.removeChannel(channel); };
   }, []);
 
-  async function load() {
-    setLoading(true);
-    const [committeesRes, tasksRes, groomsRes, paymentsRes, familyRes] = await Promise.all([
-      supabase.from("committees").select("id, name, type, budget_allocated, budget_spent"),
-      supabase.from("committee_tasks").select("id, status, committee_id, created_at, updated_at"),
-      supabase.from("grooms").select("id, status, created_at, wedding_date, groom_contribution"),
-      supabase.from("payment_requests").select("id, amount, status, created_at"),
-      supabase.from("family_contributions").select("id, amount, contribution_date"),
-    ]);
-    setData({
-      committees: committeesRes.data ?? [],
-      tasks: tasksRes.data ?? [],
-      grooms: groomsRes.data ?? [],
-      payments: paymentsRes.data ?? [],
-      family: familyRes.data ?? [],
-    });
-    setLoading(false);
+  async function load(options: { silent?: boolean } = {}) {
+    if (loadInFlight.current) return;
+    loadInFlight.current = true;
+    if (options.silent) setRefreshing(true);
+    else setLoading(true);
+
+    try {
+      const [committeesRes, tasksRes, groomsRes, paymentsRes, familyRes] = await Promise.all([
+        supabase.from("committees").select("id, name, type, budget_allocated, budget_spent"),
+        supabase.from("committee_tasks").select("id, status, committee_id, created_at, updated_at"),
+        supabase.from("grooms").select("id, status, created_at, wedding_date, groom_contribution"),
+        supabase.from("payment_requests").select("id, amount, status, created_at"),
+        supabase.from("family_contributions").select("id, amount, contribution_date"),
+      ]);
+      setData({
+        committees: committeesRes.data ?? [],
+        tasks: tasksRes.data ?? [],
+        grooms: groomsRes.data ?? [],
+        payments: paymentsRes.data ?? [],
+        family: familyRes.data ?? [],
+      });
+    } finally {
+      loadInFlight.current = false;
+      setRefreshing(false);
+      setLoading(false);
+    }
   }
 
   // Real-time subscription on family_contributions for live KPI updates.
@@ -117,7 +130,7 @@ function Inner() {
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "family_contributions" },
-        () => { void load(); },
+        () => { void load({ silent: true }); },
       )
       .subscribe();
     return () => { void supabase.removeChannel(channel); };
@@ -208,6 +221,31 @@ function Inner() {
     return { perCommittee, yoy, finance };
   }, [data, k, year]);
 
+  async function handleExportDashboard() {
+    if (!k || !charts || exporting) return;
+    setExporting(true);
+    try {
+      await exportDashboardPdf({
+        year,
+        kpis: {
+          totalTasks: k.totalTasks,
+          completionRate: k.completionRate,
+          totalMarriages: k.totalMarriages,
+          netBalance: k.netBalance,
+        },
+        finance: charts.finance,
+        committees: charts.perCommittee,
+        revenues: k.revenues,
+        expenses: k.expenses,
+      });
+    } catch (error) {
+      console.error("Dashboard export failed", error);
+      toast.error("تعذّر تجهيز التقرير للطباعة");
+    } finally {
+      setExporting(false);
+    }
+  }
+
   if (loading || !data || !k || !charts) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
@@ -240,27 +278,16 @@ function Inner() {
                 </SelectContent>
               </Select>
             </div>
-            <Button variant="outline" size="sm" onClick={load} className="gap-2 bg-white border-0 shadow-sm text-slate-700 hover:bg-slate-50">
-              <RefreshCw className="h-4 w-4" /> تحديث
+            <Button variant="outline" size="sm" onClick={() => void load({ silent: true })} disabled={refreshing} className="gap-2 bg-white border-0 shadow-sm text-slate-700 hover:bg-slate-50 disabled:opacity-70">
+              {refreshing ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />} تحديث
             </Button>
             <Button
               size="sm"
-              onClick={() => exportDashboardPdf({
-                year,
-                kpis: {
-                  totalTasks: k.totalTasks,
-                  completionRate: k.completionRate,
-                  totalMarriages: k.totalMarriages,
-                  netBalance: k.netBalance,
-                },
-                finance: charts.finance,
-                committees: charts.perCommittee,
-                revenues: k.revenues,
-                expenses: k.expenses,
-              })}
-              className="gap-2 bg-teal-700 hover:bg-teal-800 text-white rounded-xl shadow-sm"
+              onClick={() => void handleExportDashboard()}
+              disabled={exporting}
+              className="gap-2 bg-teal-700 hover:bg-teal-800 text-white rounded-xl shadow-sm disabled:opacity-70"
             >
-              <FileDown className="h-4 w-4" /> تصدير PDF
+              {exporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileDown className="h-4 w-4" />} تصدير PDF
             </Button>
         </div>
       </div>
