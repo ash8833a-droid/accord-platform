@@ -9,7 +9,7 @@ import {
 import {
   CalendarRange, CheckCircle2, ClipboardList, HeartHandshake, Loader2,
   Wallet, TrendingUp, BarChart3, Scale, Target, RefreshCw, FileDown,
-  Banknote, HandCoins,
+  Banknote, HandCoins, FileSpreadsheet,
 } from "lucide-react";
 import { exportDashboardPdf } from "@/lib/dashboard-pdf";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -63,6 +63,7 @@ function Inner() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [exportingCsv, setExportingCsv] = useState(false);
   const [data, setData] = useState<any>(null);
   const loadInFlight = useRef(false);
 
@@ -104,7 +105,7 @@ function Inner() {
     try {
       const [committeesRes, tasksRes, groomsRes, paymentsRes, familyRes] = await Promise.all([
         supabase.from("committees").select("id, name, type, budget_allocated, budget_spent"),
-        supabase.from("committee_tasks").select("id, status, committee_id, created_at, updated_at"),
+        supabase.from("committee_tasks").select("id, status, committee_id, created_at, updated_at, due_date"),
         supabase.from("grooms").select("id, status, created_at, wedding_date, groom_contribution"),
         supabase.from("payment_requests").select("id, amount, status, created_at"),
         supabase.from("family_contributions").select("id, amount, contribution_date"),
@@ -175,12 +176,15 @@ function Inner() {
 
     // Per-committee achievement (progress + radar)
     // Formula: (completed tasks / total tasks) * 100, with division-by-zero failsafe.
+    const todayIso = new Date().toISOString().slice(0, 10);
     const perCommittee = data.committees.map((c: any) => {
       const ct = k.tasksY.filter((t: any) => t.committee_id === c.id);
       const total = ct.length;
       const done = ct.filter((t: any) => t.status === "completed").length;
+      const overdue = ct.filter((t: any) => t.status !== "completed" && t.due_date && t.due_date < todayIso).length;
       const rate = total > 0 ? Math.round((done / total) * 100) : 0;
-      return { name: c.name, total, done, rate };
+      const savings = Math.max(0, Number(c.budget_allocated || 0) - Number(c.budget_spent || 0));
+      return { name: c.name, total, done, overdue, rate, savings };
     });
 
     // Year-over-year comparison (current year vs previous 2 years)
@@ -246,6 +250,47 @@ function Inner() {
     }
   }
 
+  async function handleExportCsv() {
+    if (!charts || exportingCsv) return;
+    setExportingCsv(true);
+    const tid = toast.loading("جاري تجهيز ملف البيانات...");
+    try {
+      // Defer to next tick so the spinner paints before any sync work.
+      await new Promise((r) => setTimeout(r, 0));
+      const headers = [
+        "اسم اللجنة",
+        "نسبة الإنجاز %",
+        "عدد المهام",
+        "المهام المتأخرة",
+        "إجمالي الوفورات الاقتصادية (ر.س)",
+      ];
+      const escape = (v: string | number) => {
+        const s = String(v ?? "");
+        return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+      };
+      const lines = [headers.join(",")];
+      charts.perCommittee.forEach((c: any) => {
+        lines.push([c.name, c.rate, c.total, c.overdue, c.savings].map(escape).join(","));
+      });
+      const csv = "\uFEFF" + lines.join("\n");
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `أداء-اللجان-${year === "all" ? "كل-السنوات" : year}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      toast.success("تم تجهيز ملف البيانات", { id: tid });
+    } catch (error) {
+      console.error("CSV export failed", error);
+      toast.error("تعذّر تجهيز ملف البيانات", { id: tid });
+    } finally {
+      setExportingCsv(false);
+    }
+  }
+
   if (loading || !data || !k || !charts) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
@@ -280,6 +325,16 @@ function Inner() {
             </div>
             <Button variant="outline" size="sm" onClick={() => void load({ silent: true })} disabled={refreshing} className="gap-2 bg-white border-0 shadow-sm text-slate-700 hover:bg-slate-50 disabled:opacity-70">
               {refreshing ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />} تحديث
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => void handleExportCsv()}
+              disabled={exportingCsv}
+              className="gap-2 bg-white border-0 shadow-sm text-slate-700 hover:bg-slate-50 disabled:opacity-70"
+              title="تصدير بيانات اللجان (CSV)"
+            >
+              {exportingCsv ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileSpreadsheet className="h-4 w-4" />} تصدير البيانات
             </Button>
             <Button
               size="sm"
