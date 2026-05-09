@@ -278,27 +278,16 @@ function Inner() {
                 </SelectContent>
               </Select>
             </div>
-            <Button variant="outline" size="sm" onClick={load} className="gap-2 bg-white border-0 shadow-sm text-slate-700 hover:bg-slate-50">
-              <RefreshCw className="h-4 w-4" /> تحديث
+            <Button variant="outline" size="sm" onClick={() => void load({ silent: true })} disabled={refreshing} className="gap-2 bg-white border-0 shadow-sm text-slate-700 hover:bg-slate-50 disabled:opacity-70">
+              {refreshing ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />} تحديث
             </Button>
             <Button
               size="sm"
-              onClick={() => exportDashboardPdf({
-                year,
-                kpis: {
-                  totalTasks: k.totalTasks,
-                  completionRate: k.completionRate,
-                  totalMarriages: k.totalMarriages,
-                  netBalance: k.netBalance,
-                },
-                finance: charts.finance,
-                committees: charts.perCommittee,
-                revenues: k.revenues,
-                expenses: k.expenses,
-              })}
-              className="gap-2 bg-teal-700 hover:bg-teal-800 text-white rounded-xl shadow-sm"
+              onClick={() => void handleExportDashboard()}
+              disabled={exporting}
+              className="gap-2 bg-teal-700 hover:bg-teal-800 text-white rounded-xl shadow-sm disabled:opacity-70"
             >
-              <FileDown className="h-4 w-4" /> تصدير PDF
+              {exporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileDown className="h-4 w-4" />} تصدير PDF
             </Button>
         </div>
       </div>
