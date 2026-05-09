@@ -520,6 +520,32 @@ function KpiCard({ label, value, icon: Icon, tone, overdue }: { label: string; v
   );
 }
 
+function ProgressRing({ value, size = 44 }: { value: number; size?: number }) {
+  const stroke = 4;
+  const r = (size - stroke) / 2;
+  const c = 2 * Math.PI * r;
+  const dash = (Math.max(0, Math.min(100, value)) / 100) * c;
+  return (
+    <div className="relative inline-flex items-center justify-center" style={{ width: size, height: size }}>
+      <svg width={size} height={size} className="-rotate-90">
+        <circle cx={size / 2} cy={size / 2} r={r} stroke="currentColor" strokeWidth={stroke} fill="none" className="text-slate-100" />
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={r}
+          stroke="currentColor"
+          strokeWidth={stroke}
+          strokeLinecap="round"
+          fill="none"
+          strokeDasharray={`${dash} ${c}`}
+          className="text-primary transition-[stroke-dasharray] duration-500"
+        />
+      </svg>
+      <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-slate-700 tabular-nums">{value}%</span>
+    </div>
+  );
+}
+
 function KanbanBoard({
   tasks, cmMap, canEdit, onMove, onReorder, onStep, onOpen, onDelete,
 }: {
