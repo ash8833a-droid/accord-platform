@@ -10,16 +10,9 @@ async function ensureAdminOrQuality(supabase: any, userId: string) {
   if (!isAdmin && !isQuality) throw new Error("صلاحيات غير كافية");
 }
 
-const PRIORITY_RANK: Record<string, number> = {
-  urgent: 1,
-  high: 2,
-  medium: 3,
-  low: 4,
-};
-
 /**
  * Send in-app reminders to the assignee and committee head for the
- * top-priority pending task in each committee.
+ * oldest pending task (FIFO) in each committee.
  */
 export const sendFirstTaskReminders = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -29,26 +22,18 @@ export const sendFirstTaskReminders = createServerFn({ method: "POST" })
 
     let q = supabaseAdmin
       .from("committee_tasks")
-      .select("id, title, committee_id, assigned_to, status, priority, sort_order, created_at, due_date")
+      .select("id, title, committee_id, assigned_to, status, sort_order, created_at, due_date")
       .neq("status", "completed");
     if (data.committee_ids?.length) q = q.in("committee_id", data.committee_ids);
     const { data: tasks, error } = await q;
     if (error) throw new Error(error.message);
 
-    // pick the topmost task per committee: by priority rank, then sort_order asc, then created_at desc
+    // FIFO: pick the oldest pending task per committee.
     const byCommittee = new Map<string, any>();
-    for (const t of tasks ?? []) {
+    for (const t of (tasks ?? []) as any[]) {
       const cur = byCommittee.get(t.committee_id);
-      if (!cur) { byCommittee.set(t.committee_id, t); continue; }
-      const a = PRIORITY_RANK[t.priority] ?? 9;
-      const b = PRIORITY_RANK[cur.priority] ?? 9;
-      if (a < b) byCommittee.set(t.committee_id, t);
-      else if (a === b) {
-        if ((t.sort_order ?? 0) < (cur.sort_order ?? 0)) byCommittee.set(t.committee_id, t);
-        else if ((t.sort_order ?? 0) === (cur.sort_order ?? 0)
-          && new Date(t.created_at).getTime() > new Date(cur.created_at).getTime()) {
-          byCommittee.set(t.committee_id, t);
-        }
+      if (!cur || new Date(t.created_at).getTime() < new Date(cur.created_at).getTime()) {
+        byCommittee.set(t.committee_id, t);
       }
     }
 
