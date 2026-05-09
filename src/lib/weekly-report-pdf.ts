@@ -176,7 +176,7 @@ export async function exportWeeklyReportPdf(args: Args): Promise<void> {
   document.body.appendChild(container);
 
   try {
-    await html2pdf()
+    await (html2pdf() as any)
       .from(container)
       .set({
         margin: [12, 10, 14, 10],
