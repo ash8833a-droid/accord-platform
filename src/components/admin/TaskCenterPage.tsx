@@ -281,9 +281,9 @@ function TaskCenterInner({ canEdit }: { canEdit: boolean }) {
   }
 
   return (
-    <div className="p-3 sm:p-4 lg:p-10 space-y-4 lg:space-y-8 bg-white lg:bg-[#f8fafc] dark:bg-background min-h-screen" dir="rtl">
+    <div className="p-3 sm:p-4 lg:p-10 space-y-4 lg:space-y-8 bg-slate-50 lg:bg-[#f8fafc] dark:bg-background min-h-screen overscroll-y-contain" dir="rtl">
       {/* ============ MOBILE: Sleek institutional toolbar (no hero, no clutter) ============ */}
-      <div className="lg:hidden">
+      <div className="lg:hidden -mx-3 sm:-mx-4 px-3 sm:px-4 sticky top-0 z-40 backdrop-blur-md bg-white/85 supports-[backdrop-filter]:bg-white/75 border-b border-slate-100/80 py-2.5">
         <div className="flex items-center gap-2">
           <div className="relative flex-1 min-w-0">
             <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
@@ -291,23 +291,23 @@ function TaskCenterInner({ canEdit }: { canEdit: boolean }) {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="ابحث..."
-              className="pr-10 h-11 rounded-2xl bg-slate-50 border-0 text-sm focus-visible:ring-2 focus-visible:ring-emerald-500/25"
+              className="pr-10 h-11 rounded-2xl bg-slate-100/80 border-0 text-sm focus-visible:ring-2 focus-visible:ring-emerald-500/25 transition-transform duration-150 active:scale-[0.99]"
             />
           </div>
           <button
             type="button"
             onClick={async () => { await load(); toast.success("تم التحديث"); }}
             aria-label="تحديث"
-            className="h-11 w-11 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-600 hover:bg-slate-100 active:scale-95 transition shrink-0"
+            className="h-11 w-11 rounded-2xl bg-slate-100/80 flex items-center justify-center text-slate-600 hover:bg-slate-200/70 active:scale-[0.94] transition-transform duration-150 shrink-0"
           >
             <RefreshCw className="h-4 w-4" />
           </button>
-          <div className="inline-flex rounded-2xl bg-slate-50 p-1 shrink-0">
+          <div className="inline-flex rounded-2xl bg-slate-100/80 p-1 shrink-0">
             <button
               type="button"
               onClick={() => setView("list")}
               aria-label="عرض قائمة"
-              className={`h-9 w-9 rounded-xl inline-flex items-center justify-center transition ${view === "list" ? "bg-white shadow-sm text-emerald-700" : "text-slate-500"}`}
+              className={`h-9 w-9 rounded-xl inline-flex items-center justify-center transition-transform duration-150 active:scale-[0.94] ${view === "list" ? "bg-white shadow-sm text-emerald-700" : "text-slate-500"}`}
             >
               <Rows3 className="h-4 w-4" />
             </button>
@@ -315,7 +315,7 @@ function TaskCenterInner({ canEdit }: { canEdit: boolean }) {
               type="button"
               onClick={() => setView("kanban")}
               aria-label="عرض كانبان"
-              className={`h-9 w-9 rounded-xl inline-flex items-center justify-center transition ${view === "kanban" ? "bg-white shadow-sm text-emerald-700" : "text-slate-500"}`}
+              className={`h-9 w-9 rounded-xl inline-flex items-center justify-center transition-transform duration-150 active:scale-[0.94] ${view === "kanban" ? "bg-white shadow-sm text-emerald-700" : "text-slate-500"}`}
             >
               <LayoutGrid className="h-4 w-4" />
             </button>
