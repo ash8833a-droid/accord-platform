@@ -375,23 +375,11 @@ function TaskCenterInner({ canEdit }: { canEdit: boolean }) {
             </Button>
           )}
           {activeCommittee && (
-            <>
-              <CommitteeMinutes
-                committeeId={activeCommittee.id}
-                committeeName={activeCommittee.name}
-                canManage={canEdit}
-              />
-              {canEdit && (
-                <Button
-                  size="sm"
-                  onClick={openMinutesUpload}
-                  className="gap-2 h-11 px-5 bg-gradient-to-r from-gold to-gold/80 text-gold-foreground hover:opacity-90 rounded-xl shadow-sm shrink-0"
-                  title={`رفع محضر اجتماع — ${activeCommittee.name}`}
-                >
-                  <Upload className="h-4 w-4" /> رفع محضر
-                </Button>
-              )}
-            </>
+            <CommitteeMinutes
+              committeeId={activeCommittee.id}
+              committeeName={activeCommittee.name}
+              canManage={canEdit}
+            />
           )}
         </div>
 
