@@ -13,8 +13,11 @@ import {
   StickyNote, IdCard, Camera, ClipboardList, Globe2, Crown, Upload, X, ImageIcon, FileImage,
   Pencil, Trash2, Share2, Copy, MessageCircle, Database, Search, Download,
   FileSpreadsheet, FileText, FileJson, Printer, Combine, Sparkles, ShieldCheck, CalendarPlus,
+  Images, FileLock2, CheckCircle2, CircleDashed,
 } from "lucide-react";
 import * as XLSX from "xlsx";
+import JSZip from "jszip";
+import { saveAs } from "file-saver";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
   DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
@@ -25,6 +28,7 @@ import { useBrand, brandLogoSrc, urlToDataUri } from "@/lib/brand";
 import { supabase as sb } from "@/integrations/supabase/client";
 import { useAppSetting } from "@/hooks/use-app-setting";
 import { useAuth } from "@/lib/auth";
+import { usePageAccess } from "@/hooks/use-page-access";
 
 const REGISTER_LINK_KEY = "groom_registration_url";
 const DEFAULT_REGISTRATION_URL = "https://lajnat-zawaj.org";
@@ -70,6 +74,9 @@ const STATUS_BADGE: Record<string, { label: string; cls: string }> = {
 export function GroomsPage() {
   const { hasRole } = useAuth();
   const isAdmin = hasRole("admin");
+  const { canEdit: canManageGrooms } = usePageAccess("grooms");
+  const [zipBusy, setZipBusy] = useState<null | "photos" | "ids">(null);
+  const [zipProgress, setZipProgress] = useState(0);
   const [merging, setMerging] = useState(false);
   const [grooms, setGrooms] = useState<Groom[]>([]);
   const [open, setOpen] = useState(false);
@@ -390,6 +397,65 @@ export function GroomsPage() {
     else toast.error("تعذّر تنزيل الملفات");
   };
 
+  const bulkExportFiles = async (kind: "photos" | "ids") => {
+    if (!canManageGrooms) {
+      toast.error("هذه العملية مخصّصة لإدارة اللجنة الإعلامية");
+      return;
+    }
+    const field = kind === "photos" ? "photo_url" : "national_id_url";
+    const targets = visibleGrooms
+      .map((g) => ({ g, path: (g as any)[field] as string | null }))
+      .filter((x) => !!x.path) as Array<{ g: Groom; path: string }>;
+    if (targets.length === 0) {
+      toast.info(kind === "photos" ? "لا توجد صور مرفوعة في القائمة الحالية" : "لا توجد هويات مرفوعة في القائمة الحالية");
+      return;
+    }
+    setZipBusy(kind);
+    setZipProgress(0);
+    const tid = toast.loading(
+      kind === "photos"
+        ? `جارٍ تجهيز ${targets.length} صورة في ملف مضغوط...`
+        : `جارٍ تجهيز ${targets.length} هوية في ملف آمن...`,
+    );
+    try {
+      const zip = new JSZip();
+      const folder = zip.folder(kind === "photos" ? "صور_العرسان" : "هويات_العرسان")!;
+      const used = new Set<string>();
+      let ok = 0;
+      for (let i = 0; i < targets.length; i++) {
+        const { g, path } = targets[i];
+        try {
+          const { data, error } = await sb.storage.from("groom-docs").download(path);
+          if (error || !data) throw error ?? new Error("download failed");
+          const ext = ((path.split(".").pop() || "bin").split("?")[0] || "bin").toLowerCase();
+          const safe = (g.full_name || `groom-${i + 1}`).replace(/[\\/:*?"<>|]/g, "_").trim();
+          let name = `${safe}.${ext}`;
+          let n = 2;
+          while (used.has(name)) name = `${safe}-${n++}.${ext}`;
+          used.add(name);
+          folder.file(name, await data.arrayBuffer());
+          ok++;
+        } catch (err) {
+          console.error("zip add", path, err);
+        }
+        setZipProgress(Math.round(((i + 1) / targets.length) * 100));
+      }
+      if (ok === 0) throw new Error("لم يتم تنزيل أي ملف");
+      const blob = await zip.generateAsync({ type: "blob", compression: "DEFLATE" });
+      const fileName =
+        kind === "photos" ? "صور_العرسان_الزواج_الجماعي.zip" : "هويات_العرسان_الزواج_الجماعي.zip";
+      saveAs(blob, fileName);
+      toast.dismiss(tid);
+      toast.success(`تم تجهيز ${ok} ملف داخل ${fileName}`);
+    } catch (err: any) {
+      toast.dismiss(tid);
+      toast.error("تعذّر إنشاء الملف المضغوط", { description: err?.message });
+    } finally {
+      setZipBusy(null);
+      setZipProgress(0);
+    }
+  };
+
   const stats = useMemo(() => {
     const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
     return {
@@ -438,6 +504,30 @@ export function GroomsPage() {
           </Button>
         )}
         <GroomsDatabaseDialog grooms={grooms} />
+        {canManageGrooms && (
+          <>
+            <Button
+              variant="outline"
+              onClick={() => bulkExportFiles("photos")}
+              disabled={zipBusy !== null}
+              className="gap-1.5 border-[#0D7C66]/40 text-[#0D7C66] hover:bg-[#0D7C66]/10"
+              title="تنزيل جميع الصور الشخصية في ملف مضغوط"
+            >
+              <Images className="h-4 w-4" />
+              {zipBusy === "photos" ? `جارٍ التحضير ${zipProgress}%` : "تنزيل الصور (ZIP)"}
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => bulkExportFiles("ids")}
+              disabled={zipBusy !== null}
+              className="gap-1.5 border-slate-300 text-slate-700 hover:bg-slate-100"
+              title="تنزيل جميع الهويات في ملف مضغوط آمن"
+            >
+              <FileLock2 className="h-4 w-4" />
+              {zipBusy === "ids" ? `جارٍ التحضير ${zipProgress}%` : "تنزيل الهويات (ZIP)"}
+            </Button>
+          </>
+        )}
         <ShareRegistrationLink url={registrationUrl} />
         <QuickWhatsAppShare url={registrationUrl} />
         <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) resetForm(); }}>
@@ -654,6 +744,7 @@ export function GroomsPage() {
                 <th className="px-4 py-3 font-medium">الفرع</th>
                 <th className="px-4 py-3 font-medium">الجوال</th>
                 <th className="px-4 py-3 font-medium">الحالة</th>
+                <th className="px-4 py-3 font-medium">الجاهزية الإعلامية</th>
                 <th className="px-4 py-3 font-medium">المستندات والطلبات</th>
                 <th className="px-4 py-3 font-medium">إجراء</th>
               </tr>
@@ -667,6 +758,26 @@ export function GroomsPage() {
                     <td className="px-4 py-3">{g.family_branch}</td>
                     <td className="px-4 py-3 text-muted-foreground" dir="ltr">{g.phone}</td>
                     <td className="px-4 py-3"><Badge className={b.cls}>{b.label}</Badge></td>
+                    <td className="px-4 py-3">
+                      {(() => {
+                        const hasPhoto = !!(g as any).photo_url;
+                        const hasId = !!(g as any).national_id_url;
+                        const ready = hasPhoto && hasId;
+                        return (
+                          <span
+                            className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium ${
+                              ready
+                                ? "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200"
+                                : "bg-slate-50 text-slate-600 ring-1 ring-slate-200"
+                            }`}
+                            title={`الصورة: ${hasPhoto ? "✓" : "—"} · الهوية: ${hasId ? "✓" : "—"}`}
+                          >
+                            {ready ? <CheckCircle2 className="h-3.5 w-3.5" /> : <CircleDashed className="h-3.5 w-3.5" />}
+                            {ready ? "جاهز" : "ناقص"}
+                          </span>
+                        );
+                      })()}
+                    </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2 flex-wrap">
                         {(g.status === "approved" || g.status === "completed") ? (
@@ -732,7 +843,7 @@ export function GroomsPage() {
                 );
               })}
               {visibleGrooms.length === 0 && (
-                <tr><td colSpan={8} className="text-center py-12 text-muted-foreground">
+                <tr><td colSpan={7} className="text-center py-12 text-muted-foreground">
                   {grooms.length === 0 ? "لم يُسجّل أي عريس بعد." : "لا توجد نتائج مطابقة للبحث أو الفلتر الحالي."}
                 </td></tr>
               )}
