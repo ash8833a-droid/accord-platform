@@ -331,6 +331,15 @@ function TaskCenterInner({ canEdit }: { canEdit: boolean }) {
           </div>
         </div>
       </div>
+      {activeCommittee && (
+        <div className="lg:hidden flex justify-end -mt-1">
+          <CommitteeMinutes
+            committeeId={activeCommittee.id}
+            committeeName={activeCommittee.name}
+            canManage={canEdit}
+          />
+        </div>
+      )}
 
       {/* ============ DESKTOP: ultra-minimal header + board ============ */}
       <div className="hidden lg:block space-y-8">
