@@ -3,6 +3,7 @@ import "drag-drop-touch";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { committeeByType } from "@/lib/committees";
+import { resolveActiveCommitteeId } from "@/lib/active-committee";
 import { PageGate } from "@/components/PageGate";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
