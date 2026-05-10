@@ -65,6 +65,10 @@ function AppLayout() {
     if (isStandardMember) {
       // Consolidated: regular members work from the Task Center (auto-filtered to their committee) + Idea Bank.
       const allowed: string[] = ["/ideas", "/admin/tasks"];
+      // Media committee members get full access to the Grooms Registry.
+      if (myCommitteeType === "media") {
+        allowed.push("/grooms");
+      }
       const ok = allowed.some((p) => path === p || path.startsWith(p + "/"));
       if (!ok) {
         nav({ to: "/admin/tasks" });
