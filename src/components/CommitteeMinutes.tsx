@@ -302,465 +302,252 @@ export function CommitteeMinutes({ committeeId, committeeName, canManage }: Prop
     ref_number?: string | null;
   }): string => {
     // ============================================================
-    // ADVANCED BRANDED PDF — محضر اجتماع رسمي
-    // الهوية البصرية الكاملة + باترن مائي خفيف + شبكة احترافية
-    // ألوان: Dark Emerald Teal #0D7C66 — ذهبي #B89150 — رمادي #475569
-    // طباعة A4 بهوامش 20mm وعدم كسر صفوف الجداول
+    // محضر اجتماع — هوية اللجنة، عربي بالكامل، بدون أي نص إنجليزي
+    // البنية المطلوبة:
+    //   1) جدول علوي: اللجنة | التاريخ | اليوم | المكان
+    //   2) عنوان "المحاور" + جدول (تسلسل | المحور)
+    //   3) عنوان "التوصيات" + جدول (تسلسل | التوصية)
+    //   4) عنوان "الحضور" + جدول (تسلسل | الاسم | التوقيع)
+    // باترن خلفي خفيف موحد مع الصفحة الرئيسية (نقاط).
     // ============================================================
-    const TEAL        = "#0D7C66";   // primary — Dark Emerald Teal
-    const TEAL_DEEP   = "#0a604f";   // hover/border deep
-    const TEAL_SOFT   = "#E8F3F0";   // section header tint
-    const GOLD        = "#B89150";   // secondary accent
-    const GOLD_SOFT   = "#FBF4E2";   // gold tint
-    const INK_900     = "#0F172A";   // body
-    const INK_700     = "#334155";
-    const INK_500     = "#64748B";
-    const INK_300     = "#CBD5E1";
-    const HAIRLINE    = "#CBD5E1";
-    const ROW_ALT     = "#F8FAF9";
+    const TEAL      = brand.primary_color || "#1B4F58";
+    const TEAL_DEEP = "#0E3A42";
+    const TEAL_SOFT = "#EAF1F2";
+    const GOLD      = brand.gold_color || "#C4A25C";
+    const INK_900   = "#0F172A";
+    const INK_700   = "#334155";
+    const INK_500   = "#64748B";
+    const INK_300   = "#CBD5E1";
+    const ROW_ALT   = "#F8FAF9";
 
     const dateLong = m.meeting_date
       ? new Date(m.meeting_date).toLocaleDateString("ar-SA-u-ca-gregory", { year: "numeric", month: "long", day: "numeric" })
       : "";
-    const hijri = m.meeting_date
-      ? new Date(m.meeting_date).toLocaleDateString("ar-SA-u-ca-islamic-umalqura", { year: "numeric", month: "long", day: "numeric" })
-      : "";
     const weekday = m.meeting_date
       ? new Date(m.meeting_date).toLocaleDateString("ar-SA-u-ca-gregory", { weekday: "long" })
       : "";
-    const timeStr = [m.start_time, m.end_time].filter(Boolean).join(" – ");
-    const issueDate = new Date().toLocaleDateString("ar-SA-u-ca-gregory");
     const logo = brandLogoSrc(brand);
 
-    // Reference number + meeting number (derived from ref tail digits)
-    const yearPart = (m.meeting_date ?? new Date().toISOString().slice(0, 10)).slice(0, 10).replace(/-/g, "");
-    const cmtInitials = (committeeName || "LJN").split(/\s+/).map((w) => w.charAt(0)).join("").slice(0, 3).toUpperCase() || "LJN";
-    const refNumber = m.ref_number || `MOM-${cmtInitials}-${yearPart}`;
-    const meetingNoNumeric = (() => {
-      const tail = refNumber.match(/(\d{1,4})$/);
-      const n = tail ? parseInt(tail[1], 10) % 1000 : (parseInt(yearPart.slice(-3), 10) || 1);
-      return n || 1;
-    })();
-
     const dash = "—";
-    const cellOrDash = (v: string | null | undefined) => (v && v.trim()) ? escapeHtml(v) : `<span class="dash">${dash}</span>`;
     const arDigits = (n: number): string => String(n).replace(/\d/g, (d) => "٠١٢٣٤٥٦٧٨٩"[+d]);
 
-    // Decisions: parse "text | المكلف | الموعد" if author used the convention,
-    // otherwise show the full text in the first column and leave the others blank.
-    const parseDecision = (raw: string): { text: string; owner: string; due: string } => {
-      const parts = raw.split(/\s*[|｜‖]\s*/).map((s) => s.trim()).filter(Boolean);
-      return {
-        text: parts[0] ?? raw.trim(),
-        owner: parts[1] ?? "",
-        due: parts[2] ?? "",
-      };
-    };
-    const decisionRows = (() => {
-      const list = m.recommendations.length ? m.recommendations : [];
-      const padded = list.length < 3 ? [...list, ...Array(3 - list.length).fill("")] : list;
-      return padded.map((raw, i) => {
-        const d = raw ? parseDecision(raw) : { text: "", owner: "", due: "" };
-        return `
-        <tr>
-          <td class="n">${arDigits(i + 1)}</td>
-          <td class="dec-text">${d.text ? `<b>${escapeHtml(d.text)}</b>` : ""}</td>
-          <td class="dec-owner">${d.owner ? escapeHtml(d.owner) : ""}</td>
-          <td class="dec-due">${d.due ? escapeHtml(d.due) : ""}</td>
-        </tr>`;
-      }).join("");
-    })();
+    // Strip any side-tag ("Name | غائب") so attendance shows clean names only.
+    const cleanName = (raw: string) => raw.split(/\s*[|｜]\s*/)[0].trim();
 
-    // Attendees grid (cards) with status indicator. Convention:
-    //   "Name"            -> حاضر (default)
-    //   "Name | غائب"     -> غائب
-    //   "Name | معتذر"    -> معتذر
-    const parseAttendee = (raw: string): { name: string; status: "present" | "absent" | "excused" } => {
-      const [n, sRaw = ""] = raw.split(/\s*[|｜]\s*/);
-      const s = sRaw.trim();
-      if (/غائب/.test(s)) return { name: n.trim(), status: "absent" };
-      if (/معتذر|اعتذر/.test(s)) return { name: n.trim(), status: "excused" };
-      return { name: n.trim(), status: "present" };
-    };
-    const STATUS_LABEL = { present: "حاضر", absent: "غائب", excused: "معتذر" } as const;
-    const attendeeCards = (() => {
-      if (m.attendees.length === 0) {
-        return `<div class="grid-empty">— لا توجد بيانات حضور مسجَّلة —</div>`;
-      }
-      return `<div class="att-grid">${m.attendees.map((raw, i) => {
-        const a = parseAttendee(raw);
-        return `
-        <div class="att-card status-${a.status}">
-          <span class="att-num">${arDigits(i + 1)}</span>
-          <span class="att-name">${escapeHtml(a.name)}</span>
-          <span class="att-pill">${STATUS_LABEL[a.status]}</span>
-        </div>`;
-      }).join("")}</div>`;
-    })();
-
-    // QR placeholder — encodes the verification URL (ref number)
-    const qrPayload = encodeURIComponent(`MINUTES://${refNumber}`);
-    const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&margin=0&data=${qrPayload}`;
-
-    // Subtle decorative pattern (Najiz-style dots) used as repeating watermark.
+    // باترن النقاط — مطابق لروح DotsPattern في الصفحة الرئيسية.
+    const patternColor = encodeURIComponent(TEAL).replace(/%23/, "%23");
     const patternSvg =
-      `<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'>` +
-        `<g fill='%230D7C66'>` +
-          `<circle cx='10' cy='10' r='1.6'/><circle cx='40' cy='10' r='1.6'/><circle cx='70' cy='10' r='1.6'/><circle cx='100' cy='10' r='1.6'/>` +
-          `<circle cx='25' cy='40' r='1.6'/><circle cx='55' cy='40' r='1.6'/><circle cx='85' cy='40' r='1.6'/><circle cx='115' cy='40' r='1.6'/>` +
-          `<circle cx='10' cy='70' r='1.6'/><circle cx='40' cy='70' r='1.6'/><circle cx='70' cy='70' r='1.6'/><circle cx='100' cy='70' r='1.6'/>` +
-          `<circle cx='25' cy='100' r='1.6'/><circle cx='55' cy='100' r='1.6'/><circle cx='85' cy='100' r='1.6'/><circle cx='115' cy='100' r='1.6'/>` +
-          `<path d='M0 55 L120 55' stroke='%230D7C66' stroke-width='0.4' fill='none' opacity='0.4'/>` +
+      `<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'>` +
+        `<g fill='${patternColor}'>` +
+          `<circle cx='6'  cy='6'  r='1.4'/>` +
+          `<circle cx='30' cy='6'  r='1.4'/>` +
+          `<circle cx='18' cy='24' r='1.4'/>` +
+          `<circle cx='42' cy='24' r='1.4'/>` +
+          `<circle cx='6'  cy='42' r='1.4'/>` +
+          `<circle cx='30' cy='42' r='1.4'/>` +
         `</g>` +
       `</svg>`;
     const patternUri = `url("data:image/svg+xml;utf8,${patternSvg}")`;
 
+    // صفوف جدول المحاور
+    const agendaRows = (m.agenda_items.length === 0
+      ? `<tr><td class="n">${dash}</td><td class="empty">— لا توجد محاور مسجَّلة —</td></tr>`
+      : m.agenda_items.map((x, i) => `
+          <tr>
+            <td class="n">${arDigits(i + 1)}</td>
+            <td>${escapeHtml(x)}</td>
+          </tr>`).join("")
+    );
+
+    // صفوف جدول التوصيات (نأخذ النص الأول قبل أي فاصل "|")
+    const recRows = (m.recommendations.length === 0
+      ? `<tr><td class="n">${dash}</td><td class="empty">— لا توجد توصيات مسجَّلة —</td></tr>`
+      : m.recommendations.map((raw, i) => {
+          const text = raw.split(/\s*[|｜‖]\s*/)[0].trim() || raw;
+          return `
+          <tr>
+            <td class="n">${arDigits(i + 1)}</td>
+            <td>${escapeHtml(text)}</td>
+          </tr>`;
+        }).join("")
+    );
+
+    // صفوف جدول الحضور (تسلسل | الاسم | التوقيع)
+    const attRows = (m.attendees.length === 0
+      ? `<tr><td class="n">${dash}</td><td class="empty">— لا توجد بيانات حضور مسجَّلة —</td><td></td></tr>`
+      : m.attendees.map((raw, i) => `
+          <tr>
+            <td class="n">${arDigits(i + 1)}</td>
+            <td class="att-name">${escapeHtml(cleanName(raw))}</td>
+            <td class="sig-cell"></td>
+          </tr>`).join("")
+    );
+
     return `
 <style>
-  @page { size: A4; margin: 20mm 20mm 20mm 20mm; }
+  @page { size: A4; margin: 18mm 16mm 18mm 16mm; }
   * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; }
   body {
-    font-family: 'Amiri', 'Tajawal', 'Cairo', 'Segoe UI', Tahoma, sans-serif;
+    font-family: 'Tajawal', 'Cairo', 'Amiri', 'Segoe UI', Tahoma, sans-serif;
     color: ${INK_900};
     direction: rtl;
     font-size: 11pt;
-    line-height: 1.6;
+    line-height: 1.65;
     background: #fff;
     -webkit-font-smoothing: antialiased;
   }
   .doc { position: relative; max-width: 820px; margin: 0 auto; }
 
-  /* ===== Approved Pattern watermark — ultra subtle ===== */
+  /* ===== الباترن المعتمد — نقاط خفيفة جداً ===== */
   .pattern {
     position: fixed; inset: 0; z-index: 0; pointer-events: none;
     background-image: ${patternUri};
     background-repeat: repeat;
-    opacity: 0.03;
+    opacity: 0.05;
   }
   .doc > * { position: relative; z-index: 1; }
 
-  /* ===== Triple-section official header ===== */
-  .official-header {
-    display: grid; grid-template-columns: 1fr 1.1fr 1fr;
-    gap: 16px; align-items: stretch;
-    padding: 14px 0 14px;
-    border-top: 3px solid ${TEAL};
-    border-bottom: 1.5px solid ${TEAL};
-    background: linear-gradient(180deg, ${TEAL_SOFT}55 0%, #fff 100%);
+  /* ===== ترويسة بالشعار واسم اللجنة ===== */
+  .brand-bar {
+    display: flex; align-items: center; gap: 14px;
+    padding: 6px 0 12px;
+    border-bottom: 2px solid ${TEAL};
+    margin-bottom: 14px;
     page-break-inside: avoid;
   }
-  .oh-right { display: flex; align-items: center; gap: 12px; padding: 0 14px; }
-  .oh-right img { width: 60px; height: 60px; object-fit: contain; flex-shrink: 0; }
-  .oh-right .org-name { font-size: 12pt; color: ${TEAL}; font-weight: 800; line-height: 1.35; }
-  .oh-right .org-sub { font-size: 9pt; color: ${INK_500}; margin-top: 3px; font-weight: 600; }
-  .oh-center { text-align: center; padding: 4px 8px; border-inline: 1px dashed ${INK_300}; }
-  .oh-center .kicker {
-    font-size: 7.5pt; letter-spacing: 4px; color: ${GOLD};
-    font-weight: 800; text-transform: uppercase;
-  }
-  .oh-center h1 {
-    margin: 4px 0 6px; font-size: 19pt; color: ${TEAL_DEEP}; font-weight: 900;
-    letter-spacing: .5px;
-  }
-  .oh-center .meet-no {
-    display: inline-block; padding: 3px 14px; border-radius: 999px;
+  .brand-bar img { width: 56px; height: 56px; object-fit: contain; }
+  .brand-bar .org-name { font-size: 13pt; color: ${TEAL}; font-weight: 800; line-height: 1.3; }
+  .brand-bar .org-sub { font-size: 9.5pt; color: ${INK_500}; margin-top: 3px; font-weight: 600; }
+  .brand-bar .doc-title {
+    margin-inline-start: auto; text-align: center;
     background: ${TEAL}; color: #fff;
-    font-weight: 800; font-size: 10.5pt; letter-spacing: .3px;
-  }
-  .oh-left { padding: 0 14px; font-size: 9.5pt; color: ${INK_700}; line-height: 1.85; }
-  .oh-left .row { display: flex; gap: 8px; align-items: baseline; }
-  .oh-left .row b { color: ${TEAL}; font-weight: 800; min-width: 56px; }
-  .oh-left .row span { color: ${INK_900}; font-weight: 600; }
-
-  .ref-strip {
-    display: flex; justify-content: space-between; align-items: center;
-    margin: 10px 0 16px; padding: 6px 12px;
-    background: ${GOLD_SOFT}; border-right: 3px solid ${GOLD};
-    font-size: 9pt; color: ${INK_700};
-  }
-  .ref-strip b { color: ${TEAL_DEEP}; font-weight: 800; }
-
-  /* ===== Subject block ===== */
-  .subject-block {
-    border: 1px solid ${INK_300}; border-right: 4px solid ${TEAL};
-    background: #fff; padding: 10px 14px; margin-bottom: 14px;
-    page-break-inside: avoid;
-  }
-  .subject-block .lbl { font-size: 8.5pt; color: ${TEAL}; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; }
-  .subject-block .val { font-size: 13pt; color: ${INK_900}; font-weight: 800; margin-top: 3px; }
-
-  .dash { color: ${INK_300}; font-weight: 500; }
-
-  /* ===== Section heading ===== */
-  .sec {
-    margin: 14px 0 10px;
-    page-break-after: avoid;
-    page-break-inside: avoid;
-    display: flex; align-items: center; gap: 10px;
-  }
-  .sec .icon {
-    width: 28px; height: 28px; border-radius: 6px;
-    background: ${TEAL}; color: #fff;
-    display: flex; align-items: center; justify-content: center;
-    font-weight: 900; font-size: 12pt;
-  }
-  .sec h2 {
-    margin: 0; font-size: 13pt; color: ${TEAL_DEEP}; font-weight: 800;
-    flex: 1;
-    border-bottom: 1.5px solid ${TEAL};
-    padding-bottom: 4px;
+    padding: 8px 22px; border-radius: 6px;
+    font-size: 13pt; font-weight: 800; letter-spacing: .3px;
   }
 
-  /* ===== Agenda — numbered list with teal side border ===== */
-  .agenda { list-style: none; padding: 0; margin: 0; }
-  .agenda li {
-    background: #fff;
-    border: 1px solid ${INK_300};
-    border-right: 4px solid ${TEAL};
-    padding: 9px 14px 9px 14px;
-    margin-bottom: 6px;
-    font-size: 11.5pt; color: ${INK_900}; line-height: 1.7;
-    display: flex; align-items: baseline; gap: 12px;
-    page-break-inside: avoid;
-  }
-  .agenda li .num {
-    color: ${TEAL}; font-weight: 900; font-size: 13pt; min-width: 26px;
-    font-feature-settings: "tnum";
-  }
-  .agenda-empty {
-    padding: 16px; color: ${INK_500}; text-align: center; font-size: 11pt;
-    border: 1px dashed ${INK_300}; border-radius: 4px;
-  }
-
-  /* ===== Decisions — high-contrast table ===== */
-  table.decisions {
+  /* ===== جدول معلومات الاجتماع ===== */
+  table.meta {
     width: 100%; border-collapse: collapse; table-layout: fixed;
     border: 1px solid ${TEAL};
-  }
-  table.decisions thead th {
-    background: ${TEAL}; color: #fff;
-    padding: 9px 10px; font-size: 10.5pt; font-weight: 800;
-    border: 1px solid ${TEAL}; text-align: center; letter-spacing: .3px;
-  }
-  table.decisions tbody td {
-    padding: 10px 12px; border: 1px solid ${INK_300};
-    font-size: 11pt; vertical-align: top;
+    margin-bottom: 18px;
     page-break-inside: avoid;
   }
-  table.decisions tbody tr { page-break-inside: avoid; }
-  table.decisions tbody tr:nth-child(even) td { background: ${ROW_ALT}; }
-  table.decisions td.n {
-    width: 38px; text-align: center;
+  table.meta th {
+    background: ${TEAL_SOFT}; color: ${TEAL_DEEP};
+    padding: 8px 10px; font-size: 10pt; font-weight: 800;
+    border: 1px solid ${INK_300}; text-align: center; width: 20%;
+  }
+  table.meta td {
+    padding: 9px 10px; font-size: 11pt; color: ${INK_900};
+    border: 1px solid ${INK_300}; text-align: center; font-weight: 600;
+  }
+
+  /* ===== عناوين الأقسام ===== */
+  h2.sec-title {
+    margin: 18px 0 8px; padding: 6px 12px;
+    color: #fff; background: ${TEAL};
+    font-size: 12.5pt; font-weight: 800; letter-spacing: .3px;
+    border-right: 5px solid ${GOLD};
+    page-break-after: avoid;
+  }
+
+  /* ===== جداول المحتوى ===== */
+  table.content {
+    width: 100%; border-collapse: collapse; table-layout: fixed;
+    border: 1px solid ${INK_300};
+  }
+  table.content thead th {
+    background: ${TEAL}; color: #fff;
+    padding: 8px 10px; font-size: 10.5pt; font-weight: 800;
+    border: 1px solid ${TEAL}; text-align: center;
+  }
+  table.content tbody td {
+    padding: 9px 12px; border: 1px solid ${INK_300};
+    font-size: 11pt; vertical-align: middle;
+    text-align: right; color: ${INK_900};
+    page-break-inside: avoid;
+  }
+  table.content tbody tr { page-break-inside: avoid; }
+  table.content tbody tr:nth-child(even) td { background: ${ROW_ALT}; }
+  table.content td.n {
+    width: 50px; text-align: center;
     background: ${TEAL_SOFT}; color: ${TEAL_DEEP}; font-weight: 800;
     font-feature-settings: "tnum";
   }
-  table.decisions td.dec-text { color: ${INK_900}; line-height: 1.65; }
-  table.decisions td.dec-text b { color: ${INK_900}; font-weight: 800; }
-  table.decisions td.dec-owner { width: 22%; color: ${INK_700}; font-weight: 700; text-align: center; }
-  table.decisions td.dec-due { width: 18%; color: ${GOLD}; font-weight: 800; text-align: center; }
+  table.content td.empty { color: ${INK_500}; text-align: center; }
+  table.content td.att-name { font-weight: 700; }
+  table.content td.sig-cell { width: 35%; height: 36px; background: #fff; }
 
-  /* ===== Attendees professional grid with status indicators ===== */
-  .att-grid {
-    display: grid; grid-template-columns: repeat(2, 1fr);
-    gap: 6px;
-  }
-  .att-card {
-    display: grid; grid-template-columns: 28px 1fr auto;
-    align-items: center; gap: 10px;
-    background: #fff; border: 1px solid ${INK_300};
-    border-right: 4px solid ${INK_300};
-    padding: 7px 10px; font-size: 11pt;
-    page-break-inside: avoid;
-  }
-  .att-card.status-present { border-right-color: ${TEAL}; }
-  .att-card.status-absent  { border-right-color: #B91C1C; }
-  .att-card.status-excused { border-right-color: ${GOLD}; }
-  .att-card .att-num {
-    width: 26px; height: 26px; border-radius: 50%;
-    background: ${TEAL_SOFT}; color: ${TEAL_DEEP};
-    display: flex; align-items: center; justify-content: center;
-    font-weight: 800; font-size: 10pt;
-  }
-  .att-card .att-name { color: ${INK_900}; font-weight: 700; }
-  .att-card .att-pill {
-    font-size: 8.5pt; font-weight: 800; padding: 3px 10px;
-    border-radius: 999px; letter-spacing: .3px;
-  }
-  .att-card.status-present .att-pill { background: ${TEAL_SOFT}; color: ${TEAL_DEEP}; }
-  .att-card.status-absent .att-pill  { background: #FEE2E2; color: #991B1B; }
-  .att-card.status-excused .att-pill { background: ${GOLD_SOFT}; color: ${GOLD}; }
-  .grid-empty {
-    padding: 16px; color: ${INK_500}; text-align: center; font-size: 11pt;
-    border: 1px dashed ${INK_300}; border-radius: 4px;
-  }
-
-  /* ===== Notes ===== */
-  .notes-body {
-    padding: 12px 14px; color: ${INK_900};
-    font-size: 11pt; line-height: 1.85; white-space: pre-wrap;
-    background: #fff; border: 1px solid ${INK_300}; border-right: 4px solid ${GOLD};
-    page-break-inside: avoid;
-  }
-
-  /* ===== Approval / signatures + QR ===== */
-  .approval {
-    margin-top: 22px;
-    display: grid; grid-template-columns: repeat(3, 1fr) 130px;
-    gap: 12px;
-    page-break-inside: avoid;
-  }
-  .sig {
-    border: 1px solid ${INK_300}; background: #fff;
-    page-break-inside: avoid;
-  }
-  .sig .role {
-    background: ${TEAL}; color: #fff;
-    text-align: center; font-weight: 800; font-size: 10pt;
-    padding: 8px 10px; letter-spacing: .4px;
-  }
-  .sig .body { padding: 14px 14px 16px; }
-  .sig .field { display: flex; align-items: baseline; gap: 8px; margin: 10px 0 0; font-size: 9pt; color: ${INK_500}; }
-  .sig .field .l { font-weight: 700; min-width: 50px; color: ${INK_700}; }
-  .sig .field .line { flex: 1; border-bottom: 1px dotted ${INK_300}; height: 14px; }
-  .sig .field .preset { flex: 1; border-bottom: 1px dotted ${INK_300}; padding: 0 4px 2px; color: ${INK_900}; font-weight: 700; }
-
-  .qr-block {
-    border: 1px solid ${INK_300}; background: #fff;
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    padding: 8px; gap: 6px;
-    page-break-inside: avoid;
-  }
-  .qr-block img { width: 100px; height: 100px; display: block; }
-  .qr-block .qr-cap { font-size: 7.5pt; color: ${INK_500}; text-align: center; line-height: 1.3; }
-  .qr-block .qr-cap b { color: ${TEAL_DEEP}; display: block; font-size: 8pt; font-weight: 800; }
-
-  /* ===== Footer ===== */
-  .foot {
-    margin-top: 18px; padding-top: 8px;
-    border-top: 1px solid ${INK_300};
-    display: flex; justify-content: space-between; align-items: center;
-    font-size: 8.5pt; color: ${INK_500};
-  }
-  .foot b { color: ${TEAL_DEEP}; font-weight: 800; }
-
-  /* ===== Print ===== */
   @media print {
     body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .official-header, .approval, .sig, .qr-block,
-    .agenda li, .att-card, table.decisions tr,
-    .subject-block, .notes-body { page-break-inside: avoid; }
-    .sec { break-after: avoid-page; }
+    .brand-bar, table.meta, table.content tr, h2.sec-title { page-break-inside: avoid; }
+    h2.sec-title { break-after: avoid-page; }
   }
 </style>
 
 <div class="doc">
   <div class="pattern" aria-hidden="true"></div>
 
-  <!-- ===== Triple-section institutional header ===== -->
-  <header class="official-header">
-    <div class="oh-right">
-      <img src="${logo}" alt="logo" />
-      <div>
-        <div class="org-name">${escapeHtml(brand.name || "لجنة الزواج الجماعي")}</div>
-        <div class="org-sub">${escapeHtml(brand.subtitle || "لقبيلة الهملة من قريش")}</div>
-      </div>
+  <!-- ترويسة الهوية -->
+  <header class="brand-bar">
+    <img src="${logo}" alt="" />
+    <div>
+      <div class="org-name">${escapeHtml(brand.name || "لجنة الزواج الجماعي")}</div>
+      <div class="org-sub">${escapeHtml(brand.subtitle || "")}</div>
     </div>
-    <div class="oh-center">
-      <div class="kicker">OFFICIAL MEETING MINUTES</div>
-      <h1>محضر اجتماع رسمي</h1>
-      <div class="meet-no">محضر رقم ${arDigits(meetingNoNumeric)}</div>
-    </div>
-    <div class="oh-left">
-      <div class="row"><b>التاريخ:</b><span>${dateLong || dash}</span></div>
-      <div class="row"><b>المكان:</b><span>${m.location ? escapeHtml(m.location) : dash}</span></div>
-      <div class="row"><b>البداية:</b><span>${m.start_time ? escapeHtml(m.start_time) : dash}</span></div>
-      <div class="row"><b>النهاية:</b><span>${m.end_time ? escapeHtml(m.end_time) : dash}</span></div>
-    </div>
+    <div class="doc-title">محضر اجتماع</div>
   </header>
 
-  <div class="ref-strip">
-    <span><b>المرجع:</b> ${escapeHtml(refNumber)}</span>
-    <span><b>اليوم:</b> ${weekday || dash} &nbsp;·&nbsp; <b>الموافق:</b> ${hijri || dash}</span>
-    <span><b>صدر في:</b> ${escapeHtml(issueDate)}</span>
-  </div>
-
-  <!-- ===== Subject ===== -->
-  ${m.title ? `
-  <div class="subject-block">
-    <div class="lbl">موضوع الاجتماع</div>
-    <div class="val">${escapeHtml(m.title)}</div>
-  </div>` : ""}
-
-  <!-- ===== Attendees professional grid ===== -->
-  <div class="sec"><span class="icon">👥</span><h2>الحضور والغياب</h2></div>
-  ${attendeeCards}
-
-  <!-- ===== Agenda numbered list ===== -->
-  <div class="sec"><span class="icon">📋</span><h2>محاور الاجتماع</h2></div>
-  ${m.agenda_items.length === 0
-    ? `<div class="agenda-empty">— لا توجد محاور مسجَّلة —</div>`
-    : `<ol class="agenda">${m.agenda_items.map((x, i) => `
-        <li><span class="num">${arDigits(i + 1)}.</span><span>${escapeHtml(x)}</span></li>`).join("")}</ol>`}
-
-  <!-- ===== Decisions table ===== -->
-  <div class="sec"><span class="icon">✓</span><h2>التوصيات والقرارات</h2></div>
-  <table class="decisions">
-    <colgroup>
-      <col style="width:38px"/><col/><col style="width:22%"/><col style="width:18%"/>
-    </colgroup>
+  <!-- جدول معلومات الاجتماع -->
+  <table class="meta">
     <thead>
       <tr>
-        <th>م</th>
-        <th>القرار / التوصية</th>
-        <th>المكلف</th>
-        <th>موعد التنفيذ</th>
+        <th>اللجنة</th>
+        <th>التاريخ</th>
+        <th>اليوم</th>
+        <th>المكان</th>
       </tr>
     </thead>
-    <tbody>${decisionRows}</tbody>
+    <tbody>
+      <tr>
+        <td>${escapeHtml(committeeName || dash)}</td>
+        <td>${dateLong || dash}</td>
+        <td>${weekday || dash}</td>
+        <td>${m.location ? escapeHtml(m.location) : dash}</td>
+      </tr>
+    </tbody>
   </table>
 
-  ${m.notes ? `
-  <div class="sec"><span class="icon">✎</span><h2>ملاحظات إضافية</h2></div>
-  <div class="notes-body">${escapeHtml(m.notes)}</div>` : ""}
+  <!-- المحاور -->
+  <h2 class="sec-title">المحاور</h2>
+  <table class="content">
+    <colgroup><col style="width:60px"/><col/></colgroup>
+    <thead>
+      <tr><th>التسلسل</th><th>المحور</th></tr>
+    </thead>
+    <tbody>${agendaRows}</tbody>
+  </table>
 
-  <!-- ===== Signatures + QR ===== -->
-  <div class="approval">
-    <div class="sig">
-      <div class="role">أمين السر / كاتب المحضر</div>
-      <div class="body">
-        <div class="field"><span class="l">الاسم</span><span class="preset">${escapeHtml(m.recorder_name || "")}</span></div>
-        <div class="field"><span class="l">التوقيع</span><span class="line"></span></div>
-        <div class="field"><span class="l">التاريخ</span><span class="line"></span></div>
-      </div>
-    </div>
-    <div class="sig">
-      <div class="role">رئيس اللجنة</div>
-      <div class="body">
-        <div class="field"><span class="l">الاسم</span><span class="line"></span></div>
-        <div class="field"><span class="l">التوقيع</span><span class="line"></span></div>
-        <div class="field"><span class="l">التاريخ</span><span class="line"></span></div>
-      </div>
-    </div>
-    <div class="sig">
-      <div class="role">الاعتماد النهائي</div>
-      <div class="body">
-        <div class="field"><span class="l">الاسم</span><span class="line"></span></div>
-        <div class="field"><span class="l">التوقيع</span><span class="line"></span></div>
-        <div class="field"><span class="l">التاريخ</span><span class="line"></span></div>
-      </div>
-    </div>
-    <div class="qr-block">
-      <img src="${qrSrc}" alt="QR" />
-      <div class="qr-cap"><b>التحقق الرقمي</b>${escapeHtml(refNumber)}</div>
-    </div>
-  </div>
+  <!-- التوصيات -->
+  <h2 class="sec-title">التوصيات</h2>
+  <table class="content">
+    <colgroup><col style="width:60px"/><col/></colgroup>
+    <thead>
+      <tr><th>التسلسل</th><th>التوصية</th></tr>
+    </thead>
+    <tbody>${recRows}</tbody>
+  </table>
 
-  <!-- ===== Footer ===== -->
-  <div class="foot">
-    <span><b>${escapeHtml(brand.name || "")}</b>${brand.subtitle ? " — " + escapeHtml(brand.subtitle) : ""}</span>
-    <span>وثيقة رسمية · ${escapeHtml(refNumber)}</span>
-  </div>
+  <!-- الحضور -->
+  <h2 class="sec-title">الحضور</h2>
+  <table class="content">
+    <colgroup><col style="width:60px"/><col/><col style="width:35%"/></colgroup>
+    <thead>
+      <tr><th>التسلسل</th><th>الاسم</th><th>التوقيع</th></tr>
+    </thead>
+    <tbody>${attRows}</tbody>
+  </table>
 </div>`;
   };
 
