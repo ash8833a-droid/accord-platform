@@ -3,6 +3,7 @@ import "drag-drop-touch";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { committeeByType } from "@/lib/committees";
+import { resolveActiveCommitteeId } from "@/lib/active-committee";
 import { PageGate } from "@/components/PageGate";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -128,17 +129,12 @@ function TaskCenterInner({ canEdit }: { canEdit: boolean }) {
 
   const cmMap = useMemo(() => new Map(committees.map((c) => [c.id, c])), [committees]);
 
-  // The committee currently being viewed (regular users are scoped to their own;
-  // privileged users use the filter). Used to show the "محاضر / رفع محضر" buttons.
-  // Show "محاضر" icon for every user, scoped to their committee:
-  // - non-privileged users → their assigned committee
-  // - privileged users → currently filtered committee, or their own if assigned
-  const activeCommitteeId =
-    !isPrivileged
-      ? committeeId
-      : committeeFilter !== "all"
-        ? committeeFilter
-        : committeeId ?? null;
+  // اللجنة النشطة لعرض أيقونة «المحاضر» — منطق منفصل لاختباره تلقائياً.
+  const activeCommitteeId = resolveActiveCommitteeId({
+    isPrivileged,
+    committeeId,
+    committeeFilter,
+  });
   const activeCommittee = activeCommitteeId ? cmMap.get(activeCommitteeId) ?? null : null;
 
   const openMinutesUpload = () => {
