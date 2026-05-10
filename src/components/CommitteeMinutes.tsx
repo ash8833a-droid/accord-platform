@@ -464,18 +464,17 @@ export function CommitteeMinutes({ committeeId, committeeName, canManage }: Prop
       <DialogTrigger asChild>
         <button
           type="button"
-          className="group relative inline-flex w-full sm:w-auto items-center gap-2.5 rounded-2xl border bg-card hover:bg-gold/5 hover:border-gold/40 px-4 py-3 shadow-sm hover:shadow-md transition-all"
+          className="group inline-flex h-9 items-center gap-1.5 rounded-md border border-gold/40 bg-gold/10 hover:bg-gold/20 px-3 text-xs font-bold text-gold-foreground shadow-sm transition"
           aria-label="محاضر الاجتماعات"
+          title="فتح محاضر الاجتماعات"
         >
-          <span className="h-10 w-10 rounded-xl bg-gradient-to-br from-gold/25 to-primary/15 text-gold-foreground flex items-center justify-center group-hover:from-gold group-hover:to-gold/80 transition shadow-sm">
-            <ClipboardList className="h-5 w-5" />
-          </span>
-          <span className="text-start">
-            <span className="block text-sm font-bold leading-tight">محاضر الاجتماعات</span>
-            <span className="block text-[11px] text-muted-foreground mt-0.5">
-              {items.length > 0 ? `${items.length} محضر · إنشاء وطباعة احترافية` : "أنشئ محضراً احترافياً بضغطة زر"}
+          <ClipboardList className="h-3.5 w-3.5" />
+          المحاضر
+          {items.length > 0 && (
+            <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] rounded-full bg-gold text-[10px] font-bold text-gold-foreground px-1">
+              {items.length}
             </span>
-          </span>
+          )}
         </button>
       </DialogTrigger>
 
