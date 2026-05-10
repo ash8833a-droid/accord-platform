@@ -13,8 +13,11 @@ import {
   StickyNote, IdCard, Camera, ClipboardList, Globe2, Crown, Upload, X, ImageIcon, FileImage,
   Pencil, Trash2, Share2, Copy, MessageCircle, Database, Search, Download,
   FileSpreadsheet, FileText, FileJson, Printer, Combine, Sparkles, ShieldCheck, CalendarPlus,
+  Images, FileLock2, CheckCircle2, CircleDashed,
 } from "lucide-react";
 import * as XLSX from "xlsx";
+import JSZip from "jszip";
+import { saveAs } from "file-saver";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
   DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
@@ -25,6 +28,7 @@ import { useBrand, brandLogoSrc, urlToDataUri } from "@/lib/brand";
 import { supabase as sb } from "@/integrations/supabase/client";
 import { useAppSetting } from "@/hooks/use-app-setting";
 import { useAuth } from "@/lib/auth";
+import { usePageAccess } from "@/hooks/use-page-access";
 
 const REGISTER_LINK_KEY = "groom_registration_url";
 const DEFAULT_REGISTRATION_URL = "https://lajnat-zawaj.org";
@@ -70,6 +74,9 @@ const STATUS_BADGE: Record<string, { label: string; cls: string }> = {
 export function GroomsPage() {
   const { hasRole } = useAuth();
   const isAdmin = hasRole("admin");
+  const { canEdit: canManageGrooms } = usePageAccess("grooms");
+  const [zipBusy, setZipBusy] = useState<null | "photos" | "ids">(null);
+  const [zipProgress, setZipProgress] = useState(0);
   const [merging, setMerging] = useState(false);
   const [grooms, setGrooms] = useState<Groom[]>([]);
   const [open, setOpen] = useState(false);
