@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import {
   History, UserPlus, CheckCircle2, AlertCircle, XCircle, Award, Loader2, User,
+  ShoppingCart, Users2, Sparkles,
 } from "lucide-react";
 
 interface AuditRow {
@@ -21,6 +22,9 @@ const EVENT_META: Record<string, { label: string; icon: any; tone: string }> = {
   rejected:           { label: "رفض الطلب",           icon: XCircle,     tone: "bg-rose-500/15 text-rose-700 border-rose-500/30" },
   completed:          { label: "اكتمال",              icon: Award,       tone: "bg-gold/20 text-gold-foreground border-gold/40" },
   status_changed:     { label: "تغيير الحالة",        icon: History,     tone: "bg-muted text-foreground border-border" },
+  routed_procurement: { label: "توجيه إلى لجنة المشتريات", icon: ShoppingCart, tone: "bg-orange-500/15 text-orange-700 border-orange-500/30" },
+  routed_reception:   { label: "توجيه إلى لجنة الاستقبال",  icon: Users2,       tone: "bg-pink-500/15 text-pink-700 border-pink-500/30" },
+  routed_programs:    { label: "توجيه إلى لجنة البرامج",    icon: Sparkles,     tone: "bg-violet-500/15 text-violet-700 border-violet-500/30" },
 };
 
 const fmt = (d: string) =>
