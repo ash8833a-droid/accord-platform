@@ -121,41 +121,62 @@ export type Database = {
       }
       committee_minutes: {
         Row: {
+          agenda_items: Json
+          attendees: Json
           committee_id: string
           created_at: string
           created_by: string | null
+          end_time: string | null
           file_size: number | null
           file_type: string | null
           file_url: string | null
           id: string
+          location: string | null
           meeting_date: string | null
           notes: string | null
+          recommendations: Json
+          recorder_name: string | null
+          start_time: string | null
           title: string
           updated_at: string
         }
         Insert: {
+          agenda_items?: Json
+          attendees?: Json
           committee_id: string
           created_at?: string
           created_by?: string | null
+          end_time?: string | null
           file_size?: number | null
           file_type?: string | null
           file_url?: string | null
           id?: string
+          location?: string | null
           meeting_date?: string | null
           notes?: string | null
+          recommendations?: Json
+          recorder_name?: string | null
+          start_time?: string | null
           title: string
           updated_at?: string
         }
         Update: {
+          agenda_items?: Json
+          attendees?: Json
           committee_id?: string
           created_at?: string
           created_by?: string | null
+          end_time?: string | null
           file_size?: number | null
           file_type?: string | null
           file_url?: string | null
           id?: string
+          location?: string | null
           meeting_date?: string | null
           notes?: string | null
+          recommendations?: Json
+          recorder_name?: string | null
+          start_time?: string | null
           title?: string
           updated_at?: string
         }
