@@ -130,12 +130,15 @@ function TaskCenterInner({ canEdit }: { canEdit: boolean }) {
 
   // The committee currently being viewed (regular users are scoped to their own;
   // privileged users use the filter). Used to show the "محاضر / رفع محضر" buttons.
+  // Show "محاضر" icon for every user, scoped to their committee:
+  // - non-privileged users → their assigned committee
+  // - privileged users → currently filtered committee, or their own if assigned
   const activeCommitteeId =
-    !isPrivileged && committeeId
+    !isPrivileged
       ? committeeId
       : committeeFilter !== "all"
         ? committeeFilter
-        : null;
+        : committeeId ?? null;
   const activeCommittee = activeCommitteeId ? cmMap.get(activeCommitteeId) ?? null : null;
 
   const openMinutesUpload = () => {
