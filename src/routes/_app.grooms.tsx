@@ -504,6 +504,30 @@ export function GroomsPage() {
           </Button>
         )}
         <GroomsDatabaseDialog grooms={grooms} />
+        {canManageGrooms && (
+          <>
+            <Button
+              variant="outline"
+              onClick={() => bulkExportFiles("photos")}
+              disabled={zipBusy !== null}
+              className="gap-1.5 border-[#0D7C66]/40 text-[#0D7C66] hover:bg-[#0D7C66]/10"
+              title="تنزيل جميع الصور الشخصية في ملف مضغوط"
+            >
+              <Images className="h-4 w-4" />
+              {zipBusy === "photos" ? `جارٍ التحضير ${zipProgress}%` : "تنزيل الصور (ZIP)"}
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => bulkExportFiles("ids")}
+              disabled={zipBusy !== null}
+              className="gap-1.5 border-slate-300 text-slate-700 hover:bg-slate-100"
+              title="تنزيل جميع الهويات في ملف مضغوط آمن"
+            >
+              <FileLock2 className="h-4 w-4" />
+              {zipBusy === "ids" ? `جارٍ التحضير ${zipProgress}%` : "تنزيل الهويات (ZIP)"}
+            </Button>
+          </>
+        )}
         <ShareRegistrationLink url={registrationUrl} />
         <QuickWhatsAppShare url={registrationUrl} />
         <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) resetForm(); }}>
