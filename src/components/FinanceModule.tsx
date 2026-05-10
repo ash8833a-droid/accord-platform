@@ -555,15 +555,6 @@ export function FinanceModule() {
           </div>
         </TabsContent>
 
-        <TabsContent value="subs" className="mt-5">
-          <div className="rounded-2xl border bg-card p-8 text-center shadow-soft">
-            <CheckCircle2 className="h-10 w-10 mx-auto text-primary mb-3" />
-            <p className="text-2xl font-bold">{totalSubs} اشتراك مؤكد</p>
-            <p className="text-muted-foreground text-sm mt-1">إجمالي محصّل: {fmt(totalCollected)} ر.س</p>
-            <p className="text-xs text-muted-foreground mt-4">يقوم كل مندوب بإدخال اشتراكات أبناء فرعه (300 ر.س لكل عضو)</p>
-          </div>
-        </TabsContent>
-
         <TabsContent value="shares" className="mt-5">
           <SharesByBranch />
         </TabsContent>
