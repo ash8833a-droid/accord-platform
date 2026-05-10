@@ -12,7 +12,7 @@ import {
   HeartHandshake, Plus, FileCheck2, FolderOpen, User, Phone, Users, Heart,
   StickyNote, IdCard, Camera, ClipboardList, Globe2, Crown, Upload, X, ImageIcon, FileImage,
   Pencil, Trash2, Share2, Copy, MessageCircle, Database, Search, Download,
-  FileSpreadsheet, FileText, FileJson, Printer, Combine,
+  FileSpreadsheet, FileText, FileJson, Printer, Combine, Sparkles, ShieldCheck, CalendarPlus,
 } from "lucide-react";
 import * as XLSX from "xlsx";
 import {
@@ -90,6 +90,8 @@ export function GroomsPage() {
   const [uploading, setUploading] = useState(false);
   const [detailsId, setDetailsId] = useState<string | null>(null);
   const [editId, setEditId] = useState<string | null>(null);
+  const [query, setQuery] = useState("");
+  const [statusChip, setStatusChip] = useState<"all" | "new" | "approved" | "completed">("all");
 
   const load = async () => {
     const { data } = await supabase.from("grooms").select("*");
@@ -388,11 +390,32 @@ export function GroomsPage() {
     else toast.error("تعذّر تنزيل الملفات");
   };
 
-  const stats = {
-    total: grooms.length,
-    approved: grooms.filter((g) => g.status === "approved" || g.status === "completed").length,
-    pending: grooms.filter((g) => g.status === "new" || g.status === "under_review").length,
-  };
+  const stats = useMemo(() => {
+    const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+    return {
+      total: grooms.length,
+      mediaReady: grooms.filter((g) => g.status === "approved" || g.status === "completed").length,
+      newWeek: grooms.filter((g) => {
+        const c = (g as any).created_at;
+        return c && new Date(c).getTime() >= weekAgo;
+      }).length,
+    };
+  }, [grooms]);
+
+  const visibleGrooms = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return grooms.filter((g) => {
+      if (statusChip === "new" && !(g.status === "new" || g.status === "under_review")) return false;
+      if (statusChip === "approved" && g.status !== "approved") return false;
+      if (statusChip === "completed" && g.status !== "completed") return false;
+      if (!q) return true;
+      return (
+        (g.full_name || "").toLowerCase().includes(q) ||
+        (g.phone || "").toLowerCase().includes(q) ||
+        (g.family_branch || "").toLowerCase().includes(q)
+      );
+    });
+  }, [grooms, query, statusChip]);
 
   return (
     <div className="space-y-8">
@@ -570,21 +593,55 @@ export function GroomsPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
-        <div className="rounded-2xl border bg-gradient-to-br from-primary/15 to-transparent p-5">
-          <HeartHandshake className="h-6 w-6 text-primary mb-2" />
-          <p className="text-2xl font-bold">{stats.total}</p>
-          <p className="text-sm text-muted-foreground">إجمالي العرسان</p>
+      {/* Najiz-style summary bar */}
+      <div className="rounded-2xl border border-slate-200 bg-white shadow-sm p-5">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <SummaryStat icon={HeartHandshake} label="إجمالي العرسان المسجلين" value={stats.total} />
+          <SummaryStat icon={CalendarPlus} label="مستجدات هذا الأسبوع" value={stats.newWeek} />
+          <SummaryStat icon={ShieldCheck} label="ملفات جاهزة إعلامياً" value={stats.mediaReady} />
         </div>
-        <div className="rounded-2xl border bg-gradient-to-br from-success/15 to-transparent p-5">
-          <FileCheck2 className="h-6 w-6 text-success mb-2" />
-          <p className="text-2xl font-bold">{stats.approved}</p>
-          <p className="text-sm text-muted-foreground">معتمدون</p>
+      </div>
+
+      {/* Search & quick filters */}
+      <div className="rounded-2xl border border-slate-200 bg-white shadow-sm p-4 space-y-3">
+        <div className="relative">
+          <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+          <Input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="ابحث بالاسم أو رقم الجوال أو الفرع العائلي..."
+            className="ps-3 pe-10 h-11 bg-slate-50/60 border-slate-200 focus-visible:ring-[#0D7C66]"
+          />
         </div>
-        <div className="rounded-2xl border bg-gradient-to-br from-gold/15 to-transparent p-5">
-          <FileCheck2 className="h-6 w-6 text-gold mb-2" />
-          <p className="text-2xl font-bold">{stats.pending}</p>
-          <p className="text-sm text-muted-foreground">قيد المراجعة</p>
+        <div className="flex flex-wrap gap-2">
+          {[
+            { k: "all", label: "كل العرسان", count: grooms.length },
+            { k: "new", label: "بانتظار البيانات", count: grooms.filter((g) => g.status === "new" || g.status === "under_review").length },
+            { k: "approved", label: "مكتمل إعلامياً", count: grooms.filter((g) => g.status === "approved").length },
+            { k: "completed", label: "تم النشر", count: grooms.filter((g) => g.status === "completed").length },
+          ].map((c) => {
+            const active = statusChip === c.k;
+            return (
+              <button
+                key={c.k}
+                type="button"
+                onClick={() => setStatusChip(c.k as any)}
+                className={`inline-flex items-center gap-2 rounded-full border px-3.5 py-1.5 text-xs font-medium transition-colors ${
+                  active
+                    ? "bg-[#0D7C66] text-white border-[#0D7C66] shadow-sm"
+                    : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50 hover:border-[#0D7C66]/40"
+                }`}
+              >
+                {c.label}
+                <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${active ? "bg-white/20" : "bg-slate-100 text-slate-700"}`}>
+                  {c.count}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+        <div className="text-xs text-slate-500">
+          عرض {visibleGrooms.length} من إجمالي {grooms.length} سجل
         </div>
       </div>
 
@@ -602,7 +659,7 @@ export function GroomsPage() {
               </tr>
             </thead>
             <tbody>
-              {grooms.map((g) => {
+              {visibleGrooms.map((g) => {
                 const b = STATUS_BADGE[g.status] ?? STATUS_BADGE.new;
                 return (
                   <tr key={g.id} className="border-t hover:bg-muted/20">
@@ -674,8 +731,10 @@ export function GroomsPage() {
                   </tr>
                 );
               })}
-              {grooms.length === 0 && (
-                <tr><td colSpan={8} className="text-center py-12 text-muted-foreground">لم يُسجّل أي عريس بعد.</td></tr>
+              {visibleGrooms.length === 0 && (
+                <tr><td colSpan={8} className="text-center py-12 text-muted-foreground">
+                  {grooms.length === 0 ? "لم يُسجّل أي عريس بعد." : "لا توجد نتائج مطابقة للبحث أو الفلتر الحالي."}
+                </td></tr>
               )}
             </tbody>
           </table>
@@ -713,6 +772,20 @@ function Section({ title, icon: Icon, tone, children }: { title: string; icon: a
         <h3 className="text-sm font-bold text-foreground">{title}</h3>
       </div>
       <div className="space-y-3">{children}</div>
+    </div>
+  );
+}
+
+function SummaryStat({ icon: Icon, label, value }: { icon: any; label: string; value: number }) {
+  return (
+    <div className="flex items-center gap-4 rounded-xl border border-slate-100 bg-slate-50/50 p-4">
+      <div className="h-12 w-12 rounded-xl bg-[#0D7C66]/10 flex items-center justify-center shrink-0">
+        <Icon className="h-6 w-6 text-[#0D7C66]" />
+      </div>
+      <div className="min-w-0">
+        <p className="text-2xl font-bold text-slate-900 leading-tight">{value.toLocaleString("ar-SA")}</p>
+        <p className="text-xs text-slate-500 mt-0.5">{label}</p>
+      </div>
     </div>
   );
 }
