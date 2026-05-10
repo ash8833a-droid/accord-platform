@@ -413,7 +413,7 @@ export function CommitteeMinutes({ committeeId, committeeName, canManage }: Prop
       <DialogTrigger asChild>
         <button
           type="button"
-          className="group relative inline-flex items-center gap-2.5 rounded-2xl border bg-card hover:bg-gold/5 hover:border-gold/40 px-4 py-3 shadow-sm hover:shadow-md transition-all"
+          className="group relative inline-flex w-full sm:w-auto items-center gap-2.5 rounded-2xl border bg-card hover:bg-gold/5 hover:border-gold/40 px-4 py-3 shadow-sm hover:shadow-md transition-all"
           aria-label="محاضر الاجتماعات"
         >
           <span className="h-10 w-10 rounded-xl bg-gradient-to-br from-gold/25 to-primary/15 text-gold-foreground flex items-center justify-center group-hover:from-gold group-hover:to-gold/80 transition shadow-sm">
