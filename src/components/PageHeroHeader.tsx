@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
+import { DotsPattern } from "@/components/decor/DotsPattern";
 
 /**
  * Shared hero header used at the top of internal pages.
@@ -29,6 +30,20 @@ export function PageHeroHeader({
       className="relative overflow-hidden rounded-3xl bg-gradient-hero p-6 lg:p-8 text-primary-foreground shadow-elegant"
     >
       <div className="absolute -top-10 -left-10 w-72 h-72 bg-gold/20 rounded-full blur-3xl" />
+      <DotsPattern
+        fade="bl"
+        cols={14}
+        rows={6}
+        radius={3}
+        className="absolute -top-2 -left-2 w-[44%] h-[120%] text-gold/25"
+      />
+      <DotsPattern
+        fade="tr"
+        cols={10}
+        rows={5}
+        radius={2.5}
+        className="absolute -bottom-2 -right-2 w-[34%] h-[100%] text-primary-foreground/15"
+      />
       <div className="relative z-10 flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-4 min-w-0">
           <div className="h-12 w-12 rounded-2xl bg-gold/20 flex items-center justify-center backdrop-blur-sm shrink-0">
