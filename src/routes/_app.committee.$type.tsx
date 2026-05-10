@@ -1434,15 +1434,29 @@ function CommitteePage() {
         </section>
       </QualitySection>
 
-      {/* Archive of past reports / files / images for this committee */}
-      <QualitySection storageKey={`committee:${type}:archive`} title="الأرشيف والتقارير" icon={Archive}>
+      {/* Meeting minutes — prominent, dedicated section */}
+      <QualitySection
+        storageKey={`committee:${type}:minutes`}
+        title="محاضر الاجتماعات"
+        icon={ClipboardList}
+        defaultOpen
+      >
         <div className="flex flex-wrap items-center gap-3">
-          <CommitteeArchive committeeId={committee.id} committeeName={committee.name} />
           <CommitteeMinutes
             committeeId={committee.id}
             committeeName={committee.name}
             canManage={isAdmin || isHead || members.some((mm) => mm.full_name.trim() === (profileName ?? "").trim())}
           />
+          <p className="text-xs text-muted-foreground max-w-md leading-relaxed">
+            ارفع نموذج المحضر أو أنشئه يدوياً (تاريخ، حضور، بنود، توصيات) ثم اطبع نسخة احترافية بهوية اللجنة بضغطة زر.
+          </p>
+        </div>
+      </QualitySection>
+
+      {/* Archive of past reports / files / images for this committee */}
+      <QualitySection storageKey={`committee:${type}:archive`} title="الأرشيف والتقارير" icon={Archive}>
+        <div className="flex flex-wrap items-center gap-3">
+          <CommitteeArchive committeeId={committee.id} committeeName={committee.name} />
         </div>
       </QualitySection>
 
