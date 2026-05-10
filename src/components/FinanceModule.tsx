@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuLabel, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Wallet, Users2, Plus, CheckCircle2, Clock, Receipt, TrendingUp, XCircle, CheckCheck, FileText, Download, FileSpreadsheet, FileType2, Printer, ShieldCheck, AlertTriangle, Lock, Eye, ScrollText, TreePine, HeartHandshake, Settings2, HandCoins } from "lucide-react";
+import { Wallet, Users2, Plus, CheckCircle2, Clock, Receipt, TrendingUp, XCircle, CheckCheck, FileText, Download, FileSpreadsheet, FileType2, Printer, ShieldCheck, AlertTriangle, Lock, Eye, ScrollText, TreePine, HeartHandshake, Settings2, HandCoins, LayoutDashboard, ArrowDownCircle, ArrowUpCircle, History } from "lucide-react";
 import { toast } from "sonner";
 import { StatCard } from "@/components/StatCard";
 import { committeeByType } from "@/lib/committees";
@@ -16,6 +16,9 @@ import { SharesByBranch } from "@/components/finance/SharesByBranch";
 import { GroomContributions } from "@/components/finance/GroomContributions";
 import { CommitteeBudgetLimits } from "@/components/finance/CommitteeBudgetLimits";
 import { FamilyContributionsPanel } from "@/components/finance/FamilyContributionsPanel";
+import { FinanceSummaryCard } from "@/components/finance/FinanceSummaryCard";
+import { DelegateUploadPanel } from "@/components/finance/DelegateUploadPanel";
+import { HistoricalContributionsDashboard } from "@/components/finance/HistoricalContributionsDashboard";
 import { Pencil, Trash2 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { Textarea } from "@/components/ui/textarea";
@@ -77,16 +80,23 @@ export function FinanceModule() {
   const [invoiceTitle, setInvoiceTitle] = useState<string>("");
   const [invoiceLoading, setInvoiceLoading] = useState(false);
   const [totalBudgetNeeded, setTotalBudgetNeeded] = useState(0);
+  const [familyContribTotal, setFamilyContribTotal] = useState(0);
+  const [committeeBreakdown, setCommitteeBreakdown] = useState<Array<{ name: string; spent: number }>>([]);
 
   const load = async () => {
-    const [{ data: dels }, { data: subs }, { data: prs }, { data: coms }, { data: financeCom }] = await Promise.all([
+    const [{ data: dels }, { data: subs }, { data: prs }, { data: coms }, { data: financeCom }, { data: fc }] = await Promise.all([
       supabase.from("delegates").select("*").order("created_at", { ascending: false }),
       supabase.from("subscriptions").select("delegate_id, amount, status"),
       supabase.from("payment_requests").select("*").order("created_at", { ascending: false }),
-      supabase.from("committees").select("id, name, type"),
+      supabase.from("committees").select("id, name, type, budget_spent"),
       supabase.from("committees").select("head_user_id").eq("type", "finance").maybeSingle(),
+      supabase.from("family_contributions").select("amount"),
     ]);
     setFinanceHeadId(financeCom?.head_user_id ?? null);
+    setFamilyContribTotal((fc ?? []).reduce((s: number, r: any) => s + Number(r.amount || 0), 0));
+    setCommitteeBreakdown(
+      (coms ?? []).map((c: any) => ({ name: c.name, spent: Number(c.budget_spent || 0) }))
+    );
 
     const enriched =
       dels?.map((d) => {
@@ -223,6 +233,10 @@ export function FinanceModule() {
   const totalSubs = delegates.reduce((a, d) => a + (d.subs_count ?? 0), 0);
   const pendingCount = requests.filter((r) => r.status === "pending").length;
   const totalPaid = requests.filter((r) => r.status === "paid").reduce((a, r) => a + Number(r.amount), 0);
+  const expensesTotal = Math.max(
+    totalPaid,
+    committeeBreakdown.reduce((s, c) => s + c.spent, 0)
+  );
   const fmt = (n: number) => new Intl.NumberFormat("ar-SA").format(n);
 
   const exportRows: ExportRequest[] = requests.map((r) => ({
@@ -285,27 +299,77 @@ export function FinanceModule() {
         </DropdownMenu>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard variant="teal" label="إجمالي المحصّل" value={`${fmt(totalCollected)} ر.س`} icon={Wallet} hint={`${totalSubs} اشتراك مؤكد`} />
-        <StatCard variant="gold" label="المناديب النشطون" value={delegates.length} icon={Users2} hint="في قاعدة البيانات" />
-        <StatCard label="طلبات قيد المراجعة" value={pendingCount} icon={Clock} hint="بانتظار قرار المالية" />
-        <StatCard label="إجمالي المصروف" value={`${fmt(totalPaid)} ر.س`} icon={TrendingUp} hint="طلبات تم صرفها" />
-      </div>
+      <FinanceSummaryCard
+        groomSubsTotal={totalCollected}
+        familyContribTotal={familyContribTotal}
+        expensesTotal={expensesTotal}
+        committeeBreakdown={committeeBreakdown}
+      />
 
-      <Tabs defaultValue="requests" dir="rtl">
+      <Tabs defaultValue="overview" dir="rtl">
         <TabsList className="flex flex-wrap h-auto w-full justify-start gap-1">
+          <TabsTrigger value="overview" className="gap-2">
+            <LayoutDashboard className="h-4 w-4" /> نظرة عامة
+          </TabsTrigger>
+          <TabsTrigger value="revenues" className="gap-2">
+            <ArrowUpCircle className="h-4 w-4" /> الإيرادات
+          </TabsTrigger>
+          <TabsTrigger value="expenses" className="gap-2">
+            <ArrowDownCircle className="h-4 w-4" /> المصروفات
+          </TabsTrigger>
+          <TabsTrigger value="historical" className="gap-2">
+            <History className="h-4 w-4" /> السجل التاريخي
+          </TabsTrigger>
           <TabsTrigger value="requests" className="gap-2">
             <Receipt className="h-4 w-4" /> طلبات الصرف
             {pendingCount > 0 && <span className="bg-gold text-gold-foreground text-[10px] px-1.5 py-0.5 rounded-full font-bold">{pendingCount}</span>}
           </TabsTrigger>
           <TabsTrigger value="shares" className="gap-2"><TreePine className="h-4 w-4" /> أسهم الفروع</TabsTrigger>
-          <TabsTrigger value="grooms" className="gap-2"><HeartHandshake className="h-4 w-4" /> مساهمات العرسان</TabsTrigger>
-          <TabsTrigger value="family" className="gap-2"><HandCoins className="h-4 w-4" /> مساهمات أفراد العائلة</TabsTrigger>
-          <TabsTrigger value="limits" className="gap-2"><Settings2 className="h-4 w-4" /> مخصصات اللجان</TabsTrigger>
           <TabsTrigger value="delegates" className="gap-2"><Users2 className="h-4 w-4" /> المناديب</TabsTrigger>
-          <TabsTrigger value="subs" className="gap-2"><CheckCircle2 className="h-4 w-4" /> الاشتراكات</TabsTrigger>
           <TabsTrigger value="safety" className="gap-2"><ShieldCheck className="h-4 w-4" /> السلامة المالية</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="overview" className="mt-5 space-y-4">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <StatCard variant="teal" label="إجمالي المحصّل" value={`${fmt(totalCollected)} ر.س`} icon={Wallet} hint={`${totalSubs} اشتراك مؤكد`} />
+            <StatCard variant="gold" label="المناديب النشطون" value={delegates.length} icon={Users2} hint="في قاعدة البيانات" />
+            <StatCard label="طلبات قيد المراجعة" value={pendingCount} icon={Clock} hint="بانتظار قرار المالية" />
+            <StatCard label="إجمالي المصروف" value={`${fmt(expensesTotal)} ر.س`} icon={TrendingUp} hint="طلبات صُرفت + ميزانيات اللجان" />
+          </div>
+        </TabsContent>
+
+        <TabsContent value="revenues" className="mt-5 space-y-5">
+          <div className="rounded-2xl border bg-gradient-to-l from-emerald-500/5 to-transparent p-4">
+            <h3 className="font-bold flex items-center gap-2 text-emerald-700 dark:text-emerald-400">
+              <HeartHandshake className="h-4 w-4" /> اشتراكات العرسان
+            </h3>
+            <p className="text-xs text-muted-foreground mt-1">المساهمات السنوية للعرسان وفرعهم العائلي.</p>
+          </div>
+          <GroomContributions totalCollected={totalCollected} totalBudgetNeeded={totalBudgetNeeded} />
+
+          <div className="rounded-2xl border bg-gradient-to-l from-primary/5 to-transparent p-4">
+            <h3 className="font-bold flex items-center gap-2 text-primary">
+              <HandCoins className="h-4 w-4" /> مساهمات أفراد القبيلة
+            </h3>
+            <p className="text-xs text-muted-foreground mt-1">سجّل مساهمة يدوياً، أو استخدم بوابة المناديب لاستخراجها تلقائياً من PDF/صورة.</p>
+          </div>
+          <DelegateUploadPanel onSaved={load} />
+          <FamilyContributionsPanel />
+        </TabsContent>
+
+        <TabsContent value="expenses" className="mt-5 space-y-5">
+          <div className="rounded-2xl border bg-gradient-to-l from-rose-500/5 to-transparent p-4">
+            <h3 className="font-bold flex items-center gap-2 text-rose-700 dark:text-rose-400">
+              <ArrowDownCircle className="h-4 w-4" /> مصاريف اللجان والحفل
+            </h3>
+            <p className="text-xs text-muted-foreground mt-1">ميزانيات اللجان، نسبة الإنفاق، وحدود الصرف لكل لجنة.</p>
+          </div>
+          <CommitteeBudgetLimits onTotalChange={setTotalBudgetNeeded} />
+        </TabsContent>
+
+        <TabsContent value="historical" className="mt-5">
+          <HistoricalContributionsDashboard />
+        </TabsContent>
 
         <TabsContent value="requests" className="mt-5">
           <div className="rounded-2xl border bg-card overflow-hidden shadow-soft">
@@ -504,23 +568,11 @@ export function FinanceModule() {
           <SharesByBranch />
         </TabsContent>
 
-        <TabsContent value="grooms" className="mt-5">
-          <GroomContributions totalCollected={totalCollected} totalBudgetNeeded={totalBudgetNeeded} />
-        </TabsContent>
-
-        <TabsContent value="family" className="mt-5">
-          <FamilyContributionsPanel />
-        </TabsContent>
-
-        <TabsContent value="limits" className="mt-5">
-          <CommitteeBudgetLimits onTotalChange={setTotalBudgetNeeded} />
-        </TabsContent>
-
         <TabsContent value="safety" className="mt-5">
           <FinancialSafetyPanel
             requests={requests}
             totalCollected={totalCollected}
-            totalPaid={totalPaid}
+            totalPaid={expensesTotal}
             pendingCount={pendingCount}
           />
         </TabsContent>
