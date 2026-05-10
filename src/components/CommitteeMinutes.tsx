@@ -302,380 +302,423 @@ export function CommitteeMinutes({ committeeId, committeeName, canManage }: Prop
     ref_number?: string | null;
   }): string => {
     // ============================================================
-    // Government-grade institutional Meeting Minutes document.
-    // Monochrome Executive palette: Deep Teal #0D7C66 + Slate.
+    // محضر اجتماع رسمي — تنسيق احترافي مستوحى من النموذج المرفوع
+    // ولكن بمستوى تنفيذ أعلى: تحكّم دقيق بالبوردر، تباين راقٍ،
+    // طباعة A4 ممتازة، وكسر صفحات احترافي.
     // ============================================================
-    const PRIMARY = "#0D7C66";       // Deep Teal — official accent
-    const PRIMARY_DARK = "#0A5F4E";  // for borders / strong text
-    const SLATE_900 = "#0F172A";     // headings
-    const SLATE_700 = "#334155";     // body
-    const SLATE_500 = "#64748B";     // labels / secondary
-    const SLATE_300 = "#CBD5E1";     // borders
-    const SLATE_50  = "#F8FAFC";     // cell backgrounds
+    const SAGE        = "#C9DBB7";   // header pill (مثل النموذج المرفوع)
+    const SAGE_DEEP   = "#7FA060";   // border accent / hairline
+    const TEAL_INK    = "#0D5C4A";   // text on sage / accent strong
+    const INK_900     = "#0F172A";   // primary body text
+    const INK_600     = "#475569";   // secondary
+    const INK_400     = "#94A3B8";   // muted lines
+    const HAIRLINE    = "#94A3B8";   // table outer border
+    const ROW_ALT     = "#FAFBF8";   // subtle row stripe
 
-    const dateStr = m.meeting_date
-      ? new Date(m.meeting_date).toLocaleDateString("ar-SA", { weekday: "long", year: "numeric", month: "long", day: "numeric" })
-      : "—";
-    const timeStr = [m.start_time, m.end_time].filter(Boolean).join(" – ") || "—";
-    const issueDate = new Date().toLocaleDateString("ar-SA");
+    const dateLong = m.meeting_date
+      ? new Date(m.meeting_date).toLocaleDateString("ar-SA-u-ca-gregory", { year: "numeric", month: "long", day: "numeric" })
+      : "";
+    const hijri = m.meeting_date
+      ? new Date(m.meeting_date).toLocaleDateString("ar-SA-u-ca-islamic-umalqura", { year: "numeric", month: "long", day: "numeric" })
+      : "";
+    const weekday = m.meeting_date
+      ? new Date(m.meeting_date).toLocaleDateString("ar-SA-u-ca-gregory", { weekday: "long" })
+      : "";
+    const timeStr = [m.start_time, m.end_time].filter(Boolean).join(" – ");
+    const issueDate = new Date().toLocaleDateString("ar-SA-u-ca-gregory");
     const logo = brandLogoSrc(brand);
 
-    // Reference number: prefer provided, else derive from date + committee initials
+    // Reference number
     const yearPart = (m.meeting_date ?? new Date().toISOString().slice(0, 10)).slice(0, 10).replace(/-/g, "");
     const cmtInitials = (committeeName || "LJN").split(/\s+/).map((w) => w.charAt(0)).join("").slice(0, 3).toUpperCase() || "LJN";
     const refNumber = m.ref_number || `MOM-${cmtInitials}-${yearPart}`;
 
-    // Agenda / decisions as numbered table rows
-    const tableRows = (arr: string[]) =>
-      arr.length === 0
-        ? `<tr><td class="row-empty" colspan="2">— لا يوجد —</td></tr>`
-        : arr.map((x, i) => `
-          <tr>
-            <td class="row-num">${i + 1}</td>
-            <td class="row-text">${escapeHtml(x)}</td>
-          </tr>`).join("");
+    const dash = "—";
+    const cellOrDash = (v: string | null | undefined) => (v && v.trim()) ? escapeHtml(v) : `<span class="dash">${dash}</span>`;
 
-    // Attendees in 3-column compact grid
-    const attendeesBlock = m.attendees.length === 0
-      ? `<div class="empty">— لم يُسجَّل حضور —</div>`
-      : `<div class="att-grid">${m.attendees.map((a, i) =>
-          `<div class="att-cell"><span class="att-num">${i + 1}</span><span class="att-name">${escapeHtml(a)}</span></div>`
-        ).join("")}</div>`;
+    // Numbered rows for agenda / decisions
+    const numberedRows = (arr: string[], minRows = 3) => {
+      const rows = arr.length === 0 ? [] : arr;
+      const padded = rows.length < minRows ? [...rows, ...Array(minRows - rows.length).fill("")] : rows;
+      return padded.map((x, i) => `
+        <tr>
+          <td class="n">${toArabicDigits(i + 1)}</td>
+          <td class="t">${x ? escapeHtml(x) : ""}</td>
+        </tr>`).join("");
+    };
+
+    // Attendees rows (الحضور: م | الاسم | الصفة | نعم | لا | التوقيع)
+    const attendeeMin = 5;
+    const attRows = (() => {
+      const list = m.attendees.length ? m.attendees : [];
+      const padded = list.length < attendeeMin ? [...list, ...Array(attendeeMin - list.length).fill("")] : list;
+      return padded.map((name, i) => `
+        <tr>
+          <td class="n">${toArabicDigits(i + 1)}</td>
+          <td class="att-name">${name ? escapeHtml(name) : ""}</td>
+          <td></td>
+          <td class="ck">${name ? "✓" : ""}</td>
+          <td class="ck"></td>
+          <td></td>
+        </tr>`).join("");
+    })();
 
     return `
 <style>
-  @page { size: A4; margin: 16mm 14mm 18mm 14mm; }
+  @page { size: A4; margin: 14mm 14mm 16mm 14mm; }
   * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; }
   body {
     font-family: 'Tajawal', 'Cairo', 'Segoe UI', Tahoma, sans-serif;
-    color: ${SLATE_700};
+    color: ${INK_900};
     direction: rtl;
-    font-size: 12pt;
+    font-size: 11.5pt;
     line-height: 1.55;
     background: #fff;
+    -webkit-font-smoothing: antialiased;
   }
-  .doc { position: relative; max-width: 800px; margin: 0 auto; padding: 0 2mm; }
+  .doc { position: relative; max-width: 820px; margin: 0 auto; }
 
-  /* Subtle institutional watermark */
-  .watermark {
-    position: fixed;
-    inset: 0;
-    z-index: 0;
-    pointer-events: none;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    opacity: 0.05;
+  /* ===== Watermark — ultra subtle ===== */
+  .wm {
+    position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
+    z-index: 0; pointer-events: none; opacity: .045;
   }
-  .watermark span {
-    font-size: 110pt;
-    font-weight: 900;
-    color: ${PRIMARY};
-    letter-spacing: 8px;
-    transform: rotate(-28deg);
-    white-space: nowrap;
+  .wm span {
+    font-size: 96pt; font-weight: 900; color: ${TEAL_INK};
+    letter-spacing: 6px; transform: rotate(-26deg); white-space: nowrap;
   }
   .doc > * { position: relative; z-index: 1; }
 
-  /* ============ Symmetrical official header ============ */
-  .official-header {
-    display: grid;
-    grid-template-columns: 1fr auto 1fr;
-    align-items: center;
-    gap: 16px;
-    padding: 14px 6px 16px;
-    border-bottom: 2.5px solid ${PRIMARY};
-    margin-bottom: 4px;
+  /* ===== Top brand strip ===== */
+  .top-strip {
+    display: grid; grid-template-columns: auto 1fr auto; align-items: center;
+    gap: 14px; padding-bottom: 10px; margin-bottom: 12px;
+    border-bottom: 1.2px solid ${SAGE_DEEP};
   }
-  .hdr-right { display: flex; align-items: center; gap: 12px; justify-content: flex-start; }
-  .hdr-right img { width: 58px; height: 58px; object-fit: contain; }
-  .hdr-right .org { font-size: 9pt; color: ${SLATE_500}; font-weight: 700; letter-spacing: .4px; }
-  .hdr-right .cmt { font-size: 12pt; color: ${SLATE_900}; font-weight: 800; margin-top: 2px; line-height: 1.25; }
-
-  .hdr-center { text-align: center; }
-  .hdr-center .kicker {
-    font-size: 8.5pt; letter-spacing: 4px; color: ${PRIMARY};
-    font-weight: 800; padding-bottom: 4px;
+  .top-strip .brand { display: flex; align-items: center; gap: 12px; }
+  .top-strip .brand img { width: 54px; height: 54px; object-fit: contain; }
+  .top-strip .brand .org { font-size: 8.5pt; color: ${INK_600}; font-weight: 700; letter-spacing: .4px; }
+  .top-strip .brand .cmt { font-size: 11.5pt; color: ${INK_900}; font-weight: 800; margin-top: 2px; }
+  .top-strip .ref { text-align: end; font-size: 8.5pt; color: ${INK_600}; line-height: 1.7; }
+  .top-strip .ref b { color: ${TEAL_INK}; font-weight: 800; }
+  .top-strip .center { text-align: center; }
+  .top-strip .center .kicker {
+    font-size: 7.5pt; letter-spacing: 5px; color: ${SAGE_DEEP};
+    font-weight: 800;
   }
-  .hdr-center h1 {
-    font-size: 16pt; margin: 0; color: ${PRIMARY_DARK}; font-weight: 900;
-    letter-spacing: .5px;
-  }
-  .hdr-center .underline {
-    width: 70px; height: 2px; background: ${PRIMARY}; margin: 6px auto 0;
+  .top-strip .center h1 {
+    margin: 2px 0 0; font-size: 17pt; color: ${TEAL_INK}; font-weight: 900;
+    letter-spacing: .8px;
   }
 
-  .hdr-left { font-size: 9pt; color: ${SLATE_700}; }
-  .hdr-left .row { display: flex; justify-content: flex-end; gap: 6px; padding: 1.5px 0; }
-  .hdr-left .row .lbl { color: ${SLATE_500}; font-weight: 700; }
-  .hdr-left .row .val { color: ${SLATE_900}; font-weight: 700; font-feature-settings: "tnum"; }
-
-  /* ============ Document subject ============ */
-  .subject {
-    margin: 14px 0 12px;
+  /* ===== Centered title for the body of doc ===== */
+  .title-bar {
     text-align: center;
-    padding: 10px 14px;
-    border: 1px solid ${SLATE_300};
-    background: ${SLATE_50};
-    border-radius: 2px;
+    font-size: 13.5pt; font-weight: 800; color: ${INK_900};
+    margin: 6px 0 14px;
+    letter-spacing: .3px;
   }
-  .subject .lbl { font-size: 9pt; color: ${SLATE_500}; font-weight: 700; letter-spacing: 1px; }
-  .subject .val { font-size: 13pt; color: ${SLATE_900}; font-weight: 800; margin-top: 3px; }
 
-  /* ============ Metadata grid ============ */
-  .meta-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 0;
+  /* ===== Master metadata table (mimics the reference 6-col layout) ===== */
+  table.meta {
+    width: 100%; border-collapse: collapse;
+    border: 1px solid ${HAIRLINE};
     margin: 0 0 14px;
-    border: 1px solid ${SLATE_300};
+    table-layout: fixed;
   }
-  .meta-grid .cell {
-    background: ${SLATE_50};
-    border-bottom: 1px solid ${SLATE_300};
-    border-left: 1px solid ${SLATE_300};
-    padding: 7px 12px;
-    display: grid;
-    grid-template-columns: 110px 1fr;
-    align-items: center;
-    gap: 10px;
+  table.meta td {
+    padding: 9px 12px;
+    border: 1px solid ${HAIRLINE};
+    font-size: 11pt;
+    vertical-align: middle;
     page-break-inside: avoid;
   }
-  .meta-grid .cell:nth-child(2n)   { border-left: 0; }
-  .meta-grid .cell:nth-last-child(-n+2) { border-bottom: 0; }
-  .meta-grid .lbl { font-size: 9pt; color: ${SLATE_500}; font-weight: 700; }
-  .meta-grid .val { font-size: 11pt; color: ${SLATE_900}; font-weight: 700; }
-
-  /* ============ Section headers ============ */
-  .section { margin: 14px 0; }
-  .section > h2 {
-    font-size: 14pt; font-weight: 800; color: #fff;
-    background: ${PRIMARY};
-    margin: 0 0 0;
-    padding: 7px 14px;
-    display: flex; align-items: center; justify-content: space-between;
-    border-radius: 2px 2px 0 0;
-  }
-  .section > h2 .count {
-    background: rgba(255,255,255,0.18);
-    padding: 2px 10px; border-radius: 999px;
-    font-size: 9.5pt; font-weight: 700;
-    border: 1px solid rgba(255,255,255,0.35);
-  }
-
-  /* ============ Tables ============ */
-  table.formal {
-    width: 100%; border-collapse: collapse; margin: 0;
-    border: 1px solid ${SLATE_300};
-    border-top: 0;
-    background: #fff;
-  }
-  table.formal td { padding: 9px 12px; vertical-align: top; font-size: 12pt; line-height: 1.6; }
-  table.formal tr { page-break-inside: avoid; }
-  table.formal tr + tr td { border-top: 1px solid ${SLATE_300}; }
-  table.formal tr:nth-child(even) td { background: ${SLATE_50}; }
-  table.formal .row-num {
-    width: 42px; text-align: center;
-    background: ${SLATE_50};
-    color: ${PRIMARY_DARK};
+  table.meta td.lbl {
+    background: ${SAGE};
+    color: ${TEAL_INK};
     font-weight: 800;
-    border-left: 1px solid ${SLATE_300};
+    width: 14%;
+    text-align: center;
+    letter-spacing: .2px;
+  }
+  table.meta td.val {
+    background: #fff;
+    color: ${INK_900};
+    font-weight: 600;
+    width: 19.33%;
+  }
+  .dash { color: ${INK_400}; font-weight: 500; }
+
+  /* ===== Section blocks ===== */
+  .block {
+    border: 1px solid ${HAIRLINE};
+    margin: 0 0 12px;
+    page-break-inside: auto;
+  }
+  .block > .head {
+    background: ${SAGE};
+    color: ${TEAL_INK};
+    font-weight: 800;
+    text-align: center;
+    padding: 8px 12px;
+    font-size: 12pt;
+    letter-spacing: .3px;
+    border-bottom: 1px solid ${HAIRLINE};
+  }
+  .block.subject .body {
+    padding: 12px 16px; min-height: 36px;
+    font-size: 12pt; color: ${INK_900}; font-weight: 700;
+  }
+
+  /* ===== Bullet list (محاور) ===== */
+  .axes-list {
+    list-style: none; padding: 10px 18px 12px; margin: 0;
+  }
+  .axes-list li {
+    position: relative; padding: 5px 18px 5px 0;
+    font-size: 11.5pt; color: ${INK_900}; line-height: 1.7;
+    page-break-inside: avoid;
+  }
+  .axes-list li::before {
+    content: ""; position: absolute; right: 2px; top: 14px;
+    width: 6px; height: 6px; border-radius: 50%;
+    background: ${TEAL_INK};
+  }
+  .axes-list li + li { border-top: 1px dashed ${INK_400}; }
+  .axes-empty { padding: 14px; color: ${INK_400}; text-align: center; font-size: 11pt; }
+
+  /* ===== Numbered tables (decisions) ===== */
+  table.numbered {
+    width: 100%; border-collapse: collapse; table-layout: fixed;
+  }
+  table.numbered td {
+    padding: 9px 12px; border-top: 1px solid ${HAIRLINE};
+    vertical-align: top; font-size: 11.5pt;
+    page-break-inside: avoid;
+  }
+  table.numbered tr:first-child td { border-top: 0; }
+  table.numbered tr:nth-child(even) td { background: ${ROW_ALT}; }
+  table.numbered td.n {
+    width: 44px; text-align: center;
+    background: ${SAGE}; color: ${TEAL_INK};
+    font-weight: 800; border-left: 1px solid ${HAIRLINE};
     font-feature-settings: "tnum";
   }
-  table.formal .row-text { color: ${SLATE_900}; }
-  table.formal .row-empty { color: ${SLATE_500}; text-align: center; font-size: 11pt; padding: 14px; }
+  table.numbered td.t { color: ${INK_900}; line-height: 1.7; }
 
-  /* ============ Attendees ============ */
-  .att-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    border: 1px solid ${SLATE_300};
-    border-top: 0;
-    background: #fff;
+  /* ===== Attendance table ===== */
+  table.att {
+    width: 100%; border-collapse: collapse; table-layout: fixed;
   }
-  .att-cell {
-    display: flex; align-items: center; gap: 8px;
+  table.att th, table.att td {
+    border: 1px solid ${HAIRLINE};
     padding: 8px 10px;
-    background: ${SLATE_50};
-    border-bottom: 1px solid ${SLATE_300};
-    border-left: 1px solid ${SLATE_300};
     font-size: 11pt;
+    text-align: center;
     page-break-inside: avoid;
   }
-  .att-cell:nth-child(3n) { border-left: 0; }
-  .att-num {
-    min-width: 22px; height: 22px;
-    display: inline-flex; align-items: center; justify-content: center;
-    background: ${PRIMARY}; color: #fff; font-weight: 800; font-size: 9.5pt;
-    border-radius: 4px;
+  table.att thead th {
+    background: ${SAGE}; color: ${TEAL_INK}; font-weight: 800;
+    border-color: ${HAIRLINE};
+    letter-spacing: .2px;
   }
-  .att-name { color: ${SLATE_900}; font-weight: 600; }
+  table.att thead .grouped { padding: 4px; }
+  table.att td.n {
+    background: ${SAGE}; color: ${TEAL_INK}; font-weight: 800;
+    width: 38px;
+  }
+  table.att td.att-name { text-align: start; color: ${INK_900}; font-weight: 600; }
+  table.att td.ck { font-size: 13pt; color: ${TEAL_INK}; font-weight: 800; }
+  table.att tr:nth-child(even) td:not(.n) { background: ${ROW_ALT}; }
+  .col-num   { width: 38px; }
+  .col-role  { width: 22%; }
+  .col-att   { width: 7.5%; }
+  .col-sign  { width: 22%; }
 
-  /* ============ Notes ============ */
-  .notes-box {
-    border: 1px solid ${SLATE_300}; border-top: 0;
-    background: ${SLATE_50};
-    padding: 12px 14px;
-    color: ${SLATE_700};
-    font-size: 11.5pt;
-    line-height: 1.7;
+  /* ===== Notes ===== */
+  .notes-block .body {
+    padding: 12px 14px; color: ${INK_900};
+    font-size: 11pt; line-height: 1.8; white-space: pre-wrap;
   }
 
-  .empty { color: ${SLATE_500}; font-size: 11pt; padding: 12px; text-align: center;
-    border: 1px solid ${SLATE_300}; border-top: 0; background: ${SLATE_50}; }
-
-  /* ============ Approval / signatures ============ */
-  .approval-section { margin-top: 26px; page-break-inside: avoid; }
-  .approval-title {
-    text-align: center;
-    font-size: 13pt; font-weight: 800; color: ${PRIMARY_DARK};
-    border-top: 1.5px solid ${PRIMARY};
-    border-bottom: 1.5px solid ${PRIMARY};
-    padding: 6px 0;
-    margin-bottom: 16px;
-    letter-spacing: 1px;
-  }
+  /* ===== Approval / signatures ===== */
   .signatures {
-    display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px;
-  }
-  .sig-block {
-    border: 1px solid ${SLATE_300};
-    background: #fff;
-    padding: 12px 14px 14px;
+    margin-top: 18px;
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;
     page-break-inside: avoid;
   }
-  .sig-role {
-    text-align: center;
-    font-size: 11pt; font-weight: 800; color: ${PRIMARY_DARK};
-    padding-bottom: 8px; margin-bottom: 12px;
-    border-bottom: 1px solid ${SLATE_300};
-    letter-spacing: .5px;
+  .sig {
+    border: 1px solid ${HAIRLINE}; background: #fff;
+    padding: 0; page-break-inside: avoid;
   }
-  .sig-field { display: flex; align-items: baseline; gap: 8px; margin-top: 14px; font-size: 10pt; }
-  .sig-field .lbl { color: ${SLATE_500}; font-weight: 700; min-width: 56px; }
-  .sig-field .line {
-    flex: 1; border-bottom: 1px dotted ${SLATE_500}; height: 18px;
+  .sig .role {
+    background: ${SAGE}; color: ${TEAL_INK};
+    text-align: center; font-weight: 800; font-size: 10.5pt;
+    padding: 7px 10px; border-bottom: 1px solid ${HAIRLINE};
+    letter-spacing: .4px;
   }
-  .sig-field .preset { color: ${SLATE_900}; font-weight: 700; flex: 1; border-bottom: 1px dotted ${SLATE_300}; padding: 0 4px 2px; }
+  .sig .body { padding: 12px 14px 14px; }
+  .sig .field { display: flex; align-items: baseline; gap: 8px; margin: 10px 0 0; font-size: 9.5pt; color: ${INK_600}; }
+  .sig .field .l { font-weight: 700; min-width: 52px; }
+  .sig .field .line { flex: 1; border-bottom: 1px dotted ${INK_400}; height: 14px; }
+  .sig .field .preset { flex: 1; border-bottom: 1px dotted ${INK_400}; padding: 0 4px 2px; color: ${INK_900}; font-weight: 700; }
 
-  /* ============ Footer ============ */
-  .doc-footer {
-    margin-top: 22px;
-    padding-top: 8px;
-    border-top: 1px solid ${SLATE_300};
-    display: flex; justify-content: space-between;
-    font-size: 9pt; color: ${SLATE_500};
+  /* ===== Footer ===== */
+  .foot {
+    margin-top: 16px; padding-top: 8px;
+    border-top: 1px solid ${HAIRLINE};
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 8.5pt; color: ${INK_600};
   }
-  .doc-footer strong { color: ${PRIMARY_DARK}; font-weight: 800; }
+  .foot b { color: ${TEAL_INK}; font-weight: 800; }
 
-  /* ============ Print rules ============ */
+  /* ===== Print ===== */
   @media print {
     body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .official-header, .approval-section, .sig-block,
-    .meta-grid .cell, table.formal tr, .att-cell { page-break-inside: avoid; }
-    .section > h2 { break-after: avoid-page; }
-    .approval-title { break-after: avoid-page; }
+    .signatures, .sig, .block > .head, table.meta tr,
+    table.numbered tr, table.att tr { page-break-inside: avoid; }
+    .block > .head { break-after: avoid-page; }
   }
 </style>
 
 <div class="doc">
-  <div class="watermark"><span>${escapeHtml(brand.name || "محضر رسمي")}</span></div>
+  <div class="wm"><span>${escapeHtml(brand.name || committeeName || "محضر رسمي")}</span></div>
 
-  <!-- ===== Symmetrical formal header ===== -->
-  <div class="official-header">
-    <div class="hdr-right">
+  <!-- ===== Top strip (logo · title · ref) ===== -->
+  <div class="top-strip">
+    <div class="brand">
       <img src="${logo}" alt="logo" />
       <div>
         <div class="org">${escapeHtml(brand.name || "")}</div>
         <div class="cmt">${escapeHtml(committeeName)}</div>
       </div>
     </div>
-    <div class="hdr-center">
+    <div class="center">
       <div class="kicker">OFFICIAL MINUTES</div>
-      <h1>محضر اجتماع رسمي</h1>
-      <div class="underline"></div>
+      <h1>محضر اجتماع</h1>
     </div>
-    <div class="hdr-left">
-      <div class="row"><span class="lbl">التاريخ:</span><span class="val">${dateStr}</span></div>
-      <div class="row"><span class="lbl">المرجع:</span><span class="val">${escapeHtml(refNumber)}</span></div>
-      <div class="row"><span class="lbl">نوع الاجتماع:</span><span class="val">اجتماع لجنة</span></div>
+    <div class="ref">
+      <div><b>المرجع:</b> ${escapeHtml(refNumber)}</div>
+      <div><b>صدر في:</b> ${escapeHtml(issueDate)}</div>
+      <div><b>النوع:</b> اجتماع لجنة</div>
     </div>
   </div>
+
+  <!-- ===== Body title ===== -->
+  <div class="title-bar">${escapeHtml(m.title || "محضر اجتماع")}</div>
+
+  <!-- ===== Meta grid (6-column, mirrors the reference) ===== -->
+  <table class="meta">
+    <tr>
+      <td class="lbl">رقم الاجتماع</td>
+      <td class="val">${cellOrDash(refNumber)}</td>
+      <td class="lbl">مكان الاجتماع</td>
+      <td class="val">${cellOrDash(m.location)}</td>
+      <td class="lbl">الساعة</td>
+      <td class="val">${cellOrDash(timeStr)}</td>
+    </tr>
+    <tr>
+      <td class="lbl">اليوم</td>
+      <td class="val">${cellOrDash(weekday)}</td>
+      <td class="lbl">التاريخ</td>
+      <td class="val">${cellOrDash(dateLong)}</td>
+      <td class="lbl">الموافق</td>
+      <td class="val">${cellOrDash(hijri)}</td>
+    </tr>
+  </table>
 
   <!-- ===== Subject ===== -->
-  <div class="subject">
-    <div class="lbl">موضوع الاجتماع</div>
-    <div class="val">${escapeHtml(m.title || "—")}</div>
-  </div>
+  ${m.title ? `
+  <div class="block subject">
+    <div class="head">موضوع الاجتماع</div>
+    <div class="body">${escapeHtml(m.title)}</div>
+  </div>` : ""}
 
-  <!-- ===== Metadata grid ===== -->
-  <div class="meta-grid">
-    <div class="cell"><span class="lbl">المكان</span><span class="val">${escapeHtml(m.location || "—")}</span></div>
-    <div class="cell"><span class="lbl">التوقيت</span><span class="val">${timeStr}</span></div>
-    <div class="cell"><span class="lbl">كاتب المحضر</span><span class="val">${escapeHtml(m.recorder_name || "—")}</span></div>
-    <div class="cell"><span class="lbl">عدد الحضور</span><span class="val">${m.attendees.length}</span></div>
-  </div>
-
-  <!-- ===== Attendees ===== -->
-  <div class="section">
-    <h2>قائمة الحضور <span class="count">${m.attendees.length}</span></h2>
-    ${attendeesBlock}
-  </div>
-
-  <!-- ===== Agenda ===== -->
-  <div class="section">
-    <h2>بنود جدول الأعمال <span class="count">${m.agenda_items.length}</span></h2>
-    <table class="formal">
-      <colgroup><col style="width:42px"/><col/></colgroup>
-      <tbody>${tableRows(m.agenda_items)}</tbody>
-    </table>
+  <!-- ===== Agenda (محاور الاجتماع) ===== -->
+  <div class="block">
+    <div class="head">محاور الاجتماع</div>
+    ${m.agenda_items.length === 0
+      ? `<div class="axes-empty">— لا توجد محاور مسجَّلة —</div>`
+      : `<ul class="axes-list">${m.agenda_items.map((x) => `<li>${escapeHtml(x)}</li>`).join("")}</ul>`}
   </div>
 
   <!-- ===== Decisions ===== -->
-  <div class="section">
-    <h2>التوصيات والقرارات <span class="count">${m.recommendations.length}</span></h2>
-    <table class="formal">
-      <colgroup><col style="width:42px"/><col/></colgroup>
-      <tbody>${tableRows(m.recommendations)}</tbody>
+  <div class="block">
+    <div class="head">التوصيات والقرارات</div>
+    <table class="numbered">
+      <colgroup><col style="width:44px"/><col/></colgroup>
+      <tbody>${numberedRows(m.recommendations, 3)}</tbody>
+    </table>
+  </div>
+
+  <!-- ===== Attendance ===== -->
+  <div class="block">
+    <div class="head">الحضور</div>
+    <table class="att">
+      <colgroup>
+        <col class="col-num"/>
+        <col/>
+        <col class="col-role"/>
+        <col class="col-att"/>
+        <col class="col-att"/>
+        <col class="col-sign"/>
+      </colgroup>
+      <thead>
+        <tr>
+          <th rowspan="2">م</th>
+          <th rowspan="2">الاسم</th>
+          <th rowspan="2">الصفة</th>
+          <th colspan="2" class="grouped">الحضور</th>
+          <th rowspan="2">التوقيع</th>
+        </tr>
+        <tr>
+          <th>نعم</th>
+          <th>لا</th>
+        </tr>
+      </thead>
+      <tbody>${attRows}</tbody>
     </table>
   </div>
 
   ${m.notes ? `
-  <div class="section">
-    <h2>ملاحظات إضافية</h2>
-    <div class="notes-box">${escapeHtml(m.notes).replace(/\n/g, "<br/>")}</div>
+  <div class="block notes-block">
+    <div class="head">ملاحظات إضافية</div>
+    <div class="body">${escapeHtml(m.notes)}</div>
   </div>` : ""}
 
-  <!-- ===== Approval block ===== -->
-  <div class="approval-section">
-    <div class="approval-title">قسم الاعتمادات والتوقيعات</div>
-    <div class="signatures">
-      <div class="sig-block">
-        <div class="sig-role">كاتب المحضر</div>
-        <div class="sig-field"><span class="lbl">الاسم</span><span class="preset">${escapeHtml(m.recorder_name || "")}</span></div>
-        <div class="sig-field"><span class="lbl">التوقيع</span><span class="line"></span></div>
-        <div class="sig-field"><span class="lbl">التاريخ</span><span class="line"></span></div>
+  <!-- ===== Signatures ===== -->
+  <div class="signatures">
+    <div class="sig">
+      <div class="role">كاتب المحضر</div>
+      <div class="body">
+        <div class="field"><span class="l">الاسم</span><span class="preset">${escapeHtml(m.recorder_name || "")}</span></div>
+        <div class="field"><span class="l">التوقيع</span><span class="line"></span></div>
+        <div class="field"><span class="l">التاريخ</span><span class="line"></span></div>
       </div>
-      <div class="sig-block">
-        <div class="sig-role">رئيس اللجنة</div>
-        <div class="sig-field"><span class="lbl">الاسم</span><span class="line"></span></div>
-        <div class="sig-field"><span class="lbl">التوقيع</span><span class="line"></span></div>
-        <div class="sig-field"><span class="lbl">التاريخ</span><span class="line"></span></div>
+    </div>
+    <div class="sig">
+      <div class="role">رئيس اللجنة</div>
+      <div class="body">
+        <div class="field"><span class="l">الاسم</span><span class="line"></span></div>
+        <div class="field"><span class="l">التوقيع</span><span class="line"></span></div>
+        <div class="field"><span class="l">التاريخ</span><span class="line"></span></div>
       </div>
-      <div class="sig-block">
-        <div class="sig-role">اعتماد الإدارة</div>
-        <div class="sig-field"><span class="lbl">الاسم</span><span class="line"></span></div>
-        <div class="sig-field"><span class="lbl">التوقيع</span><span class="line"></span></div>
-        <div class="sig-field"><span class="lbl">التاريخ</span><span class="line"></span></div>
+    </div>
+    <div class="sig">
+      <div class="role">اعتماد الإدارة</div>
+      <div class="body">
+        <div class="field"><span class="l">الاسم</span><span class="line"></span></div>
+        <div class="field"><span class="l">التوقيع</span><span class="line"></span></div>
+        <div class="field"><span class="l">التاريخ</span><span class="line"></span></div>
       </div>
     </div>
   </div>
 
   <!-- ===== Footer ===== -->
-  <div class="doc-footer">
-    <span><strong>${escapeHtml(brand.name || "")}</strong> ${brand.subtitle ? "— " + escapeHtml(brand.subtitle) : ""}</span>
-    <span>صدر بتاريخ ${issueDate}</span>
+  <div class="foot">
+    <span><b>${escapeHtml(brand.name || "")}</b>${brand.subtitle ? " — " + escapeHtml(brand.subtitle) : ""}</span>
+    <span>وثيقة رسمية · ${escapeHtml(refNumber)}</span>
   </div>
 </div>`;
   };
