@@ -106,6 +106,10 @@ export function AppShell({ children, restricted = false, restrictedToCommitteeTy
   // Unified entry-point for regular members: Task Center is auto-filtered to their committee.
   standardMemberNav.push({ to: "/admin/tasks", label: "مركز المهام", icon: Target });
   standardMemberNav.push({ to: "/ideas", label: "بنك الأفكار", icon: Lightbulb });
+  // Media Committee members (incl. non-head) get the Grooms Registry in their sidebar.
+  if (restrictedToCommitteeType === "media") {
+    standardMemberNav.push({ to: "/grooms", label: "سجل العرسان", icon: HeartHandshake });
+  }
   const TOP_NAV = isStandardMember
     ? standardMemberNav
     : restricted
