@@ -188,39 +188,51 @@ function PublicHome() {
       </section>
 
       {/* Hero — split layout: text right, image card left, calm cream background */}
-      <section className="relative overflow-hidden bg-background">
+      <section className="relative overflow-hidden bg-background border-b border-border/60">
         {/* Soft brand-tinted blobs */}
         <div className="absolute -top-24 -right-24 w-[420px] h-[420px] rounded-full bg-gold/10 blur-3xl pointer-events-none" />
         <div className="absolute -bottom-32 -left-24 w-[460px] h-[460px] rounded-full bg-primary/10 blur-3xl pointer-events-none" />
+        <DotsPattern
+          fade="bl"
+          cols={12}
+          rows={6}
+          className="absolute top-0 right-0 h-40 w-[440px] text-gold/25"
+        />
+        <DotsPattern
+          fade="tr"
+          cols={10}
+          rows={5}
+          className="absolute bottom-0 left-0 h-32 w-80 text-primary/20"
+        />
 
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-8 lg:px-12 py-12 lg:py-20 grid grid-cols-1 lg:grid-cols-2 items-center gap-10 lg:gap-14">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-8 lg:px-12 py-12 lg:py-16 grid grid-cols-1 lg:grid-cols-2 items-center gap-8 lg:gap-12">
           {/* RIGHT — Text */}
-          <div className="text-right order-2 lg:order-1 animate-fade-up">
-            <div className="inline-flex items-center gap-2 rounded-full border border-gold/30 bg-gold/10 px-3 py-1 mb-5 text-[11px] sm:text-xs font-semibold text-gold tracking-wider">
-              <Sparkles className="h-3 w-3" />
+          <div className="text-center lg:text-right order-2 lg:order-1 animate-fade-up">
+            <div className="inline-flex items-center gap-2 rounded-full border border-gold/30 bg-gold/10 px-4 py-1.5 mb-6 text-[11px] sm:text-xs font-bold text-gold tracking-wider">
+              <Sparkles className="h-3.5 w-3.5" />
               لجنة الزواج الجماعي
             </div>
 
-            <h1 className="font-extrabold leading-[1.2] tracking-tight text-3xl sm:text-4xl md:text-5xl lg:text-[3.25rem] text-foreground mb-5">
+            <h1 className="font-extrabold leading-[1.35] tracking-tight text-2xl sm:text-3xl lg:text-[2.4rem] text-foreground mb-6">
               حيثُ تَلتقي <span className="text-primary">الهِمَمُ</span>
               <br className="hidden sm:block" />
               ويَكتمِلُ <span className="text-gold">الفَرَح</span>
             </h1>
 
-            {/* Subtle divider */}
-            <div className="flex items-center gap-2 mb-5 justify-end">
-              <span className="h-px w-12 bg-gradient-to-l from-transparent to-gold/50" />
-              <span className="h-1.5 w-1.5 rounded-full bg-gold" />
-              <span className="h-px w-6 bg-gradient-to-r from-gold/50 to-transparent" />
+            {/* Ornamental divider — matches intro section */}
+            <div className="flex items-center justify-center lg:justify-end gap-3 mb-6">
+              <span className="h-px w-16 bg-gradient-to-l from-transparent to-gold/60" />
+              <Sparkles className="h-4 w-4 text-gold" />
+              <span className="h-px w-16 bg-gradient-to-r from-transparent to-gold/60" />
             </div>
 
-            <p className="text-sm sm:text-base lg:text-[17px] text-muted-foreground leading-loose mb-7 max-w-xl">
+            <p className="text-sm sm:text-base lg:text-[17px] text-muted-foreground leading-loose mb-7 max-w-xl mx-auto lg:mx-0">
               منصةٌ مؤسَّسيّةٌ راقيةٌ تُنظِّمُ شؤون القبيلة وتُديرُ مسيرةَ العطاء
               بكلِّ شفافيّةٍ وإتقان؛ من تسجيلِ المستفيدين وتوثيقِ المساهمات إلى متابعةِ المهامّ
               وإصدارِ التقارير، ليَبقى الأَثَرُ مُمتدّاً وفَرَحُ العائلةِ مُكتمِلاً.
             </p>
 
-            <div className="flex flex-wrap items-center gap-3">
+            <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3">
               <Link
                 to="/register-groom"
                 className="inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold bg-gradient-gold text-gold-foreground shadow-gold hover:opacity-95 transition-opacity"
@@ -240,7 +252,7 @@ function PublicHome() {
 
           {/* LEFT — Transparent logo (no frame, balanced for mobile + desktop) */}
           <div className="order-1 lg:order-2 animate-fade-up flex justify-center" style={{ animationDelay: "0.15s" }}>
-            <div className="relative mx-auto w-full max-w-[260px] sm:max-w-[340px] lg:max-w-[440px]">
+            <div className="relative mx-auto w-full max-w-[200px] sm:max-w-[240px] lg:max-w-[320px]">
               {/* Soft radial glow behind the logo for depth on light backgrounds */}
               <div
                 className="absolute inset-0 -z-10 blur-3xl opacity-60 pointer-events-none"
