@@ -843,7 +843,7 @@ export function GroomsPage() {
                 );
               })}
               {visibleGrooms.length === 0 && (
-                <tr><td colSpan={8} className="text-center py-12 text-muted-foreground">
+                <tr><td colSpan={7} className="text-center py-12 text-muted-foreground">
                   {grooms.length === 0 ? "لم يُسجّل أي عريس بعد." : "لا توجد نتائج مطابقة للبحث أو الفلتر الحالي."}
                 </td></tr>
               )}
