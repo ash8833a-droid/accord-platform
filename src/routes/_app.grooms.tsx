@@ -744,6 +744,7 @@ export function GroomsPage() {
                 <th className="px-4 py-3 font-medium">الفرع</th>
                 <th className="px-4 py-3 font-medium">الجوال</th>
                 <th className="px-4 py-3 font-medium">الحالة</th>
+                <th className="px-4 py-3 font-medium">الجاهزية الإعلامية</th>
                 <th className="px-4 py-3 font-medium">المستندات والطلبات</th>
                 <th className="px-4 py-3 font-medium">إجراء</th>
               </tr>
@@ -757,6 +758,26 @@ export function GroomsPage() {
                     <td className="px-4 py-3">{g.family_branch}</td>
                     <td className="px-4 py-3 text-muted-foreground" dir="ltr">{g.phone}</td>
                     <td className="px-4 py-3"><Badge className={b.cls}>{b.label}</Badge></td>
+                    <td className="px-4 py-3">
+                      {(() => {
+                        const hasPhoto = !!(g as any).photo_url;
+                        const hasId = !!(g as any).national_id_url;
+                        const ready = hasPhoto && hasId;
+                        return (
+                          <span
+                            className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium ${
+                              ready
+                                ? "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200"
+                                : "bg-slate-50 text-slate-600 ring-1 ring-slate-200"
+                            }`}
+                            title={`الصورة: ${hasPhoto ? "✓" : "—"} · الهوية: ${hasId ? "✓" : "—"}`}
+                          >
+                            {ready ? <CheckCircle2 className="h-3.5 w-3.5" /> : <CircleDashed className="h-3.5 w-3.5" />}
+                            {ready ? "جاهز" : "ناقص"}
+                          </span>
+                        );
+                      })()}
+                    </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2 flex-wrap">
                         {(g.status === "approved" || g.status === "completed") ? (
