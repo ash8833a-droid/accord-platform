@@ -130,6 +130,19 @@ export function CommitteeMinutes({ committeeId, committeeName, canManage }: Prop
   const [extracting, setExtracting] = useState(false);
   const [saving, setSaving] = useState(false);
   const [tab, setTab] = useState<"list" | "create">("list");
+  const [open, setOpen] = useState(false);
+
+  // Allow external "quick upload" buttons to open this dialog directly on the create tab
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent<{ committeeId: string; tab?: "list" | "create" }>).detail;
+      if (!detail || detail.committeeId !== committeeId) return;
+      setTab(detail.tab ?? "create");
+      setOpen(true);
+    };
+    window.addEventListener("lovable:open-minutes", handler as EventListener);
+    return () => window.removeEventListener("lovable:open-minutes", handler as EventListener);
+  }, [committeeId]);
 
   const load = async () => {
     const { data } = await supabase
@@ -197,7 +210,39 @@ export function CommitteeMinutes({ committeeId, committeeName, canManage }: Prop
         agenda_items: r.agenda_items?.length ? r.agenda_items : f.agenda_items,
         recommendations: r.recommendations?.length ? r.recommendations : f.recommendations,
       }));
-      toast.success("تم استخراج بيانات المحضر — راجعها قبل الحفظ");
+      // Build a snapshot for immediate printing (avoid stale state from setForm)
+      const snapshot = {
+        title: r.title || form.title,
+        meeting_date: r.meeting_date || form.meeting_date,
+        start_time: r.start_time || form.start_time,
+        end_time: r.end_time || form.end_time,
+        location: r.location || form.location,
+        recorder_name: r.recorder_name || form.recorder_name,
+        notes: r.notes || form.notes,
+        attendees: r.attendees?.length ? r.attendees : form.attendees,
+        agenda_items: r.agenda_items?.length ? r.agenda_items : form.agenda_items,
+        recommendations: r.recommendations?.length ? r.recommendations : form.recommendations,
+      };
+      const counts: Array<[string, number | string]> = [
+        ["العنوان", snapshot.title ? 1 : 0],
+        ["التاريخ", snapshot.meeting_date ? 1 : 0],
+        ["الحضور", snapshot.attendees.length],
+        ["البنود", snapshot.agenda_items.length],
+        ["التوصيات", snapshot.recommendations.length],
+      ];
+      const filled = counts.filter(([, v]) => Number(v) > 0).length;
+      const summary = counts.map(([k, v]) => `${k}: ${v}`).join(" • ");
+      toast.success(`تم استخراج ${filled} حقول من المحضر`, {
+        description: summary,
+        duration: 9000,
+        action: {
+          label: "طباعة الآن",
+          onClick: async () => {
+            const html = renderProfessionalHtml(snapshot);
+            await printHtmlDocument(html, `محضر ${committeeName} - ${snapshot.meeting_date ?? ""}`);
+          },
+        },
+      });
     } finally {
       setExtracting(false);
     }
@@ -409,7 +454,13 @@ export function CommitteeMinutes({ committeeId, committeeName, canManage }: Prop
   };
 
   return (
-    <Dialog onOpenChange={(o) => { if (!o) { reset(); setTab("list"); } }}>
+    <Dialog
+      open={open}
+      onOpenChange={(o) => {
+        setOpen(o);
+        if (!o) { reset(); setTab("list"); }
+      }}
+    >
       <DialogTrigger asChild>
         <button
           type="button"
