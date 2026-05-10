@@ -397,6 +397,65 @@ export function GroomsPage() {
     else toast.error("تعذّر تنزيل الملفات");
   };
 
+  const bulkExportFiles = async (kind: "photos" | "ids") => {
+    if (!canManageGrooms) {
+      toast.error("هذه العملية مخصّصة لإدارة اللجنة الإعلامية");
+      return;
+    }
+    const field = kind === "photos" ? "photo_url" : "national_id_url";
+    const targets = visibleGrooms
+      .map((g) => ({ g, path: (g as any)[field] as string | null }))
+      .filter((x) => !!x.path) as Array<{ g: Groom; path: string }>;
+    if (targets.length === 0) {
+      toast.info(kind === "photos" ? "لا توجد صور مرفوعة في القائمة الحالية" : "لا توجد هويات مرفوعة في القائمة الحالية");
+      return;
+    }
+    setZipBusy(kind);
+    setZipProgress(0);
+    const tid = toast.loading(
+      kind === "photos"
+        ? `جارٍ تجهيز ${targets.length} صورة في ملف مضغوط...`
+        : `جارٍ تجهيز ${targets.length} هوية في ملف آمن...`,
+    );
+    try {
+      const zip = new JSZip();
+      const folder = zip.folder(kind === "photos" ? "صور_العرسان" : "هويات_العرسان")!;
+      const used = new Set<string>();
+      let ok = 0;
+      for (let i = 0; i < targets.length; i++) {
+        const { g, path } = targets[i];
+        try {
+          const { data, error } = await sb.storage.from("groom-docs").download(path);
+          if (error || !data) throw error ?? new Error("download failed");
+          const ext = ((path.split(".").pop() || "bin").split("?")[0] || "bin").toLowerCase();
+          const safe = (g.full_name || `groom-${i + 1}`).replace(/[\\/:*?"<>|]/g, "_").trim();
+          let name = `${safe}.${ext}`;
+          let n = 2;
+          while (used.has(name)) name = `${safe}-${n++}.${ext}`;
+          used.add(name);
+          folder.file(name, await data.arrayBuffer());
+          ok++;
+        } catch (err) {
+          console.error("zip add", path, err);
+        }
+        setZipProgress(Math.round(((i + 1) / targets.length) * 100));
+      }
+      if (ok === 0) throw new Error("لم يتم تنزيل أي ملف");
+      const blob = await zip.generateAsync({ type: "blob", compression: "DEFLATE" });
+      const fileName =
+        kind === "photos" ? "صور_العرسان_الزواج_الجماعي.zip" : "هويات_العرسان_الزواج_الجماعي.zip";
+      saveAs(blob, fileName);
+      toast.dismiss(tid);
+      toast.success(`تم تجهيز ${ok} ملف داخل ${fileName}`);
+    } catch (err: any) {
+      toast.dismiss(tid);
+      toast.error("تعذّر إنشاء الملف المضغوط", { description: err?.message });
+    } finally {
+      setZipBusy(null);
+      setZipProgress(0);
+    }
+  };
+
   const stats = useMemo(() => {
     const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
     return {
