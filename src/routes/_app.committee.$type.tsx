@@ -877,42 +877,6 @@ function CommitteePage() {
         <CommitteeMembersPanel committeeId={committee.id} />
       </QualitySection>
 
-      {/* Meeting minutes — prominent, visible to all members */}
-      <QualitySection
-        storageKey={`committee:${type}:minutes`}
-        title="محاضر الاجتماعات"
-        icon={ClipboardList}
-        defaultOpen
-      >
-        <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-3">
-          <CommitteeMinutes
-            committeeId={committee.id}
-            committeeName={committee.name}
-            canManage={isAdmin || isHead || members.some((mm) => mm.full_name.trim() === (profileName ?? "").trim())}
-          />
-          {(isAdmin || isHead || members.some((mm) => mm.full_name.trim() === (profileName ?? "").trim())) && (
-            <Button
-              type="button"
-              size="lg"
-              onClick={() => {
-                window.dispatchEvent(
-                  new CustomEvent("lovable:open-minutes", {
-                    detail: { committeeId: committee.id, tab: "create" },
-                  }),
-                );
-              }}
-              className="gap-2 bg-gradient-to-r from-gold to-gold/80 text-gold-foreground hover:opacity-90 shadow-md w-full sm:w-auto"
-            >
-              <Upload className="h-4 w-4" />
-              رفع محضر جديد
-            </Button>
-          )}
-          <p className="text-xs text-muted-foreground sm:max-w-md leading-relaxed">
-            ارفع نموذج المحضر أو أنشئه يدوياً (تاريخ، حضور، بنود، توصيات) ثم اطبع نسخة احترافية بهوية اللجنة بضغطة زر.
-          </p>
-        </div>
-      </QualitySection>
-
       <QualitySection storageKey={`committee:${type}:grooms`} title="متابعة العرسان" icon={HeartHandshake}>
         <GroomFollowups committeeType={type as any} />
       </QualitySection>
