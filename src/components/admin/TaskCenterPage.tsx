@@ -17,13 +17,14 @@ import {
   Plus, Search, Loader2, ListTodo, PlayCircle, CheckCircle2,
   Trash2, LayoutGrid, Rows3, CalendarClock,
   ArrowUp, ArrowDown, ChevronDown,
-  RefreshCw, Eye, Activity, Table2,
+  RefreshCw, Eye, Activity, Table2, Upload,
 } from "lucide-react";
 import { GripVertical } from "lucide-react";
 import { toast } from "sonner";
 import { CreateTaskDialog } from "@/components/admin/CreateTaskDialog";
 import { TaskDetailsDialog } from "@/components/admin/TaskDetailsDialog";
 import { PageHeroHeader } from "@/components/PageHeroHeader";
+import { CommitteeMinutes } from "@/components/CommitteeMinutes";
 
 interface CommitteeRow { id: string; name: string; type: string }
 interface TaskRow {
@@ -126,6 +127,25 @@ function TaskCenterInner({ canEdit }: { canEdit: boolean }) {
   }, [user]);
 
   const cmMap = useMemo(() => new Map(committees.map((c) => [c.id, c])), [committees]);
+
+  // The committee currently being viewed (regular users are scoped to their own;
+  // privileged users use the filter). Used to show the "محاضر / رفع محضر" buttons.
+  const activeCommitteeId =
+    !isPrivileged && committeeId
+      ? committeeId
+      : committeeFilter !== "all"
+        ? committeeFilter
+        : null;
+  const activeCommittee = activeCommitteeId ? cmMap.get(activeCommitteeId) ?? null : null;
+
+  const openMinutesUpload = () => {
+    if (!activeCommitteeId) return;
+    window.dispatchEvent(
+      new CustomEvent("lovable:open-minutes", {
+        detail: { committeeId: activeCommitteeId, tab: "create" },
+      }),
+    );
+  };
 
   // Regular committee members: lock view to their own committee only.
   const scopedTasks = useMemo(() => {
@@ -353,6 +373,25 @@ function TaskCenterInner({ canEdit }: { canEdit: boolean }) {
             >
               <Plus className="h-4 w-4" /> إضافة مهمة
             </Button>
+          )}
+          {activeCommittee && (
+            <>
+              <CommitteeMinutes
+                committeeId={activeCommittee.id}
+                committeeName={activeCommittee.name}
+                canManage={canEdit}
+              />
+              {canEdit && (
+                <Button
+                  size="sm"
+                  onClick={openMinutesUpload}
+                  className="gap-2 h-11 px-5 bg-gradient-to-r from-gold to-gold/80 text-gold-foreground hover:opacity-90 rounded-xl shadow-sm shrink-0"
+                  title={`رفع محضر اجتماع — ${activeCommittee.name}`}
+                >
+                  <Upload className="h-4 w-4" /> رفع محضر
+                </Button>
+              )}
+            </>
           )}
         </div>
 
