@@ -335,6 +335,7 @@ export function CommitteeMinutes({ committeeId, committeeName, canManage }: Prop
 
     const dash = "—";
     const cellOrDash = (v: string | null | undefined) => (v && v.trim()) ? escapeHtml(v) : `<span class="dash">${dash}</span>`;
+    const arDigits = (n: number): string => String(n).replace(/\d/g, (d) => "٠١٢٣٤٥٦٧٨٩"[+d]);
 
     // Numbered rows for agenda / decisions
     const numberedRows = (arr: string[], minRows = 3) => {
@@ -342,7 +343,7 @@ export function CommitteeMinutes({ committeeId, committeeName, canManage }: Prop
       const padded = rows.length < minRows ? [...rows, ...Array(minRows - rows.length).fill("")] : rows;
       return padded.map((x, i) => `
         <tr>
-          <td class="n">${toArabicDigits(i + 1)}</td>
+          <td class="n">${arDigits(i + 1)}</td>
           <td class="t">${x ? escapeHtml(x) : ""}</td>
         </tr>`).join("");
     };
@@ -354,7 +355,7 @@ export function CommitteeMinutes({ committeeId, committeeName, canManage }: Prop
       const padded = list.length < attendeeMin ? [...list, ...Array(attendeeMin - list.length).fill("")] : list;
       return padded.map((name, i) => `
         <tr>
-          <td class="n">${toArabicDigits(i + 1)}</td>
+          <td class="n">${arDigits(i + 1)}</td>
           <td class="att-name">${name ? escapeHtml(name) : ""}</td>
           <td></td>
           <td class="ck">${name ? "✓" : ""}</td>
