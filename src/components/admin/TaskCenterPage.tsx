@@ -1,5 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
-import "drag-drop-touch";
+import { installLongPressDrag } from "@/lib/touch-drag-longpress";
+
+// Activate long-press-to-drag for touch devices: lists scroll natively,
+// reordering only triggers after a deliberate long-press on a card.
+installLongPressDrag();
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { committeeByType } from "@/lib/committees";
