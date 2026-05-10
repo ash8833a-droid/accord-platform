@@ -1,7 +1,8 @@
 import {
   ShieldCheck, Users, Lightbulb,
   HeartHandshake, FileBarChart, Inbox, Wallet, ShoppingCart,
-  Palette, Target, Banknote, type LucideIcon,
+  Palette, Target, Banknote,
+  Crown, Megaphone, CalendarRange, UtensilsCrossed, Sparkles, type LucideIcon,
 } from "lucide-react";
 
 export interface PageDef {
@@ -9,7 +10,7 @@ export interface PageDef {
   path: string;         // route path
   label: string;        // Arabic label
   icon: LucideIcon;
-  category: "إدارة" | "عمل" | "محتوى" | "مالية";
+  category: "إدارة" | "عمل" | "محتوى" | "مالية" | "اللجان";
   description?: string;
 }
 
@@ -28,6 +29,16 @@ export const PAGES: PageDef[] = [
   { key: "finance-management", path: "/finance-management", label: "إدارة المالية",      icon: Banknote,       category: "مالية" },
   { key: "payment-requests",   path: "/payment-requests",   label: "طلبات الصرف",        icon: Wallet,         category: "مالية" },
   { key: "procurement-requests", path: "/procurement-requests", label: "طلبات الشراء",   icon: ShoppingCart,   category: "مالية" },
+  // ===== اللجان: صفحة كل لجنة (يمكن منح صلاحية مخصصة لكل عضو) =====
+  { key: "committee-supreme",     path: "/committee/supreme",     label: "اللجنة العليا",            icon: Crown,            category: "اللجان" },
+  { key: "committee-finance",     path: "/committee/finance",     label: "اللجنة المالية",           icon: Wallet,           category: "اللجان" },
+  { key: "committee-media",       path: "/committee/media",       label: "اللجنة الإعلامية",         icon: Megaphone,        category: "اللجان" },
+  { key: "committee-quality",     path: "/committee/quality",     label: "لجنة الجودة",              icon: ShieldCheck,      category: "اللجان" },
+  { key: "committee-programs",    path: "/committee/programs",    label: "لجنة البرامج",             icon: CalendarRange,    category: "اللجان" },
+  { key: "committee-dinner",      path: "/committee/dinner",      label: "لجنة العشاء",              icon: UtensilsCrossed,  category: "اللجان" },
+  { key: "committee-procurement", path: "/committee/procurement", label: "لجنة المشتريات",           icon: ShoppingCart,     category: "اللجان" },
+  { key: "committee-reception",   path: "/committee/reception",   label: "لجنة الاستقبال والضيافة", icon: HeartHandshake,   category: "اللجان" },
+  { key: "committee-women",       path: "/committee/women",       label: "اللجنة النسائية",          icon: Sparkles,         category: "اللجان" },
 ];
 
 export type AccessLevel = "hidden" | "read" | "edit";
