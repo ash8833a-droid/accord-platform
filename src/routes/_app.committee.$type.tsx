@@ -23,6 +23,7 @@ import { TaskAttachments } from "@/components/TaskAttachments";
 import { TaskComments } from "@/components/TaskComments";
 import { TaskEditorDialog, type EditorTask } from "@/components/TaskEditorDialog";
 import { CommitteeArchive } from "@/components/CommitteeArchive";
+import { CommitteeMinutes } from "@/components/CommitteeMinutes";
 import { CommitteeMembersPanel } from "@/components/CommitteeMembersPanel";
 import { QuickResponseBar } from "@/components/QuickResponseBar";
 import { GroomFollowups } from "@/components/committee/GroomFollowups";
@@ -1435,7 +1436,14 @@ function CommitteePage() {
 
       {/* Archive of past reports / files / images for this committee */}
       <QualitySection storageKey={`committee:${type}:archive`} title="الأرشيف والتقارير" icon={Archive}>
-        <CommitteeArchive committeeId={committee.id} committeeName={committee.name} />
+        <div className="flex flex-wrap items-center gap-3">
+          <CommitteeArchive committeeId={committee.id} committeeName={committee.name} />
+          <CommitteeMinutes
+            committeeId={committee.id}
+            committeeName={committee.name}
+            canManage={isAdmin || isHead || members.some((mm) => mm.full_name.trim() === (profileName ?? "").trim())}
+          />
+        </div>
       </QualitySection>
 
       {/* Edit payment request dialog */}

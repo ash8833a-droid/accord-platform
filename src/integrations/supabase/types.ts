@@ -119,6 +119,56 @@ export type Database = {
         }
         Relationships: []
       }
+      committee_minutes: {
+        Row: {
+          committee_id: string
+          created_at: string
+          created_by: string | null
+          file_size: number | null
+          file_type: string | null
+          file_url: string | null
+          id: string
+          meeting_date: string | null
+          notes: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          committee_id: string
+          created_at?: string
+          created_by?: string | null
+          file_size?: number | null
+          file_type?: string | null
+          file_url?: string | null
+          id?: string
+          meeting_date?: string | null
+          notes?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          committee_id?: string
+          created_at?: string
+          created_by?: string | null
+          file_size?: number | null
+          file_type?: string | null
+          file_url?: string | null
+          id?: string
+          meeting_date?: string | null
+          notes?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "committee_minutes_committee_id_fkey"
+            columns: ["committee_id"]
+            isOneToOne: false
+            referencedRelation: "committees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       committee_post_comments: {
         Row: {
           author_name: string
