@@ -265,8 +265,20 @@ function PublicHome() {
       </section>
 
       {/* Hero KPIs — the headline numbers */}
-      <section className="max-w-7xl mx-auto px-4 lg:px-8 mt-10 lg:mt-14 relative z-10">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 lg:gap-5">
+      <section className="relative max-w-7xl mx-auto px-4 lg:px-8 mt-10 lg:mt-14 z-10">
+        <DotsPattern
+          fade="br"
+          cols={10}
+          rows={5}
+          className="absolute -top-6 right-0 h-28 w-72 text-primary/20"
+        />
+        <DotsPattern
+          fade="tl"
+          cols={10}
+          rows={5}
+          className="absolute -bottom-6 left-0 h-24 w-64 text-gold/25"
+        />
+        <div className="relative grid grid-cols-1 sm:grid-cols-3 gap-4 lg:gap-5">
           <HeroKpi
             label="إجمالي العرسان"
             value={fmt(s.grooms)}
@@ -300,8 +312,16 @@ function PublicHome() {
       </section>
 
       {/* Detailed grid — DIFFERENT metrics only (no overlap with hero KPIs) */}
-      <section className="max-w-7xl mx-auto px-4 lg:px-8 pt-14 lg:pt-20 pb-10">
-        <div className="flex items-end justify-between mb-8">
+      <section className="relative overflow-hidden max-w-7xl mx-auto px-4 lg:px-8 pt-14 lg:pt-20 pb-10">
+        <div className="absolute -top-10 right-1/4 w-[360px] h-[360px] rounded-full bg-gold/8 blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-10 left-1/4 w-[360px] h-[360px] rounded-full bg-primary/8 blur-3xl pointer-events-none" />
+        <DotsPattern
+          fade="bl"
+          cols={10}
+          rows={5}
+          className="absolute top-6 left-0 h-28 w-72 text-gold/25"
+        />
+        <div className="relative flex items-end justify-between mb-8">
           <div>
             <p className="text-xs font-semibold text-primary uppercase tracking-wider mb-1">
               قراءةٌ أعمق
@@ -316,7 +336,7 @@ function PublicHome() {
           <TrendingUp className="hidden md:block h-8 w-8 text-gold" />
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="relative grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <DetailCard
             icon={CalendarRange}
             label="سنوات هجرية موثّقة"
@@ -349,6 +369,18 @@ function PublicHome() {
         <div className="relative overflow-hidden rounded-3xl border bg-gradient-card p-8 lg:p-12 shadow-soft">
           <div className="absolute -top-10 -right-10 h-40 w-40 rounded-full bg-gold/15 blur-3xl" />
           <div className="absolute -bottom-10 -left-10 h-40 w-40 rounded-full bg-primary/15 blur-3xl" />
+          <DotsPattern
+            fade="br"
+            cols={12}
+            rows={5}
+            className="absolute top-0 right-0 h-28 w-80 text-primary/20"
+          />
+          <DotsPattern
+            fade="tl"
+            cols={12}
+            rows={5}
+            className="absolute bottom-0 left-0 h-24 w-72 text-gold/25"
+          />
           <div className="relative text-center max-w-2xl mx-auto">
             <div className="inline-flex items-center gap-2 rounded-full bg-gold/15 text-gold-foreground px-4 py-1.5 text-xs font-bold mb-4">
               <Sparkles className="h-3.5 w-3.5" />
@@ -427,10 +459,11 @@ function HeroKpi({
   const a = accent[tone];
   return (
     <div
-      className="group relative rounded-2xl border border-border/70 bg-card p-5 lg:p-6 shadow-soft hover:border-gold/30 transition-colors duration-300 animate-fade-up"
+      className="group relative overflow-hidden rounded-2xl border border-border/70 bg-card/90 backdrop-blur-sm p-5 lg:p-6 shadow-soft hover:shadow-elegant hover:-translate-y-0.5 hover:border-gold/30 transition-all duration-300 animate-fade-up"
       style={{ animationDelay: delay }}
     >
-      <div className="flex items-start justify-between gap-3">
+      <div className="absolute -top-8 -left-8 h-24 w-24 rounded-full bg-gradient-to-br from-gold/10 to-primary/5 blur-2xl pointer-events-none" />
+      <div className="relative flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2 mb-2">
             <span className={`h-1.5 w-1.5 rounded-full ${a.dot}`} />
@@ -452,7 +485,9 @@ function HeroKpi({
             {hint}
           </p>
         </div>
-        <Icon className={`h-5 w-5 lg:h-6 lg:w-6 shrink-0 ${a.iconColor} opacity-70`} />
+        <span className="h-10 w-10 shrink-0 rounded-xl bg-gradient-to-br from-gold/20 to-primary/10 flex items-center justify-center ring-1 ring-gold/30">
+          <Icon className={`h-5 w-5 ${a.iconColor}`} />
+        </span>
       </div>
     </div>
   );
@@ -489,13 +524,16 @@ function DetailCard({
   sub: string;
 }) {
   return (
-    <div className="group relative rounded-2xl border border-border/70 bg-card p-5 lg:p-6 shadow-soft hover:border-primary/30 transition-colors duration-300 animate-fade-up">
-      <div className="flex items-start justify-between gap-3 mb-4">
+    <div className="group relative overflow-hidden rounded-2xl border border-border/70 bg-card/90 backdrop-blur-sm p-5 lg:p-6 shadow-soft hover:shadow-elegant hover:-translate-y-0.5 hover:border-primary/30 transition-all duration-300 animate-fade-up">
+      <div className="absolute -top-8 -right-8 h-24 w-24 rounded-full bg-gradient-to-br from-primary/10 to-gold/5 blur-2xl pointer-events-none" />
+      <div className="relative flex items-start justify-between gap-3 mb-4">
         <div className="flex items-center gap-2 min-w-0">
           <span className="h-1.5 w-1.5 rounded-full bg-primary" />
           <p className="text-sm font-medium text-muted-foreground leading-snug">{label}</p>
         </div>
-        <Icon className="h-5 w-5 shrink-0 text-primary opacity-70" />
+        <span className="h-10 w-10 shrink-0 rounded-xl bg-gradient-to-br from-gold/20 to-primary/10 flex items-center justify-center ring-1 ring-gold/30">
+          <Icon className="h-5 w-5 text-primary" />
+        </span>
       </div>
       <p className="text-2xl lg:text-3xl font-bold tracking-tight tabular-nums text-foreground truncate" title={value}>
         {value}
