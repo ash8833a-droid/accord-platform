@@ -134,15 +134,17 @@ function PublicHome() {
         <div className="absolute -bottom-24 left-1/3 w-[420px] h-[420px] rounded-full bg-primary/10 blur-3xl pointer-events-none" />
         <DotsPattern
           fade="br"
-          cols={12}
+          cols={14}
           rows={6}
-          className="absolute top-0 left-0 h-40 w-[440px] text-primary/20"
+          radius={4}
+          className="absolute top-0 left-0 h-32 w-[380px] text-primary/[0.08] blur-[0.3px]"
         />
         <DotsPattern
           fade="tl"
-          cols={10}
+          cols={12}
           rows={5}
-          className="absolute bottom-0 right-0 h-32 w-80 text-gold/25"
+          radius={4}
+          className="absolute bottom-0 right-0 h-28 w-72 text-gold/[0.10] blur-[0.3px]"
         />
 
         <div className="relative max-w-5xl mx-auto px-4 sm:px-8 py-12 lg:py-16 text-center">
@@ -194,15 +196,17 @@ function PublicHome() {
         <div className="absolute -bottom-32 -left-24 w-[460px] h-[460px] rounded-full bg-primary/10 blur-3xl pointer-events-none" />
         <DotsPattern
           fade="bl"
-          cols={12}
+          cols={14}
           rows={6}
-          className="absolute top-0 right-0 h-40 w-[440px] text-gold/25"
+          radius={4}
+          className="absolute top-0 right-0 h-32 w-[380px] text-gold/[0.10] blur-[0.3px]"
         />
         <DotsPattern
           fade="tr"
-          cols={10}
+          cols={12}
           rows={5}
-          className="absolute bottom-0 left-0 h-32 w-80 text-primary/20"
+          radius={4}
+          className="absolute bottom-0 left-0 h-28 w-72 text-primary/[0.08] blur-[0.3px]"
         />
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-8 lg:px-12 py-12 lg:py-16 grid grid-cols-1 lg:grid-cols-2 items-center gap-8 lg:gap-12">
@@ -280,15 +284,17 @@ function PublicHome() {
       <section className="relative max-w-7xl mx-auto px-4 lg:px-8 mt-10 lg:mt-14 z-10">
         <DotsPattern
           fade="br"
-          cols={10}
+          cols={12}
           rows={5}
-          className="absolute -top-6 right-0 h-28 w-72 text-primary/20"
+          radius={4}
+          className="absolute -top-6 right-0 h-24 w-64 text-primary/[0.08] blur-[0.3px]"
         />
         <DotsPattern
           fade="tl"
-          cols={10}
+          cols={12}
           rows={5}
-          className="absolute -bottom-6 left-0 h-24 w-64 text-gold/25"
+          radius={4}
+          className="absolute -bottom-6 left-0 h-20 w-56 text-gold/[0.10] blur-[0.3px]"
         />
         <div className="relative grid grid-cols-1 sm:grid-cols-3 gap-4 lg:gap-5">
           <HeroKpi
@@ -329,9 +335,10 @@ function PublicHome() {
         <div className="absolute -bottom-10 left-1/4 w-[360px] h-[360px] rounded-full bg-primary/8 blur-3xl pointer-events-none" />
         <DotsPattern
           fade="bl"
-          cols={10}
+          cols={12}
           rows={5}
-          className="absolute top-6 left-0 h-28 w-72 text-gold/25"
+          radius={4}
+          className="absolute top-6 left-0 h-24 w-64 text-gold/[0.10] blur-[0.3px]"
         />
         <div className="relative flex items-end justify-between mb-8">
           <div>
@@ -383,15 +390,17 @@ function PublicHome() {
           <div className="absolute -bottom-10 -left-10 h-40 w-40 rounded-full bg-primary/15 blur-3xl" />
           <DotsPattern
             fade="br"
-            cols={12}
+            cols={14}
             rows={5}
-            className="absolute top-0 right-0 h-28 w-80 text-primary/20"
+            radius={4}
+            className="absolute top-0 right-0 h-24 w-72 text-primary/[0.08] blur-[0.3px]"
           />
           <DotsPattern
             fade="tl"
-            cols={12}
+            cols={14}
             rows={5}
-            className="absolute bottom-0 left-0 h-24 w-72 text-gold/25"
+            radius={4}
+            className="absolute bottom-0 left-0 h-20 w-64 text-gold/[0.10] blur-[0.3px]"
           />
           <div className="relative text-center max-w-2xl mx-auto">
             <div className="inline-flex items-center gap-2 rounded-full bg-gold/15 text-gold-foreground px-4 py-1.5 text-xs font-bold mb-4">
