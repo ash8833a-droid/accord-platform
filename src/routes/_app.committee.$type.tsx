@@ -1143,6 +1143,28 @@ function CommitteePage() {
             >
               <Printer className="h-3.5 w-3.5" /> PDF
             </Button>
+            {/* Meeting minutes — quick access from the committee task center toolbar */}
+            <CommitteeMinutes
+              committeeId={committee.id}
+              committeeName={committee.name}
+              canManage={isAdmin || isHead || members.some((mm) => mm.full_name.trim() === (profileName ?? "").trim())}
+            />
+            {(isAdmin || isHead || members.some((mm) => mm.full_name.trim() === (profileName ?? "").trim())) && (
+              <Button
+                size="sm"
+                onClick={() => {
+                  window.dispatchEvent(
+                    new CustomEvent("lovable:open-minutes", {
+                      detail: { committeeId: committee.id, tab: "create" },
+                    }),
+                  );
+                }}
+                className="gap-1 bg-gradient-to-r from-gold to-gold/80 text-gold-foreground hover:opacity-90 shadow-sm"
+                title="رفع محضر اجتماع جديد"
+              >
+                <Upload className="h-3.5 w-3.5" /> رفع محضر
+              </Button>
+            )}
             <Dialog open={taskOpen} onOpenChange={(o) => { setTaskOpen(o); if (!o) resetTaskForm(); }}>
               {canManageTasks && (
                 <Button size="sm" onClick={openNewTask} className="bg-gradient-gold text-gold-foreground shadow-gold">
