@@ -103,25 +103,6 @@ function TaskCenterInner({ canEdit }: { canEdit: boolean }) {
   const [createOpen, setCreateOpen] = useState(false);
   const [details, setDetails] = useState<TaskRow | null>(null);
 
-  // The committee currently being viewed (regular users are scoped to their own;
-  // privileged users use the filter). Used to show the "محاضر / رفع محضر" buttons.
-  const activeCommitteeId =
-    !isPrivileged && committeeId
-      ? committeeId
-      : committeeFilter !== "all"
-        ? committeeFilter
-        : null;
-  const activeCommittee = activeCommitteeId ? cmMap.get(activeCommitteeId) ?? null : null;
-
-  const openMinutesUpload = () => {
-    if (!activeCommitteeId) return;
-    window.dispatchEvent(
-      new CustomEvent("lovable:open-minutes", {
-        detail: { committeeId: activeCommitteeId, tab: "create" },
-      }),
-    );
-  };
-
   const load = async () => {
     setLoading(true);
     const [{ data: cm }, { data: tk }] = await Promise.all([
@@ -146,6 +127,25 @@ function TaskCenterInner({ canEdit }: { canEdit: boolean }) {
   }, [user]);
 
   const cmMap = useMemo(() => new Map(committees.map((c) => [c.id, c])), [committees]);
+
+  // The committee currently being viewed (regular users are scoped to their own;
+  // privileged users use the filter). Used to show the "محاضر / رفع محضر" buttons.
+  const activeCommitteeId =
+    !isPrivileged && committeeId
+      ? committeeId
+      : committeeFilter !== "all"
+        ? committeeFilter
+        : null;
+  const activeCommittee = activeCommitteeId ? cmMap.get(activeCommitteeId) ?? null : null;
+
+  const openMinutesUpload = () => {
+    if (!activeCommitteeId) return;
+    window.dispatchEvent(
+      new CustomEvent("lovable:open-minutes", {
+        detail: { committeeId: activeCommitteeId, tab: "create" },
+      }),
+    );
+  };
 
   // Regular committee members: lock view to their own committee only.
   const scopedTasks = useMemo(() => {
