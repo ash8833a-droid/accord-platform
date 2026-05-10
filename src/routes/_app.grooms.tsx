@@ -776,6 +776,20 @@ function Section({ title, icon: Icon, tone, children }: { title: string; icon: a
   );
 }
 
+function SummaryStat({ icon: Icon, label, value }: { icon: any; label: string; value: number }) {
+  return (
+    <div className="flex items-center gap-4 rounded-xl border border-slate-100 bg-slate-50/50 p-4">
+      <div className="h-12 w-12 rounded-xl bg-[#0D7C66]/10 flex items-center justify-center shrink-0">
+        <Icon className="h-6 w-6 text-[#0D7C66]" />
+      </div>
+      <div className="min-w-0">
+        <p className="text-2xl font-bold text-slate-900 leading-tight">{value.toLocaleString("ar-SA")}</p>
+        <p className="text-xs text-slate-500 mt-0.5">{label}</p>
+      </div>
+    </div>
+  );
+}
+
 function Field({ label, icon: Icon, children }: { label: string; icon?: any; children: React.ReactNode }) {
   return (
     <div className="space-y-1.5">
