@@ -281,6 +281,23 @@ function SupremeMinutesPage() {
                     <p className="text-sm whitespace-pre-wrap leading-relaxed text-slate-700">{selected.notes}</p>
                   </Section>
                 )}
+
+                {selected.file_url && (
+                  <Section icon={Paperclip} title="المرفق">
+                    <a
+                      href={selected.file_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 rounded-lg border bg-white px-3 py-2 text-sm font-semibold text-amber-700 hover:bg-amber-50 transition"
+                    >
+                      <Download className="h-4 w-4" />
+                      فتح ملف المحضر
+                      {selected.file_size != null && (
+                        <span className="text-[11px] text-slate-400">({(selected.file_size / 1024).toFixed(1)} KB)</span>
+                      )}
+                    </a>
+                  </Section>
+                )}
               </div>
               <div className="flex justify-end pt-4 border-t mt-4">
                 <Button variant="outline" onClick={() => setSelected(null)}>إغلاق</Button>
