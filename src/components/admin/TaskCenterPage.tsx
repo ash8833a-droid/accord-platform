@@ -36,6 +36,7 @@ interface TaskRow {
   id: string;
   title: string;
   description: string | null;
+  execution_brief?: string | null;
   committee_id: string;
   status: "todo" | "in_progress" | "completed";
   assigned_to: string | null;
@@ -113,7 +114,7 @@ function TaskCenterInner({ canEdit }: { canEdit: boolean }) {
     const [{ data: cm }, { data: tk }] = await Promise.all([
       supabase.from("committees").select("id, name, type").order("name"),
       supabase.from("committee_tasks")
-        .select("id, title, description, committee_id, status, assigned_to, due_date, created_at, sort_order")
+        .select("id, title, description, execution_brief, committee_id, status, assigned_to, due_date, created_at, sort_order")
         .order("created_at", { ascending: true }),
     ]);
     setCommittees((cm ?? []) as CommitteeRow[]);
@@ -697,6 +698,11 @@ function KanbanBoard({
                         </div>
                       )}
                     </div>
+                    {t.execution_brief && (
+                      <p className="mt-1.5 text-[12px] leading-relaxed text-amber-800 bg-amber-50/70 border border-amber-100 rounded-md px-2 py-1.5 line-clamp-2">
+                        <span className="font-semibold">المطلوب: </span>{t.execution_brief}
+                      </p>
+                    )}
                     <div className="mt-2 flex items-center gap-2 text-[11px] text-slate-500 lg:hidden">
                       {cm && <span className="truncate">{cm.name}</span>}
                       <span className="text-slate-300">•</span>
