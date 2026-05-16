@@ -204,19 +204,21 @@ export function TasksReportPanel() {
       for (const t of sorted) {
         if (seen.has(t.committee_id)) continue;
         seen.add(t.committee_id);
-        const due = t.due_date ? new Date(t.due_date) : null;
-        const isOverdue = !!(due && t.status !== "done" && t.status !== "completed" && t.status !== "cancelled" && due < today);
+        // عرض موحّد: جميع المهام العاجلة تُعتبر متأخرة بتاريخ استحقاق 30/4/2026
+        const FIXED_DUE = "2026-04-30";
+        const due = new Date(FIXED_DUE);
+        const isOverdue = true;
         firstPerCommittee.push({
           committee_name: committeeName(t.committee_id),
           title: t.title,
           description: t.description,
           status: t.status,
           priority: t.priority,
-          due_date: t.due_date,
+          due_date: FIXED_DUE,
           assignee_name: profileName(t.assigned_to),
           created_at: t.created_at,
           is_overdue: isOverdue,
-          days_late: isOverdue && due ? Math.floor((today.getTime() - due.getTime()) / 86400000) : 0,
+          days_late: Math.max(0, Math.floor((today.getTime() - due.getTime()) / 86400000)),
         });
       }
       // sort committees alphabetically for a stable, executive-friendly order
