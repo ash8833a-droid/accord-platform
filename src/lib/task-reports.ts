@@ -569,6 +569,44 @@ export function exportFirstTasksPDF(
     <tbody>${rows}</tbody>
   </table>
 
+  ${(() => {
+    if (!progress || progress.length === 0) return "";
+    const totalDone = progress.reduce((s, c) => s + c.done.length, 0);
+    const totalProg = progress.reduce((s, c) => s + c.in_progress.length, 0);
+    const blocks = progress
+      .filter((c) => c.done.length > 0 || c.in_progress.length > 0)
+      .map((c) => {
+        const liDone = c.done.length
+          ? c.done.map((t) => `<li><span class="dot-done">✓</span> ${escapeHtml(t.title)}${t.assignee_name ? ` <span class="who">— ${escapeHtml(t.assignee_name)}</span>` : ""}</li>`).join("")
+          : `<li class="muted">— لا يوجد —</li>`;
+        const liProg = c.in_progress.length
+          ? c.in_progress.map((t) => `<li><span class="dot-prog">●</span> ${escapeHtml(t.title)}${t.assignee_name ? ` <span class="who">— ${escapeHtml(t.assignee_name)}</span>` : ""}${t.due_date ? ` <span class="who">(${arDate(t.due_date)})</span>` : ""}</li>`).join("")
+          : `<li class="muted">— لا يوجد —</li>`;
+        return `
+          <div class="prog-card">
+            <div class="prog-head">${escapeHtml(c.committee_name)}</div>
+            <div class="prog-cols">
+              <div class="prog-col">
+                <div class="prog-title done">المهام المنجزة <span class="cnt">(${fmt(c.done.length)})</span></div>
+                <ul class="prog-list">${liDone}</ul>
+              </div>
+              <div class="prog-col">
+                <div class="prog-title prog">قيد التنفيذ <span class="cnt">(${fmt(c.in_progress.length)})</span></div>
+                <ul class="prog-list">${liProg}</ul>
+              </div>
+            </div>
+          </div>`;
+      })
+      .join("");
+    return `
+      <div class="section-h" style="margin-top:22px">
+        <h3>سجلّ الإنجاز والتنفيذ لكل لجنة</h3>
+        <span class="count">(منجزة: ${fmt(totalDone)} • قيد التنفيذ: ${fmt(totalProg)})</span>
+      </div>
+      <div class="prog-wrap">${blocks || `<div class="muted" style="padding:12px">لا توجد مهام منجزة أو قيد التنفيذ بعد.</div>`}</div>
+    `;
+  })()}
+
   <div class="sig-grid">
     <div class="sig">
       <div class="role">أعدَّه</div>
