@@ -113,7 +113,7 @@ function TaskCenterInner({ canEdit }: { canEdit: boolean }) {
     const [{ data: cm }, { data: tk }] = await Promise.all([
       supabase.from("committees").select("id, name, type").order("name"),
       supabase.from("committee_tasks")
-        .select("id, title, description, committee_id, status, assigned_to, due_date, created_at, sort_order")
+        .select("id, title, description, execution_brief, committee_id, status, assigned_to, due_date, created_at, sort_order")
         .order("created_at", { ascending: true }),
     ]);
     setCommittees((cm ?? []) as CommitteeRow[]);
