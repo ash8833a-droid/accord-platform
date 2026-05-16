@@ -1,0 +1,1 @@
+ALTER TABLE public.committee_tasks ADD COLUMN IF NOT EXISTS execution_brief text;
