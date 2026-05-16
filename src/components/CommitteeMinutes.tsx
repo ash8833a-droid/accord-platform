@@ -684,7 +684,28 @@ export function CommitteeMinutes({ committeeId, committeeName, canManage }: Prop
 
           {tab === "create" && canManage && (
             <div className="p-5 space-y-4">
-              {/* AI extract */}
+              {/* Mode toggle: manual writing vs AI extract */}
+              <div className="flex items-center gap-2 rounded-xl border bg-card p-1">
+                <button
+                  type="button"
+                  onClick={() => { setCreateMode("manual"); setShowExtract(false); }}
+                  className={`flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-bold rounded-lg transition ${createMode === "manual" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:bg-muted"}`}
+                >
+                  <ListChecks className="h-3.5 w-3.5" />
+                  كتابة المحضر يدوياً
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setCreateMode("extract"); setShowExtract(true); }}
+                  className={`flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-bold rounded-lg transition ${createMode === "extract" ? "bg-gradient-to-r from-gold to-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:bg-muted"}`}
+                >
+                  <Sparkles className="h-3.5 w-3.5" />
+                  استخراج تلقائي من ملف
+                </button>
+              </div>
+
+              {/* AI extract (collapsible — visible in extract mode, or on-demand in manual mode) */}
+              {showExtract && (
               <div className="rounded-xl border-2 border-dashed border-gold/40 bg-gradient-to-br from-gold/5 to-primary/5 p-4 space-y-3">
                 <div className="flex items-center gap-2">
                   <span className="h-8 w-8 rounded-lg bg-gradient-to-br from-gold to-primary text-primary-foreground flex items-center justify-center">
@@ -707,6 +728,7 @@ export function CommitteeMinutes({ committeeId, committeeName, canManage }: Prop
                   </Button>
                 </div>
               </div>
+              )}
 
               {/* Header fields */}
               <div className="grid md:grid-cols-2 gap-3">
