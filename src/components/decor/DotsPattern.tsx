@@ -55,6 +55,7 @@ export function DotsPattern({
       style={{
         WebkitMaskImage: mask,
         maskImage: mask,
+        opacity: 0.4,
       }}
     >
       {Array.from({ length: rows }).map((_, r) =>
