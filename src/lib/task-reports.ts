@@ -456,6 +456,12 @@ export function exportFirstTasksPDF(
     display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
   .status { font-weight:700; color:${INK}; }
   .prio { font-size: 8pt; color:${GOLD}; margin-top: 3px; font-weight:700; }
+  .done-badge { display:inline-block; padding: 4px 10px; border-radius: 999px;
+    background: #E7F5EF; color: #0D5C4A; border: 1px solid #0D5C4A;
+    font-weight: 700; font-size: 9pt; }
+  .pending-badge { display:inline-block; padding: 4px 10px; border-radius: 999px;
+    background: #FAF6E8; color: ${GOLD}; border: 1px solid ${GOLD};
+    font-weight: 700; font-size: 9pt; }
   .late { color:#9B1C1C; font-weight:700; }
   .late-tag { display:inline-block; margin-top:4px; font-size: 7.5pt; padding: 1px 8px;
     border: 1px solid #9B1C1C; border-radius: 999px; color:#9B1C1C; font-weight:700; }
