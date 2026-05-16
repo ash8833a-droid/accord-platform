@@ -9,9 +9,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import {
   ArrowRight, Calendar, ClipboardList, ListChecks, Loader2, MapPin,
   MessageSquareQuote, Users, FileText, Search, Sparkles, Plus, Upload, Paperclip, Download,
+  Pencil, Check, X,
 } from "lucide-react";
 import { CommitteeMinutes } from "@/components/CommitteeMinutes";
 import { useAuth } from "@/lib/auth";
+import { toast } from "sonner";
 
 interface Minute {
   id: string;
@@ -44,6 +46,9 @@ function SupremeMinutesPage() {
   const [committeeId, setCommitteeId] = useState<string | null>(null);
   const [committeeName, setCommitteeName] = useState<string>("اللجنة العليا");
   const [query, setQuery] = useState("");
+  const [renameTarget, setRenameTarget] = useState<Minute | null>(null);
+  const [renameValue, setRenameValue] = useState("");
+  const [renameSaving, setRenameSaving] = useState(false);
 
   const loadMinutes = async (cid: string) => {
     const { data } = await supabase
@@ -105,6 +110,30 @@ function SupremeMinutesPage() {
   const openCreate = (mode: "manual" | "extract" = "manual") => {
     if (!committeeId) return;
     window.dispatchEvent(new CustomEvent("lovable:open-minutes", { detail: { committeeId, tab: "create", mode } }));
+  };
+
+  const openRename = (m: Minute, e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    setRenameTarget(m);
+    setRenameValue(m.title || "");
+  };
+
+  const saveRename = async () => {
+    if (!renameTarget) return;
+    const title = renameValue.trim();
+    if (!title) { toast.error("الاسم لا يمكن أن يكون فارغاً"); return; }
+    if (title === renameTarget.title) { setRenameTarget(null); return; }
+    setRenameSaving(true);
+    const { error } = await supabase
+      .from("committee_minutes" as any)
+      .update({ title })
+      .eq("id", renameTarget.id);
+    setRenameSaving(false);
+    if (error) { toast.error("تعذّر حفظ الاسم"); return; }
+    toast.success("تم تحديث الاسم");
+    setItems((prev) => prev.map((x) => (x.id === renameTarget.id ? { ...x, title } : x)));
+    if (selected?.id === renameTarget.id) setSelected({ ...selected, title });
+    setRenameTarget(null);
   };
 
   return (
@@ -198,6 +227,19 @@ function SupremeMinutesPage() {
               className="group relative flex flex-col items-center gap-3 rounded-2xl bg-white border border-slate-200 p-5 shadow-sm hover:shadow-xl hover:-translate-y-1 hover:border-amber-300 transition-all text-center overflow-hidden"
             >
               <span className="absolute inset-x-0 top-0 h-1 bg-gradient-to-l from-amber-400 to-teal-400 opacity-0 group-hover:opacity-100 transition" />
+              {canManage && (
+                <span
+                  role="button"
+                  tabIndex={0}
+                  onClick={(e) => openRename(m, e)}
+                  onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openRename(m, e as any); } }}
+                  className="absolute top-2 left-2 h-7 w-7 rounded-lg bg-white/90 border border-slate-200 text-slate-500 hover:text-amber-700 hover:border-amber-300 hover:bg-amber-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition shadow-sm"
+                  title="تعديل الاسم"
+                  aria-label="تعديل الاسم"
+                >
+                  <Pencil className="h-3.5 w-3.5" />
+                </span>
+              )}
               <span className="h-16 w-16 rounded-2xl bg-gradient-to-br from-amber-100 to-teal-50 text-amber-700 flex items-center justify-center group-hover:from-amber-200 group-hover:to-teal-100 group-hover:scale-110 transition-transform">
                 <FileText className="h-8 w-8" />
               </span>
@@ -227,7 +269,17 @@ function SupremeMinutesPage() {
               <DialogHeader>
                 <DialogTitle className="flex items-center gap-2 text-base">
                   <ClipboardList className="h-5 w-5 text-amber-600" />
-                  {selected.title}
+                  <span className="flex-1">{selected.title}</span>
+                  {canManage && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="gap-1 h-7 text-xs"
+                      onClick={() => openRename(selected)}
+                    >
+                      <Pencil className="h-3 w-3" /> تعديل الاسم
+                    </Button>
+                  )}
                 </DialogTitle>
               </DialogHeader>
               <div className="space-y-5 mt-2">
