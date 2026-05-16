@@ -244,7 +244,7 @@ export function TasksReportPanel() {
           assignee_name: profileName(t.assigned_to),
           due_date: t.due_date,
         };
-        if (t.status === "done") entry.done.push(brief);
+        if (t.status === "done" || t.status === "completed") entry.done.push(brief);
         else if (t.status === "in_progress") entry.in_progress.push(brief);
       }
       const progress = Array.from(progressByCommittee.values())
