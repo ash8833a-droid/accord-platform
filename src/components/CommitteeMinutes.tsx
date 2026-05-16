@@ -134,6 +134,7 @@ export function CommitteeMinutes({ committeeId, committeeName, canManage }: Prop
   const [file, setFile] = useState<File | null>(null);
   const [extracting, setExtracting] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [uploadingAttach, setUploadingAttach] = useState(false);
   const [tab, setTab] = useState<"list" | "create">("list");
   const [open, setOpen] = useState(false);
   const [createMode, setCreateMode] = useState<"manual" | "extract">("manual");
@@ -281,6 +282,9 @@ export function CommitteeMinutes({ committeeId, committeeName, canManage }: Prop
         attendees: form.attendees,
         agenda_items: form.agenda_items,
         recommendations: form.recommendations,
+        file_url: form.file_url || null,
+        file_type: form.file_type || null,
+        file_size: form.file_size || null,
         created_by: user?.id ?? null,
       };
       if (form.id) {
