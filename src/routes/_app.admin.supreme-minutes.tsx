@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   ArrowRight, Calendar, ClipboardList, ListChecks, Loader2, MapPin,
-  MessageSquareQuote, Users, FileText, Search, Sparkles, Plus, Upload,
+  MessageSquareQuote, Users, FileText, Search, Sparkles, Plus, Upload, Paperclip, Download,
 } from "lucide-react";
 import { CommitteeMinutes } from "@/components/CommitteeMinutes";
 import { useAuth } from "@/lib/auth";
@@ -25,6 +25,9 @@ interface Minute {
   attendees: string[] | null;
   agenda_items: string[] | null;
   recommendations: string[] | null;
+  file_url: string | null;
+  file_type: string | null;
+  file_size: number | null;
   created_at: string;
 }
 
