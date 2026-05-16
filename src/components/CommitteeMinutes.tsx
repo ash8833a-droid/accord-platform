@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import {
   ClipboardList, Upload, Loader2, Calendar, Eye, Trash2, Printer, Plus, X,
-  Sparkles, FileText, Users, ListChecks, MessageSquareQuote, MapPin, Clock,
+  Sparkles, FileText, Users, ListChecks, MessageSquareQuote, MapPin, Clock, Paperclip, Download,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
@@ -30,6 +30,7 @@ interface Minute {
   recommendations: string[];
   file_url: string | null;
   file_type: string | null;
+  file_size: number | null;
   created_at: string;
 }
 
@@ -51,6 +52,10 @@ const emptyForm = (committeeName: string) => ({
   attendees: [] as string[],
   agenda_items: [] as string[],
   recommendations: [] as string[],
+  file_url: null as string | null,
+  file_type: null as string | null,
+  file_size: null as number | null,
+  file_name: "" as string,
 });
 
 function ListEditor({
