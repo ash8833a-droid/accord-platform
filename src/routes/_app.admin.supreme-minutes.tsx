@@ -358,6 +358,36 @@ function SupremeMinutesPage() {
           )}
         </DialogContent>
       </Dialog>
+
+      <Dialog open={!!renameTarget} onOpenChange={(o) => !o && setRenameTarget(null)}>
+        <DialogContent className="max-w-md" dir="rtl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-base">
+              <Pencil className="h-4 w-4 text-amber-600" />
+              تعديل اسم المحضر
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 mt-2">
+            <Input
+              value={renameValue}
+              onChange={(e) => setRenameValue(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") void saveRename(); }}
+              placeholder="اسم المحضر"
+              autoFocus
+              className="text-sm"
+            />
+            <div className="flex justify-end gap-2 pt-2 border-t">
+              <Button variant="outline" onClick={() => setRenameTarget(null)} className="gap-1">
+                <X className="h-4 w-4" /> إلغاء
+              </Button>
+              <Button onClick={saveRename} disabled={renameSaving} className="gap-1 bg-amber-600 hover:bg-amber-700 text-white">
+                {renameSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+                حفظ
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
