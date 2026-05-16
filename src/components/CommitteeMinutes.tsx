@@ -310,10 +310,12 @@ export function CommitteeMinutes({ committeeId, committeeName, canManage }: Prop
     //   4) عنوان "الحضور" + جدول (تسلسل | الاسم | التوقيع)
     // باترن خلفي خفيف موحد مع الصفحة الرئيسية (نقاط).
     // ============================================================
-    const TEAL      = brand.primary_color || "#1B4F58";
+    // الهوية المعتمدة للمحاضر — ثابتة بصرف النظر عن أي تخصيص للعلامة،
+    // لضمان خروج كل المحاضر بنفس الهوية الرسمية (تيل + ذهبي).
+    const TEAL      = "#1B4F58";
     const TEAL_DEEP = "#0E3A42";
     const TEAL_SOFT = "#EAF1F2";
-    const GOLD      = brand.gold_color || "#C4A25C";
+    const GOLD      = "#C4A25C";
     const INK_900   = "#0F172A";
     const INK_700   = "#334155";
     const INK_500   = "#64748B";
