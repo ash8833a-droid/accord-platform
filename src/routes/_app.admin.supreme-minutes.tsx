@@ -99,9 +99,9 @@ function SupremeMinutesPage() {
     return { total: items.length, totalRecs, totalAgenda, lastDate };
   }, [items]);
 
-  const openCreate = (tab: "list" | "create" = "create") => {
+  const openCreate = (mode: "manual" | "extract" = "manual") => {
     if (!committeeId) return;
-    window.dispatchEvent(new CustomEvent("lovable:open-minutes", { detail: { committeeId, tab } }));
+    window.dispatchEvent(new CustomEvent("lovable:open-minutes", { detail: { committeeId, tab: "create", mode } }));
   };
 
   return (
@@ -117,11 +117,11 @@ function SupremeMinutesPage() {
         <div className="flex items-center gap-2 flex-wrap">
           {canManage && committeeId && (
             <>
-              <Button onClick={() => openCreate("create")} className="gap-2 bg-amber-600 hover:bg-amber-700 text-white shadow-sm">
-                <Plus className="h-4 w-4" /> محضر جديد
+              <Button onClick={() => openCreate("manual")} className="gap-2 bg-amber-600 hover:bg-amber-700 text-white shadow-sm">
+                <Plus className="h-4 w-4" /> كتابة محضر يدوياً
               </Button>
-              <Button onClick={() => openCreate("create")} variant="outline" className="gap-2 bg-white shadow-sm">
-                <Upload className="h-4 w-4" /> رفع محضر سابق
+              <Button onClick={() => openCreate("extract")} variant="outline" className="gap-2 bg-white shadow-sm">
+                <Upload className="h-4 w-4" /> رفع واستخراج تلقائي
               </Button>
             </>
           )}
@@ -171,10 +171,10 @@ function SupremeMinutesPage() {
           <p className="text-sm text-slate-400 mt-1 mb-5">ابدأ بإنشاء محضر جديد أو ارفع ملف محضر سابق ليُستخرج تلقائياً</p>
           {canManage && committeeId && (
             <div className="flex items-center justify-center gap-2">
-              <Button onClick={() => openCreate("create")} className="gap-2 bg-amber-600 hover:bg-amber-700 text-white">
-                <Plus className="h-4 w-4" /> محضر جديد
+              <Button onClick={() => openCreate("manual")} className="gap-2 bg-amber-600 hover:bg-amber-700 text-white">
+                <Plus className="h-4 w-4" /> كتابة محضر يدوياً
               </Button>
-              <Button onClick={() => openCreate("create")} variant="outline" className="gap-2">
+              <Button onClick={() => openCreate("extract")} variant="outline" className="gap-2">
                 <Sparkles className="h-4 w-4" /> رفع واستخراج تلقائي
               </Button>
             </div>
