@@ -475,6 +475,28 @@ export function exportFirstTasksPDF(
     border: 1px solid #9B1C1C; border-radius: 999px; color:#9B1C1C; font-weight:700; }
   td.empty { padding: 40px; color:${MUTED}; }
 
+  /* === Progress section === */
+  .prog-wrap { display:grid; grid-template-columns: 1fr; gap: 10px; margin-top: 6px; }
+  .prog-card { border:1px solid ${RULE}; border-radius:6px; overflow:hidden; page-break-inside: avoid; }
+  .prog-head { background:${PRIMARY}; color:#fff; padding:7px 12px; font-weight:700; font-size:10pt; }
+  .prog-cols { display:grid; grid-template-columns: 1fr 1fr; }
+  .prog-col { padding: 8px 12px; border-right: 1px solid ${RULE}; }
+  .prog-col:last-child { border-right: 0; border-left: 0; }
+  .prog-title { font-weight:700; font-size: 9.5pt; padding-bottom:4px; margin-bottom:6px;
+    border-bottom: 1px dashed ${RULE}; }
+  .prog-title.done { color:#0D5C4A; }
+  .prog-title.prog { color:${GOLD}; }
+  .prog-title .cnt { color:${MUTED}; font-weight:600; font-size:8.5pt; }
+  .prog-list { margin:0; padding: 0; list-style:none; }
+  .prog-list li { font-size: 9pt; line-height: 1.7; color:${INK}; padding: 2px 0;
+    text-align:right; border-bottom: 1px dotted #EEE; }
+  .prog-list li:last-child { border-bottom: 0; }
+  .prog-list li.muted { color:${MUTED}; }
+  .prog-list .who { color:${MUTED}; font-size: 8.5pt; }
+  .dot-done { display:inline-block; width:14px; color:#0D5C4A; font-weight:800; }
+  .dot-prog { display:inline-block; width:14px; color:${GOLD}; font-weight:800; }
+  .muted { color:${MUTED}; }
+
   /* === Signatures === */
   .sig-grid { display:grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin-top: 28px;
     page-break-inside: avoid; }
