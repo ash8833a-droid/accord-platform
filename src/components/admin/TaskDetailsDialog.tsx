@@ -22,6 +22,7 @@ interface Task {
   id: string;
   title: string;
   description: string | null;
+  execution_brief?: string | null;
   committee_id: string;
   status: "todo" | "in_progress" | "completed";
   assigned_to: string | null;
@@ -53,6 +54,7 @@ export function TaskDetailsDialog({
 }) {
   const [title, setTitle] = useState(task.title);
   const [description, setDescription] = useState(task.description ?? "");
+  const [executionBrief, setExecutionBrief] = useState(task.execution_brief ?? "");
   const [status, setStatus] = useState(task.status);
   const [dueDate, setDueDate] = useState(task.due_date ?? "");
   const [assignedTo, setAssignedTo] = useState(task.assigned_to ?? "none");
@@ -72,6 +74,7 @@ export function TaskDetailsDialog({
     const { error } = await supabase.from("committee_tasks").update({
       title: title.trim(),
       description: description.trim() || null,
+      execution_brief: executionBrief.trim() || null,
       status,
       due_date: dueDate || null,
       assigned_to: assignedTo === "none" ? null : assignedTo,
