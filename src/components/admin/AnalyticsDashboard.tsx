@@ -318,9 +318,7 @@ function Inner() {
         <div className="flex items-center gap-2 flex-wrap">
           <AdminAlertsPanel enabled={isAdmin} />
           <Link
-            to="/committee/$type"
-            params={{ type: "supreme" }}
-            hash="minutes"
+            to="/admin/supreme-minutes"
             title="محاضر اللجنة العليا"
             aria-label="محاضر اللجنة العليا"
             className="inline-flex items-center gap-2 rounded-xl bg-white px-3 py-2 shadow-sm text-slate-700 hover:bg-slate-50 transition"
