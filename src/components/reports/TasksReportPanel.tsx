@@ -182,11 +182,19 @@ export function TasksReportPanel() {
     setExportingFirst(true);
     try {
       const today = new Date(); today.setHours(0, 0, 0, 0);
-      // Take the actual first task in each committee's list as it appears in the
-      // Task Center: lowest sort_order, then oldest created_at. Exclude only
-      // completed/cancelled tasks so we surface the true next pending item.
+      // Pick the highest-priority pending task per committee. Order:
+      // 1) priority rank (urgent > high > medium > low),
+      // 2) manual sort_order (drag-and-drop position in the plan),
+      // 3) oldest created_at as a stable tiebreaker.
+      // Exclude completed/cancelled tasks so we surface the true next item.
+      const priorityRank: Record<string, number> = {
+        urgent: 0, high: 1, medium: 2, low: 3,
+      };
       const sorted = [...tasks]
+        .filter((t) => t.status !== "done" && t.status !== "cancelled")
         .sort((a, b) => {
+          const pr = (priorityRank[a.priority] ?? 99) - (priorityRank[b.priority] ?? 99);
+          if (pr !== 0) return pr;
           const so = (a.sort_order ?? 0) - (b.sort_order ?? 0);
           if (so !== 0) return so;
           return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
