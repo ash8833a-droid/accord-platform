@@ -382,8 +382,9 @@ export function exportFirstTasksPDF(
             ${t.is_overdue ? `<div class="late-tag">متأخرة ${fmt(t.days_late)} يوم</div>` : ""}
           </td>
           <td>
-            <div class="status">${statusLabel(t.status)}</div>
-            <div class="prio">${priorityLabel(t.priority)}</div>
+            ${t.status === "done"
+              ? `<div class="done-badge">✓ تم الإنجاز</div>`
+              : `<div class="pending-badge">${statusLabel(t.status)}</div>`}
           </td>
         </tr>`).join("");
 
