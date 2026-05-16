@@ -131,13 +131,18 @@ export function CommitteeMinutes({ committeeId, committeeName, canManage }: Prop
   const [saving, setSaving] = useState(false);
   const [tab, setTab] = useState<"list" | "create">("list");
   const [open, setOpen] = useState(false);
+  const [createMode, setCreateMode] = useState<"manual" | "extract">("manual");
+  const [showExtract, setShowExtract] = useState(false);
 
   // Allow external "quick upload" buttons to open this dialog directly on the create tab
   useEffect(() => {
     const handler = (e: Event) => {
-      const detail = (e as CustomEvent<{ committeeId: string; tab?: "list" | "create" }>).detail;
+      const detail = (e as CustomEvent<{ committeeId: string; tab?: "list" | "create"; mode?: "manual" | "extract" }>).detail;
       if (!detail || detail.committeeId !== committeeId) return;
       setTab(detail.tab ?? "create");
+      const mode = detail.mode ?? "manual";
+      setCreateMode(mode);
+      setShowExtract(mode === "extract");
       setOpen(true);
     };
     window.addEventListener("lovable:open-minutes", handler as EventListener);
