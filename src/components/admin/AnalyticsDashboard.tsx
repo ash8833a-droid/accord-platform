@@ -9,8 +9,9 @@ import {
 import {
   CalendarRange, CheckCircle2, ClipboardList, HeartHandshake, Loader2,
   Wallet, TrendingUp, BarChart3, Scale, Target, RefreshCw, FileDown,
-  Banknote, HandCoins, FileSpreadsheet,
+  Banknote, HandCoins, FileSpreadsheet, ScrollText,
 } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import { exportDashboardPdf } from "@/lib/dashboard-pdf";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { WeeklyReport } from "@/components/admin/WeeklyReport";
@@ -316,6 +317,17 @@ function Inner() {
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           <AdminAlertsPanel enabled={isAdmin} />
+          <Link
+            to="/committee/$type"
+            params={{ type: "supreme" }}
+            hash="minutes"
+            title="محاضر اللجنة العليا"
+            aria-label="محاضر اللجنة العليا"
+            className="inline-flex items-center gap-2 rounded-xl bg-white px-3 py-2 shadow-sm text-slate-700 hover:bg-slate-50 transition"
+          >
+            <ScrollText className="h-4 w-4 text-teal-700" />
+            <span className="text-sm font-semibold hidden sm:inline">محاضر اللجنة العليا</span>
+          </Link>
           <div className="flex items-center gap-2 rounded-xl bg-white px-3 py-2 shadow-sm">
             <CalendarRange className="h-4 w-4 text-teal-700" />
               <Select value={String(year)} onValueChange={(v) => setYear(v === "all" ? "all" : Number(v))}>
