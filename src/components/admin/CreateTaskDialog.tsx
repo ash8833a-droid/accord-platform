@@ -26,6 +26,7 @@ export function CreateTaskDialog({ open, onOpenChange, committees, defaultCommit
   const [committeeId, setCommitteeId] = useState<string>(defaultCommitteeId ?? "");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [executionBrief, setExecutionBrief] = useState("");
   const [dueDate, setDueDate] = useState("");
   const [assignedTo, setAssignedTo] = useState<string>("none");
   const [members, setMembers] = useState<MemberRow[]>([]);
@@ -43,7 +44,7 @@ export function CreateTaskDialog({ open, onOpenChange, committees, defaultCommit
 
   const reset = () => {
     setCommitteeId(defaultCommitteeId ?? "");
-    setTitle(""); setDescription(""); setDueDate(""); setAssignedTo("none");
+    setTitle(""); setDescription(""); setExecutionBrief(""); setDueDate(""); setAssignedTo("none");
   };
 
   const submit = async () => {
@@ -57,6 +58,7 @@ export function CreateTaskDialog({ open, onOpenChange, committees, defaultCommit
       committee_id: committeeId,
       title: title.trim(),
       description: description.trim() || null,
+      execution_brief: executionBrief.trim() || null,
       status: "todo",
       due_date: dueDate || null,
       assigned_to: assignedTo === "none" ? null : assignedTo,
@@ -100,6 +102,15 @@ export function CreateTaskDialog({ open, onOpenChange, committees, defaultCommit
           <div className="space-y-1.5">
             <Label>العنوان *</Label>
             <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="ما المهمة المطلوب إنجازها؟" />
+          </div>
+          <div className="space-y-1.5">
+            <Label>المطلوب لتنفيذ المهمة</Label>
+            <Textarea
+              value={executionBrief}
+              onChange={(e) => setExecutionBrief(e.target.value)}
+              rows={2}
+              placeholder="شرح مختصر للخطوات أو المتطلبات اللازمة لإنجاز المهمة..."
+            />
           </div>
           {!isMobile && (
             <div className="space-y-1.5">
