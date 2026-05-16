@@ -33,6 +33,7 @@ import { Route as AppCommitteeTypeRouteImport } from './routes/_app.committee.$t
 import { Route as AppAdminWeeklyRouteImport } from './routes/_app.admin.weekly'
 import { Route as AppAdminUsersRouteImport } from './routes/_app.admin.users'
 import { Route as AppAdminTasksRouteImport } from './routes/_app.admin.tasks'
+import { Route as AppAdminSupremeMinutesRouteImport } from './routes/_app.admin.supreme-minutes'
 import { Route as ApiPublicHooksTaskDeadlineCheckRouteImport } from './routes/api.public.hooks.task-deadline-check'
 
 const RegisterGroomRoute = RegisterGroomRouteImport.update({
@@ -154,6 +155,11 @@ const AppAdminTasksRoute = AppAdminTasksRouteImport.update({
   path: '/tasks',
   getParentRoute: () => AppAdminRoute,
 } as any)
+const AppAdminSupremeMinutesRoute = AppAdminSupremeMinutesRouteImport.update({
+  id: '/supreme-minutes',
+  path: '/supreme-minutes',
+  getParentRoute: () => AppAdminRoute,
+} as any)
 const ApiPublicHooksTaskDeadlineCheckRoute =
   ApiPublicHooksTaskDeadlineCheckRouteImport.update({
     id: '/api/public/hooks/task-deadline-check',
@@ -181,6 +187,7 @@ export interface FileRoutesByFullPath {
   '/reports': typeof AppReportsRoute
   '/groom-edit/$token': typeof GroomEditTokenRoute
   '/survey/women-talents': typeof SurveyWomenTalentsRoute
+  '/admin/supreme-minutes': typeof AppAdminSupremeMinutesRoute
   '/admin/tasks': typeof AppAdminTasksRoute
   '/admin/users': typeof AppAdminUsersRoute
   '/admin/weekly': typeof AppAdminWeeklyRoute
@@ -207,6 +214,7 @@ export interface FileRoutesByTo {
   '/reports': typeof AppReportsRoute
   '/groom-edit/$token': typeof GroomEditTokenRoute
   '/survey/women-talents': typeof SurveyWomenTalentsRoute
+  '/admin/supreme-minutes': typeof AppAdminSupremeMinutesRoute
   '/admin/tasks': typeof AppAdminTasksRoute
   '/admin/users': typeof AppAdminUsersRoute
   '/admin/weekly': typeof AppAdminWeeklyRoute
@@ -235,6 +243,7 @@ export interface FileRoutesById {
   '/_app/reports': typeof AppReportsRoute
   '/groom-edit/$token': typeof GroomEditTokenRoute
   '/survey/women-talents': typeof SurveyWomenTalentsRoute
+  '/_app/admin/supreme-minutes': typeof AppAdminSupremeMinutesRoute
   '/_app/admin/tasks': typeof AppAdminTasksRoute
   '/_app/admin/users': typeof AppAdminUsersRoute
   '/_app/admin/weekly': typeof AppAdminWeeklyRoute
@@ -263,6 +272,7 @@ export interface FileRouteTypes {
     | '/reports'
     | '/groom-edit/$token'
     | '/survey/women-talents'
+    | '/admin/supreme-minutes'
     | '/admin/tasks'
     | '/admin/users'
     | '/admin/weekly'
@@ -289,6 +299,7 @@ export interface FileRouteTypes {
     | '/reports'
     | '/groom-edit/$token'
     | '/survey/women-talents'
+    | '/admin/supreme-minutes'
     | '/admin/tasks'
     | '/admin/users'
     | '/admin/weekly'
@@ -316,6 +327,7 @@ export interface FileRouteTypes {
     | '/_app/reports'
     | '/groom-edit/$token'
     | '/survey/women-talents'
+    | '/_app/admin/supreme-minutes'
     | '/_app/admin/tasks'
     | '/_app/admin/users'
     | '/_app/admin/weekly'
@@ -505,6 +517,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAdminTasksRouteImport
       parentRoute: typeof AppAdminRoute
     }
+    '/_app/admin/supreme-minutes': {
+      id: '/_app/admin/supreme-minutes'
+      path: '/supreme-minutes'
+      fullPath: '/admin/supreme-minutes'
+      preLoaderRoute: typeof AppAdminSupremeMinutesRouteImport
+      parentRoute: typeof AppAdminRoute
+    }
     '/api/public/hooks/task-deadline-check': {
       id: '/api/public/hooks/task-deadline-check'
       path: '/api/public/hooks/task-deadline-check'
@@ -516,12 +535,14 @@ declare module '@tanstack/react-router' {
 }
 
 interface AppAdminRouteChildren {
+  AppAdminSupremeMinutesRoute: typeof AppAdminSupremeMinutesRoute
   AppAdminTasksRoute: typeof AppAdminTasksRoute
   AppAdminUsersRoute: typeof AppAdminUsersRoute
   AppAdminWeeklyRoute: typeof AppAdminWeeklyRoute
 }
 
 const AppAdminRouteChildren: AppAdminRouteChildren = {
+  AppAdminSupremeMinutesRoute: AppAdminSupremeMinutesRoute,
   AppAdminTasksRoute: AppAdminTasksRoute,
   AppAdminUsersRoute: AppAdminUsersRoute,
   AppAdminWeeklyRoute: AppAdminWeeklyRoute,
