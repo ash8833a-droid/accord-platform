@@ -496,7 +496,7 @@ export function exportFirstTasksPDF(
       <div class="lh-logo"><img src="${BRAND_LOGO_DATA_URI}" alt="شعار اللجنة"/></div>
       <div class="lh-org">
         <h1>لجنة الزواج الجماعي</h1>
-        <p>قبيلة الهَملة من قُريش — الأمانة العامة</p>
+        <p>قبيلة الهَملة من قُريش</p>
       </div>
     </div>
     <div class="lh-center">
@@ -510,9 +510,9 @@ export function exportFirstTasksPDF(
   </header>
 
   <div class="doc-title">
-    <div class="kicker">تعميم تنفيذي</div>
-    <h2>قائمة المهام العاجلة لكل لجنة</h2>
-    <div class="sub">للاعتماد والمتابعة من قِبل رؤساء اللجان</div>
+    <div class="kicker">رسالة تحفيزية</div>
+    <h2>أبرز مهمَّة لكل لجنة</h2>
+    <div class="sub">نحو إنجازٍ مشرِّفٍ يليق بعطائكم</div>
   </div>
 
   <div class="divider"><span class="line"></span><span class="dot"></span><span class="line"></span></div>
@@ -520,7 +520,7 @@ export function exportFirstTasksPDF(
   <table class="ref-table">
     <tr>
       <td class="k">عدد اللجان</td><td class="v">${fmt(items.length)}</td>
-      <td class="k">مستوى الأولوية</td><td class="v">عاجلة / متابعة فورية</td>
+      <td class="k">طبيعة الوثيقة</td><td class="v">متابعة تحفيزية</td>
     </tr>
     <tr>
       <td class="k">جهة الإصدار</td><td class="v">إدارة المتابعة والجودة</td>
@@ -529,9 +529,10 @@ export function exportFirstTasksPDF(
   </table>
 
   <div class="preamble">
-    استناداً إلى متابعة سير العمل في اللجان التابعة، فإننا نُحيلُ إلى سيادتكم
-    <b>أهمَّ مهمَّة قائمة في كلِّ لجنة</b> بحسب أولوية التنفيذ المعتمدة في النظام،
-    لاتخاذ ما يلزم نحو إنجازها ضمن المهلة المحددة ورفع التغذية الراجعة للأمانة العامة.
+    إخوتي الكرام أعضاء اللجان، تحية تقديرٍ واعتزازٍ بجهودكم المباركة. نضع بين أيديكم
+    <b>أبرز مهمَّة قائمة في كلِّ لجنة</b> وفق ترتيب الخطة المعتمدة، تذكيراً ودافعاً
+    لمواصلة العطاء وإتمامها بأحسن صورة. جعل الله أعمالكم في ميزان حسناتكم،
+    وبارك في أوقاتكم وجهودكم.
   </div>
 
   <div class="section-h">
@@ -547,7 +548,7 @@ export function exportFirstTasksPDF(
         <th>المهمة</th>
         <th>المكلَّف</th>
         <th>تاريخ الاستحقاق</th>
-        <th>الحالة / الأولوية</th>
+        <th>حالة الإنجاز</th>
       </tr>
     </thead>
     <tbody>${rows}</tbody>
