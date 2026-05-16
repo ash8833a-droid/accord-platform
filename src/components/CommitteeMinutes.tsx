@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import {
   ClipboardList, Upload, Loader2, Calendar, Eye, Trash2, Printer, Plus, X,
-  Sparkles, FileText, Users, ListChecks, MessageSquareQuote, MapPin, Clock,
+  Sparkles, FileText, Users, ListChecks, MessageSquareQuote, MapPin, Clock, Paperclip, Download,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
@@ -30,6 +30,7 @@ interface Minute {
   recommendations: string[];
   file_url: string | null;
   file_type: string | null;
+  file_size: number | null;
   created_at: string;
 }
 
@@ -51,6 +52,10 @@ const emptyForm = (committeeName: string) => ({
   attendees: [] as string[],
   agenda_items: [] as string[],
   recommendations: [] as string[],
+  file_url: null as string | null,
+  file_type: null as string | null,
+  file_size: null as number | null,
+  file_name: "" as string,
 });
 
 function ListEditor({
@@ -129,6 +134,7 @@ export function CommitteeMinutes({ committeeId, committeeName, canManage }: Prop
   const [file, setFile] = useState<File | null>(null);
   const [extracting, setExtracting] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [uploadingAttach, setUploadingAttach] = useState(false);
   const [tab, setTab] = useState<"list" | "create">("list");
   const [open, setOpen] = useState(false);
   const [createMode, setCreateMode] = useState<"manual" | "extract">("manual");
@@ -176,6 +182,10 @@ export function CommitteeMinutes({ committeeId, committeeName, canManage }: Prop
       attendees: m.attendees || [],
       agenda_items: m.agenda_items || [],
       recommendations: m.recommendations || [],
+      file_url: m.file_url || null,
+      file_type: m.file_type || null,
+      file_size: m.file_size || null,
+      file_name: m.file_url ? (m.file_url.split("/").pop() || "") : "",
     });
     setFile(null);
     setTab("create");
@@ -272,6 +282,9 @@ export function CommitteeMinutes({ committeeId, committeeName, canManage }: Prop
         attendees: form.attendees,
         agenda_items: form.agenda_items,
         recommendations: form.recommendations,
+        file_url: form.file_url || null,
+        file_type: form.file_type || null,
+        file_size: form.file_size || null,
         created_by: user?.id ?? null,
       };
       if (form.id) {
@@ -660,6 +673,18 @@ export function CommitteeMinutes({ committeeId, committeeName, canManage }: Prop
                       <span className="inline-flex items-center gap-1"><Users className="h-3 w-3" /> {m.attendees?.length ?? 0} حاضر</span>
                       <span className="inline-flex items-center gap-1"><ListChecks className="h-3 w-3" /> {m.agenda_items?.length ?? 0} بند</span>
                       <span className="inline-flex items-center gap-1"><MessageSquareQuote className="h-3 w-3" /> {m.recommendations?.length ?? 0} توصية</span>
+                      {m.file_url && (
+                        <a
+                          href={m.file_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          className="inline-flex items-center gap-1 text-primary hover:underline"
+                          title="فتح المرفق"
+                        >
+                          <Paperclip className="h-3 w-3" /> مرفق
+                        </a>
+                      )}
                     </p>
                   </div>
                   <div className="flex items-center gap-1.5 shrink-0">
@@ -787,6 +812,102 @@ export function CommitteeMinutes({ committeeId, committeeName, canManage }: Prop
               <div className="space-y-1.5">
                 <Label className="text-xs">ملاحظات إضافية (اختياري)</Label>
                 <Textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="ملاحظات حرة" />
+              </div>
+
+              {/* Attachment */}
+              <div className="space-y-2 rounded-xl border bg-muted/10 p-3">
+                <Label className="text-xs flex items-center gap-1 font-bold">
+                  <Paperclip className="h-3.5 w-3.5 text-primary" />
+                  مرفق المحضر (اختياري)
+                </Label>
+                {form.file_url ? (
+                  <div className="flex items-center gap-2 rounded-lg border bg-card p-2">
+                    <FileText className="h-4 w-4 text-primary shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-semibold truncate">{form.file_name || "ملف المحضر"}</p>
+                      {form.file_size != null && (
+                        <p className="text-[10px] text-muted-foreground">{(form.file_size / 1024).toFixed(1)} KB</p>
+                      )}
+                    </div>
+                    <a
+                      href={form.file_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[11px] inline-flex items-center gap-1 px-2 py-1 rounded-md border bg-card hover:bg-muted transition"
+                    >
+                      <Download className="h-3 w-3" /> فتح
+                    </a>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      className="h-7 w-7 p-0 text-destructive hover:bg-destructive/10"
+                      title="إزالة المرفق"
+                      onClick={() => setForm({ ...form, file_url: null, file_type: null, file_size: null, file_name: "" })}
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                ) : (
+                  <label className="flex items-center justify-center gap-2 h-10 px-3 rounded-md border border-dashed border-input cursor-pointer hover:border-primary/60 hover:bg-primary/5 transition text-xs bg-card">
+                    {uploadingAttach ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <Upload className="h-3.5 w-3.5 text-muted-foreground" />
+                    )}
+                    <span className="text-muted-foreground">
+                      {uploadingAttach ? "جاري الرفع..." : "ارفع ملفاً (PDF / صورة / Word)"}
+                    </span>
+                    <input
+                      type="file"
+                      accept={ACCEPT_ANY_FILE}
+                      className="hidden"
+                      disabled={uploadingAttach}
+                      onChange={async (e) => {
+                        const f = e.target.files?.[0];
+                        if (!f) return;
+                        if (f.size > MAX_UPLOAD_SIZE) {
+                          toast.error(`حجم الملف أكبر من ${MAX_UPLOAD_SIZE_LABEL}`);
+                          return;
+                        }
+                        setUploadingAttach(true);
+                        try {
+                          const safeName = f.name.replace(/[^\p{L}\p{N}._-]+/gu, "_");
+                          const path = `${committeeId}/${Date.now()}-${safeName}`;
+                          const { error: upErr } = await supabase.storage
+                            .from("minutes")
+                            .upload(path, f, { contentType: f.type || undefined, upsert: false });
+                          if (upErr) {
+                            toast.error("تعذّر رفع الملف", { description: upErr.message });
+                            return;
+                          }
+                          const { data: signed } = await supabase.storage
+                            .from("minutes")
+                            .createSignedUrl(path, 60 * 60 * 24 * 365);
+                          const url = signed?.signedUrl ?? null;
+                          if (!url) {
+                            toast.error("تعذّر إنشاء رابط الملف");
+                            return;
+                          }
+                          setForm((prev) => ({
+                            ...prev,
+                            file_url: url,
+                            file_type: f.type || null,
+                            file_size: f.size,
+                            file_name: f.name,
+                          }));
+                          toast.success("تم رفع المرفق");
+                        } finally {
+                          setUploadingAttach(false);
+                          (e.target as HTMLInputElement).value = "";
+                        }
+                      }}
+                    />
+                  </label>
+                )}
+                <p className="text-[10px] text-muted-foreground">
+                  يتم حفظ الملف ضمن سجل المحضر ويمكن لأعضاء اللجنة فتحه لاحقاً.
+                </p>
               </div>
             </div>
           )}

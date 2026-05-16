@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   ArrowRight, Calendar, ClipboardList, ListChecks, Loader2, MapPin,
-  MessageSquareQuote, Users, FileText, Search, Sparkles, Plus, Upload,
+  MessageSquareQuote, Users, FileText, Search, Sparkles, Plus, Upload, Paperclip, Download,
 } from "lucide-react";
 import { CommitteeMinutes } from "@/components/CommitteeMinutes";
 import { useAuth } from "@/lib/auth";
@@ -25,6 +25,9 @@ interface Minute {
   attendees: string[] | null;
   agenda_items: string[] | null;
   recommendations: string[] | null;
+  file_url: string | null;
+  file_type: string | null;
+  file_size: number | null;
   created_at: string;
 }
 
@@ -276,6 +279,23 @@ function SupremeMinutesPage() {
                 {selected.notes && (
                   <Section icon={FileText} title="ملاحظات">
                     <p className="text-sm whitespace-pre-wrap leading-relaxed text-slate-700">{selected.notes}</p>
+                  </Section>
+                )}
+
+                {selected.file_url && (
+                  <Section icon={Paperclip} title="المرفق">
+                    <a
+                      href={selected.file_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 rounded-lg border bg-white px-3 py-2 text-sm font-semibold text-amber-700 hover:bg-amber-50 transition"
+                    >
+                      <Download className="h-4 w-4" />
+                      فتح ملف المحضر
+                      {selected.file_size != null && (
+                        <span className="text-[11px] text-slate-400">({(selected.file_size / 1024).toFixed(1)} KB)</span>
+                      )}
+                    </a>
                   </Section>
                 )}
               </div>
