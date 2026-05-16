@@ -382,8 +382,9 @@ export function exportFirstTasksPDF(
             ${t.is_overdue ? `<div class="late-tag">متأخرة ${fmt(t.days_late)} يوم</div>` : ""}
           </td>
           <td>
-            <div class="status">${statusLabel(t.status)}</div>
-            <div class="prio">${priorityLabel(t.priority)}</div>
+            ${t.status === "done"
+              ? `<div class="done-badge">✓ تم الإنجاز</div>`
+              : `<div class="pending-badge">${statusLabel(t.status)}</div>`}
           </td>
         </tr>`).join("");
 
@@ -455,6 +456,12 @@ export function exportFirstTasksPDF(
     display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
   .status { font-weight:700; color:${INK}; }
   .prio { font-size: 8pt; color:${GOLD}; margin-top: 3px; font-weight:700; }
+  .done-badge { display:inline-block; padding: 4px 10px; border-radius: 999px;
+    background: #E7F5EF; color: #0D5C4A; border: 1px solid #0D5C4A;
+    font-weight: 700; font-size: 9pt; }
+  .pending-badge { display:inline-block; padding: 4px 10px; border-radius: 999px;
+    background: #FAF6E8; color: ${GOLD}; border: 1px solid ${GOLD};
+    font-weight: 700; font-size: 9pt; }
   .late { color:#9B1C1C; font-weight:700; }
   .late-tag { display:inline-block; margin-top:4px; font-size: 7.5pt; padding: 1px 8px;
     border: 1px solid #9B1C1C; border-radius: 999px; color:#9B1C1C; font-weight:700; }
@@ -496,7 +503,7 @@ export function exportFirstTasksPDF(
       <div class="lh-logo"><img src="${BRAND_LOGO_DATA_URI}" alt="شعار اللجنة"/></div>
       <div class="lh-org">
         <h1>لجنة الزواج الجماعي</h1>
-        <p>قبيلة الهَملة من قُريش — الأمانة العامة</p>
+        <p>قبيلة الهَملة من قُريش</p>
       </div>
     </div>
     <div class="lh-center">
@@ -510,9 +517,9 @@ export function exportFirstTasksPDF(
   </header>
 
   <div class="doc-title">
-    <div class="kicker">تعميم تنفيذي</div>
-    <h2>قائمة المهام العاجلة لكل لجنة</h2>
-    <div class="sub">للاعتماد والمتابعة من قِبل رؤساء اللجان</div>
+    <div class="kicker">رسالة تحفيزية</div>
+    <h2>أبرز مهمَّة لكل لجنة</h2>
+    <div class="sub">نحو إنجازٍ مشرِّفٍ يليق بعطائكم</div>
   </div>
 
   <div class="divider"><span class="line"></span><span class="dot"></span><span class="line"></span></div>
@@ -520,7 +527,7 @@ export function exportFirstTasksPDF(
   <table class="ref-table">
     <tr>
       <td class="k">عدد اللجان</td><td class="v">${fmt(items.length)}</td>
-      <td class="k">مستوى الأولوية</td><td class="v">عاجلة / متابعة فورية</td>
+      <td class="k">طبيعة الوثيقة</td><td class="v">متابعة تحفيزية</td>
     </tr>
     <tr>
       <td class="k">جهة الإصدار</td><td class="v">إدارة المتابعة والجودة</td>
@@ -529,9 +536,10 @@ export function exportFirstTasksPDF(
   </table>
 
   <div class="preamble">
-    استناداً إلى متابعة سير العمل في اللجان التابعة، فإننا نُحيلُ إلى سيادتكم
-    <b>أهمَّ مهمَّة قائمة في كلِّ لجنة</b> بحسب أولوية التنفيذ المعتمدة في النظام،
-    لاتخاذ ما يلزم نحو إنجازها ضمن المهلة المحددة ورفع التغذية الراجعة للأمانة العامة.
+    إخوتي الكرام أعضاء اللجان، تحية تقديرٍ واعتزازٍ بجهودكم المباركة. نضع بين أيديكم
+    <b>أبرز مهمَّة قائمة في كلِّ لجنة</b> وفق ترتيب الخطة المعتمدة، تذكيراً ودافعاً
+    لمواصلة العطاء وإتمامها بأحسن صورة. جعل الله أعمالكم في ميزان حسناتكم،
+    وبارك في أوقاتكم وجهودكم.
   </div>
 
   <div class="section-h">
@@ -547,7 +555,7 @@ export function exportFirstTasksPDF(
         <th>المهمة</th>
         <th>المكلَّف</th>
         <th>تاريخ الاستحقاق</th>
-        <th>الحالة / الأولوية</th>
+        <th>حالة الإنجاز</th>
       </tr>
     </thead>
     <tbody>${rows}</tbody>

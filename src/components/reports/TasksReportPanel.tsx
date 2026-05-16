@@ -186,7 +186,6 @@ export function TasksReportPanel() {
       // Task Center: lowest sort_order, then oldest created_at. Exclude only
       // completed/cancelled tasks so we surface the true next pending item.
       const sorted = [...tasks]
-        .filter((t) => t.status === "todo")
         .sort((a, b) => {
           const so = (a.sort_order ?? 0) - (b.sort_order ?? 0);
           if (so !== 0) return so;
