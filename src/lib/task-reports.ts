@@ -350,10 +350,18 @@ export interface FirstTaskRow {
   days_late: number;
 }
 
+/** Per-committee summary of completed + in-progress tasks. */
+export interface CommitteeProgressBrief {
+  committee_name: string;
+  done: { title: string; assignee_name: string | null; due_date: string | null }[];
+  in_progress: { title: string; assignee_name: string | null; due_date: string | null }[];
+}
+
 export function exportFirstTasksPDF(
   items: FirstTaskRow[],
   filename: string,
   signerName?: string,
+  progress?: CommitteeProgressBrief[],
 ) {
   // Institutional white-background template — formal, government-grade.
   const PRIMARY = "#0D5C4A"; // Deep institutional teal
