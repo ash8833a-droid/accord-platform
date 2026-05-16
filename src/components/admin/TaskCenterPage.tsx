@@ -36,6 +36,7 @@ interface TaskRow {
   id: string;
   title: string;
   description: string | null;
+  execution_brief?: string | null;
   committee_id: string;
   status: "todo" | "in_progress" | "completed";
   assigned_to: string | null;
