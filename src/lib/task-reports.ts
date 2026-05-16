@@ -355,155 +355,225 @@ export function exportFirstTasksPDF(
   filename: string,
   signerName?: string,
 ) {
-  const PRIMARY = "#1B4F58";
-  const GOLD = "#C4A25C";
+  // Institutional white-background template — formal, government-grade.
+  const PRIMARY = "#0D5C4A"; // Deep institutional teal
+  const INK = "#0F172A";
+  const MUTED = "#64748B";
+  const RULE = "#D9D2C0";
+  const GOLD = "#A8853A";
 
-  const statusBadge = (s: string) => {
-    const tone: Record<string, string> = {
-      todo: "background:#E5E7EB;color:#374151",
-      in_progress: "background:#DBEAFE;color:#1E40AF",
-      done: "background:#DCFCE7;color:#166534",
-      cancelled: "background:#FEE2E2;color:#991B1B",
-      blocked: "background:#FEF3C7;color:#92400E",
-    };
-    return `<span style="${tone[s] ?? "background:#E5E7EB;color:#374151"};padding:3px 10px;border-radius:999px;font-size:9pt;font-weight:700;display:inline-block;">${STATUS_AR[s] ?? s}</span>`;
-  };
-  const priorityBadge = (p: string) => {
-    const tone: Record<string, string> = {
-      low: "background:#F3F4F6;color:#6B7280",
-      medium: "background:#DBEAFE;color:#1E40AF",
-      high: "background:#FED7AA;color:#9A3412",
-      urgent: "background:#FEE2E2;color:#991B1B",
-    };
-    return `<span style="${tone[p] ?? ""};padding:2px 9px;border-radius:6px;font-size:8.5pt;font-weight:700;">${PRIORITY_AR[p] ?? p}</span>`;
-  };
+  const ref = `LZJ-UT-${new Date().getFullYear()}-${String(items.length).padStart(3, "0")}`;
+  const priorityLabel = (p: string) => PRIORITY_AR[p] ?? p;
+  const statusLabel = (s: string) => STATUS_AR[s] ?? s;
+
+  const rows = items.length === 0
+    ? `<tr><td colspan="6" class="empty">لا توجد مهام مسجلة</td></tr>`
+    : items.map((t, i) => `
+        <tr>
+          <td class="num">${fmt(i + 1)}</td>
+          <td class="committee">${escapeHtml(t.committee_name)}</td>
+          <td class="task">
+            <div class="t-title">${escapeHtml(t.title)}</div>
+            ${t.description ? `<div class="t-desc">${escapeHtml(t.description)}</div>` : ""}
+          </td>
+          <td>${escapeHtml(t.assignee_name ?? "—")}</td>
+          <td class="${t.is_overdue ? "late" : ""}">
+            ${arDate(t.due_date)}
+            ${t.is_overdue ? `<div class="late-tag">متأخرة ${fmt(t.days_late)} يوم</div>` : ""}
+          </td>
+          <td>
+            <div class="status">${statusLabel(t.status)}</div>
+            <div class="prio">${priorityLabel(t.priority)}</div>
+          </td>
+        </tr>`).join("");
 
   const html = `<!doctype html>
 <html lang="ar" dir="rtl"><head><meta charset="utf-8"/>
 <title>${escapeHtml(filename)}</title>
-<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Tajawal:wght@400;500;700;900&display=swap" rel="stylesheet">
 <style>
-  @page { size: A4; margin: 14mm 12mm; }
+  @page { size: A4; margin: 18mm 16mm 20mm; }
   * { box-sizing: border-box; }
-  body { font-family: 'Tajawal','Segoe UI',Tahoma,Arial,sans-serif; color:#1f2937; margin:0;
-    -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-  .header { border-radius: 18px;
-    background: linear-gradient(135deg, ${PRIMARY} 0%, #2A6B76 50%, ${PRIMARY} 100%);
-    color:#fff; padding: 22px 26px; margin-bottom: 18px; position: relative; overflow: hidden; }
-  .header::after { content:""; position:absolute; left:-40px; top:-40px; width:200px; height:200px;
-    background: radial-gradient(circle, ${GOLD}55, transparent 70%); border-radius: 50%; }
-  .h-row { display:flex; justify-content:space-between; align-items:center; position:relative; }
-  .brand { display:flex; align-items:center; gap:14px; }
-  .logo { width:64px; height:64px; border-radius:14px; background: rgba(255,255,255,0.95); padding:4px; }
-  .logo img { width:100%; height:100%; }
-  .brand h1 { margin:0; font-size:18pt; font-weight:900; }
-  .brand p { margin:2px 0 0; font-size:10pt; opacity:0.85; }
-  .h-meta { text-align:left; font-size:9pt; line-height:1.6; }
-  .h-meta b { display:block; color:${GOLD}; font-size:11pt; }
-  .intro { background: linear-gradient(135deg, ${GOLD}15, ${PRIMARY}08);
-    border-right: 4px solid ${GOLD}; border-radius: 10px; padding: 12px 16px; margin-bottom: 14px;
-    font-size: 10pt; color:#374151; line-height:1.7; }
-  .intro b { color: ${PRIMARY}; }
-  .grid { display:grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  .item { border:1px solid ${GOLD}55; border-radius: 14px; padding: 14px; background: #fff;
-    box-shadow: 0 1px 3px rgba(27,79,88,0.06); page-break-inside: avoid; position:relative; overflow:hidden; }
-  .item::before { content:""; position:absolute; top:0; right:0; width:6px; height:100%;
-    background: linear-gradient(180deg, ${GOLD}, ${PRIMARY}); }
-  .item-head { display:flex; justify-content:space-between; align-items:flex-start; gap:8px; margin-bottom: 8px; }
-  .committee { font-size: 10.5pt; font-weight: 900; color: ${PRIMARY}; }
-  .urgent-tag { background: linear-gradient(135deg, #DC2626, #991B1B); color:#fff;
-    padding: 3px 10px; border-radius: 999px; font-size: 8.5pt; font-weight: 800;
-    box-shadow: 0 2px 6px rgba(220,38,38,0.3); }
-  .ttitle { font-size: 11pt; font-weight: 800; color:#111827; margin: 4px 0 8px; line-height: 1.5; }
-  .desc { font-size: 9.5pt; color:#4B5563; line-height: 1.6; margin-bottom: 10px;
-    display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-  .meta { display:flex; flex-wrap:wrap; gap:6px 12px; font-size: 8.5pt; color:#6B7280;
-    border-top: 1px dashed ${GOLD}55; padding-top: 8px; }
-  .meta span b { color: ${PRIMARY}; }
-  .late { color: #991B1B !important; font-weight: 700; }
-  .empty { text-align:center; padding:40px; color:#9CA3AF; border:2px dashed #E5E7EB; border-radius:12px; }
-  .footer { margin-top: 20px; padding-top: 12px; border-top: 2px dashed ${GOLD}; font-size: 8.5pt; color:#6B7280; }
-  .signatures { display:grid; grid-template-columns: 1fr 1fr; gap:18px; margin-top:14px; }
-  .sig-box { border:1px solid ${GOLD}77; border-radius:12px; padding:14px 16px;
-    background: linear-gradient(135deg, ${GOLD}11, ${PRIMARY}08); }
-  .sig-box .sig-label { font-size:9pt; color:#6B7280; }
-  .sig-box .sig-name { font-size:12pt; font-weight:800; color:${PRIMARY}; margin:4px 0 36px; }
-  .sig-line { border-top:1.5px dotted ${PRIMARY}; padding-top:4px; text-align:center; font-size:8pt; color:#9CA3AF; }
-  .title-bar { display:flex; align-items:center; gap:10px; margin: 14px 0 10px; }
-  .title-bar .bar { width:5px; height:28px; background: linear-gradient(180deg, ${GOLD}, ${PRIMARY}); border-radius:3px; }
-  .title-bar h2 { margin:0; font-size:14pt; font-weight:800; color:${PRIMARY}; }
-  @media print { .no-print { display:none !important; } }
+  body { font-family: 'Tajawal','Segoe UI',Tahoma,Arial,sans-serif; color:${INK};
+    background:#fff; margin:0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+  /* === Letterhead === */
+  .letterhead { display:grid; grid-template-columns: 1fr auto 1fr; align-items:center;
+    gap: 18px; padding-bottom: 14px; border-bottom: 2px solid ${PRIMARY}; }
+  .lh-right { display:flex; align-items:center; gap:12px; }
+  .lh-logo { width: 72px; height: 72px; flex-shrink:0; }
+  .lh-logo img { width:100%; height:100%; object-fit: contain; }
+  .lh-org h1 { margin:0; font-family:'Amiri',serif; font-size: 17pt; font-weight:700; color:${PRIMARY}; letter-spacing:-0.2px; }
+  .lh-org p { margin: 2px 0 0; font-size: 9pt; color:${MUTED}; }
+  .lh-center { text-align:center; }
+  .lh-center .crest { width: 6px; height: 38px; margin: 0 auto 6px;
+    background: linear-gradient(180deg, ${GOLD}, ${PRIMARY}); border-radius: 3px; }
+  .lh-center .stamp { font-size: 7.5pt; letter-spacing: 3px; color:${GOLD}; font-weight:700; }
+  .lh-left { text-align:left; font-size: 8.5pt; color:${MUTED}; line-height:1.7; }
+  .lh-left b { display:block; color:${INK}; font-size:9pt; font-weight:700; }
+
+  /* === Document title === */
+  .doc-title { text-align:center; margin: 22px 0 4px; }
+  .doc-title .kicker { font-size: 8pt; letter-spacing: 6px; color:${GOLD}; font-weight:700; margin-bottom:4px; }
+  .doc-title h2 { margin:0; font-family:'Amiri',serif; font-size: 22pt; font-weight:700; color:${INK}; }
+  .doc-title .sub { font-size: 10pt; color:${MUTED}; margin-top:6px; }
+  .divider { display:flex; align-items:center; justify-content:center; gap:10px; margin: 14px 0 18px; }
+  .divider .line { flex:1; height:1px; background: ${RULE}; max-width:140px; }
+  .divider .dot { width:6px; height:6px; background:${GOLD}; transform: rotate(45deg); }
+
+  /* === Reference table === */
+  .ref-table { width:100%; border-collapse:collapse; margin-bottom: 16px;
+    border: 1px solid ${RULE}; font-size: 9pt; }
+  .ref-table td { padding: 8px 12px; border: 1px solid ${RULE}; }
+  .ref-table td.k { background:#FAF8F2; color:${PRIMARY}; font-weight:700; width: 18%; }
+  .ref-table td.v { color:${INK}; }
+
+  /* === Preamble === */
+  .preamble { font-size: 10pt; line-height: 1.85; color:${INK}; margin: 0 0 18px;
+    padding: 14px 16px; border-right: 3px solid ${PRIMARY}; background:#FAFBFB; }
+  .preamble b { color:${PRIMARY}; font-weight:700; }
+
+  /* === Section heading === */
+  .section-h { display:flex; align-items:baseline; gap:10px; margin: 4px 0 8px;
+    padding-bottom: 6px; border-bottom: 1px solid ${RULE}; }
+  .section-h h3 { margin:0; font-family:'Amiri',serif; font-size: 14pt; color:${PRIMARY}; font-weight:700; }
+  .section-h .count { font-size: 9pt; color:${MUTED}; }
+
+  /* === Main table === */
+  table.main { width:100%; border-collapse:collapse; font-size: 9.5pt; }
+  table.main thead th { background:${PRIMARY}; color:#fff; padding: 10px 8px;
+    font-weight:700; font-size: 9.5pt; text-align:center; border:1px solid ${PRIMARY}; }
+  table.main tbody td { padding: 10px 8px; border: 1px solid ${RULE};
+    text-align:center; vertical-align: top; color:${INK}; }
+  table.main tbody tr { page-break-inside: avoid; }
+  table.main tbody tr:nth-child(even) td { background: #FAFBFB; }
+  td.num { width: 5%; font-weight:700; color:${PRIMARY}; }
+  td.committee { width: 18%; font-weight:700; color:${PRIMARY}; text-align:right; }
+  td.task { width: 38%; text-align:right; }
+  .t-title { font-weight:700; color:${INK}; margin-bottom:4px; line-height:1.5; }
+  .t-desc { font-size: 8.5pt; color:${MUTED}; line-height:1.6;
+    display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
+  .status { font-weight:700; color:${INK}; }
+  .prio { font-size: 8pt; color:${GOLD}; margin-top: 3px; font-weight:700; }
+  .late { color:#9B1C1C; font-weight:700; }
+  .late-tag { display:inline-block; margin-top:4px; font-size: 7.5pt; padding: 1px 8px;
+    border: 1px solid #9B1C1C; border-radius: 999px; color:#9B1C1C; font-weight:700; }
+  td.empty { padding: 40px; color:${MUTED}; }
+
+  /* === Signatures === */
+  .sig-grid { display:grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin-top: 28px;
+    page-break-inside: avoid; }
+  .sig { border-top: 2px solid ${PRIMARY}; padding-top: 8px; min-height: 110px; }
+  .sig .role { font-size: 9pt; color:${PRIMARY}; font-weight:700; margin-bottom: 6px; }
+  .sig .name { font-size: 10pt; color:${INK}; font-weight:700; min-height: 18px; }
+  .sig .lbl { font-size: 8pt; color:${MUTED}; margin-top: 48px; padding-top: 4px;
+    border-top: 1px dotted ${MUTED}; text-align:center; }
+
+  /* === Footer === */
+  .doc-footer { margin-top: 22px; padding-top: 10px; border-top: 1px solid ${RULE};
+    display:flex; justify-content:space-between; font-size: 8pt; color:${MUTED}; }
+  .doc-footer b { color:${PRIMARY}; }
+
+  /* === Print === */
+  @media print {
+    .no-print { display:none !important; }
+    thead { display: table-header-group; }
+  }
   .toolbar { position:fixed; top:12px; left:12px; z-index:10; display:flex; gap:8px; }
   .toolbar button { background:${PRIMARY}; color:#fff; border:0; padding:10px 18px;
-    border-radius:10px; font-family:inherit; font-weight:700; cursor:pointer;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
-  .toolbar button.gold { background:${GOLD}; color:${PRIMARY}; }
+    border-radius:6px; font-family:inherit; font-weight:700; cursor:pointer;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15); }
+  .toolbar button.alt { background:#fff; color:${PRIMARY}; border:1px solid ${PRIMARY}; }
 </style></head>
 <body>
   <div class="toolbar no-print">
-    <button onclick="window.print()">🖨️ طباعة / حفظ PDF</button>
-    <button class="gold" onclick="window.close()">إغلاق</button>
+    <button onclick="window.print()">طباعة / حفظ PDF</button>
+    <button class="alt" onclick="window.close()">إغلاق</button>
   </div>
 
-  <div class="header">
-    <div class="h-row">
-      <div class="brand">
-        <div class="logo"><img src="${BRAND_LOGO_DATA_URI}" alt="logo"/></div>
-        <div>
-          <h1>منصة لجنة الزواج الجماعي</h1>
-          <p>المهام العاجلة — أول مهمة من كل لجنة</p>
-        </div>
+  <header class="letterhead">
+    <div class="lh-right">
+      <div class="lh-logo"><img src="${BRAND_LOGO_DATA_URI}" alt="شعار اللجنة"/></div>
+      <div class="lh-org">
+        <h1>لجنة الزواج الجماعي</h1>
+        <p>قبيلة الهَملة من قُريش — الأمانة العامة</p>
       </div>
-      <div class="h-meta">
-        <b>مرجع التقرير</b>
-        ${escapeHtml(filename)}<br/>${todayAr()}
-      </div>
+    </div>
+    <div class="lh-center">
+      <div class="crest"></div>
+      <div class="stamp">وثيقة رسمية</div>
+    </div>
+    <div class="lh-left">
+      <b>المرجع</b>${ref}
+      <br/><b>التاريخ</b>${todayAr()}
+    </div>
+  </header>
+
+  <div class="doc-title">
+    <div class="kicker">تعميم تنفيذي</div>
+    <h2>قائمة المهام العاجلة لكل لجنة</h2>
+    <div class="sub">للاعتماد والمتابعة من قِبل رؤساء اللجان</div>
+  </div>
+
+  <div class="divider"><span class="line"></span><span class="dot"></span><span class="line"></span></div>
+
+  <table class="ref-table">
+    <tr>
+      <td class="k">عدد اللجان</td><td class="v">${fmt(items.length)}</td>
+      <td class="k">مستوى الأولوية</td><td class="v">عاجلة / متابعة فورية</td>
+    </tr>
+    <tr>
+      <td class="k">جهة الإصدار</td><td class="v">إدارة المتابعة والجودة</td>
+      <td class="k">حالة الوثيقة</td><td class="v">سارية المفعول</td>
+    </tr>
+  </table>
+
+  <div class="preamble">
+    استناداً إلى متابعة سير العمل في اللجان التابعة، فإننا نُحيلُ إلى سيادتكم
+    <b>أهمَّ مهمَّة قائمة في كلِّ لجنة</b> بحسب أولوية التنفيذ المعتمدة في النظام،
+    لاتخاذ ما يلزم نحو إنجازها ضمن المهلة المحددة ورفع التغذية الراجعة للأمانة العامة.
+  </div>
+
+  <div class="section-h">
+    <h3>جدول المهام</h3>
+    <span class="count">(${fmt(items.length)} لجنة)</span>
+  </div>
+
+  <table class="main">
+    <thead>
+      <tr>
+        <th>م</th>
+        <th>اللجنة</th>
+        <th>المهمة</th>
+        <th>المكلَّف</th>
+        <th>تاريخ الاستحقاق</th>
+        <th>الحالة / الأولوية</th>
+      </tr>
+    </thead>
+    <tbody>${rows}</tbody>
+  </table>
+
+  <div class="sig-grid">
+    <div class="sig">
+      <div class="role">أعدَّه</div>
+      <div class="name">إدارة المتابعة والجودة</div>
+      <div class="lbl">الاسم والتوقيع — التاريخ</div>
+    </div>
+    <div class="sig">
+      <div class="role">اعتمده</div>
+      <div class="name">${escapeHtml(signerName ?? "")}</div>
+      <div class="lbl">رئيس اللجنة العليا — التوقيع</div>
+    </div>
+    <div class="sig">
+      <div class="role">للاطلاع</div>
+      <div class="name">رؤساء اللجان</div>
+      <div class="lbl">الاسم والتوقيع — التاريخ</div>
     </div>
   </div>
 
-  <div class="intro">
-    تتضمن هذه الوثيقة <b>أول مهمة (الأكثر أهمية / في أعلى قائمة المهام)</b> من كل لجنة،
-    وتُعتمد كأولوية تنفيذ عاجلة لإرسالها لرؤساء اللجان والمتابعة الفورية.
-  </div>
-
-  <div class="title-bar"><div class="bar"></div><h2>المهام العاجلة (${fmt(items.length)} لجنة)</h2></div>
-
-  ${items.length === 0 ? `<div class="empty">لا توجد مهام مسجلة</div>` : `
-  <div class="grid">
-    ${items.map((t) => `
-      <div class="item">
-        <div class="item-head">
-          <div class="committee">📋 ${escapeHtml(t.committee_name)}</div>
-          <div class="urgent-tag">عاجلة</div>
-        </div>
-        <div class="ttitle">${escapeHtml(t.title)}</div>
-        ${t.description ? `<div class="desc">${escapeHtml(t.description)}</div>` : ""}
-        <div class="meta">
-          <span><b>الحالة:</b> ${statusBadge(t.status)}</span>
-          <span><b>الأولوية:</b> ${priorityBadge(t.priority)}</span>
-          <span class="${t.is_overdue ? "late" : ""}"><b>الاستحقاق:</b> ${arDate(t.due_date)}${t.is_overdue ? ` (متأخرة ${t.days_late} يوم)` : ""}</span>
-          <span><b>المكلَّف:</b> ${escapeHtml(t.assignee_name ?? "—")}</span>
-        </div>
-      </div>`).join("")}
-  </div>`}
-
-  <div class="footer">
-    <div class="signatures">
-      <div class="sig-box">
-        <div class="sig-label">اعتمد من قِبل</div>
-        <div class="sig-name">${escapeHtml(signerName ?? "................................")}</div>
-        <div class="sig-line">التوقيع والتاريخ</div>
-      </div>
-      <div class="sig-box">
-        <div class="sig-label">اطّلع عليه</div>
-        <div class="sig-name">................................</div>
-        <div class="sig-line">رئيس اللجنة العليا — التوقيع والتاريخ</div>
-      </div>
-    </div>
-    <div style="display:flex;justify-content:space-between;margin-top:14px;">
-      <div><b style="color:${PRIMARY}">منصة لجنة الزواج الجماعي</b> — وثيقة رسمية</div>
-      <div>${todayAr()}</div>
-    </div>
+  <div class="doc-footer">
+    <div><b>لجنة الزواج الجماعي</b> — قبيلة الهَملة من قُريش</div>
+    <div>${ref}</div>
   </div>
 
   <script>
