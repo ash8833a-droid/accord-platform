@@ -12,7 +12,7 @@ import { toast } from "sonner";
 import {
   exportTasksPDF, exportTasksXLSX, exportFirstTasksPDF,
   type TaskRow, type TaskReportSummary, type CommitteePerf,
-  type FirstTaskRow,
+  type FirstTaskRow, type CommitteeProgressBrief,
 } from "@/lib/task-reports";
 import { sendFirstTaskReminders } from "@/server/task-reminders.functions";
 
@@ -225,8 +225,32 @@ export function TasksReportPanel() {
         toast.error("لا توجد مهام لأي لجنة");
         return;
       }
+      // Build per-committee summary of done + in-progress tasks (in task-center order).
+      const progressByCommittee = new Map<string, CommitteeProgressBrief>();
+      const ordered = [...tasks].sort((a, b) => {
+        const so = (a.sort_order ?? 0) - (b.sort_order ?? 0);
+        if (so !== 0) return so;
+        return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+      });
+      for (const t of ordered) {
+        const cname = committeeName(t.committee_id);
+        let entry = progressByCommittee.get(cname);
+        if (!entry) {
+          entry = { committee_name: cname, done: [], in_progress: [] };
+          progressByCommittee.set(cname, entry);
+        }
+        const brief = {
+          title: t.title,
+          assignee_name: profileName(t.assigned_to),
+          due_date: t.due_date,
+        };
+        if (t.status === "done") entry.done.push(brief);
+        else if (t.status === "in_progress") entry.in_progress.push(brief);
+      }
+      const progress = Array.from(progressByCommittee.values())
+        .sort((a, b) => a.committee_name.localeCompare(b.committee_name, "ar"));
       const fname = `المهام-العاجلة-لكل-لجنة-${new Date().toISOString().slice(0, 10)}`;
-      exportFirstTasksPDF(firstPerCommittee, fname, signerName);
+      exportFirstTasksPDF(firstPerCommittee, fname, signerName, progress);
       toast.success(`تم إعداد تقرير المهام العاجلة (${firstPerCommittee.length} لجنة)`);
     } catch (e: any) {
       toast.error("تعذر التصدير", { description: e?.message });
