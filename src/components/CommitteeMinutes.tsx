@@ -181,6 +181,10 @@ export function CommitteeMinutes({ committeeId, committeeName, canManage }: Prop
       attendees: m.attendees || [],
       agenda_items: m.agenda_items || [],
       recommendations: m.recommendations || [],
+      file_url: m.file_url || null,
+      file_type: m.file_type || null,
+      file_size: m.file_size || null,
+      file_name: m.file_url ? (m.file_url.split("/").pop() || "") : "",
     });
     setFile(null);
     setTab("create");
