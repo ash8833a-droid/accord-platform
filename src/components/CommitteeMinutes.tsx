@@ -673,6 +673,18 @@ export function CommitteeMinutes({ committeeId, committeeName, canManage }: Prop
                       <span className="inline-flex items-center gap-1"><Users className="h-3 w-3" /> {m.attendees?.length ?? 0} حاضر</span>
                       <span className="inline-flex items-center gap-1"><ListChecks className="h-3 w-3" /> {m.agenda_items?.length ?? 0} بند</span>
                       <span className="inline-flex items-center gap-1"><MessageSquareQuote className="h-3 w-3" /> {m.recommendations?.length ?? 0} توصية</span>
+                      {m.file_url && (
+                        <a
+                          href={m.file_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          className="inline-flex items-center gap-1 text-primary hover:underline"
+                          title="فتح المرفق"
+                        >
+                          <Paperclip className="h-3 w-3" /> مرفق
+                        </a>
+                      )}
                     </p>
                   </div>
                   <div className="flex items-center gap-1.5 shrink-0">
