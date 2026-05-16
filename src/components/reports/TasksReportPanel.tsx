@@ -97,7 +97,7 @@ export function TasksReportPanel() {
     const today = new Date(); today.setHours(0, 0, 0, 0);
     return filteredRaw.map((t) => {
       const due = t.due_date ? new Date(t.due_date) : null;
-      const isOverdue = !!(due && t.status !== "done" && t.status !== "cancelled" && due < today);
+      const isOverdue = !!(due && t.status !== "done" && t.status !== "completed" && t.status !== "cancelled" && due < today);
       const daysLate = isOverdue && due
         ? Math.floor((today.getTime() - due.getTime()) / 86400000)
         : 0;
@@ -122,7 +122,7 @@ export function TasksReportPanel() {
 
   const summary: TaskReportSummary = useMemo(() => {
     const total = rows.length;
-    const done = rows.filter((r) => r.status === "done").length;
+    const done = rows.filter((r) => r.status === "done" || r.status === "completed").length;
     return {
       total,
       todo: rows.filter((r) => r.status === "todo").length,
@@ -141,7 +141,7 @@ export function TasksReportPanel() {
       const key = r.committee_name;
       const cur = map.get(key) ?? { name: key, total: 0, done: 0, overdue: 0 };
       cur.total++;
-      if (r.status === "done") cur.done++;
+      if (r.status === "done" || r.status === "completed") cur.done++;
       if (r.is_overdue) cur.overdue++;
       map.set(key, cur);
     });
@@ -191,7 +191,7 @@ export function TasksReportPanel() {
         urgent: 0, high: 1, medium: 2, low: 3,
       };
       const sorted = [...tasks]
-        .filter((t) => t.status !== "done" && t.status !== "cancelled")
+        .filter((t) => t.status !== "done" && t.status !== "completed" && t.status !== "cancelled")
         .sort((a, b) => {
           const pr = (priorityRank[a.priority] ?? 99) - (priorityRank[b.priority] ?? 99);
           if (pr !== 0) return pr;
@@ -205,7 +205,7 @@ export function TasksReportPanel() {
         if (seen.has(t.committee_id)) continue;
         seen.add(t.committee_id);
         const due = t.due_date ? new Date(t.due_date) : null;
-        const isOverdue = !!(due && t.status !== "done" && t.status !== "cancelled" && due < today);
+        const isOverdue = !!(due && t.status !== "done" && t.status !== "completed" && t.status !== "cancelled" && due < today);
         firstPerCommittee.push({
           committee_name: committeeName(t.committee_id),
           title: t.title,
