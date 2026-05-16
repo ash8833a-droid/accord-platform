@@ -187,6 +187,16 @@ export function TaskDetailsDialog({
                     className="bg-slate-50 border-slate-100 rounded-xl resize-none focus-visible:bg-white"
                   />
                 </div>
+                <div className="space-y-2">
+                  <Label className="text-xs font-semibold text-slate-600">المطلوب لتنفيذ المهمة</Label>
+                  <Textarea
+                    value={executionBrief}
+                    onChange={(e) => setExecutionBrief(e.target.value)}
+                    rows={3}
+                    placeholder="شرح مختصر للخطوات أو المتطلبات اللازمة لإنجاز هذه المهمة..."
+                    className="bg-amber-50/60 border-amber-100 rounded-xl resize-none focus-visible:bg-white"
+                  />
+                </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div className="space-y-2">
