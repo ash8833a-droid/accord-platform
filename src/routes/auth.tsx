@@ -178,13 +178,12 @@ function AuthPage() {
           </div>
         </section>
 
-        <section className="space-y-3">
-          <h3 className="text-base font-bold text-slate-900 text-right">خدماتنا</h3>
-          <div className="grid grid-cols-2 gap-3">
+        <section>
+          <div className="grid grid-cols-4 gap-2 rounded-2xl bg-white/70 backdrop-blur border border-slate-100 p-3 shadow-sm">
             <ServiceCard to="/register-groom" icon={HeartHandshake} title="تسجيل عريس" tone="bg-rose-50 text-rose-600" />
             <ServiceCard to="/committees" icon={Building2} title="اللجان" tone="bg-emerald-50 text-emerald-600" />
-            <ServiceCard to="/" icon={BookOpen} title="عن البرنامج" tone="bg-amber-50 text-amber-600" />
             <ServiceCard to="/" icon={HandHeart} title="ساهِم معنا" tone="bg-sky-50 text-sky-600" />
+            <ServiceCard to="/" icon={BookOpen} title="عن البرنامج" tone="bg-amber-50 text-amber-600" />
           </div>
         </section>
 
@@ -210,12 +209,12 @@ function ServiceCard({
   return (
     <Link
       to={to}
-      className="rounded-2xl bg-white border border-slate-100 p-4 flex flex-col items-center justify-center gap-2 hover:shadow-sm transition-all active:scale-[0.98]"
+      className="rounded-xl p-2 flex flex-col items-center justify-center gap-1.5 hover:bg-slate-50 transition-all active:scale-[0.96]"
     >
-      <div className={`h-11 w-11 rounded-full flex items-center justify-center ${tone}`}>
+      <div className={`h-10 w-10 rounded-full flex items-center justify-center ${tone}`}>
         <Icon className="h-5 w-5" />
       </div>
-      <span className="text-xs font-semibold text-slate-800">{title}</span>
+      <span className="text-[11px] font-semibold text-slate-700 text-center leading-tight">{title}</span>
     </Link>
   );
 }
