@@ -13,6 +13,7 @@ import { WomenTalentsPanel } from "@/components/committee/WomenTalentsPanel";
 import { EvaluationCriteria } from "@/components/quality/EvaluationCriteria";
 import { EvaluationForm } from "@/components/quality/EvaluationForm";
 import { LatestEvaluationsPanel } from "@/components/quality/LatestEvaluationsPanel";
+import { isExcludedFromWomenSurvey } from "@/lib/women-committee-access";
 
 export const Route = createFileRoute("/_app/reports")({
   component: ReportsPage,
@@ -71,6 +72,9 @@ function ReportsPage() {
       setIsQualityHead(!!quality && quality.head_user_id === user.id);
       const women = cs?.find((c: any) => c.type === "women");
       if (!women) { setIsWomenMember(false); return; }
+      // استبيان مواهب بنات العائلة مقصور على العضوات الإناث + مدير النظام.
+      // نستثني الأعضاء الذكور في اللجنة النسائية (رئيس اللجنة وغيره).
+      if (isExcludedFromWomenSurvey(user.id)) { setIsWomenMember(false); return; }
       const { data: roles } = await supabase
         .from("user_roles")
         .select("committee_id")
@@ -80,7 +84,8 @@ function ReportsPage() {
     })();
   }, [user]);
 
-  const canSeeSurveys = isAdmin || isQualityHead || isWomenMember;
+  // الاستبانات: مدير النظام + العضوات الإناث في اللجنة النسائية فقط.
+  const canSeeSurveys = isAdmin || isWomenMember;
   const canSeeCriteria = isAdmin || isQualityHead || hasRole("quality");
 
   const fmt = (n: number) => new Intl.NumberFormat("ar-SA").format(n);
