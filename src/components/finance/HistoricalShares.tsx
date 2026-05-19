@@ -305,6 +305,17 @@ export function HistoricalShares() {
         .replace(/"/g, "&quot;");
     const today = new Date().toLocaleDateString("ar-SA");
     const totalAmount = filtered.reduce((s, r) => s + Number(r.amount), 0);
+    const logoUrl = `${window.location.origin}/brand/zawaj-logo.png`;
+    // Subtle interlocking rings pattern in brand gold/teal — encoded SVG as bg
+    const patternSvg = encodeURIComponent(
+      `<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'>
+        <g fill='none' stroke-width='1.2' opacity='0.18'>
+          <circle cx='40' cy='60' r='22' stroke='#C4A25C'/>
+          <circle cx='80' cy='60' r='22' stroke='#1B4F58'/>
+        </g>
+      </svg>`
+    );
+    const patternBg = `url("data:image/svg+xml;utf8,${patternSvg}")`;
     const rowsHtml = filtered
       .map(
         (r, i) => `<tr>
@@ -323,46 +334,103 @@ export function HistoricalShares() {
 <style>
 @page { size: A4; margin: 12mm; }
 *{box-sizing:border-box}
-body{font-family:'Tajawal',Arial,sans-serif;color:#1f2937;margin:0}
-.header{background:linear-gradient(135deg,#0D7C66,#10a37f);color:#fff;padding:18px 22px;border-radius:12px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center}
-.header h1{margin:0;font-size:18pt;font-weight:800}
-.header p{margin:4px 0 0;font-size:10pt;opacity:.9}
-.meta{font-size:9pt;text-align:left;line-height:1.6}
-.summary{display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap}
-.chip{background:#ecfdf5;color:#065f46;padding:8px 14px;border-radius:10px;font-size:10pt;font-weight:700;border:1px solid #a7f3d0}
-.chip.gold{background:#fef3c7;color:#92400e;border-color:#fde68a}
-table{width:100%;border-collapse:collapse;font-size:10pt}
-thead th{background:#0D7C66;color:#fff;padding:9px 6px;text-align:center;font-weight:700;border:1px solid #075d4d}
-tbody td{padding:7px 6px;text-align:center;border:1px solid #e5e7eb;vertical-align:middle}
-tbody tr:nth-child(even) td{background:#f8fafc}
-.num{font-weight:700;color:#065f46;direction:ltr;unicode-bidi:embed}
-.branch{background:#e0f2fe;color:#0c4a6e;padding:2px 10px;border-radius:999px;font-size:8.5pt;font-weight:700}
-tfoot td{background:#0D7C66;color:#fff;font-weight:800;padding:9px 6px;text-align:center}
-.toolbar{position:fixed;top:10px;left:10px;display:flex;gap:6px;z-index:50}
-.toolbar button{background:#0D7C66;color:#fff;border:0;padding:9px 16px;border-radius:8px;font-family:inherit;font-weight:700;cursor:pointer}
-.toolbar button.alt{background:#64748b}
-@media print{.toolbar{display:none}}
+html,body{margin:0;padding:0}
+body{
+  font-family:'Tajawal',Arial,sans-serif;color:#1B2A2E;
+  background:
+    ${patternBg},
+    linear-gradient(180deg,#FBF7EE 0%,#F5EEDC 100%);
+  background-size:120px 120px, auto;
+  -webkit-print-color-adjust:exact;print-color-adjust:exact;
+}
+.sheet{padding:6px 4px 24px}
+.header{
+  position:relative;overflow:hidden;
+  background:linear-gradient(135deg,#1B4F58 0%,#0D7C66 55%,#1B4F58 100%);
+  color:#fff;padding:22px 26px;border-radius:16px;margin-bottom:16px;
+  display:flex;justify-content:space-between;align-items:center;gap:18px;
+  box-shadow:0 6px 18px rgba(27,79,88,.18);
+  border:1px solid rgba(196,162,92,.45);
+}
+.header::before{
+  content:"";position:absolute;inset:0;background:${patternBg};background-size:120px 120px;opacity:.18;pointer-events:none;
+}
+.header::after{
+  content:"";position:absolute;left:-40px;bottom:-40px;width:180px;height:180px;border-radius:50%;
+  background:radial-gradient(circle,#C4A25C 0%,transparent 65%);opacity:.35;
+}
+.brand{display:flex;align-items:center;gap:14px;position:relative;z-index:1}
+.brand img{height:64px;width:auto;display:block;filter:drop-shadow(0 2px 4px rgba(0,0,0,.25))}
+.brand .titles h1{margin:0;font-size:18pt;font-weight:800;letter-spacing:-0.2px}
+.brand .titles p{margin:4px 0 0;font-size:10pt;opacity:.92}
+.meta{font-size:9.5pt;text-align:left;line-height:1.7;position:relative;z-index:1;
+  background:rgba(255,255,255,.08);padding:10px 14px;border-radius:10px;
+  border:1px solid rgba(196,162,92,.35);backdrop-filter:blur(2px)}
+.meta b{color:#F5DFA8}
+.gold-rule{height:3px;background:linear-gradient(90deg,transparent,#C4A25C,transparent);margin:0 0 14px;border-radius:2px}
+.summary{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.chip{background:#fff;color:#1B4F58;padding:9px 16px;border-radius:12px;font-size:10pt;font-weight:800;
+  border:1px solid rgba(27,79,88,.18);box-shadow:0 2px 6px rgba(27,79,88,.06)}
+.chip.gold{background:linear-gradient(135deg,#FBF1D9,#F5E3B5);color:#7A5418;border-color:#E9CE8A}
+.chip.teal{background:linear-gradient(135deg,#E6F2F1,#CFE6E3);color:#0D5C53;border-color:#A7D2CB}
+.tablewrap{background:#fff;border-radius:14px;padding:6px;border:1px solid rgba(27,79,88,.12);
+  box-shadow:0 4px 14px rgba(27,79,88,.08)}
+table{width:100%;border-collapse:separate;border-spacing:0;font-size:10pt;overflow:hidden;border-radius:10px}
+thead th{background:linear-gradient(135deg,#1B4F58,#0D7C66);color:#fff;padding:11px 6px;text-align:center;font-weight:700;border-bottom:2px solid #C4A25C}
+thead th:first-child{border-top-right-radius:10px}
+thead th:last-child{border-top-left-radius:10px}
+tbody td{padding:9px 6px;text-align:center;border-bottom:1px solid #EDE6D2;vertical-align:middle}
+tbody tr:nth-child(even) td{background:#FBF7EE}
+tbody tr:hover td{background:#F5EEDC}
+.num{font-weight:800;color:#0D5C53;direction:ltr;unicode-bidi:embed}
+.branch{background:#1B4F58;color:#F5DFA8;padding:3px 12px;border-radius:999px;font-size:8.5pt;font-weight:700;letter-spacing:.2px}
+tfoot td{background:linear-gradient(135deg,#C4A25C,#D9B873);color:#1B2A2E;font-weight:800;padding:11px 6px;text-align:center;border-top:2px solid #1B4F58}
+tfoot td:first-child{border-bottom-right-radius:10px}
+tfoot td:last-child{border-bottom-left-radius:10px}
+.footer{margin-top:18px;display:flex;justify-content:space-between;align-items:center;
+  font-size:8.5pt;color:#5C6B6E;padding:10px 14px;border-top:1px dashed #C4A25C}
+.footer .seal{display:flex;align-items:center;gap:8px;font-weight:700;color:#1B4F58}
+.footer .seal::before{content:"";display:inline-block;width:10px;height:10px;border-radius:50%;background:#C4A25C}
+.toolbar{position:fixed;top:12px;left:12px;display:flex;gap:8px;z-index:50}
+.toolbar button{background:#1B4F58;color:#fff;border:0;padding:10px 18px;border-radius:10px;font-family:inherit;font-weight:700;cursor:pointer;box-shadow:0 4px 10px rgba(0,0,0,.18)}
+.toolbar button.alt{background:#C4A25C;color:#1B2A2E}
+@media print{.toolbar{display:none} body{background-size:120px 120px, auto}}
 </style></head><body>
 <div class="toolbar">
   <button onclick="window.print()">🖨️ طباعة / حفظ PDF</button>
   <button class="alt" onclick="window.close()">إغلاق</button>
 </div>
-<div class="header">
-  <div><h1>سجل المساهمين للسنة ${activeYear}هـ</h1><p>منصة لجنة الزواج الجماعي العائلية</p></div>
-  <div class="meta">
-    <div>الفرع: <b>${branchFilter === "all" ? "جميع الفروع" : esc(branchFilter)}</b></div>
-    <div>تاريخ التصدير: ${esc(today)}</div>
+<div class="sheet">
+  <div class="header">
+    <div class="brand">
+      <img src="${logoUrl}" alt="شعار الزواج الجماعي" crossorigin="anonymous"/>
+      <div class="titles">
+        <h1>سجل المساهمين للسنة ${activeYear}هـ</h1>
+        <p>منصة لجنة الزواج الجماعي العائلية</p>
+      </div>
+    </div>
+    <div class="meta">
+      <div>الفرع: <b>${branchFilter === "all" ? "جميع الفروع" : esc(branchFilter)}</b></div>
+      <div>تاريخ التصدير: <b>${esc(today)}</b></div>
+    </div>
+  </div>
+  <div class="gold-rule"></div>
+  <div class="summary">
+    <div class="chip teal">عدد المساهمين: ${fmt(filtered.length)}</div>
+    <div class="chip gold">إجمالي المبالغ: ${fmt(totalAmount)} ر.س</div>
+  </div>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th style="width:40px">#</th><th>المساهم</th><th>الفرع</th><th>المبلغ</th><th>ملاحظات</th></tr></thead>
+      <tbody>${rowsHtml}</tbody>
+      <tfoot><tr><td colspan="3">الإجمالي</td><td>${fmt(totalAmount)} ر.س</td><td>—</td></tr></tfoot>
+    </table>
+  </div>
+  <div class="footer">
+    <div class="seal">منصة لجنة الزواج الجماعي العائلية</div>
+    <div>وثيقة مُصدّرة آلياً — ${esc(today)}</div>
   </div>
 </div>
-<div class="summary">
-  <div class="chip">عدد المساهمين: ${fmt(filtered.length)}</div>
-  <div class="chip gold">إجمالي المبالغ: ${fmt(totalAmount)} ر.س</div>
-</div>
-<table>
-  <thead><tr><th style="width:40px">#</th><th>المساهم</th><th>الفرع</th><th>المبلغ</th><th>ملاحظات</th></tr></thead>
-  <tbody>${rowsHtml}</tbody>
-  <tfoot><tr><td colspan="3">الإجمالي</td><td>${fmt(totalAmount)} ر.س</td><td>—</td></tr></tfoot>
-</table>
 <script>window.addEventListener('load',()=>setTimeout(()=>window.print(),600));</script>
 </body></html>`;
     const win = window.open("", "_blank", "width=1100,height=800");
