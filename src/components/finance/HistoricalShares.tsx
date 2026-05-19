@@ -610,9 +610,23 @@ tfoot td{background:#0D7C66;color:#fff;font-weight:800;padding:9px 6px;text-alig
                     ))}
                   </SelectContent>
                 </Select>
-                <Button variant="outline" size="sm" className="gap-1" onClick={downloadCSV} disabled={filtered.length === 0}>
-                  <Download className="h-3.5 w-3.5" /> تصدير CSV
-                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm" className="gap-1" disabled={filtered.length === 0}>
+                      <Download className="h-3.5 w-3.5" /> تصدير
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-44">
+                    <DropdownMenuLabel>اختر صيغة التصدير</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={downloadCSV} className="gap-2 cursor-pointer">
+                      <FileText className="h-4 w-4 text-blue-600" /> CSV
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={downloadPDF} className="gap-2 cursor-pointer">
+                      <Printer className="h-4 w-4 text-rose-600" /> PDF / طباعة
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
 
               <div className="overflow-x-auto">
