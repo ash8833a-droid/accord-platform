@@ -336,25 +336,36 @@ export function HistoricalShares() {
 <title>سجل المساهمين ${activeYear}هـ</title>
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
-@page { size: A4; margin: 12mm; }
+@page { size: A4; margin: 8mm; }
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
 body{
   font-family:'Tajawal',Arial,sans-serif;color:#1B2A2E;
-  background:
-    ${patternBg},
-    linear-gradient(180deg,#FFFFFF 0%,#FBFAF6 100%);
-  background-size:260px 260px, auto;
-  background-position:center top, center top;
+  background:#FFFFFF;
   -webkit-print-color-adjust:exact;print-color-adjust:exact;
 }
-.sheet{padding:6px 4px 24px;background:rgba(255,255,255,0.55)}
+.sheet{
+  position:relative;padding:18px 22px 28px;background:#FFFFFF;
+  border:1px solid rgba(196,162,92,.22);border-radius:18px;
+  box-shadow:0 1px 0 rgba(255,255,255,.9) inset, 0 6px 24px rgba(27,79,88,.05);
+  overflow:hidden;
+}
+.sheet::before{
+  content:"";position:absolute;inset:0;background:${patternBg};
+  background-size:320px 320px;background-position:center;
+  opacity:.06;pointer-events:none;z-index:0;
+}
+.sheet::after{
+  content:"";position:absolute;inset:8px;border:1px solid rgba(196,162,92,.18);
+  border-radius:14px;pointer-events:none;z-index:0;
+}
+.sheet > *{position:relative;z-index:1}
 .header{
   position:relative;overflow:hidden;
   background:linear-gradient(135deg,#1B4F58 0%,#0D7C66 55%,#1B4F58 100%);
-  color:#fff;padding:22px 26px;border-radius:16px;margin-bottom:16px;
+  color:#fff;padding:24px 28px;border-radius:14px;margin:0 0 20px;
   display:flex;justify-content:space-between;align-items:center;gap:18px;
-  box-shadow:0 6px 18px rgba(27,79,88,.18);
+  box-shadow:0 4px 14px rgba(27,79,88,.14);
   border:1px solid rgba(196,162,92,.45);
 }
 .header::before{
@@ -381,19 +392,18 @@ body{
 .meta b{color:#F5DFA8}
 .gold-rule{height:3px;background:linear-gradient(90deg,transparent,#C4A25C,transparent);margin:0 0 14px;border-radius:2px}
 .summary{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap}
-.chip{background:#fff;color:#1B4F58;padding:9px 16px;border-radius:12px;font-size:10pt;font-weight:800;
-  border:1px solid rgba(27,79,88,.18);box-shadow:0 2px 6px rgba(27,79,88,.06)}
+.chip{background:#FFFFFF;color:#1B4F58;padding:11px 18px;border-radius:12px;font-size:10pt;font-weight:800;
+  border:1px solid rgba(27,79,88,.12);box-shadow:0 2px 6px rgba(27,79,88,.04)}
 .chip.gold{background:linear-gradient(135deg,#FBF1D9,#F5E3B5);color:#7A5418;border-color:#E9CE8A}
 .chip.teal{background:linear-gradient(135deg,#E6F2F1,#CFE6E3);color:#0D5C53;border-color:#A7D2CB}
-.tablewrap{background:#fff;border-radius:14px;padding:6px;border:1px solid rgba(27,79,88,.12);
-  box-shadow:0 4px 14px rgba(27,79,88,.08)}
+.tablewrap{background:#FFFFFF;border-radius:14px;padding:10px;border:1px solid rgba(27,79,88,.10);
+  box-shadow:0 4px 14px rgba(27,79,88,.05)}
 table{width:100%;border-collapse:separate;border-spacing:0;font-size:10pt;overflow:hidden;border-radius:10px}
 thead th{background:linear-gradient(135deg,#1B4F58,#0D7C66);color:#fff;padding:11px 6px;text-align:center;font-weight:700;border-bottom:2px solid #C4A25C}
 thead th:first-child{border-top-right-radius:10px}
 thead th:last-child{border-top-left-radius:10px}
-tbody td{padding:9px 6px;text-align:center;border-bottom:1px solid #EDE6D2;vertical-align:middle}
-tbody tr:nth-child(even) td{background:#FBF7EE}
-tbody tr:hover td{background:#F5EEDC}
+tbody td{padding:10px 8px;text-align:center;border-bottom:1px solid #F1ECDE;vertical-align:middle;background:#FFFFFF}
+tbody tr:nth-child(even) td{background:#FCFAF3}
 .num{font-weight:800;color:#0D5C53;direction:ltr;unicode-bidi:embed}
 .branch{background:#1B4F58;color:#F5DFA8;padding:3px 12px;border-radius:999px;font-size:8.5pt;font-weight:700;letter-spacing:.2px}
 tfoot td{background:linear-gradient(135deg,#C4A25C,#D9B873);color:#1B2A2E;font-weight:800;padding:11px 6px;text-align:center;border-top:2px solid #1B4F58}
@@ -406,7 +416,7 @@ tfoot td:last-child{border-bottom-left-radius:10px}
 .toolbar{position:fixed;top:12px;left:12px;display:flex;gap:8px;z-index:50}
 .toolbar button{background:#1B4F58;color:#fff;border:0;padding:10px 18px;border-radius:10px;font-family:inherit;font-weight:700;cursor:pointer;box-shadow:0 4px 10px rgba(0,0,0,.18)}
 .toolbar button.alt{background:#C4A25C;color:#1B2A2E}
-@media print{.toolbar{display:none} body{background-size:260px 260px, auto}}
+@media print{.toolbar{display:none}}
 </style></head><body>
 <div class="toolbar">
   <button onclick="window.print()">🖨️ طباعة / حفظ PDF</button>
