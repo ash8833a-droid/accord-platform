@@ -306,19 +306,16 @@ export function HistoricalShares() {
     const today = new Date().toLocaleDateString("ar-SA");
     const totalAmount = filtered.reduce((s, r) => s + Number(r.amount), 0);
     const logoUrl = `${window.location.origin}/brand/zawaj-logo.png`;
-    // Elegant arabesque / eight-point star pattern — very subtle, brand gold tone
+    // Interlocking rings motif — derived from the brand logo, ultra-light, generous spacing
     const patternSvg = encodeURIComponent(
-      `<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160' viewBox='0 0 160 160'>
-        <g fill='none' stroke='#C4A25C' stroke-width='0.6' opacity='0.55'>
-          <path d='M80 20 L100 60 L140 80 L100 100 L80 140 L60 100 L20 80 L60 60 Z'/>
-          <path d='M80 35 L95 65 L125 80 L95 95 L80 125 L65 95 L35 80 L65 65 Z'/>
-          <circle cx='80' cy='80' r='6'/>
-          <circle cx='80' cy='80' r='14'/>
+      `<svg xmlns='http://www.w3.org/2000/svg' width='260' height='260' viewBox='0 0 260 260'>
+        <g fill='none' stroke-width='0.9' opacity='0.55'>
+          <circle cx='110' cy='130' r='34' stroke='#C4A25C'/>
+          <circle cx='150' cy='130' r='34' stroke='#1B4F58'/>
         </g>
         <g fill='#C4A25C' opacity='0.35'>
-          <circle cx='0' cy='0' r='1'/><circle cx='160' cy='0' r='1'/>
-          <circle cx='0' cy='160' r='1'/><circle cx='160' cy='160' r='1'/>
-          <circle cx='80' cy='80' r='1.2'/>
+          <circle cx='130' cy='40' r='1.2'/>
+          <circle cx='130' cy='220' r='1.2'/>
         </g>
       </svg>`
     );
@@ -346,12 +343,12 @@ body{
   font-family:'Tajawal',Arial,sans-serif;color:#1B2A2E;
   background:
     ${patternBg},
-    linear-gradient(180deg,#FDFBF5 0%,#F7F1E2 100%);
-  background-size:160px 160px, auto;
+    linear-gradient(180deg,#FFFFFF 0%,#FBFAF6 100%);
+  background-size:260px 260px, auto;
   background-position:center top, center top;
   -webkit-print-color-adjust:exact;print-color-adjust:exact;
 }
-.sheet{padding:6px 4px 24px}
+.sheet{padding:6px 4px 24px;background:rgba(255,255,255,0.55)}
 .header{
   position:relative;overflow:hidden;
   background:linear-gradient(135deg,#1B4F58 0%,#0D7C66 55%,#1B4F58 100%);
@@ -361,7 +358,7 @@ body{
   border:1px solid rgba(196,162,92,.45);
 }
 .header::before{
-  content:"";position:absolute;inset:0;background:${patternBg};background-size:140px 140px;opacity:.10;pointer-events:none;mix-blend-mode:overlay;
+  content:"";position:absolute;inset:0;background:${patternBg};background-size:220px 220px;opacity:.08;pointer-events:none;mix-blend-mode:screen;
 }
 .header::after{
   content:"";position:absolute;left:-40px;bottom:-40px;width:180px;height:180px;border-radius:50%;
@@ -409,7 +406,7 @@ tfoot td:last-child{border-bottom-left-radius:10px}
 .toolbar{position:fixed;top:12px;left:12px;display:flex;gap:8px;z-index:50}
 .toolbar button{background:#1B4F58;color:#fff;border:0;padding:10px 18px;border-radius:10px;font-family:inherit;font-weight:700;cursor:pointer;box-shadow:0 4px 10px rgba(0,0,0,.18)}
 .toolbar button.alt{background:#C4A25C;color:#1B2A2E}
-@media print{.toolbar{display:none} body{background-size:160px 160px, auto}}
+@media print{.toolbar{display:none} body{background-size:260px 260px, auto}}
 </style></head><body>
 <div class="toolbar">
   <button onclick="window.print()">🖨️ طباعة / حفظ PDF</button>
