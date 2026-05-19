@@ -418,7 +418,9 @@ tfoot td:last-child{border-bottom-left-radius:10px}
 <div class="sheet">
   <div class="header">
     <div class="brand">
-      <img src="${logoUrl}" alt="شعار الزواج الجماعي" crossorigin="anonymous"/>
+      <div class="logo-medal">
+        <img src="${logoUrl}" alt="شعار الزواج الجماعي" crossorigin="anonymous"/>
+      </div>
       <div class="titles">
         <h1>سجل المساهمين للسنة ${activeYear}هـ</h1>
         <p>منصة لجنة الزواج الجماعي العائلية</p>
