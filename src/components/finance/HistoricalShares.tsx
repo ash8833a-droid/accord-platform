@@ -309,11 +309,11 @@ export function HistoricalShares() {
     // Interlocking rings motif — derived from the brand logo, ultra-light, generous spacing
     const patternSvg = encodeURIComponent(
       `<svg xmlns='http://www.w3.org/2000/svg' width='260' height='260' viewBox='0 0 260 260'>
-        <g fill='none' stroke-width='0.9' opacity='0.55'>
+        <g fill='none' stroke-width='0.8' opacity='0.12'>
           <circle cx='110' cy='130' r='34' stroke='#C4A25C'/>
           <circle cx='150' cy='130' r='34' stroke='#1B4F58'/>
         </g>
-        <g fill='#C4A25C' opacity='0.35'>
+        <g fill='#C4A25C' opacity='0.10'>
           <circle cx='130' cy='40' r='1.2'/>
           <circle cx='130' cy='220' r='1.2'/>
         </g>
