@@ -306,12 +306,19 @@ export function HistoricalShares() {
     const today = new Date().toLocaleDateString("ar-SA");
     const totalAmount = filtered.reduce((s, r) => s + Number(r.amount), 0);
     const logoUrl = `${window.location.origin}/brand/zawaj-logo.png`;
-    // Subtle interlocking rings pattern in brand gold/teal — encoded SVG as bg
+    // Elegant arabesque / eight-point star pattern — very subtle, brand gold tone
     const patternSvg = encodeURIComponent(
-      `<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'>
-        <g fill='none' stroke-width='1.2' opacity='0.18'>
-          <circle cx='40' cy='60' r='22' stroke='#C4A25C'/>
-          <circle cx='80' cy='60' r='22' stroke='#1B4F58'/>
+      `<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160' viewBox='0 0 160 160'>
+        <g fill='none' stroke='#C4A25C' stroke-width='0.6' opacity='0.55'>
+          <path d='M80 20 L100 60 L140 80 L100 100 L80 140 L60 100 L20 80 L60 60 Z'/>
+          <path d='M80 35 L95 65 L125 80 L95 95 L80 125 L65 95 L35 80 L65 65 Z'/>
+          <circle cx='80' cy='80' r='6'/>
+          <circle cx='80' cy='80' r='14'/>
+        </g>
+        <g fill='#C4A25C' opacity='0.35'>
+          <circle cx='0' cy='0' r='1'/><circle cx='160' cy='0' r='1'/>
+          <circle cx='0' cy='160' r='1'/><circle cx='160' cy='160' r='1'/>
+          <circle cx='80' cy='80' r='1.2'/>
         </g>
       </svg>`
     );
@@ -339,8 +346,9 @@ body{
   font-family:'Tajawal',Arial,sans-serif;color:#1B2A2E;
   background:
     ${patternBg},
-    linear-gradient(180deg,#FBF7EE 0%,#F5EEDC 100%);
-  background-size:120px 120px, auto;
+    linear-gradient(180deg,#FDFBF5 0%,#F7F1E2 100%);
+  background-size:160px 160px, auto;
+  background-position:center top, center top;
   -webkit-print-color-adjust:exact;print-color-adjust:exact;
 }
 .sheet{padding:6px 4px 24px}
@@ -353,14 +361,21 @@ body{
   border:1px solid rgba(196,162,92,.45);
 }
 .header::before{
-  content:"";position:absolute;inset:0;background:${patternBg};background-size:120px 120px;opacity:.18;pointer-events:none;
+  content:"";position:absolute;inset:0;background:${patternBg};background-size:140px 140px;opacity:.10;pointer-events:none;mix-blend-mode:overlay;
 }
 .header::after{
   content:"";position:absolute;left:-40px;bottom:-40px;width:180px;height:180px;border-radius:50%;
   background:radial-gradient(circle,#C4A25C 0%,transparent 65%);opacity:.35;
 }
-.brand{display:flex;align-items:center;gap:14px;position:relative;z-index:1}
-.brand img{height:64px;width:auto;display:block;filter:drop-shadow(0 2px 4px rgba(0,0,0,.25))}
+.brand{display:flex;align-items:center;gap:16px;position:relative;z-index:1}
+.brand .logo-medal{
+  width:78px;height:78px;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%,#FFFDF6 0%,#F5EBD0 75%,#E8D7A8 100%);
+  border:2px solid #C4A25C;
+  box-shadow:0 4px 12px rgba(0,0,0,.25), inset 0 0 0 4px rgba(255,255,255,.6);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.brand .logo-medal img{width:62px;height:62px;object-fit:contain;display:block}
 .brand .titles h1{margin:0;font-size:18pt;font-weight:800;letter-spacing:-0.2px}
 .brand .titles p{margin:4px 0 0;font-size:10pt;opacity:.92}
 .meta{font-size:9.5pt;text-align:left;line-height:1.7;position:relative;z-index:1;
@@ -394,7 +409,7 @@ tfoot td:last-child{border-bottom-left-radius:10px}
 .toolbar{position:fixed;top:12px;left:12px;display:flex;gap:8px;z-index:50}
 .toolbar button{background:#1B4F58;color:#fff;border:0;padding:10px 18px;border-radius:10px;font-family:inherit;font-weight:700;cursor:pointer;box-shadow:0 4px 10px rgba(0,0,0,.18)}
 .toolbar button.alt{background:#C4A25C;color:#1B2A2E}
-@media print{.toolbar{display:none} body{background-size:120px 120px, auto}}
+@media print{.toolbar{display:none} body{background-size:160px 160px, auto}}
 </style></head><body>
 <div class="toolbar">
   <button onclick="window.print()">🖨️ طباعة / حفظ PDF</button>
@@ -403,7 +418,9 @@ tfoot td:last-child{border-bottom-left-radius:10px}
 <div class="sheet">
   <div class="header">
     <div class="brand">
-      <img src="${logoUrl}" alt="شعار الزواج الجماعي" crossorigin="anonymous"/>
+      <div class="logo-medal">
+        <img src="${logoUrl}" alt="شعار الزواج الجماعي" crossorigin="anonymous"/>
+      </div>
       <div class="titles">
         <h1>سجل المساهمين للسنة ${activeYear}هـ</h1>
         <p>منصة لجنة الزواج الجماعي العائلية</p>
