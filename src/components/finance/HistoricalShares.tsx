@@ -336,7 +336,7 @@ export function HistoricalShares() {
 <title>سجل المساهمين ${activeYear}هـ</title>
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
-@page { size: A4; margin: 8mm; }
+@page { size: A4; margin: 16mm; }
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
 body{
@@ -352,8 +352,8 @@ body{
 }
 .sheet::before{
   content:"";position:absolute;inset:0;background:${patternBg};
-  background-size:320px 320px;background-position:center;
-  opacity:.06;pointer-events:none;z-index:0;
+  background-size:360px 360px;background-position:center;
+  opacity:.03;pointer-events:none;z-index:0;
 }
 .sheet::after{
   content:"";position:absolute;inset:8px;border:1px solid rgba(196,162,92,.18);
