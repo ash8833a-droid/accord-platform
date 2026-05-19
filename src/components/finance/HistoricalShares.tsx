@@ -10,7 +10,8 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Upload, Trash2, FileText, Search, TreePine, Users2, Coins, Download, Calendar, Sparkles, CheckCircle2, X } from "lucide-react";
+import { Plus, Upload, Trash2, FileText, Search, TreePine, Users2, Coins, Download, Calendar, Sparkles, CheckCircle2, X, Printer } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuLabel, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { FAMILY_BRANCHES, AMOUNT_OPTIONS, HIJRI_YEARS } from "@/lib/family-branches";
 
 interface HRow {
@@ -289,6 +290,90 @@ export function HistoricalShares() {
     a.download = `مساهمون-${activeYear}هـ.csv`;
     a.click();
     URL.revokeObjectURL(url);
+  };
+
+  const downloadPDF = () => {
+    if (filtered.length === 0) {
+      toast.error("لا توجد بيانات للتصدير");
+      return;
+    }
+    const esc = (s: unknown) =>
+      String(s ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    const today = new Date().toLocaleDateString("ar-SA");
+    const totalAmount = filtered.reduce((s, r) => s + Number(r.amount), 0);
+    const rowsHtml = filtered
+      .map(
+        (r, i) => `<tr>
+          <td>${i + 1}</td>
+          <td style="text-align:right;font-weight:600">${esc(r.full_name)}</td>
+          <td><span class="branch">${esc(r.family_branch)}</span></td>
+          <td class="num">${fmt(Number(r.amount))} ر.س</td>
+          <td style="text-align:right;color:#64748b">${esc(r.notes ?? "—")}</td>
+        </tr>`,
+      )
+      .join("");
+    const html = `<!doctype html>
+<html lang="ar" dir="rtl"><head><meta charset="utf-8"/>
+<title>سجل المساهمين ${activeYear}هـ</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+@page { size: A4; margin: 12mm; }
+*{box-sizing:border-box}
+body{font-family:'Tajawal',Arial,sans-serif;color:#1f2937;margin:0}
+.header{background:linear-gradient(135deg,#0D7C66,#10a37f);color:#fff;padding:18px 22px;border-radius:12px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center}
+.header h1{margin:0;font-size:18pt;font-weight:800}
+.header p{margin:4px 0 0;font-size:10pt;opacity:.9}
+.meta{font-size:9pt;text-align:left;line-height:1.6}
+.summary{display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.chip{background:#ecfdf5;color:#065f46;padding:8px 14px;border-radius:10px;font-size:10pt;font-weight:700;border:1px solid #a7f3d0}
+.chip.gold{background:#fef3c7;color:#92400e;border-color:#fde68a}
+table{width:100%;border-collapse:collapse;font-size:10pt}
+thead th{background:#0D7C66;color:#fff;padding:9px 6px;text-align:center;font-weight:700;border:1px solid #075d4d}
+tbody td{padding:7px 6px;text-align:center;border:1px solid #e5e7eb;vertical-align:middle}
+tbody tr:nth-child(even) td{background:#f8fafc}
+.num{font-weight:700;color:#065f46;direction:ltr;unicode-bidi:embed}
+.branch{background:#e0f2fe;color:#0c4a6e;padding:2px 10px;border-radius:999px;font-size:8.5pt;font-weight:700}
+tfoot td{background:#0D7C66;color:#fff;font-weight:800;padding:9px 6px;text-align:center}
+.toolbar{position:fixed;top:10px;left:10px;display:flex;gap:6px;z-index:50}
+.toolbar button{background:#0D7C66;color:#fff;border:0;padding:9px 16px;border-radius:8px;font-family:inherit;font-weight:700;cursor:pointer}
+.toolbar button.alt{background:#64748b}
+@media print{.toolbar{display:none}}
+</style></head><body>
+<div class="toolbar">
+  <button onclick="window.print()">🖨️ طباعة / حفظ PDF</button>
+  <button class="alt" onclick="window.close()">إغلاق</button>
+</div>
+<div class="header">
+  <div><h1>سجل المساهمين للسنة ${activeYear}هـ</h1><p>منصة لجنة الزواج الجماعي العائلية</p></div>
+  <div class="meta">
+    <div>الفرع: <b>${branchFilter === "all" ? "جميع الفروع" : esc(branchFilter)}</b></div>
+    <div>تاريخ التصدير: ${esc(today)}</div>
+  </div>
+</div>
+<div class="summary">
+  <div class="chip">عدد المساهمين: ${fmt(filtered.length)}</div>
+  <div class="chip gold">إجمالي المبالغ: ${fmt(totalAmount)} ر.س</div>
+</div>
+<table>
+  <thead><tr><th style="width:40px">#</th><th>المساهم</th><th>الفرع</th><th>المبلغ</th><th>ملاحظات</th></tr></thead>
+  <tbody>${rowsHtml}</tbody>
+  <tfoot><tr><td colspan="3">الإجمالي</td><td>${fmt(totalAmount)} ر.س</td><td>—</td></tr></tfoot>
+</table>
+<script>window.addEventListener('load',()=>setTimeout(()=>window.print(),600));</script>
+</body></html>`;
+    const win = window.open("", "_blank", "width=1100,height=800");
+    if (!win) {
+      toast.error("يرجى السماح بالنوافذ المنبثقة لإكمال التصدير");
+      return;
+    }
+    win.document.open();
+    win.document.write(html);
+    win.document.close();
+    toast.success("تم تجهيز ملف PDF");
   };
 
   return (
