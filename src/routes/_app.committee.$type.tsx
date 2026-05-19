@@ -924,8 +924,12 @@ function CommitteePage() {
         </>
       )}
 
-      {/* Women's committee + Quality committee head: talent recruitment survey */}
-      {(type === "women" || (type === "quality" && (isHead || isAdmin))) && (
+      {/* استبيان مواهب بنات العائلة:
+          - في صفحة اللجنة النسائية: يظهر للعضوات الإناث + مدير النظام فقط
+            (يُستثنى رئيس اللجنة وأي عضو ذكر).
+          - في صفحة لجنة الجودة: يظهر لرئيس اللجنة أو مدير النظام. */}
+      {((type === "women" && (isAdmin || !isExcludedFromWomenSurvey(user?.id))) ||
+        (type === "quality" && (isHead || isAdmin))) && (
         <QualitySection
           storageKey={`committee:${type}:talents`}
           title="استبيان مواهب بنات العائلة"
