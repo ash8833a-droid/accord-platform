@@ -341,25 +341,15 @@ export function HistoricalShares() {
 html,body{margin:0;padding:0}
 body{
   font-family:'Tajawal',Arial,sans-serif;color:#1B2A2E;
-  background:#FFFFFF;
+  background:#FFFFFF ${patternBg};
+  background-repeat:repeat;
+  background-size:360px 360px;
+  background-position:center top;
   -webkit-print-color-adjust:exact;print-color-adjust:exact;
 }
 .sheet{
-  position:relative;padding:18px 22px 28px;background:#FFFFFF;
-  border:1px solid rgba(196,162,92,.22);border-radius:18px;
-  box-shadow:0 1px 0 rgba(255,255,255,.9) inset, 0 6px 24px rgba(27,79,88,.05);
-  overflow:hidden;
+  position:relative;padding:6px 4px 24px;background:transparent;
 }
-.sheet::before{
-  content:"";position:absolute;inset:0;background:${patternBg};
-  background-size:360px 360px;background-position:center;
-  opacity:.03;pointer-events:none;z-index:0;
-}
-.sheet::after{
-  content:"";position:absolute;inset:8px;border:1px solid rgba(196,162,92,.18);
-  border-radius:14px;pointer-events:none;z-index:0;
-}
-.sheet > *{position:relative;z-index:1}
 .header{
   position:relative;overflow:hidden;
   background:linear-gradient(135deg,#1B4F58 0%,#0D7C66 55%,#1B4F58 100%);
