@@ -3,7 +3,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Users2, Search, TreePine, Coins } from "lucide-react";
+import { Users2, Search, TreePine, Coins, FileDown } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+import { exportSharesByBranchPDF } from "@/lib/exporters";
 import { HistoricalShares } from "./HistoricalShares";
 
 interface Subscriber {
@@ -84,8 +87,40 @@ export function SharesByBranch() {
     { shares: 0, total: 0, count: 0 },
   );
 
+  const exportPdf = () => {
+    if (rows.length === 0) {
+      toast.error("لا توجد بيانات للتصدير بعد");
+      return;
+    }
+    const stamp = new Date().toISOString().slice(0, 10);
+    exportSharesByBranchPDF(
+      branches.map((b) => ({ branch: b.branch, members: b.members, shares: b.shares, total: b.total })),
+      rows.map((r) => ({ full_name: r.full_name, branch: r.branch, shares: r.shares, total: r.total_amount })),
+      `أسهم-الفروع-${stamp}`,
+    );
+    toast.success("جارٍ تجهيز التقرير... سيفتح في نافذة جديدة للطباعة/الحفظ");
+  };
+
   return (
     <div className="space-y-5">
+      {/* Header with PDF export */}
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <div>
+          <h3 className="font-bold text-lg flex items-center gap-2">
+            <TreePine className="h-5 w-5 text-primary" /> أسهم الفروع
+          </h3>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            توزيع المساهمين والأسهم على فروع القبيلة — مع إمكانية تصدير تقرير رسمي
+          </p>
+        </div>
+        <Button
+          onClick={exportPdf}
+          className="bg-gradient-to-l from-[color:var(--brand-primary,#1B4F58)] to-[color:var(--brand-gold,#C4A25C)] text-white shadow-elegant gap-2 hover:opacity-95"
+        >
+          <FileDown className="h-4 w-4" /> تصدير PDF بهوية اللجنة
+        </Button>
+      </div>
+
       {/* Branch summary cards */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
         {branches.map((b) => (
