@@ -10,7 +10,7 @@ export const Route = createFileRoute("/_app")({
 });
 
 function AppLayout() {
-  const { user, loading, approved, hasRole, committeeId } = useAuth();
+  const { user, loading, approved, accessLoaded, hasRole, committeeId } = useAuth();
   const nav = useNavigate();
   const path = useRouterState({ select: (s) => s.location.pathname });
   const [myCommitteeType, setMyCommitteeType] = useState<string | null>(null);
@@ -55,6 +55,7 @@ function AppLayout() {
       nav({ to: "/auth" });
       return;
     }
+    if (!accessLoaded) return;
     if (!approved) {
       nav({ to: "/pending" });
       return;
@@ -113,9 +114,9 @@ function AppLayout() {
         nav({ to: "/ideas" });
       }
     }
-  }, [user, loading, approved, nav, path, restricted, typeLoaded, headLoaded, isStandardMember, myCommitteeType]);
+  }, [user, loading, approved, accessLoaded, nav, path, restricted, typeLoaded, headLoaded, isStandardMember, myCommitteeType]);
 
-  if (loading || !user || !approved) {
+  if (loading || !user || !accessLoaded || !approved) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
