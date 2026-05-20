@@ -13,15 +13,23 @@ export const Route = createFileRoute("/pending")({
 });
 
 function PendingPage() {
-  const { user, approved, loading, signOut, refreshAccess } = useAuth();
+  const { user, approved, loading, accessLoaded, signOut, refreshAccess } = useAuth();
   const nav = useNavigate();
   const [status, setStatus] = useState<string>("pending");
   const [checking, setChecking] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) nav({ to: "/auth" });
-    if (!loading && user && approved) nav({ to: "/admin" });
-  }, [user, approved, loading, nav]);
+    if (!loading && user && accessLoaded && approved) nav({ to: "/admin" });
+  }, [user, approved, accessLoaded, loading, nav]);
+
+  if (loading || !accessLoaded) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <RefreshCw className="h-6 w-6 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   useEffect(() => {
     if (!user) return;
