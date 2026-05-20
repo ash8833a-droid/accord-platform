@@ -15,6 +15,7 @@ interface AuthCtx {
   committeeId: string | null;
   approved: boolean;
   loading: boolean;
+  accessLoaded: boolean;
   signIn: (phone: string, password: string) => Promise<{ error?: string }>;
   signUp: (
     phone: string,
@@ -48,8 +49,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [committeeId, setCommitteeId] = useState<string | null>(null);
   const [approved, setApproved] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [accessLoaded, setAccessLoaded] = useState(false);
 
   const loadAccess = useCallback(async (uid: string) => {
+    setAccessLoaded(false);
     const { data } = await supabase
       .from("user_roles")
       .select("role, committee_id, created_at")
@@ -60,6 +63,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const firstCommittee = (data ?? []).find((r) => r.committee_id)?.committee_id ?? null;
     setCommitteeId(firstCommittee);
     setApproved(rs.length > 0);
+    setAccessLoaded(true);
   }, []);
 
   useEffect(() => {
@@ -67,11 +71,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSession(s);
       setUser(s?.user ?? null);
       if (s?.user) {
+        setAccessLoaded(false);
         setTimeout(() => loadAccess(s.user.id), 0);
       } else {
         setRoles([]);
         setCommitteeId(null);
         setApproved(false);
+        setAccessLoaded(true);
       }
     });
 
@@ -83,14 +89,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           await supabase.auth.signOut().catch(() => {});
           setSession(null);
           setUser(null);
+          setAccessLoaded(true);
         } else {
           setSession(data.session);
           setUser(data.session?.user ?? null);
-          if (data.session?.user) loadAccess(data.session.user.id);
+          if (data.session?.user) {
+            await loadAccess(data.session.user.id);
+          } else {
+            setAccessLoaded(true);
+          }
         }
       })
       .catch(async () => {
         await supabase.auth.signOut().catch(() => {});
+        setAccessLoaded(true);
       })
       .finally(() => setLoading(false));
 
@@ -191,6 +203,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         committeeId,
         approved,
         loading,
+        accessLoaded,
         signIn,
         signUp,
         signOut,
