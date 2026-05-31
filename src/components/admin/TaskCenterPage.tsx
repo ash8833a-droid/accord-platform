@@ -194,6 +194,10 @@ function TaskCenterInner({ canEdit }: { canEdit: boolean }) {
   }, [scopedTasks, isPrivileged, committeeFilter, search, cmMap]);
 
   const moveTask = async (id: string, to: TaskRow["status"]) => {
+    if (to === "completed") {
+      const ok = await ensureTaskHasEvidence(id);
+      if (!ok) return;
+    }
     const prev = tasks;
     setTasks((s) => s.map((t) => (t.id === id ? { ...t, status: to } : t)));
     const { error } = await supabase.from("committee_tasks").update({ status: to }).eq("id", id);
