@@ -31,6 +31,32 @@ import { useAuth } from "@/lib/auth";
 const REGISTER_LINK_KEY = "groom_registration_url";
 const DEFAULT_REGISTRATION_URL = "https://lajnat-zawaj.org";
 
+const isAbsoluteUrl = (value: string) => /^https?:\/\//i.test(value);
+
+const getFileExtension = (fileRef: string, fallback = "bin") => {
+  const source = (() => {
+    try {
+      return isAbsoluteUrl(fileRef) ? new URL(fileRef).pathname : fileRef;
+    } catch {
+      return fileRef;
+    }
+  })();
+  const name = source.split("/").pop() ?? "";
+  const ext = name.match(/\.([a-zA-Z0-9]+)$/)?.[1];
+  return ext || fallback;
+};
+
+const downloadStoredFile = async (fileRef: string) => {
+  if (isAbsoluteUrl(fileRef)) {
+    const response = await fetch(fileRef);
+    if (!response.ok) throw new Error("download failed");
+    return response.blob();
+  }
+  const { data, error } = await sb.storage.from("groom-docs").download(fileRef);
+  if (error || !data) throw error ?? new Error("download failed");
+  return data;
+};
+
 function useRegistrationUrl() {
   const { value } = useAppSetting<string>(REGISTER_LINK_KEY, "");
   const trimmed = (value ?? "").trim();
@@ -369,9 +395,8 @@ export function GroomsPage() {
     let okCount = 0;
     for (const t of targets) {
       try {
-        const { data, error } = await sb.storage.from("groom-docs").download(t.path);
-        if (error || !data) throw error ?? new Error("download failed");
-        const ext = (t.path.split(".").pop() || "bin").split("?")[0];
+        const data = await downloadStoredFile(t.path);
+        const ext = getFileExtension(t.path);
         const fileName = `${safeName}-${t.label}.${ext}`;
         const url = URL.createObjectURL(data);
         const a = document.createElement("a");
@@ -405,9 +430,8 @@ export function GroomsPage() {
     for (const g of withPhoto) {
       const path = (g as any).photo_url as string;
       try {
-        const { data, error } = await sb.storage.from("groom-docs").download(path);
-        if (error || !data) throw error ?? new Error("download failed");
-        const ext = (path.split(".").pop() || "jpg").split("?")[0];
+        const data = await downloadStoredFile(path);
+        const ext = getFileExtension(path, "jpg");
         const safe = (g.full_name || "groom").replace(/[\\/:*?"<>|]/g, "_").trim();
         let name = `${safe}.${ext}`;
         let i = 2;
