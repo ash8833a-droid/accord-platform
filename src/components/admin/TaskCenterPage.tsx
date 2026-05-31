@@ -31,25 +31,6 @@ import { TaskDetailsDialog } from "@/components/admin/TaskDetailsDialog";
 import { PageHeroHeader } from "@/components/PageHeroHeader";
 import { CommitteeMinutes } from "@/components/CommitteeMinutes";
 
-/**
- * Verify a task has either an attachment or a written response before it can be
- * moved to "completed". Returns true when allowed, otherwise shows a toast and
- * returns false.
- */
-async function ensureTaskHasEvidence(taskId: string): Promise<boolean> {
-  const [att, respAtt, resp] = await Promise.all([
-    supabase.from("task_attachments").select("id", { count: "exact", head: true }).eq("task_id", taskId),
-    supabase.from("task_response_attachments" as any).select("id", { count: "exact", head: true }).eq("task_id", taskId),
-    supabase.from("task_responses" as any).select("id", { count: "exact", head: true }).eq("task_id", taskId).not("action_taken", "is", null),
-  ]);
-  const has = (att.count ?? 0) > 0 || (respAtt.count ?? 0) > 0 || (resp.count ?? 0) > 0;
-  if (!has) {
-    toast.error("لا يمكن إكمال المهمة", {
-      description: "أرفق ملفًا أو اكتب ملاحظات بما تم تنفيذه قبل نقل المهمة إلى مكتملة.",
-    });
-  }
-  return has;
-}
 
 interface CommitteeRow { id: string; name: string; type: string }
 interface TaskRow {
@@ -194,10 +175,6 @@ function TaskCenterInner({ canEdit }: { canEdit: boolean }) {
   }, [scopedTasks, isPrivileged, committeeFilter, search, cmMap]);
 
   const moveTask = async (id: string, to: TaskRow["status"]) => {
-    if (to === "completed") {
-      const ok = await ensureTaskHasEvidence(id);
-      if (!ok) return;
-    }
     const prev = tasks;
     setTasks((s) => s.map((t) => (t.id === id ? { ...t, status: to } : t)));
     const { error } = await supabase.from("committee_tasks").update({ status: to }).eq("id", id);

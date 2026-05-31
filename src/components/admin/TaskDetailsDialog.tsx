@@ -70,20 +70,6 @@ export function TaskDetailsDialog({
   }, [task.committee_id]);
 
   const save = async () => {
-    if (status === "completed" && task.status !== "completed") {
-      const [att, respAtt, resp] = await Promise.all([
-        supabase.from("task_attachments").select("id", { count: "exact", head: true }).eq("task_id", task.id),
-        supabase.from("task_response_attachments" as any).select("id", { count: "exact", head: true }).eq("task_id", task.id),
-        supabase.from("task_responses" as any).select("id", { count: "exact", head: true }).eq("task_id", task.id).not("action_taken", "is", null),
-      ]);
-      const has = (att.count ?? 0) > 0 || (respAtt.count ?? 0) > 0 || (resp.count ?? 0) > 0;
-      if (!has) {
-        toast.error("لا يمكن إكمال المهمة", {
-          description: "أرفق ملفًا أو اكتب ملاحظات بما تم تنفيذه قبل نقل المهمة إلى مكتملة.",
-        });
-        return;
-      }
-    }
     setSaving(true);
     const { error } = await supabase.from("committee_tasks").update({
       title: title.trim(),
