@@ -480,6 +480,16 @@ export function GroomsPage() {
           </Button>
         )}
         <GroomsDatabaseDialog grooms={grooms} />
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={downloadAllPhotos}
+          title="تنزيل جميع الصور الشخصية للعرسان بالدقة الأصلية"
+          aria-label="تنزيل جميع الصور الشخصية للعرسان"
+          className="border-primary/40 text-primary hover:bg-primary/10"
+        >
+          <ImageIcon className="h-4 w-4" />
+        </Button>
         <ShareRegistrationLink url={registrationUrl} />
         <QuickWhatsAppShare url={registrationUrl} />
         <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) resetForm(); }}>
