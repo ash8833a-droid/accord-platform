@@ -15,6 +15,8 @@ import {
   FileSpreadsheet, FileText, FileJson, Printer, Combine, Sparkles, ShieldCheck, CalendarPlus,
 } from "lucide-react";
 import * as XLSX from "xlsx";
+import JSZip from "jszip";
+import { saveAs } from "file-saver";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
   DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
@@ -388,6 +390,46 @@ export function GroomsPage() {
     if (okCount === targets.length) toast.success(`تم تنزيل ${okCount} ملف`);
     else if (okCount > 0) toast.warning(`تم تنزيل ${okCount} من ${targets.length} ملف`);
     else toast.error("تعذّر تنزيل الملفات");
+  };
+
+  const downloadAllPhotos = async () => {
+    const withPhoto = grooms.filter((g) => (g as any).photo_url);
+    if (withPhoto.length === 0) {
+      toast.info("لا توجد صور شخصية مرفوعة للعرسان");
+      return;
+    }
+    const tid = toast.loading(`جارٍ تحضير ${withPhoto.length} صورة بالدقة الأصلية...`);
+    const zip = new JSZip();
+    const usedNames = new Set<string>();
+    let okCount = 0;
+    for (const g of withPhoto) {
+      const path = (g as any).photo_url as string;
+      try {
+        const { data, error } = await sb.storage.from("groom-docs").download(path);
+        if (error || !data) throw error ?? new Error("download failed");
+        const ext = (path.split(".").pop() || "jpg").split("?")[0];
+        const safe = (g.full_name || "groom").replace(/[\\/:*?"<>|]/g, "_").trim();
+        let name = `${safe}.${ext}`;
+        let i = 2;
+        while (usedNames.has(name)) name = `${safe}-${i++}.${ext}`;
+        usedNames.add(name);
+        zip.file(name, data);
+        okCount++;
+      } catch (err) {
+        console.error("photo download error", path, err);
+      }
+    }
+    if (okCount === 0) {
+      toast.dismiss(tid);
+      toast.error("تعذّر تنزيل الصور");
+      return;
+    }
+    const blob = await zip.generateAsync({ type: "blob" });
+    const stamp = new Date().toISOString().slice(0, 10);
+    saveAs(blob, `صور-العرسان-${stamp}.zip`);
+    toast.dismiss(tid);
+    if (okCount === withPhoto.length) toast.success(`تم تنزيل ${okCount} صورة بالدقة الأصلية`);
+    else toast.warning(`تم تنزيل ${okCount} من ${withPhoto.length} صورة`);
   };
 
   const stats = useMemo(() => {
