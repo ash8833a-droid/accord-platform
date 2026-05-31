@@ -220,6 +220,12 @@ export function DashboardOverview({ showHero = true }: { showHero?: boolean }) {
                       <p className="font-bold text-base break-words leading-tight">{c.name}</p>
                       <p className="text-[11px] text-muted-foreground truncate mt-0.5">{meta?.description}</p>
                     </div>
+                    <div className="shrink-0 text-left">
+                      <p className={`text-2xl font-extrabold leading-none ${taskPct >= 75 ? "text-emerald-600 dark:text-emerald-400" : taskPct >= 40 ? "text-amber-600 dark:text-amber-400" : taskPct > 0 ? "text-sky-600 dark:text-sky-400" : "text-muted-foreground"}`}>
+                        {Math.round(taskPct)}%
+                      </p>
+                      <p className="text-[10px] text-muted-foreground mt-0.5">الإنجاز</p>
+                    </div>
                   </div>
                   <div className="grid grid-cols-3 gap-2">
                     <BudgetChip label="مخصص" value={`${fmt(c.budget_allocated)} ر.س`} tone="bg-primary/10 text-primary" />
