@@ -15,6 +15,8 @@ import {
   FileSpreadsheet, FileText, FileJson, Printer, Combine, Sparkles, ShieldCheck, CalendarPlus,
 } from "lucide-react";
 import * as XLSX from "xlsx";
+import JSZip from "jszip";
+import { saveAs } from "file-saver";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
   DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
@@ -390,6 +392,46 @@ export function GroomsPage() {
     else toast.error("تعذّر تنزيل الملفات");
   };
 
+  const downloadAllPhotos = async () => {
+    const withPhoto = grooms.filter((g) => (g as any).photo_url);
+    if (withPhoto.length === 0) {
+      toast.info("لا توجد صور شخصية مرفوعة للعرسان");
+      return;
+    }
+    const tid = toast.loading(`جارٍ تحضير ${withPhoto.length} صورة بالدقة الأصلية...`);
+    const zip = new JSZip();
+    const usedNames = new Set<string>();
+    let okCount = 0;
+    for (const g of withPhoto) {
+      const path = (g as any).photo_url as string;
+      try {
+        const { data, error } = await sb.storage.from("groom-docs").download(path);
+        if (error || !data) throw error ?? new Error("download failed");
+        const ext = (path.split(".").pop() || "jpg").split("?")[0];
+        const safe = (g.full_name || "groom").replace(/[\\/:*?"<>|]/g, "_").trim();
+        let name = `${safe}.${ext}`;
+        let i = 2;
+        while (usedNames.has(name)) name = `${safe}-${i++}.${ext}`;
+        usedNames.add(name);
+        zip.file(name, data);
+        okCount++;
+      } catch (err) {
+        console.error("photo download error", path, err);
+      }
+    }
+    if (okCount === 0) {
+      toast.dismiss(tid);
+      toast.error("تعذّر تنزيل الصور");
+      return;
+    }
+    const blob = await zip.generateAsync({ type: "blob" });
+    const stamp = new Date().toISOString().slice(0, 10);
+    saveAs(blob, `صور-العرسان-${stamp}.zip`);
+    toast.dismiss(tid);
+    if (okCount === withPhoto.length) toast.success(`تم تنزيل ${okCount} صورة بالدقة الأصلية`);
+    else toast.warning(`تم تنزيل ${okCount} من ${withPhoto.length} صورة`);
+  };
+
   const stats = useMemo(() => {
     const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
     return {
@@ -438,6 +480,16 @@ export function GroomsPage() {
           </Button>
         )}
         <GroomsDatabaseDialog grooms={grooms} />
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={downloadAllPhotos}
+          title="تنزيل جميع الصور الشخصية للعرسان بالدقة الأصلية"
+          aria-label="تنزيل جميع الصور الشخصية للعرسان"
+          className="border-primary/40 text-primary hover:bg-primary/10"
+        >
+          <ImageIcon className="h-4 w-4" />
+        </Button>
         <ShareRegistrationLink url={registrationUrl} />
         <QuickWhatsAppShare url={registrationUrl} />
         <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) resetForm(); }}>
