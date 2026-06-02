@@ -8,7 +8,18 @@ import { supabaseAdmin } from "@/integrations/supabase/client.server";
 export const Route = createFileRoute("/api/public/hooks/task-deadline-check")({
   server: {
     handlers: {
-      POST: async () => {
+      POST: async ({ request }) => {
+        // Require a pre-shared secret to prevent public abuse.
+        const expected = process.env.CRON_SECRET;
+        const provided = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "")
+          ?? request.headers.get("x-cron-secret")
+          ?? "";
+        if (!expected || provided !== expected) {
+          return new Response(JSON.stringify({ error: "Unauthorized" }), {
+            status: 401,
+            headers: { "Content-Type": "application/json" },
+          });
+        }
         const nowIso = new Date().toISOString();
         const in24hIso = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
 
