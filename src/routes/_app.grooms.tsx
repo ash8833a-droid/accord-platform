@@ -16,7 +16,8 @@ import {
 } from "lucide-react";
 import * as XLSX from "xlsx";
 import JSZip from "jszip";
-import { saveAs } from "file-saver";
+import pkg from "file-saver";
+const { saveAs } = pkg;
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
   DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,

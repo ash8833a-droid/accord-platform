@@ -50,7 +50,8 @@ import {
   AlignmentType,
   WidthType,
 } from "docx";
-import { saveAs } from "file-saver";
+import pkg from "file-saver";
+const { saveAs } = pkg;
 
 type Status = "new" | "contacted" | "accepted" | "rejected" | "on_hold";
 
