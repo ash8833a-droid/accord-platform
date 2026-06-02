@@ -16,8 +16,7 @@ import {
 } from "lucide-react";
 import * as XLSX from "xlsx";
 import JSZip from "jszip";
-import pkg from "file-saver";
-const { saveAs } = pkg;
+import fileSaver from "file-saver";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
   DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
@@ -451,7 +450,7 @@ export function GroomsPage() {
     }
     const blob = await zip.generateAsync({ type: "blob" });
     const stamp = new Date().toISOString().slice(0, 10);
-    saveAs(blob, `صور-العرسان-${stamp}.zip`);
+    fileSaver.saveAs(blob, `صور-العرسان-${stamp}.zip`);
     toast.dismiss(tid);
     if (okCount === withPhoto.length) toast.success(`تم تنزيل ${okCount} صورة بالدقة الأصلية`);
     else toast.warning(`تم تنزيل ${okCount} من ${withPhoto.length} صورة`);
