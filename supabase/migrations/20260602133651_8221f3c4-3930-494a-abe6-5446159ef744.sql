@@ -1,0 +1,1 @@
+CREATE POLICY "notif_insert_self" ON public.notifications FOR INSERT TO authenticated WITH CHECK (auth.uid() = user_id);
