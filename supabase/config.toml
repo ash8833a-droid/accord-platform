@@ -1,4 +1,10 @@
 project_id = "opdivchnxercypeywoxf"
 
-[functions.bootstrap-chairman]
-verify_jwt = false
+[functions.extract-contributions]
+verify_jwt = true
+
+[functions.extract-minutes]
+verify_jwt = true
+
+[functions.extract-shareholders]
+verify_jwt = true
