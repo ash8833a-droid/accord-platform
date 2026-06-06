@@ -569,6 +569,10 @@ export function FinanceModule() {
             pendingCount={pendingCount}
           />
         </TabsContent>
+
+        <TabsContent value="budgets" className="mt-5">
+          <BudgetOverviewPanel />
+        </TabsContent>
       </Tabs>
 
       {/* Invoice preview */}
