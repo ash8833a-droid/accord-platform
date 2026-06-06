@@ -64,6 +64,7 @@ export type Database = {
       }
       budget_items: {
         Row: {
+          assigned_by_finance: boolean
           committee_id: string
           created_at: string
           created_by: string | null
@@ -76,6 +77,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          assigned_by_finance?: boolean
           committee_id: string
           created_at?: string
           created_by?: string | null
@@ -88,6 +90,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          assigned_by_finance?: boolean
           committee_id?: string
           created_at?: string
           created_by?: string | null
@@ -1836,6 +1839,10 @@ export type Database = {
       }
       is_committee_member: {
         Args: { _committee_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_finance_committee_member: {
+        Args: { _user_id: string }
         Returns: boolean
       }
       is_quality_committee_head: {
