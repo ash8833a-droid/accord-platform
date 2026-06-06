@@ -233,46 +233,38 @@ function RegisterGroomPage() {
       // Strict duplicate prevention on phone & national ID
       const phoneTrim = phone.trim();
       const nidTrim = nationalId.trim();
-      const { data: dup, error: dupErr } = await supabase
-        .from("grooms")
-        .select("id, phone, national_id")
-        .or(`phone.eq.${phoneTrim},national_id.eq.${nidTrim}`)
-        .limit(1);
-      if (dupErr) throw dupErr;
-      if (dup && dup.length > 0) {
-        const row = dup[0];
-        const which = row.phone === phoneTrim ? "رقم الجوال" : "رقم الهوية الوطنية";
+      const national_id_url = idFile ? await uploadPublic(idFile, "id") : null;
+      const photo_url = photoFile ? await uploadPublic(photoFile, "photo") : null;
+
+      const { registerGroomPublic } = await import("@/lib/grooms-public.functions");
+      const result = await registerGroomPublic({
+        data: {
+          full_name: fullName.trim(),
+          phone: phoneTrim,
+          national_id: nidTrim,
+          family_branch: "غير محدد",
+          national_id_url: national_id_url ?? null,
+          photo_url: photo_url ?? null,
+          extra_sheep: extraChoice === "yes" ? (Number(extraSheep) || 0) : 0,
+          extra_cards_men: extraChoice === "yes" ? (Number(extraCardsMen) || 0) : 0,
+          extra_cards_women: extraChoice === "yes" ? (Number(extraCardsWomen) || 0) : 0,
+          external_participation: externalChoice === "yes",
+          external_participation_details: externalChoice === "yes" ? externalDetails.trim() : null,
+          vip_guests: vipChoice === "yes" ? vipGuests.trim() : null,
+          notes: notesChoice === "yes" ? notes.trim() : null,
+        },
+      });
+      if ("duplicate" in result && result.duplicate) {
+        const which = result.duplicate === "phone" ? "رقم الجوال" : "رقم الهوية الوطنية";
         toast.error("هذا العريس مسجَّل مسبقاً", {
           description: `${which} مستخدم في طلب سابق. لتعديل بياناتك استخدم صفحة «تعديل بياناتي».`,
         });
         setBusy(false);
         return;
       }
-
-      const national_id_url = idFile ? await uploadPublic(idFile, "id") : null;
-      const photo_url = photoFile ? await uploadPublic(photoFile, "photo") : null;
-
-      const { data: inserted, error } = await supabase.from("grooms").insert({
-        full_name: fullName.trim(),
-        phone: phoneTrim,
-        family_branch: "غير محدد",
-        national_id: nidTrim,
-        national_id_url,
-        photo_url,
-        extra_sheep: extraChoice === "yes" ? (Number(extraSheep) || 0) : 0,
-        extra_cards_men: extraChoice === "yes" ? (Number(extraCardsMen) || 0) : 0,
-        extra_cards_women: extraChoice === "yes" ? (Number(extraCardsWomen) || 0) : 0,
-        external_participation: externalChoice === "yes",
-        external_participation_details: externalChoice === "yes" ? externalDetails.trim() : null,
-        vip_guests: vipChoice === "yes" ? vipGuests.trim() : null,
-        notes: notesChoice === "yes" ? notes.trim() : null,
-        status: "new",
-        created_by: null,
-      }).select("id, edit_token").single();
-      if (error) throw error;
-      if (inserted?.edit_token) {
+      if ("edit_token" in result && result.edit_token) {
         const origin = typeof window !== "undefined" ? window.location.origin : "";
-        setEditLink(`${origin}/groom-edit/${inserted.edit_token}`);
+        setEditLink(`${origin}/groom-edit/${result.edit_token}`);
       }
       setPreviewOpen(false);
       setDone(true);
