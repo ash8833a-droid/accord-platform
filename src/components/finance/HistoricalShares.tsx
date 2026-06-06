@@ -46,6 +46,8 @@ export function HistoricalShares() {
     notes: "",
   });
   const [customAmount, setCustomAmount] = useState(false);
+  const [customBranch, setCustomBranch] = useState(false);
+  const [customYear, setCustomYear] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
 
   // file upload state
