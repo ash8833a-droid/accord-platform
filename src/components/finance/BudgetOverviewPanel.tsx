@@ -4,7 +4,7 @@ import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { ChevronDown, ChevronLeft, FileSpreadsheet, Printer, Search, Wallet, Loader2, ArrowDownUp, Plus, Lock, Check, Copy } from "lucide-react";
+import { ChevronDown, ChevronLeft, FileSpreadsheet, Printer, Search, Wallet, Loader2, ArrowDownUp, Plus, Lock, Check, Copy, Pencil, Trash2, Save, X } from "lucide-react";
 import { exportBudgetXLSX, exportBudgetPDF } from "@/lib/budget-export";
 import { toast } from "sonner";
 import {
@@ -60,6 +60,52 @@ export function BudgetOverviewPanel() {
   const [addNotes, setAddNotes] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editQty, setEditQty] = useState("");
+  const [editUnit, setEditUnit] = useState("");
+  const [editNotes, setEditNotes] = useState("");
+  const [savingEdit, setSavingEdit] = useState(false);
+
+  const startEdit = (r: BudgetItem) => {
+    setEditingId(r.id);
+    setEditName(r.item_name);
+    setEditQty(String(r.quantity));
+    setEditUnit(String(r.unit_cost));
+    setEditNotes(r.notes ?? "");
+  };
+
+  const cancelEdit = () => setEditingId(null);
+
+  const saveEdit = async (r: BudgetItem) => {
+    const name = editName.trim();
+    const qty = Number(editQty);
+    const unit = Number(editUnit);
+    if (!name) return toast.error("اسم البند مطلوب");
+    if (!(qty > 0)) return toast.error("الكمية يجب أن تكون أكبر من صفر");
+    if (!(unit >= 0)) return toast.error("تكلفة الوحدة غير صحيحة");
+    setSavingEdit(true);
+    const { error } = await supabase
+      .from("budget_items" as any)
+      .update({
+        item_name: name,
+        quantity: qty,
+        unit_cost: unit,
+        notes: editNotes.trim() || null,
+      } as any)
+      .eq("id", r.id);
+    setSavingEdit(false);
+    if (error) return toast.error("تعذّر التحديث", { description: error.message });
+    toast.success("تم حفظ التعديلات");
+    setEditingId(null);
+  };
+
+  const removeItem = async (r: BudgetItem) => {
+    if (!confirm(`حذف البند "${r.item_name}"؟`)) return;
+    const { error } = await supabase.from("budget_items" as any).delete().eq("id", r.id);
+    if (error) return toast.error("تعذّر الحذف", { description: error.message });
+    toast.success("تم حذف البند");
+  };
 
   const copyUnifiedBudgetLink = async () => {
     const url = `${window.location.origin}/budget-entry`;
@@ -382,32 +428,80 @@ export function BudgetOverviewPanel() {
                                   <th className="px-3 py-2 font-medium w-20">الكمية</th>
                                   <th className="px-3 py-2 font-medium w-28">تكلفة الوحدة</th>
                                   <th className="px-3 py-2 font-medium w-28">الإجمالي</th>
+                                  <th className="px-3 py-2 font-medium w-28">إجراءات</th>
                                 </tr>
                               </thead>
                               <tbody>
-                                {g.rows.map((r, idx) => (
-                                  <tr key={r.id} className="border-t">
-                                    <td className="px-3 py-2 text-muted-foreground">{idx + 1}</td>
-                                    <td className="px-3 py-2">
-                                      <span className="inline-flex items-center gap-1.5">
-                                        {r.item_name}
-                                        {r.assigned_by_finance && (
-                                          <span
-                                            className="text-[10px] px-1.5 py-0.5 rounded-full bg-gold/15 text-gold border border-gold/30 font-semibold inline-flex items-center gap-0.5"
-                                            title="بند معتمد من اللجنة المالية"
-                                          >
-                                            <Lock className="h-2.5 w-2.5" /> مالية
-                                          </span>
-                                        )}
-                                      </span>
-                                    </td>
-                                    <td className="px-3 py-2">{fmt(Number(r.quantity))}</td>
-                                    <td className="px-3 py-2">{fmt(Number(r.unit_cost))} ر.س</td>
-                                    <td className="px-3 py-2 font-semibold text-primary">
-                                      {fmt(Number(r.total_cost))} ر.س
-                                    </td>
-                                  </tr>
-                                ))}
+                                {g.rows.map((r, idx) => {
+                                  const isEditing = editingId === r.id;
+                                  return (
+                                    <tr key={r.id} className="border-t" onClick={(e) => e.stopPropagation()}>
+                                      <td className="px-3 py-2 text-muted-foreground align-top">{idx + 1}</td>
+                                      {isEditing ? (
+                                        <>
+                                          <td className="px-3 py-2">
+                                            <Input value={editName} onChange={(e) => setEditName(e.target.value)} className="h-8 text-xs" />
+                                            <Input placeholder="ملاحظات" value={editNotes} onChange={(e) => setEditNotes(e.target.value)} className="h-8 text-xs mt-1" />
+                                          </td>
+                                          <td className="px-3 py-2"><Input type="number" value={editQty} onChange={(e) => setEditQty(e.target.value)} className="h-8 text-xs" dir="ltr" /></td>
+                                          <td className="px-3 py-2"><Input type="number" value={editUnit} onChange={(e) => setEditUnit(e.target.value)} className="h-8 text-xs" dir="ltr" /></td>
+                                          <td className="px-3 py-2 font-semibold text-primary tabular-nums">
+                                            {fmt((Number(editQty) || 0) * (Number(editUnit) || 0))} ر.س
+                                          </td>
+                                          <td className="px-3 py-2">
+                                            <div className="flex items-center gap-1">
+                                              <Button size="sm" onClick={() => saveEdit(r)} disabled={savingEdit} className="h-7 px-2 gap-1">
+                                                {savingEdit ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3 w-3" />}
+                                                حفظ
+                                              </Button>
+                                              <Button size="sm" variant="outline" onClick={cancelEdit} className="h-7 px-2 gap-1">
+                                                <X className="h-3 w-3" />
+                                              </Button>
+                                            </div>
+                                          </td>
+                                        </>
+                                      ) : (
+                                        <>
+                                          <td className="px-3 py-2">
+                                            <span className="inline-flex items-center gap-1.5">
+                                              {r.item_name}
+                                              {r.assigned_by_finance && (
+                                                <span
+                                                  className="text-[10px] px-1.5 py-0.5 rounded-full bg-gold/15 text-gold border border-gold/30 font-semibold inline-flex items-center gap-0.5"
+                                                  title="بند معتمد من اللجنة المالية"
+                                                >
+                                                  <Lock className="h-2.5 w-2.5" /> مالية
+                                                </span>
+                                              )}
+                                            </span>
+                                            {r.notes && <p className="text-[10px] text-muted-foreground mt-0.5">{r.notes}</p>}
+                                          </td>
+                                          <td className="px-3 py-2">{fmt(Number(r.quantity))}</td>
+                                          <td className="px-3 py-2">{fmt(Number(r.unit_cost))} ر.س</td>
+                                          <td className="px-3 py-2 font-semibold text-primary">{fmt(Number(r.total_cost))} ر.س</td>
+                                          <td className="px-3 py-2">
+                                            <div className="flex items-center gap-1">
+                                              <button
+                                                onClick={() => startEdit(r)}
+                                                className="h-7 w-7 rounded-md flex items-center justify-center hover:bg-primary/10 text-primary"
+                                                title="تعديل"
+                                              >
+                                                <Pencil className="h-3.5 w-3.5" />
+                                              </button>
+                                              <button
+                                                onClick={() => removeItem(r)}
+                                                className="h-7 w-7 rounded-md flex items-center justify-center hover:bg-destructive/10 text-destructive"
+                                                title="حذف"
+                                              >
+                                                <Trash2 className="h-3.5 w-3.5" />
+                                              </button>
+                                            </div>
+                                          </td>
+                                        </>
+                                      )}
+                                    </tr>
+                                  );
+                                })}
                               </tbody>
                             </table>
                           </div>
