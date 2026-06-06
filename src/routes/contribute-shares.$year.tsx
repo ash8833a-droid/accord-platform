@@ -339,21 +339,33 @@ export const Route = createFileRoute("/contribute-shares/$year")({
   component: ContributeSharesPage,
   head: ({ params }) => {
     const y = params.year;
+    const canonicalUrl = `https://lajnat-zawaj.org/contribute-shares/${y}`;
+    const ogUrl = "https://lajnat-zawaj.org/brand/zawaj-logo.png";
+    const title = `مساهمات الفرع — الزواج الجماعي ${y}هـ`;
+    const description = `دعوة لمندوب الفرع لتسجيل أسماء ومبالغ المساهمين من العائلة في الزواج الجماعي للسنة ${y}هـ. النموذج رسمي يصل مباشرةً للإدارة المالية في لجنة الزواج الجماعي.`;
     return {
       meta: [
-        { title: `تسجيل مساهمات الفرع — ${y}هـ` },
-        {
-          name: "description",
-          content:
-            "نموذج تسجيل أسماء ومبالغ مساهمي الفرع العائلي للزواج الجماعي للسنة الهجرية، يصل مباشرةً للإدارة المالية.",
-        },
+        { title },
+        { name: "description", content: description },
+        { name: "theme-color", content: "#0D7C66" },
         { property: "og:type", content: "website" },
-        { property: "og:title", content: `مساهمة فرعك في الزواج الجماعي — ${y}هـ` },
-        {
-          property: "og:description",
-          content: "سجّل أسماء ومبالغ المساهمين من عائلتك في الزواج الجماعي للعام " + y + "هـ.",
-        },
+        { property: "og:url", content: canonicalUrl },
+        { property: "og:site_name", content: "لجنة الزواج الجماعي" },
+        { property: "og:locale", content: "ar_SA" },
+        { property: "og:title", content: title },
+        { property: "og:description", content: description },
+        { property: "og:image", content: ogUrl },
+        { property: "og:image:secure_url", content: ogUrl },
+        { property: "og:image:type", content: "image/png" },
+        { property: "og:image:width", content: "512" },
+        { property: "og:image:height", content: "512" },
+        { property: "og:image:alt", content: "شعار لجنة الزواج الجماعي" },
+        { name: "twitter:card", content: "summary_large_image" },
+        { name: "twitter:title", content: title },
+        { name: "twitter:description", content: description },
+        { name: "twitter:image", content: ogUrl },
       ],
+      links: [{ rel: "canonical", href: canonicalUrl }],
     };
   },
   errorComponent: ({ error }) => (
