@@ -1,8 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { HeartHandshake } from "lucide-react";
+import { HeartHandshake, Sparkles, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -28,6 +28,7 @@ import {
 } from "lucide-react";
 import { FAMILY_BRANCHES, AMOUNT_OPTIONS } from "@/lib/family-branches";
 import { submitFamilyShares } from "@/lib/public-shares.functions";
+import { analyzeContributionsFile } from "@/lib/analyze-contributions.functions";
 
 interface ContribRow {
   full_name: string;
@@ -44,6 +45,7 @@ function ContributeSharesPage() {
   const validYear = Number.isFinite(hijriYear) && hijriYear >= 1300 && hijriYear <= 1600;
 
   const submit = useServerFn(submitFamilyShares);
+  const analyze = useServerFn(analyzeContributionsFile);
 
   const [delegateName, setDelegateName] = useState("");
   const [branch, setBranch] = useState<string>(FAMILY_BRANCHES[0]);
@@ -51,6 +53,8 @@ function ContributeSharesPage() {
   const [rows, setRows] = useState<ContribRow[]>([emptyRow()]);
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState<{ count: number } | null>(null);
+  const [analyzing, setAnalyzing] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const total = useMemo(
     () => rows.reduce((s, r) => s + (Number(r.amount) || 0), 0),
@@ -62,6 +66,62 @@ function ContributeSharesPage() {
     setRows((r) => (r.length === 1 ? r : r.filter((_, idx) => idx !== i)));
   const updateRow = (i: number, patch: Partial<ContribRow>) =>
     setRows((r) => r.map((row, idx) => (idx === i ? { ...row, ...patch } : row)));
+
+  const fileToBase64 = (file: File) =>
+    new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = reader.result as string;
+        const idx = result.indexOf(",");
+        resolve(idx >= 0 ? result.slice(idx + 1) : result);
+      };
+      reader.onerror = () => reject(reader.error);
+      reader.readAsDataURL(file);
+    });
+
+  const handleSmartAnalyze = async (file: File) => {
+    if (!file) return;
+    const maxBytes = 12 * 1024 * 1024;
+    if (file.size > maxBytes) {
+      toast.error("حجم الملف كبير جداً. الحد الأقصى 12 ميجابايت.");
+      return;
+    }
+    setAnalyzing(true);
+    const t = toast.loading("جارٍ التحليل الذكي للملف…");
+    try {
+      const base64 = await fileToBase64(file);
+      const res = await analyze({
+        data: {
+          fileBase64: base64,
+          mimeType: file.type || "application/octet-stream",
+          defaultAmount: 300,
+        },
+      });
+      if (!res.rows.length) {
+        toast.error("لم يتم العثور على أسماء واضحة. حاول بصورة أو ملف أوضح.", { id: t });
+        return;
+      }
+      // استبدال الصفوف بالنتائج المستخرجة
+      const extracted: ContribRow[] = res.rows.map((r) => {
+        // نقرّب المبلغ لأقرب خيار من القائمة
+        const closest = AMOUNT_OPTIONS.reduce((p, c) =>
+          Math.abs(c - r.amount) < Math.abs(p - r.amount) ? c : p,
+        );
+        return {
+          full_name: r.full_name,
+          amount: closest,
+          notes: r.notes || "",
+        };
+      });
+      setRows(extracted);
+      toast.success(`تم استخراج ${res.count} مساهماً. يمكنك المراجعة قبل الإرسال.`, { id: t });
+    } catch (e) {
+      toast.error((e as Error).message || "فشل التحليل الذكي", { id: t });
+    } finally {
+      setAnalyzing(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
 
   const handleSubmit = async () => {
     if (!validYear) return;
@@ -242,6 +302,52 @@ function ContributeSharesPage() {
                 <Button type="button" size="sm" variant="outline" onClick={addRow} className="gap-1">
                   <Plus className="h-4 w-4" /> إضافة مساهم
                 </Button>
+              </div>
+
+              {/* Smart AI analysis */}
+              <div className="rounded-2xl border-2 border-dashed border-emerald-300 bg-gradient-to-l from-emerald-50 via-teal-50 to-emerald-50 p-4">
+                <div className="flex items-start gap-3">
+                  <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-emerald-600 to-teal-600 text-white flex items-center justify-center shrink-0 shadow-sm">
+                    <Sparkles className="h-5 w-5" />
+                  </div>
+                  <div className="flex-1 space-y-2">
+                    <div>
+                      <h3 className="font-bold text-emerald-900">التحليل الذكي ✨</h3>
+                      <p className="text-xs text-emerald-900/80 leading-6">
+                        ارفع صورة كشف الأسماء أو ملف (PDF / صورة / نص)، وسيقوم النظام بقراءة
+                        الأسماء والمبالغ تلقائياً وتعبئتها في القائمة، ثم تستطيع المراجعة قبل الإرسال.
+                      </p>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        type="button"
+                        size="sm"
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={analyzing}
+                        className="gap-1 bg-gradient-to-l from-emerald-700 to-teal-600 text-white"
+                      >
+                        {analyzing ? (
+                          <><Loader2 className="h-4 w-4 animate-spin" /> جارٍ التحليل…</>
+                        ) : (
+                          <><Upload className="h-4 w-4" /> اختر صورة أو ملف</>
+                        )}
+                      </Button>
+                      <span className="text-[11px] text-emerald-900/70 self-center">
+                        يدعم: صور (JPG/PNG)، PDF، نص. الحد 12MB.
+                      </span>
+                    </div>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*,application/pdf,text/plain,.txt,.csv"
+                      hidden
+                      onChange={(e) => {
+                        const f = e.target.files?.[0];
+                        if (f) void handleSmartAnalyze(f);
+                      }}
+                    />
+                  </div>
+                </div>
               </div>
 
               <div className="space-y-3">
