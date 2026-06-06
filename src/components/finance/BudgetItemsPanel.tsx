@@ -16,6 +16,7 @@ interface BudgetItem {
   unit_cost: number;
   total_cost: number;
   notes: string | null;
+  assigned_by_finance?: boolean | null;
 }
 
 interface Props {
@@ -56,7 +57,7 @@ export function BudgetItemsPanel({ committeeId, committeeName, canEdit = true }:
   const load = async () => {
     const { data, error } = await supabase
       .from("budget_items" as any)
-      .select("id, committee_id, item_name, quantity, unit_cost, total_cost, notes")
+      .select("id, committee_id, item_name, quantity, unit_cost, total_cost, notes, assigned_by_finance")
       .eq("committee_id", committeeId)
       .order("created_at", { ascending: true });
     if (error) {
@@ -238,7 +239,17 @@ export function BudgetItemsPanel({ committeeId, committeeName, canEdit = true }:
                           className="h-8"
                         />
                       ) : (
-                        <span className="font-medium">{it.item_name}</span>
+                        <span className="font-medium inline-flex items-center gap-1.5">
+                          {it.item_name}
+                          {it.assigned_by_finance && (
+                            <span
+                              className="text-[10px] px-1.5 py-0.5 rounded-full bg-gold/15 text-gold border border-gold/30 font-semibold"
+                              title="بند معتمد من اللجنة المالية"
+                            >
+                              مالية
+                            </span>
+                          )}
+                        </span>
                       )}
                     </td>
                     <td className="px-3 py-2">
