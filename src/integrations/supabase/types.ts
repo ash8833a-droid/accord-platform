@@ -970,6 +970,38 @@ export type Database = {
           },
         ]
       }
+      minute_acknowledgements: {
+        Row: {
+          acknowledged_at: string
+          id: string
+          minute_id: string
+          user_id: string
+          user_name: string | null
+        }
+        Insert: {
+          acknowledged_at?: string
+          id?: string
+          minute_id: string
+          user_id: string
+          user_name?: string | null
+        }
+        Update: {
+          acknowledged_at?: string
+          id?: string
+          minute_id?: string
+          user_id?: string
+          user_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "minute_acknowledgements_minute_id_fkey"
+            columns: ["minute_id"]
+            isOneToOne: false
+            referencedRelation: "committee_minutes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           body: string | null
