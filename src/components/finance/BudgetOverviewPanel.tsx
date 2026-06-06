@@ -4,7 +4,7 @@ import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { ChevronDown, ChevronLeft, FileSpreadsheet, Printer, Search, Wallet, Loader2, ArrowDownUp, Plus, Lock, Check, Copy } from "lucide-react";
+import { ChevronDown, ChevronLeft, FileSpreadsheet, Printer, Search, Wallet, Loader2, ArrowDownUp, Plus, Lock, Check, Copy, Pencil, Trash2, Save, X } from "lucide-react";
 import { exportBudgetXLSX, exportBudgetPDF } from "@/lib/budget-export";
 import { toast } from "sonner";
 import {
@@ -60,6 +60,52 @@ export function BudgetOverviewPanel() {
   const [addNotes, setAddNotes] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editQty, setEditQty] = useState("");
+  const [editUnit, setEditUnit] = useState("");
+  const [editNotes, setEditNotes] = useState("");
+  const [savingEdit, setSavingEdit] = useState(false);
+
+  const startEdit = (r: BudgetItem) => {
+    setEditingId(r.id);
+    setEditName(r.item_name);
+    setEditQty(String(r.quantity));
+    setEditUnit(String(r.unit_cost));
+    setEditNotes(r.notes ?? "");
+  };
+
+  const cancelEdit = () => setEditingId(null);
+
+  const saveEdit = async (r: BudgetItem) => {
+    const name = editName.trim();
+    const qty = Number(editQty);
+    const unit = Number(editUnit);
+    if (!name) return toast.error("اسم البند مطلوب");
+    if (!(qty > 0)) return toast.error("الكمية يجب أن تكون أكبر من صفر");
+    if (!(unit >= 0)) return toast.error("تكلفة الوحدة غير صحيحة");
+    setSavingEdit(true);
+    const { error } = await supabase
+      .from("budget_items" as any)
+      .update({
+        item_name: name,
+        quantity: qty,
+        unit_cost: unit,
+        notes: editNotes.trim() || null,
+      } as any)
+      .eq("id", r.id);
+    setSavingEdit(false);
+    if (error) return toast.error("تعذّر التحديث", { description: error.message });
+    toast.success("تم حفظ التعديلات");
+    setEditingId(null);
+  };
+
+  const removeItem = async (r: BudgetItem) => {
+    if (!confirm(`حذف البند "${r.item_name}"؟`)) return;
+    const { error } = await supabase.from("budget_items" as any).delete().eq("id", r.id);
+    if (error) return toast.error("تعذّر الحذف", { description: error.message });
+    toast.success("تم حذف البند");
+  };
 
   const copyUnifiedBudgetLink = async () => {
     const url = `${window.location.origin}/budget-entry`;
