@@ -720,10 +720,10 @@ export function CommitteeMinutes({ committeeId, committeeName, canManage }: Prop
                     </p>
                   </div>
                   <div className="flex items-center gap-1.5 shrink-0">
+                    {m.from_supreme && <ViewMinuteButton minute={m} />}
                     <Button size="sm" onClick={() => printMinutes(m)} className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground hover:opacity-90" title="محضر احترافي">
                       <Printer className="h-3.5 w-3.5 ms-1" /> طباعة
                     </Button>
-                    {m.from_supreme && <AcknowledgeButton minuteId={m.id} />}
                     {canManage && !m.from_supreme && (
                       <>
                         <Button size="sm" variant="outline" onClick={() => editExisting(m)} title="تعديل">
