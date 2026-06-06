@@ -19,6 +19,7 @@ import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SurveyWomenTalentsRouteImport } from './routes/survey.women-talents'
 import { Route as GroomEditTokenRouteImport } from './routes/groom-edit.$token'
+import { Route as ContributeSharesYearRouteImport } from './routes/contribute-shares.$year'
 import { Route as BudgetEntryCommitteeIdRouteImport } from './routes/budget-entry.$committeeId'
 import { Route as AppReportsRouteImport } from './routes/_app.reports'
 import { Route as AppProcurementRequestsRouteImport } from './routes/_app.procurement-requests'
@@ -86,6 +87,11 @@ const GroomEditTokenRoute = GroomEditTokenRouteImport.update({
   id: '/$token',
   path: '/$token',
   getParentRoute: () => GroomEditRoute,
+} as any)
+const ContributeSharesYearRoute = ContributeSharesYearRouteImport.update({
+  id: '/contribute-shares/$year',
+  path: '/contribute-shares/$year',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const BudgetEntryCommitteeIdRoute = BudgetEntryCommitteeIdRouteImport.update({
   id: '/$committeeId',
@@ -199,6 +205,7 @@ export interface FileRoutesByFullPath {
   '/procurement-requests': typeof AppProcurementRequestsRoute
   '/reports': typeof AppReportsRoute
   '/budget-entry/$committeeId': typeof BudgetEntryCommitteeIdRoute
+  '/contribute-shares/$year': typeof ContributeSharesYearRoute
   '/groom-edit/$token': typeof GroomEditTokenRoute
   '/survey/women-talents': typeof SurveyWomenTalentsRoute
   '/admin/supreme-minutes': typeof AppAdminSupremeMinutesRoute
@@ -228,6 +235,7 @@ export interface FileRoutesByTo {
   '/procurement-requests': typeof AppProcurementRequestsRoute
   '/reports': typeof AppReportsRoute
   '/budget-entry/$committeeId': typeof BudgetEntryCommitteeIdRoute
+  '/contribute-shares/$year': typeof ContributeSharesYearRoute
   '/groom-edit/$token': typeof GroomEditTokenRoute
   '/survey/women-talents': typeof SurveyWomenTalentsRoute
   '/admin/supreme-minutes': typeof AppAdminSupremeMinutesRoute
@@ -259,6 +267,7 @@ export interface FileRoutesById {
   '/_app/procurement-requests': typeof AppProcurementRequestsRoute
   '/_app/reports': typeof AppReportsRoute
   '/budget-entry/$committeeId': typeof BudgetEntryCommitteeIdRoute
+  '/contribute-shares/$year': typeof ContributeSharesYearRoute
   '/groom-edit/$token': typeof GroomEditTokenRoute
   '/survey/women-talents': typeof SurveyWomenTalentsRoute
   '/_app/admin/supreme-minutes': typeof AppAdminSupremeMinutesRoute
@@ -290,6 +299,7 @@ export interface FileRouteTypes {
     | '/procurement-requests'
     | '/reports'
     | '/budget-entry/$committeeId'
+    | '/contribute-shares/$year'
     | '/groom-edit/$token'
     | '/survey/women-talents'
     | '/admin/supreme-minutes'
@@ -319,6 +329,7 @@ export interface FileRouteTypes {
     | '/procurement-requests'
     | '/reports'
     | '/budget-entry/$committeeId'
+    | '/contribute-shares/$year'
     | '/groom-edit/$token'
     | '/survey/women-talents'
     | '/admin/supreme-minutes'
@@ -349,6 +360,7 @@ export interface FileRouteTypes {
     | '/_app/procurement-requests'
     | '/_app/reports'
     | '/budget-entry/$committeeId'
+    | '/contribute-shares/$year'
     | '/groom-edit/$token'
     | '/survey/women-talents'
     | '/_app/admin/supreme-minutes'
@@ -368,6 +380,7 @@ export interface RootRouteChildren {
   GroomEditRoute: typeof GroomEditRouteWithChildren
   PendingRoute: typeof PendingRoute
   RegisterGroomRoute: typeof RegisterGroomRoute
+  ContributeSharesYearRoute: typeof ContributeSharesYearRoute
   SurveyWomenTalentsRoute: typeof SurveyWomenTalentsRoute
   ApiPublicHooksTaskDeadlineCheckRoute: typeof ApiPublicHooksTaskDeadlineCheckRoute
 }
@@ -443,6 +456,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/groom-edit/$token'
       preLoaderRoute: typeof GroomEditTokenRouteImport
       parentRoute: typeof GroomEditRoute
+    }
+    '/contribute-shares/$year': {
+      id: '/contribute-shares/$year'
+      path: '/contribute-shares/$year'
+      fullPath: '/contribute-shares/$year'
+      preLoaderRoute: typeof ContributeSharesYearRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/budget-entry/$committeeId': {
       id: '/budget-entry/$committeeId'
@@ -656,6 +676,7 @@ const rootRouteChildren: RootRouteChildren = {
   GroomEditRoute: GroomEditRouteWithChildren,
   PendingRoute: PendingRoute,
   RegisterGroomRoute: RegisterGroomRoute,
+  ContributeSharesYearRoute: ContributeSharesYearRoute,
   SurveyWomenTalentsRoute: SurveyWomenTalentsRoute,
   ApiPublicHooksTaskDeadlineCheckRoute: ApiPublicHooksTaskDeadlineCheckRoute,
 }
