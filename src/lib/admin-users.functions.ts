@@ -42,7 +42,13 @@ export const adminResetPassword = createServerFn({ method: "POST" })
     const { error } = await supabaseAdmin.auth.admin.updateUserById(data.user_id, {
       password: data.new_password,
     });
-    if (error) throw new Error(error.message);
+    if (error) {
+      const msg = (error.message || "").toLowerCase();
+      if (msg.includes("weak") || msg.includes("known")) {
+        throw new Error("كلمة المرور ضعيفة وسهلة التخمين. اختر كلمة أقوى تحتوي أحرفاً وأرقاماً ورموزاً (8 أحرف على الأقل).");
+      }
+      throw new Error(error.message);
+    }
     return { ok: true as const };
   });
 
@@ -84,12 +90,22 @@ export const adminUpdateUserRole = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await ensureAdmin(context.supabase, context.userId);
     // Replace user roles with single new role assignment
-    await supabaseAdmin.from("user_roles").delete().eq("user_id", data.user_id);
-    const { error } = await supabaseAdmin.from("user_roles").insert({
-      user_id: data.user_id,
-      role: data.role,
-      committee_id: data.committee_id ?? null,
-    });
+    const { error: delErr } = await supabaseAdmin
+      .from("user_roles")
+      .delete()
+      .eq("user_id", data.user_id);
+    if (delErr) throw new Error(delErr.message);
+
+    const { error } = await supabaseAdmin
+      .from("user_roles")
+      .upsert(
+        {
+          user_id: data.user_id,
+          role: data.role,
+          committee_id: data.committee_id ?? null,
+        },
+        { onConflict: "user_id,role,committee_id", ignoreDuplicates: true }
+      );
     if (error) throw new Error(error.message);
     return { ok: true as const };
   });
