@@ -720,10 +720,10 @@ export function CommitteeMinutes({ committeeId, committeeName, canManage }: Prop
                     </p>
                   </div>
                   <div className="flex items-center gap-1.5 shrink-0">
+                    {m.from_supreme && <ViewMinuteButton minute={m} />}
                     <Button size="sm" onClick={() => printMinutes(m)} className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground hover:opacity-90" title="محضر احترافي">
                       <Printer className="h-3.5 w-3.5 ms-1" /> طباعة
                     </Button>
-                    {m.from_supreme && <AcknowledgeButton minuteId={m.id} />}
                     {canManage && !m.from_supreme && (
                       <>
                         <Button size="sm" variant="outline" onClick={() => editExisting(m)} title="تعديل">
@@ -981,91 +981,93 @@ interface AckRow {
   acknowledged_at: string;
 }
 
-function AcknowledgeButton({ minuteId }: { minuteId: string }) {
-  const { user } = useAuth();
-  const [rows, setRows] = useState<AckRow[]>([]);
-  const [loading, setLoading] = useState(false);
+function ViewMinuteButton({ minute }: { minute: Minute }) {
   const [open, setOpen] = useState(false);
-
-  const load = async () => {
-    const { data } = await supabase
-      .from("minute_acknowledgements" as any)
-      .select("user_id, user_name, acknowledged_at")
-      .eq("minute_id", minuteId)
-      .order("acknowledged_at", { ascending: false });
-    setRows(((data ?? []) as unknown) as AckRow[]);
-  };
-
-  useEffect(() => { load(); }, [minuteId]);
-
-  const mine = !!user && rows.some((r) => r.user_id === user.id);
-  const myName = (user?.user_metadata as any)?.full_name || user?.email || "عضو";
-
-  const ack = async () => {
-    if (!user) return toast.error("سجّل الدخول أولاً");
-    setLoading(true);
-    try {
-      const { error } = await supabase
-        .from("minute_acknowledgements" as any)
-        .insert({ minute_id: minuteId, user_id: user.id, user_name: myName });
-      if (error) {
-        toast.error("تعذّر تسجيل الاطلاع", { description: error.message });
-        return;
-      }
-      toast.success("تم تسجيل اطلاعك على المحضر");
-      await load();
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  const fmtDate = (d: string | null) =>
+    d ? new Date(d).toLocaleDateString("ar-SA-u-ca-gregory") : "—";
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
         <Button
           size="sm"
-          variant={mine ? "outline" : "default"}
-          className={mine
-            ? "border-emerald-500/40 text-emerald-700 bg-emerald-500/10 hover:bg-emerald-500/15"
-            : "bg-gradient-to-r from-emerald-600 to-emerald-500 text-white hover:opacity-90"}
-          title={mine ? "اطّلعت — اعرض المطّلعين" : "تسجيل الاطلاع"}
+          variant="outline"
+          className="border-primary/30 text-primary bg-primary/5 hover:bg-primary/10"
+          title="قراءة المحضر"
         >
-          {mine ? <CheckCircle2 className="h-3.5 w-3.5 ms-1" /> : <Eye className="h-3.5 w-3.5 ms-1" />}
-          {mine ? `تم الاطلاع${rows.length > 1 ? ` (${rows.length})` : ""}` : `اطّلعت${rows.length ? ` (${rows.length})` : ""}`}
+          <Eye className="h-3.5 w-3.5 ms-1" /> اطّلاع
         </Button>
-      </PopoverTrigger>
-      <PopoverContent align="end" className="w-72 p-0" dir="rtl">
-        <div className="px-3 py-2 border-b bg-muted/30 flex items-center justify-between">
-          <span className="text-xs font-bold">من اطّلع على المحضر</span>
-          <Badge variant="outline" className="text-[10px]">{rows.length}</Badge>
-        </div>
-        <div className="max-h-56 overflow-y-auto divide-y">
-          {rows.length === 0 ? (
-            <p className="text-center text-xs text-muted-foreground py-4">لم يطّلع أحد بعد</p>
-          ) : rows.map((r) => (
-            <div key={r.user_id} className="px-3 py-2 flex items-center gap-2 text-xs">
-              <Check className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
-              <span className="flex-1 truncate font-medium">{r.user_name || "عضو"}</span>
-              <span className="text-[10px] text-muted-foreground shrink-0">
-                {new Date(r.acknowledged_at).toLocaleDateString("ar-SA-u-ca-gregory")}
-              </span>
-            </div>
-          ))}
-        </div>
-        {!mine && (
-          <div className="p-2 border-t bg-muted/20">
-            <Button
-              size="sm"
-              onClick={ack}
-              disabled={loading}
-              className="w-full bg-gradient-to-r from-emerald-600 to-emerald-500 text-white"
-            >
-              {loading ? <Loader2 className="h-3.5 w-3.5 ms-1 animate-spin" /> : <CheckCircle2 className="h-3.5 w-3.5 ms-1" />}
-              تأكيد اطلاعي على المحضر
-            </Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto" dir="rtl">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2 text-base">
+            <ClipboardList className="h-4 w-4 text-primary" />
+            {minute.title}
+          </DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4 text-sm">
+          <div className="flex flex-wrap gap-2">
+            <Badge variant="outline" className="gap-1 border-gold/40 text-gold-foreground bg-gold/10">
+              <Calendar className="h-3 w-3" /> {fmtDate(minute.meeting_date)}
+            </Badge>
+            {minute.location && (
+              <Badge variant="outline" className="gap-1"><MapPin className="h-3 w-3" /> {minute.location}</Badge>
+            )}
+            {(minute.start_time || minute.end_time) && (
+              <Badge variant="outline" className="gap-1">
+                <Clock className="h-3 w-3" /> {minute.start_time ?? "—"} - {minute.end_time ?? "—"}
+              </Badge>
+            )}
+            {minute.recorder_name && (
+              <Badge variant="outline" className="gap-1">المُدوِّن: {minute.recorder_name}</Badge>
+            )}
           </div>
-        )}
-      </PopoverContent>
-    </Popover>
+
+          {minute.notes && (
+            <section className="rounded-lg border bg-muted/20 p-3">
+              <h4 className="text-xs font-bold mb-1 flex items-center gap-1"><FileText className="h-3.5 w-3.5" /> ملاحظات</h4>
+              <p className="whitespace-pre-wrap leading-7 text-[13px]">{minute.notes}</p>
+            </section>
+          )}
+
+          {minute.attendees?.length > 0 && (
+            <section>
+              <h4 className="text-xs font-bold mb-2 flex items-center gap-1"><Users className="h-3.5 w-3.5" /> الحضور ({minute.attendees.length})</h4>
+              <div className="flex flex-wrap gap-1.5">
+                {minute.attendees.map((a, i) => <Badge key={i} variant="secondary" className="text-[11px]">{a}</Badge>)}
+              </div>
+            </section>
+          )}
+
+          {minute.agenda_items?.length > 0 && (
+            <section>
+              <h4 className="text-xs font-bold mb-2 flex items-center gap-1"><ListChecks className="h-3.5 w-3.5" /> بنود الاجتماع</h4>
+              <ol className="list-decimal pe-5 space-y-1 text-[13px] leading-7">
+                {minute.agenda_items.map((a, i) => <li key={i}>{a}</li>)}
+              </ol>
+            </section>
+          )}
+
+          {minute.recommendations?.length > 0 && (
+            <section>
+              <h4 className="text-xs font-bold mb-2 flex items-center gap-1"><MessageSquareQuote className="h-3.5 w-3.5" /> التوصيات</h4>
+              <ol className="list-decimal pe-5 space-y-1 text-[13px] leading-7">
+                {minute.recommendations.map((a, i) => <li key={i}>{a}</li>)}
+              </ol>
+            </section>
+          )}
+
+          {minute.file_url && (
+            <a
+              href={minute.file_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 text-primary hover:underline text-xs"
+            >
+              <Paperclip className="h-3.5 w-3.5" /> فتح المرفق
+            </a>
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
