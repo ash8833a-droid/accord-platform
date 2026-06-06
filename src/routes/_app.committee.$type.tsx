@@ -885,7 +885,7 @@ function CommitteePage() {
         <BudgetItemsPanel
           committeeId={committee.id}
           committeeName={committee.name}
-          canEdit={isAdmin || isHead || true}
+          canEdit
         />
       </QualitySection>
 
