@@ -424,7 +424,14 @@ function Inner() {
         <HeroKpi label="إجمالي المهام" value={k.totalTasks} sub={`${k.completed} مُنجزة`} icon={ClipboardList} />
         <HeroKpi label="نسبة الإنجاز العامة" value={`${k.completionRate}%`} sub="عبر كل اللجان" icon={CheckCircle2} />
         <HeroKpi label="إجمالي العرسان" value={k.totalMarriages} sub={year === "all" ? "تراكمي" : `سنة ${year}`} icon={HeartHandshake} />
-        <HeroKpi label="مساهمات أفراد العائلة" value={fmtSar(k.familyContributions)} sub="إيراد حقيقي" icon={HandCoins} />
+        <HeroKpi
+          label="مساهمات أفراد العائلة"
+          value={fmtSar(k.familyContributions)}
+          sub={year === "all"
+            ? "تشمل مساهمات فروع العائلة"
+            : `يشمل أسهم الفروع ${gregorianToHijriYear(year as number)}هـ`}
+          icon={HandCoins}
+        />
         <HeroKpi label="المبالغ المخصصة للعرسان" value={fmtSar(k.allocatedFunds)} sub={`${k.totalMarriages} عريس × ${fmtSar(ALLOCATED_SUPPORT_PER_GROOM)}`} icon={Banknote} />
         <HeroKpi
           label="صافي الرصيد المالي"
