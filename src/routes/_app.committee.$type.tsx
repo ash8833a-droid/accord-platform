@@ -18,6 +18,8 @@ import { FinanceModule } from "@/components/FinanceModule";
 import { InvitationCards } from "@/components/media/InvitationCards";
 import { MediaInbox } from "@/components/media/MediaInbox";
 import { ProcurementRequestsBoard } from "@/components/procurement/ProcurementRequestsBoard";
+import { PurchasingDashboard } from "@/components/PurchasingDashboard";
+import { CreatePurchaseRequestForm } from "@/components/CreatePurchaseRequestForm";
 import { TaskAttachments } from "@/components/TaskAttachments";
 import { TaskComments } from "@/components/TaskComments";
 import { TaskEditorDialog, type EditorTask } from "@/components/TaskEditorDialog";
