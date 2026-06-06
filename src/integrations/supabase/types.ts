@@ -1225,6 +1225,50 @@ export type Database = {
         }
         Relationships: []
       }
+      purchase_requests: {
+        Row: {
+          committee_id: string
+          created_at: string
+          created_by: string | null
+          id: string
+          item_name: string
+          justification: string | null
+          quantity: number
+          status: Database["public"]["Enums"]["purchase_request_status"]
+          updated_at: string
+        }
+        Insert: {
+          committee_id: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          item_name: string
+          justification?: string | null
+          quantity: number
+          status?: Database["public"]["Enums"]["purchase_request_status"]
+          updated_at?: string
+        }
+        Update: {
+          committee_id?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          item_name?: string
+          justification?: string | null
+          quantity?: number
+          status?: Database["public"]["Enums"]["purchase_request_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "purchase_requests_committee_id_fkey"
+            columns: ["committee_id"]
+            isOneToOne: false
+            referencedRelation: "committees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       reports: {
         Row: {
           archive_year: number | null
@@ -1987,6 +2031,7 @@ export type Database = {
         | "rejected"
         | "purchasing"
         | "delivered"
+      purchase_request_status: "pending" | "approved" | "rejected" | "completed"
       subscription_status: "pending" | "confirmed" | "rejected"
       task_priority: "low" | "medium" | "high" | "urgent"
       task_status: "todo" | "in_progress" | "completed"
@@ -2181,6 +2226,7 @@ export const Constants = {
         "purchasing",
         "delivered",
       ],
+      purchase_request_status: ["pending", "approved", "rejected", "completed"],
       subscription_status: ["pending", "confirmed", "rejected"],
       task_priority: ["low", "medium", "high", "urgent"],
       task_status: ["todo", "in_progress", "completed"],
