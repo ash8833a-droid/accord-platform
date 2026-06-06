@@ -31,6 +31,8 @@ import { TaskDetailsDialog } from "@/components/admin/TaskDetailsDialog";
 import { PageHeroHeader } from "@/components/PageHeroHeader";
 import { CommitteeMinutes } from "@/components/CommitteeMinutes";
 import { BudgetItemsPanel } from "@/components/finance/BudgetItemsPanel";
+import { CreatePurchaseRequestForm } from "@/components/CreatePurchaseRequestForm";
+import { PurchasingDashboard } from "@/components/PurchasingDashboard";
 
 
 interface CommitteeRow { id: string; name: string; type: string }
@@ -454,12 +456,31 @@ function TaskCenterInner({ canEdit }: { canEdit: boolean }) {
       )}
 
       {activeCommittee && (
-        <div className="mt-2">
+        <div className="mt-2 space-y-4">
           <BudgetItemsPanel
             committeeId={activeCommittee.id}
             committeeName={activeCommittee.name}
             canEdit={canEdit}
           />
+          <section className="rounded-2xl border bg-card shadow-sm overflow-hidden" id="purchase-requests-section">
+            <div className="border-b px-4 py-3 text-right">
+              <h2 className="font-semibold text-sm md:text-base">
+                {activeCommittee.type === "procurement"
+                  ? "طلبات الشراء الواردة — قيد المراجعة"
+                  : "طلبات الشراء — إرسال إلى لجنة المشتريات"}
+              </h2>
+              <p className="mt-1 text-xs text-muted-foreground">
+                لإرسال احتياج اللجنة إلى لجنة المشتريات ومتابعة الإجراء.
+              </p>
+            </div>
+            <div className="p-3 md:p-4">
+              {activeCommittee.type === "procurement" ? (
+                <PurchasingDashboard />
+              ) : (
+                <CreatePurchaseRequestForm key={activeCommittee.id} committeeIdOverride={activeCommittee.id} />
+              )}
+            </div>
+          </section>
         </div>
       )}
 

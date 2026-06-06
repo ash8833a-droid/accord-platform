@@ -18,14 +18,17 @@ const schema = z.object({
 interface Props {
   /** Optional callback after a successful submission */
   onCreated?: () => void;
+  /** Allows pages that are scoped to a selected committee to submit for that committee. */
+  committeeIdOverride?: string | null;
 }
 
 /**
  * نموذج إنشاء "طلب شراء" يُرسَل من اللجنة الطالبة إلى لجنة المشتريات
  * ويُخزَّن في جدول purchase_requests بحالة "قيد الانتظار".
  */
-export function CreatePurchaseRequestForm({ onCreated }: Props) {
+export function CreatePurchaseRequestForm({ onCreated, committeeIdOverride }: Props) {
   const { user, committeeId } = useAuth();
+  const requestCommitteeId = committeeIdOverride ?? committeeId;
   const [submitting, setSubmitting] = useState(false);
   const [form, setForm] = useState({
     item_name: "",
@@ -38,7 +41,7 @@ export function CreatePurchaseRequestForm({ onCreated }: Props) {
 
   const submit = async () => {
     if (!user) return toast.error("يجب تسجيل الدخول");
-    if (!committeeId)
+    if (!requestCommitteeId)
       return toast.error("يجب أن تكون عضواً في لجنة لتقديم الطلب");
 
     const parsed = schema.safeParse(form);
@@ -48,7 +51,7 @@ export function CreatePurchaseRequestForm({ onCreated }: Props) {
 
     setSubmitting(true);
     const { error } = await supabase.from("purchase_requests").insert({
-      committee_id: committeeId,
+      committee_id: requestCommitteeId,
       item_name: parsed.data.item_name,
       quantity: parsed.data.quantity,
       justification: parsed.data.justification,
@@ -66,7 +69,7 @@ export function CreatePurchaseRequestForm({ onCreated }: Props) {
     onCreated?.();
   };
 
-  if (!committeeId) {
+  if (!requestCommitteeId) {
     return (
       <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-4 text-sm">
         لا يمكنك تقديم طلب شراء لأنك غير مرتبط بأي لجنة بعد. تواصل مع الإدارة لتفعيل عضويتك.
