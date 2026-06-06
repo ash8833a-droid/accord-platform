@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Upload, Trash2, FileText, Search, TreePine, Users2, Coins, Download, Calendar, Sparkles, CheckCircle2, X, Printer } from "lucide-react";
+import { Plus, Upload, Trash2, FileText, Search, TreePine, Users2, Coins, Download, Calendar, Sparkles, CheckCircle2, X, Printer, Share2, Copy, MessageCircle } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuLabel, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { FAMILY_BRANCHES, AMOUNT_OPTIONS, HIJRI_YEARS } from "@/lib/family-branches";
 
@@ -477,6 +477,45 @@ tfoot td:last-child{border-bottom-left-radius:10px}
             </p>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1"
+              onClick={async () => {
+                const url = `${window.location.origin}/contribute-shares/${activeYear}`;
+                try {
+                  await navigator.clipboard.writeText(url);
+                  toast.success("تم نسخ رابط المندوب");
+                } catch {
+                  toast.error("تعذّر النسخ — انسخ الرابط يدوياً: " + url);
+                }
+              }}
+              title="نسخ رابط المندوب لتعبئة المساهمين"
+            >
+              <Copy className="h-4 w-4" /> نسخ رابط المندوب
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1 border-emerald-300 text-emerald-700 hover:bg-emerald-50"
+              onClick={() => {
+                const url = `${window.location.origin}/contribute-shares/${activeYear}`;
+                const msg =
+                  `السلام عليكم،\n\n` +
+                  `يُرجى من مندوب الفرع تعبئة قائمة المساهمين من العائلة في ` +
+                  `الزواج الجماعي الثاني عشر (${activeYear}هـ) عبر الرابط التالي:\n\n` +
+                  `${url}\n\n` +
+                  `جزاكم الله خيراً.\n— الإدارة المالية`;
+                window.open(
+                  `https://wa.me/?text=${encodeURIComponent(msg)}`,
+                  "_blank",
+                  "noopener,noreferrer",
+                );
+              }}
+              title="مشاركة الرابط عبر واتساب"
+            >
+              <MessageCircle className="h-4 w-4" /> مشاركة على واتساب
+            </Button>
             <Dialog open={uploadOpen} onOpenChange={setUploadOpen}>
               <DialogTrigger asChild>
                 <Button variant="outline" size="sm" className="gap-1">
