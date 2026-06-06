@@ -127,7 +127,7 @@ function ContributeSharesPage() {
     if (!validYear) return;
     const name = delegateName.trim();
     const fam = branch.trim();
-    if (name.length < 2) return toast.error("الرجاء كتابة اسم المندوب");
+    if (name.length < 2) return toast.error("الرجاء كتابة اسم الممثل");
     if (fam.length < 2) return toast.error("الرجاء اختيار/كتابة الفرع العائلي");
     const cleaned = rows
       .map((r) => ({
@@ -252,16 +252,16 @@ function ContributeSharesPage() {
           <CardContent className="p-5 md:p-6 space-y-5">
             {/* تعليمات مختصرة */}
             <p className="text-[13px] text-muted-foreground leading-7 border-r-2 border-[#C4A25C] pr-3">
-              مرحباً بمندوب الفرع — أدخل بياناتك ثم أضف المساهمين وأمبالغهم،
-              أو ارفع كشفاً ليُحلَّل تلقائياً. الإرسال يصل مباشرةً للإدارة المالية.
+              مرحباً بممثل الفرع. يُرجى إدخال البيانات وتفاصيل المساهمين، أو إرفاق
+              كشف للتحليل الآلي. تُوجَّه البيانات مباشرةً للإدارة المالية.
             </p>
 
             {/* Delegate */}
             <section className="space-y-3">
-              <SectionHeader icon={Users2} title="بيانات المندوب" />
+              <SectionHeader icon={Users2} title="بيانات الممثل" />
               <div className="grid md:grid-cols-2 gap-3">
                 <div>
-                  <Label className="text-xs text-muted-foreground">اسم المندوب *</Label>
+                  <Label className="text-xs text-muted-foreground">اسم الممثل *</Label>
                   <Input
                     value={delegateName}
                     onChange={(e) => setDelegateName(e.target.value)}
@@ -502,7 +502,7 @@ export const Route = createFileRoute("/contribute-shares/$year")({
     const canonicalUrl = `https://lajnat-zawaj.org/contribute-shares/${y}`;
     const ogUrl = "https://lajnat-zawaj.org/brand/zawaj-logo.png";
     const title = `مساهمات الفرع — الزواج الجماعي ${y}هـ`;
-    const description = `دعوة لمندوب الفرع لتسجيل أسماء ومبالغ المساهمين من العائلة في الزواج الجماعي للسنة ${y}هـ. النموذج رسمي يصل مباشرةً للإدارة المالية في لجنة الزواج الجماعي.`;
+    const description = `دعوة لممثل الفرع لتسجيل أسماء ومبالغ المساهمين من العائلة في الزواج الجماعي للسنة ${y}هـ. النموذج رسمي يصل مباشرةً للإدارة المالية في لجنة الزواج الجماعي.`;
     return {
       meta: [
         { title },
