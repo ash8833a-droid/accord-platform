@@ -825,6 +825,20 @@ function CommitteePage() {
       <Header meta={meta} />
       <TaskHighlightBanner tasks={tasks} />
 
+      {/* طلبات الشراء في أعلى صفحة كل لجنة حتى تكون واضحة مباشرة */}
+      <QualitySection
+        storageKey={`committee:${type}:simple-purchase`}
+        title={type === "procurement" ? "لوحة طلبات الشراء — قيد الانتظار" : "إنشاء طلب شراء جديد"}
+        icon={Inbox}
+        defaultOpen
+      >
+        {type === "procurement" ? (
+          <PurchasingDashboard />
+        ) : (
+          <CreatePurchaseRequestForm />
+        )}
+      </QualitySection>
+
       {/* Budget icon button → opens dialog */}
       <Dialog>
         <DialogTrigger asChild>
@@ -966,22 +980,6 @@ function CommitteePage() {
         defaultOpen={type === "procurement"}
       >
         <ProcurementRequestsBoard procurementOnly={type === "procurement"} />
-      </QualitySection>
-
-      {/* النموذج المبسّط الجديد (purchase_requests):
-          - لجنة المشتريات: لوحة الطلبات المعلقة مع موافقة/رفض
-          - باقي اللجان: نموذج إنشاء طلب شراء مبسّط */}
-      <QualitySection
-        storageKey={`committee:${type}:simple-purchase`}
-        title={type === "procurement" ? "لوحة طلبات الشراء — قيد الانتظار" : "إنشاء طلب شراء جديد"}
-        icon={Inbox}
-        defaultOpen
-      >
-        {type === "procurement" ? (
-          <PurchasingDashboard />
-        ) : (
-          <CreatePurchaseRequestForm />
-        )}
       </QualitySection>
 
       <Dialog open={prOpen} onOpenChange={setPrOpen}>
