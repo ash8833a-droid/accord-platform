@@ -305,12 +305,13 @@ export function BudgetOverviewPanel() {
                 <th className="px-3 py-3 font-medium w-24">عدد البنود</th>
                 <th className="px-3 py-3 font-medium w-40">الإجمالي</th>
                 <th className="px-3 py-3 font-medium w-32">النسبة من المشروع</th>
+                <th className="px-3 py-3 font-medium w-32">مشاركة</th>
               </tr>
             </thead>
             <tbody>
               {groups.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="text-center py-10 text-muted-foreground text-xs">
+                  <td colSpan={6} className="text-center py-10 text-muted-foreground text-xs">
                     لا توجد بنود ميزانية مطابقة للفلاتر
                   </td>
                 </tr>
