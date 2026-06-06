@@ -328,6 +328,7 @@ export function FinanceModule() {
           <TabsTrigger value="shares" className="gap-2"><TreePine className="h-4 w-4" /> أسهم الفروع</TabsTrigger>
           <TabsTrigger value="delegates" className="gap-2"><Users2 className="h-4 w-4" /> المناديب</TabsTrigger>
           <TabsTrigger value="safety" className="gap-2"><ShieldCheck className="h-4 w-4" /> السلامة المالية</TabsTrigger>
+          <TabsTrigger value="budgets" className="gap-2"><Wallet className="h-4 w-4" /> ميزانيات اللجان</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="mt-5 space-y-4">
