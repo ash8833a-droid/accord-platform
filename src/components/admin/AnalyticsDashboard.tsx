@@ -119,12 +119,13 @@ function Inner() {
     else setLoading(true);
 
     try {
-      const [committeesRes, tasksRes, groomsRes, paymentsRes, familyRes] = await Promise.all([
+      const [committeesRes, tasksRes, groomsRes, paymentsRes, familyRes, shareholdersRes] = await Promise.all([
         supabase.from("committees").select("id, name, type, budget_allocated, budget_spent"),
         supabase.from("committee_tasks").select("id, status, committee_id, created_at, updated_at, due_date"),
         supabase.from("grooms").select("id, status, created_at, wedding_date, groom_contribution"),
         supabase.from("payment_requests").select("id, amount, status, created_at"),
         supabase.from("family_contributions").select("id, amount, contribution_date"),
+        supabase.from("historical_shareholders").select("id, amount, hijri_year, family_branch"),
       ]);
       setData({
         committees: committeesRes.data ?? [],
@@ -132,6 +133,7 @@ function Inner() {
         grooms: groomsRes.data ?? [],
         payments: paymentsRes.data ?? [],
         family: familyRes.data ?? [],
+        shareholders: shareholdersRes.data ?? [],
       });
     } finally {
       loadInFlight.current = false;
@@ -147,6 +149,19 @@ function Inner() {
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "family_contributions" },
+        () => { void load({ silent: true }); },
+      )
+      .subscribe();
+    return () => { void supabase.removeChannel(channel); };
+  }, []);
+
+  // Real-time subscription for branch shareholder contributions.
+  useEffect(() => {
+    const channel = supabase
+      .channel("dashboard-historical-shareholders")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "historical_shareholders" },
         () => { void load({ silent: true }); },
       )
       .subscribe();
