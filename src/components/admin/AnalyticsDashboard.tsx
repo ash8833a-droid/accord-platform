@@ -170,6 +170,20 @@ function Inner() {
     return () => { void supabase.removeChannel(channel); };
   }, []);
 
+  // Real-time subscription on budget_items so the "الموازنة التقديرية"
+  // KPI on the dashboard reflects edits made on the Finance Management page instantly.
+  useEffect(() => {
+    const channel = supabase
+      .channel("dashboard-budget-items")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "budget_items" },
+        () => { void load({ silent: true }); },
+      )
+      .subscribe();
+    return () => { void supabase.removeChannel(channel); };
+  }, []);
+
   const k = useMemo(() => {
     if (!data) return null;
     const r = yearRange(year);
