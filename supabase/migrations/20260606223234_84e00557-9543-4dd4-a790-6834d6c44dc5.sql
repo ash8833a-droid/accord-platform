@@ -1,0 +1,1 @@
+ALTER TABLE public.task_attachments ADD COLUMN IF NOT EXISTS pdf_path TEXT;
