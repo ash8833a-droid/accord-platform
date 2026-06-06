@@ -186,7 +186,13 @@ function Inner() {
     const expenses = paymentsY.filter((p: any) => p.status === "paid").reduce((s: number, p: any) => s + Number(p.amount || 0), 0);
     const groomRevenues = groomsY.reduce((s: number, g: any) => s + Number(g.groom_contribution || 0), 0);
     const familyY = (data.family ?? []).filter((f: any) => inRange(f.contribution_date, r));
-    const familyContributions = familyY.reduce((s: number, f: any) => s + Number(f.amount || 0), 0);
+    const familyCash = familyY.reduce((s: number, f: any) => s + Number(f.amount || 0), 0);
+    const shareholders = (data.shareholders ?? []) as Array<{ amount: number; hijri_year: number }>;
+    const branchShareholders = (year === "all"
+      ? shareholders
+      : shareholders.filter((s) => Number(s.hijri_year) === gregorianToHijriYear(year as number))
+    ).reduce((s: number, row: any) => s + Number(row.amount || 0), 0);
+    const familyContributions = familyCash + branchShareholders;
     const revenues = familyContributions + groomRevenues;
     // Allocated support = total grooms × fixed allocation (treated as projected expense)
     const allocatedFunds = totalMarriages * ALLOCATED_SUPPORT_PER_GROOM;
