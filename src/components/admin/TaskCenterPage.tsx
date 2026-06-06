@@ -470,7 +470,7 @@ function TaskCenterInner({ canEdit }: { canEdit: boolean }) {
                   : "طلبات الشراء — إرسال إلى لجنة المشتريات"}
               </h2>
               <p className="mt-1 text-xs text-muted-foreground">
-                قسم مستقل أسفل بنود الميزانية مباشرة.
+                لإرسال احتياج اللجنة إلى لجنة المشتريات ومتابعة الإجراء.
               </p>
             </div>
             <div className="p-3 md:p-4">
