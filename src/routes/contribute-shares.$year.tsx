@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { Logo } from "@/components/Logo";
+import { HeartHandshake } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -156,7 +156,7 @@ function ContributeSharesPage() {
         <div className="max-w-3xl mx-auto px-4 py-8">
           <div className="flex items-center gap-3">
             <div className="h-12 w-12 rounded-2xl bg-white/10 backdrop-blur flex items-center justify-center">
-              <Logo className="h-8 w-8 text-white" />
+              <HeartHandshake className="h-7 w-7 text-white" />
             </div>
             <div>
               <p className="text-xs opacity-85">لجنة الزواج الجماعي · الإدارة المالية</p>
