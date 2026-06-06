@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { adminListUsers, adminDeleteUser, adminResetPassword, adminToggleAccount, adminUpdateUserRole } from "@/server/admin-users";
+import { adminListUsers, adminDeleteUser, adminResetPassword, adminToggleAccount, adminUpdateUserRole } from "@/lib/admin-users.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
