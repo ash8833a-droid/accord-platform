@@ -893,7 +893,7 @@ function CommitteePage() {
 
       {/* قسم مستقل لطلبات الشراء */}
       <QualitySection
-        storageKey={`committee:${type}:simple-purchase`}
+        storageKey={`committee:${type}:simple-purchase:v2`}
         title={
           type === "procurement"
             ? "طلبات الشراء الواردة — قيد المراجعة"
