@@ -1859,6 +1859,35 @@ export type Database = {
         Args: { _user_id: string }
         Returns: boolean
       }
+      public_add_budget_item: {
+        Args: {
+          _committee_id: string
+          _item_name: string
+          _notes?: string
+          _quantity: number
+          _unit_cost: number
+        }
+        Returns: string
+      }
+      public_delete_budget_item: {
+        Args: { _committee_id: string; _item_id: string }
+        Returns: undefined
+      }
+      public_get_budget_for_committee: {
+        Args: { _committee_id: string }
+        Returns: Json
+      }
+      public_update_budget_item: {
+        Args: {
+          _committee_id: string
+          _item_id: string
+          _item_name: string
+          _notes?: string
+          _quantity: number
+          _unit_cost: number
+        }
+        Returns: undefined
+      }
       shares_committee_with: {
         Args: { _target: string; _viewer: string }
         Returns: boolean
