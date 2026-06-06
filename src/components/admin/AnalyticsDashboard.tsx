@@ -9,7 +9,7 @@ import {
 import {
   CalendarRange, CheckCircle2, ClipboardList, HeartHandshake, Loader2,
   Wallet, TrendingUp, BarChart3, Scale, Target, RefreshCw, FileDown,
-  Banknote, HandCoins, FileSpreadsheet, ScrollText,
+  Banknote, HandCoins, FileSpreadsheet, ScrollText, PiggyBank, TrendingDown,
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { exportDashboardPdf } from "@/lib/dashboard-pdf";
@@ -194,6 +194,11 @@ function Inner() {
     ).reduce((s: number, row: any) => s + Number(row.amount || 0), 0);
     const familyContributions = familyCash + branchShareholders;
     const revenues = familyContributions + groomRevenues;
+    // Total estimated budget across all committees (sum of budget_allocated).
+    const budgetTotal = (data.committees ?? []).reduce(
+      (s: number, c: any) => s + Number(c.budget_allocated || 0),
+      0,
+    );
     // Allocated support = total grooms × fixed allocation (treated as projected expense)
     const allocatedFunds = totalMarriages * ALLOCATED_SUPPORT_PER_GROOM;
     const projectedExpenses = expenses + allocatedFunds;
@@ -203,7 +208,7 @@ function Inner() {
     return {
       totalTasks, completed, completionRate, totalMarriages,
       revenues, expenses, allocatedFunds, projectedExpenses, netBalance,
-      familyContributions, groomRevenues,
+      familyContributions, groomRevenues, budgetTotal,
       tasksY, groomsY, paymentsY,
     };
   }, [data, year]);
@@ -420,7 +425,7 @@ function Inner() {
       {/* Section title outside cards */}
       <SectionTitle title="ملخص الأداء" subtitle="المؤشرات الرئيسية للجنة" />
       {/* Unified KPI cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         <HeroKpi label="إجمالي المهام" value={k.totalTasks} sub={`${k.completed} مُنجزة`} icon={ClipboardList} />
         <HeroKpi label="نسبة الإنجاز العامة" value={`${k.completionRate}%`} sub="عبر كل اللجان" icon={CheckCircle2} />
         <HeroKpi label="إجمالي العرسان" value={k.totalMarriages} sub={year === "all" ? "تراكمي" : `سنة ${year}`} icon={HeartHandshake} />
@@ -433,6 +438,25 @@ function Inner() {
           icon={HandCoins}
         />
         <HeroKpi label="المبالغ المخصصة للعرسان" value={fmtSar(k.allocatedFunds)} sub={`${k.totalMarriages} عريس × ${fmtSar(ALLOCATED_SUPPORT_PER_GROOM)}`} icon={Banknote} />
+        <HeroKpi
+          label="إجمالي الإيرادات"
+          value={fmtSar(k.revenues)}
+          sub="مساهمات العائلة + مخصصات العرسان"
+          icon={TrendingUp}
+        />
+        <HeroKpi
+          label="الموازنة التقديرية"
+          value={fmtSar(k.budgetTotal)}
+          sub="مجموع موازنات جميع اللجان"
+          icon={PiggyBank}
+        />
+        <HeroKpi
+          label="إجمالي المصروفات"
+          value={fmtSar(k.expenses)}
+          sub={year === "all" ? "تراكمي · مدفوع" : `سنة ${year} · مدفوع`}
+          icon={TrendingDown}
+          tone="rose"
+        />
         <HeroKpi
           label="صافي الرصيد المالي"
           value={fmtSar(k.netBalance)}
