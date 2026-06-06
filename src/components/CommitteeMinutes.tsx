@@ -973,3 +973,98 @@ function escapeHtml(s: string): string {
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#39;");
 }
+
+interface AckRow {
+  user_id: string;
+  user_name: string | null;
+  acknowledged_at: string;
+}
+
+function AcknowledgeButton({ minuteId }: { minuteId: string }) {
+  const { user } = useAuth();
+  const [rows, setRows] = useState<AckRow[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [open, setOpen] = useState(false);
+
+  const load = async () => {
+    const { data } = await supabase
+      .from("minute_acknowledgements" as any)
+      .select("user_id, user_name, acknowledged_at")
+      .eq("minute_id", minuteId)
+      .order("acknowledged_at", { ascending: false });
+    setRows(((data ?? []) as unknown) as AckRow[]);
+  };
+
+  useEffect(() => { load(); }, [minuteId]);
+
+  const mine = !!user && rows.some((r) => r.user_id === user.id);
+  const myName = (user?.user_metadata as any)?.full_name || user?.email || "عضو";
+
+  const ack = async () => {
+    if (!user) return toast.error("سجّل الدخول أولاً");
+    setLoading(true);
+    try {
+      const { error } = await supabase
+        .from("minute_acknowledgements" as any)
+        .insert({ minute_id: minuteId, user_id: user.id, user_name: myName });
+      if (error) {
+        toast.error("تعذّر تسجيل الاطلاع", { description: error.message });
+        return;
+      }
+      toast.success("تم تسجيل اطلاعك على المحضر");
+      await load();
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          size="sm"
+          variant={mine ? "outline" : "default"}
+          className={mine
+            ? "border-emerald-500/40 text-emerald-700 bg-emerald-500/10 hover:bg-emerald-500/15"
+            : "bg-gradient-to-r from-emerald-600 to-emerald-500 text-white hover:opacity-90"}
+          title={mine ? "اطّلعت — اعرض المطّلعين" : "تسجيل الاطلاع"}
+        >
+          {mine ? <CheckCircle2 className="h-3.5 w-3.5 ms-1" /> : <Eye className="h-3.5 w-3.5 ms-1" />}
+          {mine ? `تم الاطلاع${rows.length > 1 ? ` (${rows.length})` : ""}` : `اطّلعت${rows.length ? ` (${rows.length})` : ""}`}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent align="end" className="w-72 p-0" dir="rtl">
+        <div className="px-3 py-2 border-b bg-muted/30 flex items-center justify-between">
+          <span className="text-xs font-bold">من اطّلع على المحضر</span>
+          <Badge variant="outline" className="text-[10px]">{rows.length}</Badge>
+        </div>
+        <div className="max-h-56 overflow-y-auto divide-y">
+          {rows.length === 0 ? (
+            <p className="text-center text-xs text-muted-foreground py-4">لم يطّلع أحد بعد</p>
+          ) : rows.map((r) => (
+            <div key={r.user_id} className="px-3 py-2 flex items-center gap-2 text-xs">
+              <Check className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
+              <span className="flex-1 truncate font-medium">{r.user_name || "عضو"}</span>
+              <span className="text-[10px] text-muted-foreground shrink-0">
+                {new Date(r.acknowledged_at).toLocaleDateString("ar-SA-u-ca-gregory")}
+              </span>
+            </div>
+          ))}
+        </div>
+        {!mine && (
+          <div className="p-2 border-t bg-muted/20">
+            <Button
+              size="sm"
+              onClick={ack}
+              disabled={loading}
+              className="w-full bg-gradient-to-r from-emerald-600 to-emerald-500 text-white"
+            >
+              {loading ? <Loader2 className="h-3.5 w-3.5 ms-1 animate-spin" /> : <CheckCircle2 className="h-3.5 w-3.5 ms-1" />}
+              تأكيد اطلاعي على المحضر
+            </Button>
+          </div>
+        )}
+      </PopoverContent>
+    </Popover>
+  );
+}
