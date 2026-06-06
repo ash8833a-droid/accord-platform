@@ -32,6 +32,8 @@ interface Minute {
   file_type: string | null;
   file_size: number | null;
   created_at: string;
+  committee_id?: string;
+  from_supreme?: boolean;
 }
 
 interface Props {
@@ -156,13 +158,34 @@ export function CommitteeMinutes({ committeeId, committeeName, canManage }: Prop
   }, [committeeId]);
 
   const load = async () => {
-    const { data } = await supabase
+    // Own committee minutes
+    const { data: own } = await supabase
       .from("committee_minutes" as any)
       .select("*")
       .eq("committee_id", committeeId)
       .order("meeting_date", { ascending: false, nullsFirst: false })
       .order("created_at", { ascending: false });
-    setItems(((data ?? []) as unknown) as Minute[]);
+
+    // Supreme committee minutes — pinned in every committee for awareness
+    const { data: supremeCommittee } = await supabase
+      .from("committees")
+      .select("id")
+      .eq("type", "supreme")
+      .maybeSingle();
+    const supremeId = (supremeCommittee as any)?.id as string | undefined;
+
+    let supremeRows: Minute[] = [];
+    if (supremeId && supremeId !== committeeId) {
+      const { data: sup } = await supabase
+        .from("committee_minutes" as any)
+        .select("*")
+        .eq("committee_id", supremeId)
+        .order("meeting_date", { ascending: false, nullsFirst: false })
+        .order("created_at", { ascending: false });
+      supremeRows = (((sup ?? []) as unknown) as Minute[]).map((m) => ({ ...m, from_supreme: true }));
+    }
+
+    setItems([...supremeRows, ...((((own ?? []) as unknown) as Minute[]))]);
   };
 
   useEffect(() => { load(); }, [committeeId]);
@@ -662,7 +685,14 @@ export function CommitteeMinutes({ committeeId, committeeName, canManage }: Prop
                     <ClipboardList className="h-4 w-4" />
                   </span>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-bold truncate">{m.title}</p>
+                    <p className="text-sm font-bold truncate flex items-center gap-2">
+                      {m.from_supreme && (
+                        <Badge className="text-[10px] bg-gradient-to-r from-primary to-gold text-primary-foreground border-0">
+                          من اللجنة العليا — للاطلاع
+                        </Badge>
+                      )}
+                      <span className="truncate">{m.title}</span>
+                    </p>
                     <p className="text-[11px] text-muted-foreground mt-1 flex items-center gap-2 flex-wrap">
                       {m.meeting_date && (
                         <Badge variant="outline" className="text-[10px] gap-1 border-gold/40 text-gold-foreground bg-gold/10">
@@ -691,7 +721,7 @@ export function CommitteeMinutes({ committeeId, committeeName, canManage }: Prop
                     <Button size="sm" onClick={() => printMinutes(m)} className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground hover:opacity-90" title="محضر احترافي">
                       <Printer className="h-3.5 w-3.5 ms-1" /> طباعة
                     </Button>
-                    {canManage && (
+                    {canManage && !m.from_supreme && (
                       <>
                         <Button size="sm" variant="outline" onClick={() => editExisting(m)} title="تعديل">
                           <Eye className="h-3.5 w-3.5" />
