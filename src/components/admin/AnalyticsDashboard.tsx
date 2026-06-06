@@ -46,6 +46,19 @@ function fmtSar(n: number): string {
   return new Intl.NumberFormat("ar-SA", { maximumFractionDigits: 0 }).format(n) + " ر.س";
 }
 
+// Map a Gregorian year to its dominant Hijri year (used to align branch
+// shareholder contributions, which are stored in hijri_year, with the
+// dashboard's Gregorian year filter).
+function gregorianToHijriYear(g: number): number {
+  try {
+    const fmt = new Intl.DateTimeFormat("en-u-ca-islamic-umalqura", { year: "numeric" });
+    const n = Number(fmt.format(new Date(g, 5, 30)).replace(/\D+/g, ""));
+    return Number.isFinite(n) ? n : g - 579;
+  } catch {
+    return g - 579;
+  }
+}
+
 const AVAILABLE_YEARS = (() => {
   const cur = new Date().getFullYear();
   return [cur, cur - 1, cur - 2, cur - 3, cur - 4];
