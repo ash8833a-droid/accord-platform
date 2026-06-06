@@ -268,12 +268,7 @@ export function FinanceModule() {
 
   return (
     <div className="space-y-7">
-      <div className="flex items-start justify-between gap-3 flex-wrap">
-        <div>
-          <h2 className="text-2xl font-bold">الإدارة المالية</h2>
-          <p className="text-muted-foreground text-sm mt-1">المحفظة، المناديب، الاشتراكات، وطلبات الصرف الواردة</p>
-        </div>
-
+      <div className="flex items-start justify-end gap-3 flex-wrap">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button className="bg-gradient-gold text-gold-foreground shadow-gold gap-2">
