@@ -46,6 +46,8 @@ export function HistoricalShares() {
     notes: "",
   });
   const [customAmount, setCustomAmount] = useState(false);
+  const [customBranch, setCustomBranch] = useState(false);
+  const [customYear, setCustomYear] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
 
   // file upload state
@@ -118,6 +120,8 @@ export function HistoricalShares() {
       notes: "",
     });
     setCustomAmount(false);
+    setCustomBranch(false);
+    setCustomYear(false);
     setEditingId(null);
   };
 
@@ -555,26 +559,69 @@ tfoot td:last-child{border-bottom-left-radius:10px}
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <Label>الفرع العائلي *</Label>
-                      <Select value={form.family_branch} onValueChange={(v) => setForm({ ...form, family_branch: v })}>
-                        <SelectTrigger><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          {FAMILY_BRANCHES.map((b) => (
-                            <SelectItem key={b} value={b}>{b}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <div className="flex items-center justify-between mb-1">
+                        <Label>الفرع العائلي *</Label>
+                        <button
+                          type="button"
+                          className="text-xs text-primary hover:underline"
+                          onClick={() => {
+                            const next = !customBranch;
+                            setCustomBranch(next);
+                            if (next) setForm((f) => ({ ...f, family_branch: "" }));
+                            else setForm((f) => ({ ...f, family_branch: FAMILY_BRANCHES[0] as string }));
+                          }}
+                        >
+                          {customBranch ? "اختر من القائمة" : "إضافة فرع جديد"}
+                        </button>
+                      </div>
+                      {customBranch ? (
+                        <Input
+                          value={form.family_branch}
+                          onChange={(e) => setForm({ ...form, family_branch: e.target.value })}
+                          placeholder="اسم الفرع الجديد"
+                          maxLength={80}
+                        />
+                      ) : (
+                        <Select value={form.family_branch} onValueChange={(v) => setForm({ ...form, family_branch: v })}>
+                          <SelectTrigger><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            {FAMILY_BRANCHES.map((b) => (
+                              <SelectItem key={b} value={b}>{b}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
                     </div>
                     <div>
-                      <Label>السنة الهجرية *</Label>
-                      <Select value={String(form.hijri_year)} onValueChange={(v) => setForm({ ...form, hijri_year: Number(v) })}>
-                        <SelectTrigger><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          {HIJRI_YEARS.map((y) => (
-                            <SelectItem key={y} value={String(y)}>{y}هـ</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <div className="flex items-center justify-between mb-1">
+                        <Label>السنة الهجرية *</Label>
+                        <button
+                          type="button"
+                          className="text-xs text-primary hover:underline"
+                          onClick={() => setCustomYear(!customYear)}
+                        >
+                          {customYear ? "اختر من القائمة" : "سنة مخصصة"}
+                        </button>
+                      </div>
+                      {customYear ? (
+                        <Input
+                          type="number"
+                          min={1300}
+                          max={1600}
+                          value={form.hijri_year}
+                          onChange={(e) => setForm({ ...form, hijri_year: Number(e.target.value) || 0 })}
+                          placeholder="مثال: 1448"
+                        />
+                      ) : (
+                        <Select value={String(form.hijri_year)} onValueChange={(v) => setForm({ ...form, hijri_year: Number(v) })}>
+                          <SelectTrigger><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            {HIJRI_YEARS.map((y) => (
+                              <SelectItem key={y} value={String(y)}>{y}هـ</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
                     </div>
                   </div>
                   <div>
