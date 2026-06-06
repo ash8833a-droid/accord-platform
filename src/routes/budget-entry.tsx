@@ -197,7 +197,7 @@ function UnifiedBudgetEntryPage() {
       <header className="bg-gradient-to-l from-primary to-gold text-primary-foreground px-4 py-5 shadow-md">
         <div className="max-w-xl mx-auto space-y-3">
           <div className="flex items-center gap-3">
-            <span className="h-11 w-11 rounded-2xl bg-white/15 flex items-center justify-center">
+            <span className="h-11 w-11 rounded-2xl bg-primary-foreground/15 flex items-center justify-center">
               <Wallet className="h-5 w-5" />
             </span>
             <div className="flex-1 min-w-0">
