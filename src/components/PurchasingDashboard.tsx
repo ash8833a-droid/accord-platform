@@ -12,7 +12,30 @@ import {
   Building2,
   Calendar,
   Package,
+  Printer,
+  Pencil,
+  Trash2,
 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 
 type Status = "pending" | "approved" | "rejected" | "completed";
 
@@ -49,6 +72,12 @@ export function PurchasingDashboard() {
   const [rows, setRows] = useState<PurchaseRequestRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [actingOn, setActingOn] = useState<string | null>(null);
+  const [editing, setEditing] = useState<PurchaseRequestRow | null>(null);
+  const [editItem, setEditItem] = useState("");
+  const [editQty, setEditQty] = useState<number>(1);
+  const [editJust, setEditJust] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -87,6 +116,90 @@ export function PurchasingDashboard() {
   const approve = (id: string) =>
     updateStatus(id, "approved", "تمت الموافقة على الطلب وجاري الشراء");
   const reject = (id: string) => updateStatus(id, "rejected", "تم رفض الطلب");
+
+  const openEdit = (r: PurchaseRequestRow) => {
+    setEditing(r);
+    setEditItem(r.item_name);
+    setEditQty(r.quantity);
+    setEditJust(r.justification ?? "");
+  };
+
+  const saveEdit = async () => {
+    if (!editing) return;
+    if (!editItem.trim() || editQty < 1) {
+      toast.error("يرجى إدخال اسم الصنف وكمية صحيحة");
+      return;
+    }
+    setSaving(true);
+    const { error } = await supabase
+      .from("purchase_requests")
+      .update({
+        item_name: editItem.trim(),
+        quantity: editQty,
+        justification: editJust.trim() || null,
+      })
+      .eq("id", editing.id);
+    setSaving(false);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success("تم تحديث الطلب");
+    setRows((prev) =>
+      prev.map((r) =>
+        r.id === editing.id
+          ? { ...r, item_name: editItem.trim(), quantity: editQty, justification: editJust.trim() || null }
+          : r,
+      ),
+    );
+    setEditing(null);
+  };
+
+  const confirmDelete = async () => {
+    if (!deletingId) return;
+    const id = deletingId;
+    const { error } = await supabase.from("purchase_requests").delete().eq("id", id);
+    setDeletingId(null);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success("تم حذف الطلب");
+    setRows((prev) => prev.filter((r) => r.id !== id));
+  };
+
+  const printRequest = (r: PurchaseRequestRow) => {
+    const w = window.open("", "_blank", "width=800,height=600");
+    if (!w) {
+      toast.error("تعذر فتح نافذة الطباعة");
+      return;
+    }
+    const date = new Date(r.created_at).toLocaleDateString("ar-SA");
+    w.document.write(`<!doctype html><html dir="rtl" lang="ar"><head><meta charset="utf-8"><title>طلب شراء - ${r.item_name}</title>
+      <style>
+        body{font-family:'Segoe UI',Tahoma,sans-serif;padding:32px;color:#111;}
+        h1{font-size:22px;margin:0 0 4px;}
+        .muted{color:#666;font-size:12px;margin-bottom:24px;}
+        table{width:100%;border-collapse:collapse;margin-top:12px;}
+        th,td{border:1px solid #ddd;padding:10px;text-align:right;font-size:14px;}
+        th{background:#f6f6f6;width:160px;}
+        .just{margin-top:18px;padding:14px;border:1px solid #eee;border-radius:8px;background:#fafafa;white-space:pre-wrap;}
+        .footer{margin-top:40px;display:flex;justify-content:space-between;font-size:12px;color:#555;}
+      </style></head><body>
+      <h1>طلب شراء</h1>
+      <div class="muted">تاريخ الطلب: ${date}</div>
+      <table>
+        <tr><th>اللجنة</th><td>${r.committee?.name ?? "—"}</td></tr>
+        <tr><th>الصنف</th><td>${r.item_name}</td></tr>
+        <tr><th>الكمية</th><td>${r.quantity}</td></tr>
+        <tr><th>الحالة</th><td>${STATUS_LABEL[r.status]}</td></tr>
+      </table>
+      ${r.justification ? `<div class="just"><b>المبرر:</b><br/>${r.justification.replace(/</g,"&lt;")}</div>` : ""}
+      <div class="footer"><span>توقيع مقدم الطلب: ___________</span><span>توقيع لجنة المشتريات: ___________</span></div>
+      <script>window.onload=()=>{window.print();}<\/script>
+      </body></html>`);
+    w.document.close();
+  };
 
   return (
     <div className="space-y-4" dir="rtl">
@@ -166,6 +279,34 @@ export function PurchasingDashboard() {
                     <XCircle className="ml-1 size-4" />
                     رفض
                   </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => printRequest(r)}
+                    title="طباعة"
+                  >
+                    <Printer className="ml-1 size-4" />
+                    طباعة
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => openEdit(r)}
+                    title="تعديل"
+                  >
+                    <Pencil className="ml-1 size-4" />
+                    تعديل
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setDeletingId(r.id)}
+                    className="border-rose-500/40 text-rose-600 hover:bg-rose-500/10"
+                    title="حذف"
+                  >
+                    <Trash2 className="ml-1 size-4" />
+                    حذف
+                  </Button>
                 </div>
               </div>
 
@@ -178,6 +319,66 @@ export function PurchasingDashboard() {
           ))}
         </div>
       )}
+
+      <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
+        <DialogContent dir="rtl">
+          <DialogHeader>
+            <DialogTitle>تعديل طلب الشراء</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <Label>اسم الصنف</Label>
+              <Input value={editItem} onChange={(e) => setEditItem(e.target.value)} />
+            </div>
+            <div>
+              <Label>الكمية</Label>
+              <Input
+                type="number"
+                min={1}
+                value={editQty}
+                onChange={(e) => setEditQty(parseInt(e.target.value) || 1)}
+              />
+            </div>
+            <div>
+              <Label>المبرر</Label>
+              <Textarea
+                rows={4}
+                value={editJust}
+                onChange={(e) => setEditJust(e.target.value)}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditing(null)} disabled={saving}>
+              إلغاء
+            </Button>
+            <Button onClick={saveEdit} disabled={saving}>
+              {saving && <Loader2 className="ml-1 size-4 animate-spin" />}
+              حفظ
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <AlertDialog open={!!deletingId} onOpenChange={(o) => !o && setDeletingId(null)}>
+        <AlertDialogContent dir="rtl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>حذف الطلب</AlertDialogTitle>
+            <AlertDialogDescription>
+              هل أنت متأكد من حذف هذا الطلب؟ لا يمكن التراجع عن هذا الإجراء.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>إلغاء</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              className="bg-rose-600 hover:bg-rose-700 text-white"
+            >
+              حذف
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
