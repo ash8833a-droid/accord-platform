@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, ChevronDown, Loader2, Lock, Pencil, Plus, Save, ShieldCheck, Trash2, Wallet, X } from "lucide-react";
+import { CheckCircle2, ChevronDown, Loader2, Lock, Pencil, Plus, Save, ShieldCheck, Trash2, Wallet, X, Sparkles } from "lucide-react";
 import { toast, Toaster } from "sonner";
 
 interface Committee {
@@ -194,22 +194,43 @@ function UnifiedBudgetEntryPage() {
     <div className="min-h-screen bg-gradient-to-b from-primary/5 to-background pb-32" dir="rtl">
       <Toaster richColors position="top-center" dir="rtl" />
 
-      <header className="bg-gradient-to-l from-primary to-gold text-primary-foreground px-4 py-5 shadow-md">
-        <div className="max-w-xl mx-auto space-y-3">
-          <div className="flex items-center gap-3">
-            <span className="h-11 w-11 rounded-2xl bg-primary-foreground/15 flex items-center justify-center">
+      <header className="relative overflow-hidden bg-gradient-to-bl from-primary via-primary to-[hsl(var(--primary)/0.85)] text-primary-foreground shadow-lg">
+        <div className="absolute inset-0 opacity-[0.07] pointer-events-none" style={{ backgroundImage: "radial-gradient(circle at 20% 20%, white 1px, transparent 1px), radial-gradient(circle at 80% 60%, white 1px, transparent 1px)", backgroundSize: "40px 40px, 60px 60px" }} />
+        <div className="absolute -top-16 -left-16 h-48 w-48 rounded-full bg-gold/20 blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-20 -right-10 h-56 w-56 rounded-full bg-gold/10 blur-3xl pointer-events-none" />
+
+        <div className="relative max-w-xl mx-auto px-4 pt-6 pb-7">
+          {/* Brand identity */}
+          <div className="flex items-center gap-3 pb-4 border-b border-primary-foreground/15">
+            <div className="h-14 w-14 rounded-2xl bg-white/95 p-1.5 shadow-lg ring-1 ring-gold/40 shrink-0">
+              <img src="/brand/zawaj-logo.png" alt="لجنة الزواج الجماعي" className="h-full w-full object-contain" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-[10px] tracking-[0.2em] opacity-75 font-medium">PROGRAM • برنامج</p>
+              <h2 className="text-sm font-extrabold leading-tight">لجنة الزواج الجماعي</h2>
+              <p className="text-[10px] opacity-80 mt-0.5">اللجنة المالية — إدخال الميزانيات</p>
+            </div>
+            <span className="hidden xs:inline-flex items-center gap-1 text-[10px] font-semibold bg-gold/25 backdrop-blur px-2 py-1 rounded-full ring-1 ring-gold/40">
+              <Sparkles className="h-3 w-3" /> رسمي
+            </span>
+          </div>
+
+          {/* Page heading */}
+          <div className="flex items-center gap-3 mt-4">
+            <span className="h-11 w-11 rounded-2xl bg-primary-foreground/15 backdrop-blur flex items-center justify-center ring-1 ring-primary-foreground/20">
               <Wallet className="h-5 w-5" />
             </span>
             <div className="flex-1 min-w-0">
               <p className="text-[11px] opacity-80">رابط موحّد لإدخال ميزانيات اللجان</p>
-              <h1 className="text-base font-extrabold truncate">
-                {selectedCommittee ? selectedCommittee.name : "اختر لجنتك"}
+              <h1 className="text-lg font-extrabold truncate">
+                {selectedCommittee ? selectedCommittee.name : "اختر لجنتك للبدء"}
               </h1>
             </div>
           </div>
-          <div className="flex items-start gap-1.5 text-[11px] opacity-90">
-            <ShieldCheck className="h-3.5 w-3.5 mt-0.5 shrink-0" />
-            <span>بعد اختيار اللجنة، القراءة والتعديل تكون على بنود هذه اللجنة فقط وتظهر فوراً لدى المالية.</span>
+
+          <div className="mt-3 flex items-start gap-1.5 text-[11px] opacity-95 bg-primary-foreground/10 backdrop-blur rounded-lg px-2.5 py-2 ring-1 ring-primary-foreground/15">
+            <ShieldCheck className="h-3.5 w-3.5 mt-0.5 shrink-0 text-gold" />
+            <span>بياناتك آمنة ومشفّرة، وتُزامَن فوراً مع لوحة الإدارة المالية في «ميزانيات اللجان».</span>
           </div>
         </div>
       </header>
