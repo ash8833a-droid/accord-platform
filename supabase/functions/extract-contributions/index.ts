@@ -1,6 +1,7 @@
 // Edge Function: استخراج بيانات مساهمات أفراد القبيلة من PDF/صورة باستخدام Lovable AI
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -45,6 +46,35 @@ serve(async (req) => {
     if (!fileBase64 || !mimeType) {
       return new Response(JSON.stringify({ error: "الملف مطلوب" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Authorization: admin or finance committee member only
+    const authHeader = req.headers.get("Authorization") ?? "";
+    const sb = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_ANON_KEY")!,
+      { global: { headers: { Authorization: authHeader } } }
+    );
+    const { data: userData } = await sb.auth.getUser();
+    const uid = userData?.user?.id;
+    if (!uid) {
+      return new Response(JSON.stringify({ error: "غير مصرح" }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const { data: isAdmin } = await sb.rpc("has_role", { _user_id: uid, _role: "admin" });
+    let allowed = !!isAdmin;
+    if (!allowed) {
+      const { data: roles } = await sb
+        .from("user_roles")
+        .select("committees:committee_id(type)")
+        .eq("user_id", uid);
+      allowed = (roles ?? []).some((r: any) => r.committees?.type === "finance");
+    }
+    if (!allowed) {
+      return new Response(JSON.stringify({ error: "صلاحيات غير كافية" }), {
+        status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
