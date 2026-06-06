@@ -425,7 +425,7 @@ function Inner() {
       {/* Section title outside cards */}
       <SectionTitle title="ملخص الأداء" subtitle="المؤشرات الرئيسية للجنة" />
       {/* Unified KPI cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         <HeroKpi label="إجمالي المهام" value={k.totalTasks} sub={`${k.completed} مُنجزة`} icon={ClipboardList} />
         <HeroKpi label="نسبة الإنجاز العامة" value={`${k.completionRate}%`} sub="عبر كل اللجان" icon={CheckCircle2} />
         <HeroKpi label="إجمالي العرسان" value={k.totalMarriages} sub={year === "all" ? "تراكمي" : `سنة ${year}`} icon={HeartHandshake} />
@@ -438,6 +438,25 @@ function Inner() {
           icon={HandCoins}
         />
         <HeroKpi label="المبالغ المخصصة للعرسان" value={fmtSar(k.allocatedFunds)} sub={`${k.totalMarriages} عريس × ${fmtSar(ALLOCATED_SUPPORT_PER_GROOM)}`} icon={Banknote} />
+        <HeroKpi
+          label="إجمالي الإيرادات"
+          value={fmtSar(k.revenues)}
+          sub="مساهمات العائلة + مخصصات العرسان"
+          icon={TrendingUp}
+        />
+        <HeroKpi
+          label="الموازنة التقديرية"
+          value={fmtSar(k.budgetTotal)}
+          sub="مجموع موازنات جميع اللجان"
+          icon={PiggyBank}
+        />
+        <HeroKpi
+          label="إجمالي المصروفات"
+          value={fmtSar(k.expenses)}
+          sub={year === "all" ? "تراكمي · مدفوع" : `سنة ${year} · مدفوع`}
+          icon={TrendingDown}
+          tone="rose"
+        />
         <HeroKpi
           label="صافي الرصيد المالي"
           value={fmtSar(k.netBalance)}
