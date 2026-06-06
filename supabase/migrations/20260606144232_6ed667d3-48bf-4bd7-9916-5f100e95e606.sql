@@ -1,0 +1,1 @@
+DROP POLICY IF EXISTS grooms_public_insert ON public.grooms;
