@@ -36,6 +36,7 @@ import { ClipboardList, ClipboardCheck, CalendarRange, ShieldCheck, UsersRound, 
 import { WomenTalentsPanel } from "@/components/committee/WomenTalentsPanel";
 import { isExcludedFromWomenSurvey } from "@/lib/women-committee-access";
 import { TaskHighlightBanner } from "@/components/committee/TaskHighlightBanner";
+import { BudgetItemsPanel } from "@/components/finance/BudgetItemsPanel";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth } from "@/lib/auth";
 import { useAppSetting } from "@/hooks/use-app-setting";
@@ -873,6 +874,19 @@ function CommitteePage() {
 
       <QualitySection storageKey={`committee:${type}:members`} title="أعضاء اللجنة" icon={UsersRound} defaultOpen>
         <CommitteeMembersPanel committeeId={committee.id} />
+      </QualitySection>
+
+      <QualitySection
+        storageKey={`committee:${type}:budget-items`}
+        title="بنود الميزانية"
+        icon={WalletIcon}
+        defaultOpen
+      >
+        <BudgetItemsPanel
+          committeeId={committee.id}
+          committeeName={committee.name}
+          canEdit
+        />
       </QualitySection>
 
       <QualitySection storageKey={`committee:${type}:grooms`} title="متابعة العرسان" icon={HeartHandshake}>

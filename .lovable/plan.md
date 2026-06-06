@@ -1,67 +1,79 @@
-# تحديث معمارية الإدارة المالية
+## Budget Management Module
 
-سأقوم بإعادة هيكلة وحدة "الإدارة المالية" لتصبح مركزًا ماليًا موحّدًا بأسلوب مؤسسي (Najiz)، مع أتمتة استخراج بيانات مساهمات الأسرة عبر الذكاء الاصطناعي، ولوحة تاريخية للمساهمات منذ 1436هـ.
+Builds on the existing `committees` table (9 committees already seeded). Adds line-item budget management with real-time aggregation into the Finance dashboard.
 
-## 1. إعادة هيكلة الصفحة المالية
+### 1. Database (one migration)
 
-سيتم تحويل صفحة `/finance-management` إلى مركز موحّد من ثلاث ألسنة (Tabs):
+New table `public.budget_items`:
+- `id` uuid PK
+- `committee_id` uuid FK → `committees(id)` on delete cascade
+- `item_name` text not null
+- `quantity` numeric(12,2) not null, CHECK > 0
+- `unit_cost` numeric(12,2) not null, CHECK >= 0
+- `total_cost` numeric(12,2) GENERATED ALWAYS AS (`quantity * unit_cost`) STORED
+- `notes` text nullable
+- `created_by` uuid, `created_at`, `updated_at` (+ trigger)
 
-- **نظرة عامة (Overview):** بطاقة مالية فاخرة تعرض:
-  - إجمالي الإيرادات (اشتراكات العرسان + مساهمات أفراد القبيلة)
-  - إجمالي المصروفات (مجموع صرفيات اللجان)
-  - الرصيد الحالي = إيرادات − مصروفات
-  - رسوم بيانية: تقسيم الإيرادات (Donut)، صرف اللجان (Bar)
-- **الإيرادات (Revenues):** قسمان واضحان
-  - اشتراكات العرسان (من جدول `subscriptions` المؤكدة)
-  - مساهمات أفراد القبيلة (من `family_contributions`) + بوابة رفع المناديب
-- **المصروفات (Expenses):** جدول لكل لجنة (الميزانية، المنصرف، المتبقي) + سجل طلبات الصرف المدفوعة
+Indexes: `(committee_id)`, `(created_at desc)`.
 
-## 2. بوابة المناديب — استخراج تلقائي بالذكاء الاصطناعي
+Grants: `SELECT, INSERT, UPDATE, DELETE` to `authenticated`; `ALL` to `service_role`.
 
-ميزة جديدة "بوابة المناديب": يرفع المندوب ملف PDF (أو صورة) لكشف المساهمات، فيقوم النظام تلقائيًا باستخراج:
-- اسم المساهم
-- المبلغ
-- تاريخ المساهمة
+RLS policies:
+- SELECT: admin, quality, supreme member, finance committee member, OR member of `committee_id` itself.
+- INSERT/UPDATE/DELETE: admin OR member of `committee_id` (head can edit too via existing helpers).
+- Finance committee gets read-only across all rows; cannot edit other committees' items.
 
-وعرض النتائج للمندوب لمراجعتها/تعديلها قبل الاعتماد، ثم حفظها دفعةً واحدة في `family_contributions`.
+Realtime: `ALTER PUBLICATION supabase_realtime ADD TABLE public.budget_items` and `REPLICA IDENTITY FULL`.
 
-التنفيذ:
-- Edge Function جديدة `extract-contributions` تستخدم Lovable AI Gateway (`google/gemini-2.5-pro` للدقة على الجداول والمسح الضوئي) عبر tool-calling لإرجاع JSON منظّم.
-- مكوّن `DelegateUploadPanel` لرفع الملف، عرض الحالة، ثم جدول مراجعة قابل للتعديل ثم زر "اعتماد وحفظ الكل".
-- صلاحية الرفع: أعضاء اللجنة المالية + admin.
+### 2. Committee budget panel (per-committee)
 
-## 3. السجل التاريخي للمساهمات (منذ 1436هـ)
+New component `src/components/committee/CommitteeBudgetItems.tsx`, embedded in `src/routes/_app.committee.$type.tsx` (visible to that committee's members + admins).
 
-لوحة "السجل التاريخي" تعرض:
-- عدّاد متحرّك للإجمالي التاريخي الكلي والعدد الإجمالي للمساهمين
-- جدول/شبكة سنوية من 1436هـ حتى السنة الحالية مع إجمالي كل سنة وعدد المساهمين
-- مخطط نمو سنوي (Bar Chart) لإظهار التراكم سنويًا
-- البيانات من جدول `historical_shareholders` الموجود مسبقًا (به `hijri_year` و `amount`)
+Features:
+- Inline editable table: Item, Quantity, Unit Cost, Total (auto = qty × unit, computed live in UI), Notes, actions.
+- Add row inline; edit in place; delete with confirm.
+- Client validation: qty > 0, unit_cost ≥ 0, name required (zod).
+- Live Grand Total footer (sums client state, reconciled with DB after mutations).
+- Supabase realtime subscription on `budget_items` filtered by `committee_id` for cross-tab sync.
+- Export buttons: Excel (CSV via existing util) and PDF (branded, see §4).
 
-## 4. تنظيف الصفحات المكررة
+### 3. Finance Dashboard aggregation
 
-- توحيد العرض: `/finance` و `/payment-requests` يُحوَّلان حاليًا إلى صفحة اللجنة المالية. سأحافظ على ذلك لكن سأجعل `/finance-management` هو "مركز المعاملات" الرئيسي وأزيل أي بطاقات/جداول مكررة بين `FinanceModule` ولوحة اللجنة المالية.
-- إزالة عرض المساهمات من أي مكان آخر إن كرّر `FamilyContributionsPanel`.
+Add a new tab/section "ميزانيات اللجان" inside `src/components/FinanceModule.tsx` (rendered under `/finance-management`, already restricted to finance/admin/quality/supreme).
 
-## 5. الواجهة (UI/UX)
+Features:
+- Summary widget: "إجمالي ميزانية المشروع" = sum of all `total_cost`.
+- Per-committee aggregated table: Committee name, item count, grand total, % of overall.
+- Expandable row to show that committee's line items (read-only).
+- Filters: by committee (multi-select), sort by highest cost, search by item name.
+- Realtime subscription on all `budget_items` → recompute aggregates instantly.
+- Export buttons: full Excel workbook (one sheet per committee + summary sheet) and consolidated branded PDF.
 
-- تصميم بنكي مؤسسي بأسلوب نجيز: بطاقات بحواف ناعمة، تدرّجات هادئة (teal/gold)، أرقام بخط `tabular-nums`، RTL محكم.
-- بطاقة ملخّص رئيسية كبيرة في الأعلى (إيرادات / مصروفات / رصيد) مع شريط نسبة استخدام الميزانية.
-- إيقونات Lucide موحّدة (`TrendingUp`, `TrendingDown`, `Wallet`, `Upload`, `History`).
+### 4. Branded PDF & Excel export
 
-## التفاصيل التقنية
+Reuse `src/lib/report-shared.ts` tokens + `src/lib/print-frame.ts` for printable HTML → PDF (browser print dialog, same pattern used elsewhere in the project).
 
-- **Frontend:**
-  - `src/components/FinanceModule.tsx` — إعادة تنظيم إلى ثلاث ألسنة (Overview / Revenues / Expenses).
-  - `src/components/finance/FinanceSummaryCard.tsx` — بطاقة الملخص الفاخرة + رسوم recharts.
-  - `src/components/finance/DelegateUploadPanel.tsx` — رفع PDF/صورة، استدعاء edge function، جدول مراجعة، حفظ دفعي.
-  - `src/components/finance/HistoricalContributionsDashboard.tsx` — العدّاد + الرسم السنوي + الجدول.
-- **Backend:**
-  - Edge Function `supabase/functions/extract-contributions/index.ts` — يستقبل ملفًا (base64)، يستدعي Lovable AI بـ tool-calling، ويُعيد مصفوفة `{donor_name, amount, contribution_date}`.
-- **DB:** لا حاجة لتغييرات هيكلية؛ الجداول `family_contributions`, `historical_shareholders`, `subscriptions`, `payment_requests`, `committees` كافية.
-- **AI Model:** `google/gemini-2.5-pro` (يدعم رؤية الصور/PDF + استدلال على الجداول).
-- **Auth:** الـ edge function تُحقّق jwt (verify_jwt = true افتراضيًا) — فقط المستخدمون المسجلون يستطيعون الاستخراج.
+PDF template:
+- Header: logo (`src/assets/brand-logo.ts`), official title "لجنة الزواج الجماعي", committee name, Hijri/Gregorian date, reference number (`buildReferenceNumber`).
+- Table: Item | Quantity | Unit Cost | Total Cost.
+- Footer: page number, watermark from `watermarkCss`.
+- Grand Total highlighted row at bottom (bold, gold accent).
 
-## ملاحظة
+Excel: use existing exporter pattern in `src/lib/exporters.ts` (CSV with BOM for Arabic). For multi-sheet workbooks on Finance dashboard, add a lightweight xlsx export via `xlsx` lib if not present — otherwise emit one CSV per committee in a zip; will confirm during build.
 
-استخراج OCR من PDF عبر النموذج يكون أدق عند تحويل PDF إلى صور لكل صفحة. سأبدأ بدعم رفع **الصور (JPG/PNG)** + **PDF صفحة واحدة** مباشرة إلى النموذج. لاحقًا يمكن إضافة معالج PDF متعدد الصفحات إن دعت الحاجة.
+### 5. Access & wiring
+
+- Use existing `useAuth()` + `has_role` / `is_committee_member` helpers (no new roles).
+- Add link in finance management page sidebar/tabs.
+- Mobile-responsive table (existing Tailwind patterns + horizontal scroll wrapper as in `CommitteeBudgetLimits.tsx`).
+
+### Technical notes
+
+- `total_cost` is a generated column → DB enforces the formula; UI computes the same for instant feedback.
+- Realtime keeps Finance dashboard and committee pages in sync with no refresh.
+- Validation: zod schema both client-side (form) and DB-level (CHECK constraints).
+- No edge functions needed; all CRUD via supabase-js with RLS.
+
+### Open question
+
+Should each committee's grand total automatically update `committees.budget_allocated` (the existing field consumed by `CommitteeBudgetLimits`), or keep line-item totals separate from the manually-set allocated cap? Default: keep separate — budget items represent *requested* spending; the allocated cap stays an admin/finance decision. Confirm before implementation.

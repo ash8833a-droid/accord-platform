@@ -15,6 +15,7 @@ import { exportRequestsCSV, exportRequestsXLSX, exportRequestsPDF, type ExportRe
 import { SharesByBranch } from "@/components/finance/SharesByBranch";
 import { GroomContributions } from "@/components/finance/GroomContributions";
 import { CommitteeBudgetLimits } from "@/components/finance/CommitteeBudgetLimits";
+import { BudgetOverviewPanel } from "@/components/finance/BudgetOverviewPanel";
 import { FamilyContributionsPanel } from "@/components/finance/FamilyContributionsPanel";
 import { FinanceSummaryCard } from "@/components/finance/FinanceSummaryCard";
 import { DelegateUploadPanel } from "@/components/finance/DelegateUploadPanel";
@@ -327,6 +328,7 @@ export function FinanceModule() {
           <TabsTrigger value="shares" className="gap-2"><TreePine className="h-4 w-4" /> أسهم الفروع</TabsTrigger>
           <TabsTrigger value="delegates" className="gap-2"><Users2 className="h-4 w-4" /> المناديب</TabsTrigger>
           <TabsTrigger value="safety" className="gap-2"><ShieldCheck className="h-4 w-4" /> السلامة المالية</TabsTrigger>
+          <TabsTrigger value="budgets" className="gap-2"><Wallet className="h-4 w-4" /> ميزانيات اللجان</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="mt-5 space-y-4">
@@ -566,6 +568,10 @@ export function FinanceModule() {
             totalPaid={expensesTotal}
             pendingCount={pendingCount}
           />
+        </TabsContent>
+
+        <TabsContent value="budgets" className="mt-5">
+          <BudgetOverviewPanel />
         </TabsContent>
       </Tabs>
 
