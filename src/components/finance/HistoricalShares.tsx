@@ -482,7 +482,7 @@ tfoot td:last-child{border-bottom-left-radius:10px}
               size="sm"
               className="gap-1"
               onClick={async () => {
-                const url = `${window.location.origin}/contribute-shares/${activeYear}`;
+                const url = `https://lajnat-zawaj.org/contribute-shares/${activeYear}`;
                 try {
                   await navigator.clipboard.writeText(url);
                   toast.success("تم نسخ رابط المندوب");
@@ -499,7 +499,7 @@ tfoot td:last-child{border-bottom-left-radius:10px}
               size="sm"
               className="gap-1 border-emerald-300 text-emerald-700 hover:bg-emerald-50"
               onClick={() => {
-                const url = `${window.location.origin}/contribute-shares/${activeYear}`;
+                const url = `https://lajnat-zawaj.org/contribute-shares/${activeYear}`;
                 const msg =
                   `السلام عليكم،\n\n` +
                   `يُرجى من مندوب الفرع تعبئة قائمة المساهمين من العائلة في ` +
