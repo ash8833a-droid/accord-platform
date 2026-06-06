@@ -387,4 +387,30 @@ function BudgetEntryPage() {
 
 export const Route = createFileRoute("/budget-entry/$committeeId")({
   component: BudgetEntryPage,
+  head: () => {
+    const title = "موازنة اللجان — لجنة الزواج الجماعي";
+    const description =
+      "إدخال بنود ميزانية اللجنة ضمن برنامج لجنة الزواج الجماعي لقبيلة الهملة من قريش.";
+    const image = "https://www.lajnat-zawaj.org/brand/zawaj-logo.png";
+    return {
+      meta: [
+        { title },
+        { name: "description", content: description },
+        { name: "theme-color", content: "#1B4F58" },
+        { property: "og:type", content: "website" },
+        { property: "og:site_name", content: "لجنة الزواج الجماعي" },
+        { property: "og:title", content: title },
+        { property: "og:description", content: description },
+        { property: "og:image", content: image },
+        { property: "og:image:alt", content: "شعار لجنة الزواج الجماعي" },
+        { name: "twitter:card", content: "summary_large_image" },
+        { name: "twitter:title", content: title },
+        { name: "twitter:description", content: description },
+        { name: "twitter:image", content: image },
+      ],
+      links: [
+        { rel: "icon", type: "image/png", href: "/brand/zawaj-logo.png" },
+      ],
+    };
+  },
 });
