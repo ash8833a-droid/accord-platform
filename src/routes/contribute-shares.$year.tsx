@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { HeartHandshake, Sparkles, Upload } from "lucide-react";
+import { Sparkles, Upload, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -173,11 +173,11 @@ function ContributeSharesPage() {
 
   if (done) {
     return (
-      <div dir="rtl" className="min-h-screen flex items-center justify-center p-6 bg-muted/30">
-        <Card className="max-w-md w-full border-emerald-200">
+      <div dir="rtl" className="min-h-screen flex items-center justify-center p-6 bg-[#F6F8F8]">
+        <Card className="max-w-md w-full border-[#1B4F58]/15 shadow-lg">
           <CardContent className="p-8 text-center space-y-4">
-            <div className="mx-auto h-16 w-16 rounded-full bg-emerald-100 flex items-center justify-center">
-              <CheckCircle2 className="h-9 w-9 text-emerald-600" />
+            <div className="mx-auto h-16 w-16 rounded-full bg-gradient-to-br from-[#1B4F58] to-[#0E3A42] flex items-center justify-center shadow-md">
+              <CheckCircle2 className="h-9 w-9 text-white" />
             </div>
             <h1 className="text-2xl font-extrabold">جزاكم الله خيراً</h1>
             <p className="text-sm text-muted-foreground leading-7">
@@ -193,7 +193,7 @@ function ContributeSharesPage() {
                   setRows([emptyRow()]);
                   setDelegateName("");
                 }}
-                className="gap-1"
+                className="gap-1 bg-[#1B4F58] hover:bg-[#0E3A42] text-white"
               >
                 <Plus className="h-4 w-4" /> إضافة قائمة جديدة
               </Button>
@@ -210,54 +210,72 @@ function ContributeSharesPage() {
   }
 
   return (
-    <div dir="rtl" className="min-h-screen bg-gradient-to-b from-muted/30 to-background pb-12">
-      {/* Hero */}
-      <div className="bg-gradient-to-l from-emerald-700 via-emerald-600 to-teal-600 text-white">
-        <div className="max-w-3xl mx-auto px-4 py-8">
-          <div className="flex items-center gap-3">
-            <div className="h-12 w-12 rounded-2xl bg-white/10 backdrop-blur flex items-center justify-center">
-              <HeartHandshake className="h-7 w-7 text-white" />
+    <div dir="rtl" className="min-h-screen bg-[#F6F8F8] pb-12">
+      {/* Hero — هوية اللجنة (تيل + ذهبي) */}
+      <div
+        className="relative text-white overflow-hidden"
+        style={{
+          background:
+            "linear-gradient(135deg, #0E3A42 0%, #1B4F58 55%, #1B4F58 100%)",
+        }}
+      >
+        {/* لمسة ذهبية رفيعة سفلية */}
+        <div className="absolute inset-x-0 bottom-0 h-[3px] bg-gradient-to-l from-transparent via-[#C4A25C] to-transparent" />
+        <div className="max-w-3xl mx-auto px-5 py-7">
+          <div className="flex items-center gap-3.5">
+            <div className="h-14 w-14 rounded-2xl bg-white p-1.5 shadow-md ring-1 ring-white/20 shrink-0">
+              <img
+                src="/brand/zawaj-logo.png"
+                alt="لجنة الزواج الجماعي"
+                className="h-full w-full object-contain"
+                loading="eager"
+              />
             </div>
-            <div>
-              <p className="text-xs opacity-85">لجنة الزواج الجماعي · الإدارة المالية</p>
-              <h1 className="text-xl md:text-2xl font-extrabold">
-                تسجيل مساهمات الفرع للزواج الـ12 — {hijriYear}هـ
+            <div className="min-w-0">
+              <p className="text-[11px] tracking-wide text-[#E6D6A8] font-semibold">
+                لجنة الزواج الجماعي · الإدارة المالية
+              </p>
+              <h1 className="text-lg md:text-xl font-extrabold leading-tight mt-0.5">
+                مساهمات الفرع للزواج الـ12
+                <span className="inline-block mx-2 text-[#E6D6A8]">·</span>
+                {hijriYear}هـ
               </h1>
             </div>
           </div>
-          <p className="text-sm opacity-90 mt-3 leading-7">
-            مرحباً بمندوب الفرع — يُرجى كتابة اسمك واختيار الفرع العائلي، ثم إضافة
-            أسماء المساهمين من عائلتك مع مبلغ كل واحد. الإرسال يصل مباشرةً للإدارة
-            المالية ويظهر في سجل أسهم الفروع.
-          </p>
         </div>
       </div>
 
-      <div className="max-w-3xl mx-auto px-4 -mt-6">
-        <Card className="shadow-elegant">
-          <CardContent className="p-5 md:p-6 space-y-6">
+      <div className="max-w-3xl mx-auto px-4 -mt-5">
+        <Card className="shadow-xl border-[#1B4F58]/10 overflow-hidden">
+          {/* شريط رفيع علوي بهوية اللجنة */}
+          <div className="h-1 bg-gradient-to-l from-[#C4A25C] via-[#1B4F58] to-[#C4A25C]" />
+          <CardContent className="p-5 md:p-6 space-y-5">
+            {/* تعليمات مختصرة */}
+            <p className="text-[13px] text-muted-foreground leading-7 border-r-2 border-[#C4A25C] pr-3">
+              مرحباً بمندوب الفرع — أدخل بياناتك ثم أضف المساهمين وأمبالغهم،
+              أو ارفع كشفاً ليُحلَّل تلقائياً. الإرسال يصل مباشرةً للإدارة المالية.
+            </p>
+
             {/* Delegate */}
             <section className="space-y-3">
-              <div className="flex items-center gap-2">
-                <Users2 className="h-4 w-4 text-emerald-600" />
-                <h2 className="font-bold">بيانات المندوب</h2>
-              </div>
+              <SectionHeader icon={Users2} title="بيانات المندوب" />
               <div className="grid md:grid-cols-2 gap-3">
                 <div>
-                  <Label>اسم المندوب *</Label>
+                  <Label className="text-xs text-muted-foreground">اسم المندوب *</Label>
                   <Input
                     value={delegateName}
                     onChange={(e) => setDelegateName(e.target.value)}
                     placeholder="الاسم الكامل"
                     maxLength={120}
+                    className="mt-1 h-10"
                   />
                 </div>
                 <div>
                   <div className="flex items-center justify-between mb-1">
-                    <Label>الفرع العائلي *</Label>
+                    <Label className="text-xs text-muted-foreground">الفرع العائلي *</Label>
                     <button
                       type="button"
-                      className="text-xs text-primary hover:underline"
+                      className="text-[11px] text-[#1B4F58] hover:text-[#0E3A42] font-semibold hover:underline"
                       onClick={() => {
                         const next = !customBranch;
                         setCustomBranch(next);
@@ -273,10 +291,11 @@ function ContributeSharesPage() {
                       onChange={(e) => setBranch(e.target.value)}
                       placeholder="اكتب اسم الفرع"
                       maxLength={80}
+                      className="h-10"
                     />
                   ) : (
                     <Select value={branch} onValueChange={setBranch}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectTrigger className="h-10"><SelectValue /></SelectTrigger>
                       <SelectContent>
                         {FAMILY_BRANCHES.map((b) => (
                           <SelectItem key={b} value={b}>{b}</SelectItem>
@@ -286,8 +305,8 @@ function ContributeSharesPage() {
                   )}
                 </div>
               </div>
-              <div className="text-xs text-muted-foreground flex items-center gap-1">
-                <Calendar className="h-3.5 w-3.5" />
+              <div className="text-[11px] text-muted-foreground flex items-center gap-1.5">
+                <Calendar className="h-3.5 w-3.5 text-[#C4A25C]" />
                 السنة الهجرية: <b className="text-foreground">{hijriYear}هـ</b>
               </div>
             </section>
@@ -295,86 +314,90 @@ function ContributeSharesPage() {
             {/* Contributors */}
             <section className="space-y-3">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Coins className="h-4 w-4 text-amber-600" />
-                  <h2 className="font-bold">قائمة المساهمين</h2>
-                </div>
-                <Button type="button" size="sm" variant="outline" onClick={addRow} className="gap-1">
+                <SectionHeader icon={Coins} title="قائمة المساهمين" accent="gold" />
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={addRow}
+                  className="gap-1 border-[#1B4F58]/30 text-[#1B4F58] hover:bg-[#1B4F58]/5"
+                >
                   <Plus className="h-4 w-4" /> إضافة مساهم
                 </Button>
               </div>
 
               {/* Smart AI analysis */}
-              <div className="rounded-2xl border-2 border-dashed border-emerald-300 bg-gradient-to-l from-emerald-50 via-teal-50 to-emerald-50 p-4">
-                <div className="flex items-start gap-3">
-                  <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-emerald-600 to-teal-600 text-white flex items-center justify-center shrink-0 shadow-sm">
-                    <Sparkles className="h-5 w-5" />
-                  </div>
-                  <div className="flex-1 space-y-2">
-                    <div>
-                      <h3 className="font-bold text-emerald-900">التحليل الذكي ✨</h3>
-                      <p className="text-xs text-emerald-900/80 leading-6">
-                        ارفع صورة كشف الأسماء أو ملف (PDF / صورة / نص)، وسيقوم النظام بقراءة
-                        الأسماء والمبالغ تلقائياً وتعبئتها في القائمة، ثم تستطيع المراجعة قبل الإرسال.
-                      </p>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      <Button
-                        type="button"
-                        size="sm"
-                        onClick={() => fileInputRef.current?.click()}
-                        disabled={analyzing}
-                        className="gap-1 bg-gradient-to-l from-emerald-700 to-teal-600 text-white"
-                      >
-                        {analyzing ? (
-                          <><Loader2 className="h-4 w-4 animate-spin" /> جارٍ التحليل…</>
-                        ) : (
-                          <><Upload className="h-4 w-4" /> اختر صورة أو ملف</>
-                        )}
-                      </Button>
-                      <span className="text-[11px] text-emerald-900/70 self-center">
-                        يدعم: صور (JPG/PNG)، PDF، نص. الحد 12MB.
-                      </span>
-                    </div>
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept="image/*,application/pdf,text/plain,.txt,.csv"
-                      hidden
-                      onChange={(e) => {
-                        const f = e.target.files?.[0];
-                        if (f) void handleSmartAnalyze(f);
-                      }}
-                    />
-                  </div>
+              <div
+                className="rounded-xl border bg-white p-3.5 flex items-center gap-3 relative overflow-hidden"
+                style={{
+                  borderColor: "rgba(27,79,88,0.18)",
+                  boxShadow: "inset 0 0 0 1px rgba(196,162,92,0.08)",
+                }}
+              >
+                <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-[#1B4F58] to-[#0E3A42] text-[#E6D6A8] flex items-center justify-center shrink-0">
+                  <Sparkles className="h-5 w-5" />
                 </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[13px] font-bold text-[#0E3A42] leading-tight">
+                    التحليل الذكي للكشوفات
+                  </p>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">
+                    ارفع كشفاً (صورة / PDF / نص) ليتم استخراج الأسماء والمبالغ تلقائياً.
+                  </p>
+                </div>
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={analyzing}
+                  className="gap-1.5 bg-[#1B4F58] hover:bg-[#0E3A42] text-white shrink-0"
+                >
+                  {analyzing ? (
+                    <><Loader2 className="h-4 w-4 animate-spin" /> جارٍ التحليل…</>
+                  ) : (
+                    <><Upload className="h-4 w-4" /> رفع كشف</>
+                  )}
+                </Button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*,application/pdf,text/plain,.txt,.csv"
+                  hidden
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    if (f) void handleSmartAnalyze(f);
+                  }}
+                />
               </div>
 
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {rows.map((row, i) => (
                   <div
                     key={i}
-                    className="rounded-xl border bg-muted/30 p-3 grid md:grid-cols-12 gap-2 items-start"
+                    className="rounded-lg border border-[#1B4F58]/10 bg-white p-2.5 grid md:grid-cols-12 gap-2 items-center hover:border-[#1B4F58]/25 transition"
                   >
-                    <div className="md:col-span-1 text-sm font-bold text-muted-foreground pt-2 text-center">
-                      #{i + 1}
+                    <div className="md:col-span-1 flex md:justify-center">
+                      <span className="inline-flex h-6 w-6 items-center justify-center rounded-md bg-[#1B4F58]/8 text-[#1B4F58] text-[11px] font-bold">
+                        {i + 1}
+                      </span>
                     </div>
                     <div className="md:col-span-5">
-                      <Label className="text-xs">اسم المساهم</Label>
                       <Input
                         value={row.full_name}
                         onChange={(e) => updateRow(i, { full_name: e.target.value })}
-                        placeholder="الاسم الكامل"
+                        placeholder="اسم المساهم الكامل"
                         maxLength={120}
+                        className="h-9 border-transparent bg-[#F6F8F8] focus-visible:bg-white focus-visible:border-[#1B4F58]/40"
                       />
                     </div>
                     <div className="md:col-span-3">
-                      <Label className="text-xs">المبلغ (ر.س)</Label>
                       <Select
                         value={String(row.amount)}
                         onValueChange={(v) => updateRow(i, { amount: Number(v) })}
                       >
-                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectTrigger className="h-9 border-transparent bg-[#F6F8F8] focus:bg-white">
+                          <SelectValue />
+                        </SelectTrigger>
                         <SelectContent>
                           {AMOUNT_OPTIONS.map((a) => (
                             <SelectItem key={a} value={String(a)}>{fmt(a)} ر.س</SelectItem>
@@ -383,15 +406,15 @@ function ContributeSharesPage() {
                       </Select>
                     </div>
                     <div className="md:col-span-2">
-                      <Label className="text-xs">ملاحظات</Label>
                       <Input
                         value={row.notes}
                         onChange={(e) => updateRow(i, { notes: e.target.value })}
-                        placeholder="اختياري"
+                        placeholder="ملاحظات"
                         maxLength={120}
+                        className="h-9 border-transparent bg-[#F6F8F8] focus-visible:bg-white focus-visible:border-[#1B4F58]/40"
                       />
                     </div>
-                    <div className="md:col-span-1 flex md:justify-center md:pt-6">
+                    <div className="md:col-span-1 flex md:justify-center">
                       <Button
                         type="button"
                         size="icon"
@@ -399,30 +422,35 @@ function ContributeSharesPage() {
                         onClick={() => removeRow(i)}
                         disabled={rows.length === 1}
                         title="حذف"
+                        className="h-8 w-8"
                       >
-                        <Trash2 className="h-4 w-4 text-rose-600" />
+                        <Trash2 className="h-4 w-4 text-rose-500/80" />
                       </Button>
                     </div>
                   </div>
                 ))}
               </div>
 
-              <div className="flex items-center justify-between rounded-xl border-2 border-dashed border-emerald-300 bg-emerald-50 px-4 py-3">
-                <span className="text-sm font-bold text-emerald-900">
-                  الإجمالي: {rows.length} مساهم
+              <div
+                className="flex items-center justify-between rounded-xl px-4 py-3 text-white"
+                style={{ background: "linear-gradient(135deg, #1B4F58 0%, #0E3A42 100%)" }}
+              >
+                <span className="text-[13px] font-semibold inline-flex items-center gap-2">
+                  <Users2 className="h-4 w-4 text-[#E6D6A8]" />
+                  الإجمالي · {rows.length} مساهم
                 </span>
-                <span className="text-base font-extrabold text-emerald-900">
-                  {fmt(total)} ر.س
+                <span className="text-lg font-extrabold tracking-tight text-[#E6D6A8]">
+                  {fmt(total)} <span className="text-xs text-white/80 font-semibold">ر.س</span>
                 </span>
               </div>
             </section>
 
-            <div className="flex flex-col gap-2 pt-2">
+            <div className="flex flex-col gap-2 pt-1">
               <Button
                 size="lg"
                 onClick={handleSubmit}
                 disabled={submitting}
-                className="gap-2 bg-gradient-to-l from-emerald-700 to-teal-600 text-white"
+                className="gap-2 h-12 text-[15px] font-bold bg-[#1B4F58] hover:bg-[#0E3A42] text-white shadow-md"
               >
                 {submitting ? (
                   <><Loader2 className="h-4 w-4 animate-spin" /> جارٍ الإرسال…</>
@@ -430,13 +458,39 @@ function ContributeSharesPage() {
                   <><Send className="h-4 w-4" /> إرسال القائمة للإدارة المالية</>
                 )}
               </Button>
-              <p className="text-[11px] text-center text-muted-foreground">
-                بإرسالك القائمة فأنت تُقرّ بصحة البيانات. ستصل مباشرةً للإدارة المالية للتدقيق.
+              <p className="text-[11px] text-center text-muted-foreground inline-flex items-center justify-center gap-1.5">
+                <ShieldCheck className="h-3.5 w-3.5 text-[#1B4F58]" />
+                بإرسالك القائمة فأنت تُقرّ بصحة البيانات — تصل مباشرةً للإدارة المالية للتدقيق.
               </p>
             </div>
           </CardContent>
         </Card>
+
+        {/* فوتر مختصر بهوية اللجنة */}
+        <p className="text-center text-[11px] text-muted-foreground mt-4">
+          © لجنة الزواج الجماعي · {hijriYear}هـ
+        </p>
       </div>
+    </div>
+  );
+}
+
+function SectionHeader({
+  icon: Icon,
+  title,
+  accent = "teal",
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  title: string;
+  accent?: "teal" | "gold";
+}) {
+  const bg = accent === "gold" ? "bg-[#C4A25C]/12 text-[#8A6E2E]" : "bg-[#1B4F58]/10 text-[#1B4F58]";
+  return (
+    <div className="flex items-center gap-2">
+      <span className={`h-7 w-7 rounded-lg flex items-center justify-center ${bg}`}>
+        <Icon className="h-3.5 w-3.5" />
+      </span>
+      <h2 className="font-bold text-[14px] text-[#0E3A42]">{title}</h2>
     </div>
   );
 }
