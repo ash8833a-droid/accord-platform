@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { lookupGroomByToken, updateGroomByToken } from "@/lib/grooms-public.functions";
 import { Logo } from "@/components/Logo";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -77,18 +78,18 @@ function GroomEditByTokenPage() {
     let cancelled = false;
     (async () => {
       setLoading(true);
-      const { data, error } = await supabase
-        .from("grooms")
-        .select("id, full_name, phone, national_id, family_branch, photo_url, national_id_url, request_type, request_details, status")
-        .eq("edit_token", token)
-        .maybeSingle();
-      if (cancelled) return;
-      if (error || !data) {
-        setNotFound(true);
-      } else {
-        setGroom(data as Groom);
-        setRequestType((data as Groom).request_type ?? "none");
-        setRequestDetails((data as Groom).request_details ?? "");
+      try {
+        const { groom: row } = await lookupGroomByToken({ data: { token } });
+        if (cancelled) return;
+        if (!row) {
+          setNotFound(true);
+        } else {
+          setGroom(row as Groom);
+          setRequestType((row as Groom).request_type ?? "none");
+          setRequestDetails((row as Groom).request_details ?? "");
+        }
+      } catch {
+        if (!cancelled) setNotFound(true);
       }
       setLoading(false);
     })();
@@ -122,8 +123,7 @@ function GroomEditByTokenPage() {
         return;
       }
 
-      const { error } = await supabase.from("grooms").update(updates).eq("id", groom.id);
-      if (error) throw error;
+      await updateGroomByToken({ data: { token, updates } });
       toast.success("تم حفظ التعديلات بنجاح");
       setGroom({
         ...groom,

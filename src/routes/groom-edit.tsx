@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { lookupGroomByPhone, updateGroomByToken } from "@/lib/grooms-public.functions";
 import { Logo } from "@/components/Logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -44,6 +45,7 @@ interface Groom {
   request_details: string | null;
   status: string;
   created_at: string;
+  edit_token: string;
 }
 
 async function uploadPublic(file: File, prefix: string): Promise<string | null> {
@@ -91,24 +93,17 @@ function GroomEditPage() {
     }
     setSearching(true);
     try {
-      const { data, error } = await supabase
-        .from("grooms")
-        .select("id, full_name, phone, family_branch, photo_url, national_id_url, request_type, request_details, status, created_at")
-        .eq("phone", p)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      if (error) throw error;
-      if (!data) {
+      const { groom: row } = await lookupGroomByPhone({ data: { phone: p } });
+      if (!row) {
         toast.error("لم يُعثر على طلب بهذا الرقم", {
           description: "تأكد من الرقم أو سجّل طلباً جديداً أولاً.",
         });
         setGroom(null);
         return;
       }
-      setGroom(data as Groom);
-      setRequestType((data as Groom).request_type ?? "none");
-      setRequestDetails((data as Groom).request_details ?? "");
+      setGroom(row as Groom);
+      setRequestType((row as Groom).request_type ?? "none");
+      setRequestDetails((row as Groom).request_details ?? "");
       toast.success("تم العثور على طلبك");
     } catch (err: any) {
       toast.error("تعذّر البحث", { description: err.message });
@@ -143,11 +138,7 @@ function GroomEditPage() {
         return;
       }
 
-      const { error } = await supabase
-        .from("grooms")
-        .update(updates)
-        .eq("id", groom.id);
-      if (error) throw error;
+      await updateGroomByToken({ data: { token: groom.edit_token, updates } });
 
       toast.success("تم حفظ التعديلات بنجاح", {
         description: "ستراجعها اللجنة قريباً وتتواصل معك.",
