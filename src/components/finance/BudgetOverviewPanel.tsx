@@ -305,12 +305,13 @@ export function BudgetOverviewPanel() {
                 <th className="px-3 py-3 font-medium w-24">عدد البنود</th>
                 <th className="px-3 py-3 font-medium w-40">الإجمالي</th>
                 <th className="px-3 py-3 font-medium w-32">النسبة من المشروع</th>
+                <th className="px-3 py-3 font-medium w-32">مشاركة</th>
               </tr>
             </thead>
             <tbody>
               {groups.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="text-center py-10 text-muted-foreground text-xs">
+                  <td colSpan={6} className="text-center py-10 text-muted-foreground text-xs">
                     لا توجد بنود ميزانية مطابقة للفلاتر
                   </td>
                 </tr>
@@ -346,25 +347,27 @@ export function BudgetOverviewPanel() {
                             />
                           </div>
                           <span className="text-[11px] tabular-nums w-10 text-left">{pct.toFixed(1)}%</span>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={(e) => copyShareLink(e, g.committee_id)}
-                            className="h-7 gap-1 text-[11px] shrink-0"
-                            title="نسخ رابط إدخال البنود (للمشاركة عبر واتساب)"
-                          >
-                            {copiedId === g.committee_id ? (
-                              <><Check className="h-3 w-3 text-emerald-600" /> تم النسخ</>
-                            ) : (
-                              <><Link2 className="h-3 w-3" /> نسخ الرابط</>
-                            )}
-                          </Button>
                         </div>
+                      </td>
+                      <td className="px-3 py-3" onClick={(e) => e.stopPropagation()}>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={(e) => copyShareLink(e, g.committee_id)}
+                          className="h-8 gap-1 text-[11px] w-full"
+                          title="نسخ رابط إدخال البنود (للمشاركة عبر واتساب)"
+                        >
+                          {copiedId === g.committee_id ? (
+                            <><Check className="h-3 w-3 text-emerald-600" /> تم النسخ</>
+                          ) : (
+                            <><Link2 className="h-3 w-3" /> نسخ الرابط</>
+                          )}
+                        </Button>
                       </td>
                     </tr>
                     {isOpen && (
                       <tr key={`${g.committee_id}-detail`} className="bg-muted/10">
-                        <td colSpan={5} className="px-4 py-3">
+                        <td colSpan={6} className="px-4 py-3">
                           <div className="rounded-lg border bg-card overflow-hidden">
                             <table className="w-full text-xs">
                               <thead className="bg-muted/30 text-muted-foreground">
