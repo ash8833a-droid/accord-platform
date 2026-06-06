@@ -77,8 +77,7 @@ function FinanceManagementInner() {
   return (
     <div className="space-y-6" dir="rtl">
       <PageHeroHeader
-        eyebrow="اللجنة المالية"
-        highlight="إدارة"
+        highlight="الإدارة"
         title="المالية"
         subtitle="المحفظة، المناديب، الاشتراكات، وطلبات الصرف الواردة"
         icon={Banknote}
