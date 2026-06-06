@@ -20,5 +20,7 @@ export type FamilyBranch = (typeof FAMILY_BRANCHES)[number];
 export const AMOUNT_OPTIONS = Array.from({ length: 19 }, (_, i) => 100 + i * 50);
 
 // السنوات الهجرية المعتمدة (السنة الحالية للأمام)
-export const CURRENT_HIJRI_YEAR = 1447;
-export const HIJRI_YEARS = [1447, 1446, 1445, 1444, 1443, 1442];
+export const CURRENT_HIJRI_YEAR = 1448;
+export const HIJRI_YEARS = [
+  1448, 1447, 1446, 1445, 1444, 1443, 1442, 1441, 1440, 1439, 1438, 1437, 1436,
+];
