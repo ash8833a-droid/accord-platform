@@ -195,6 +195,13 @@ export function BudgetOverviewPanel() {
     [groups],
   );
 
+  // الإجمالي الكلي لكل بنود المشروع (غير متأثر بالبحث أو فلتر اللجان)
+  const grandTotal = useMemo(
+    () => items.reduce((s, r) => s + Number(r.total_cost || 0), 0),
+    [items],
+  );
+  const isFiltered = selectedIds.size > 0 || search.trim().length > 0;
+
   const toggleCommittee = (id: string) => {
     const next = new Set(selectedIds);
     if (next.has(id)) next.delete(id);
@@ -276,9 +283,14 @@ export function BudgetOverviewPanel() {
             </span>
             <div>
               <p className="text-xs text-muted-foreground">إجمالي ميزانية المشروع المطلوبة</p>
-              <p className="text-2xl font-extrabold text-primary">{fmt(overall)} ر.س</p>
+              <p className="text-2xl font-extrabold text-primary">{fmt(grandTotal)} ر.س</p>
               <p className="text-[11px] text-muted-foreground mt-0.5">
-                {filteredItems.length} بند · {groups.length} لجنة
+                {items.length} بند · {committees.length} لجنة
+                {isFiltered && (
+                  <span className="ms-2 text-primary">
+                    · المعروض بعد الفلترة: {fmt(overall)} ر.س ({filteredItems.length} بند)
+                  </span>
+                )}
               </p>
             </div>
           </div>
