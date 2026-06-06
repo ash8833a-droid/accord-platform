@@ -1,11 +1,28 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { ChevronDown, ChevronLeft, FileSpreadsheet, Printer, Search, Wallet, Loader2, ArrowDownUp } from "lucide-react";
+import { ChevronDown, ChevronLeft, FileSpreadsheet, Printer, Search, Wallet, Loader2, ArrowDownUp, Plus, Lock } from "lucide-react";
 import { exportBudgetXLSX, exportBudgetPDF } from "@/lib/budget-export";
 import { toast } from "sonner";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface BudgetItem {
   id: string;
@@ -15,6 +32,7 @@ interface BudgetItem {
   unit_cost: number;
   total_cost: number;
   notes: string | null;
+  assigned_by_finance?: boolean | null;
 }
 
 interface Committee {
@@ -26,6 +44,7 @@ const fmt = (n: number) =>
   new Intl.NumberFormat("ar-SA", { maximumFractionDigits: 2 }).format(Number(n) || 0);
 
 export function BudgetOverviewPanel() {
+  const { user } = useAuth();
   const [items, setItems] = useState<BudgetItem[]>([]);
   const [committees, setCommittees] = useState<Committee[]>([]);
   const [loading, setLoading] = useState(true);
@@ -33,13 +52,20 @@ export function BudgetOverviewPanel() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [sortDesc, setSortDesc] = useState(true);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const [addOpen, setAddOpen] = useState(false);
+  const [addCommitteeId, setAddCommitteeId] = useState<string>("");
+  const [addItemName, setAddItemName] = useState("");
+  const [addQuantity, setAddQuantity] = useState("");
+  const [addUnitCost, setAddUnitCost] = useState("");
+  const [addNotes, setAddNotes] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   const load = async () => {
     const [{ data: c }, { data: i, error }] = await Promise.all([
       supabase.from("committees").select("id, name").order("name"),
       supabase
         .from("budget_items" as any)
-        .select("id, committee_id, item_name, quantity, unit_cost, total_cost, notes")
+        .select("id, committee_id, item_name, quantity, unit_cost, total_cost, notes, assigned_by_finance")
         .order("created_at", { ascending: true }),
     ]);
     if (error) toast.error("تعذّر تحميل البيانات", { description: error.message });
@@ -124,6 +150,41 @@ export function BudgetOverviewPanel() {
       filenamePrefix: "BUD-ALL",
     });
 
+  const resetAddForm = () => {
+    setAddCommitteeId("");
+    setAddItemName("");
+    setAddQuantity("");
+    setAddUnitCost("");
+    setAddNotes("");
+  };
+
+  const submitAdd = async () => {
+    if (!addCommitteeId) return toast.error("اختر اللجنة المستهدفة");
+    const name = addItemName.trim();
+    const qty = Number(addQuantity);
+    const unit = Number(addUnitCost);
+    if (!name) return toast.error("اسم البند مطلوب");
+    if (!(qty > 0)) return toast.error("الكمية يجب أن تكون أكبر من صفر");
+    if (!(unit >= 0)) return toast.error("تكلفة الوحدة غير صحيحة");
+    setSubmitting(true);
+    const { error } = await supabase.from("budget_items" as any).insert({
+      committee_id: addCommitteeId,
+      item_name: name,
+      quantity: qty,
+      unit_cost: unit,
+      notes: addNotes.trim() || null,
+      assigned_by_finance: true,
+      created_by: user?.id ?? null,
+    } as any);
+    setSubmitting(false);
+    if (error) return toast.error("تعذّر إضافة البند", { description: error.message });
+    toast.success("تمت إضافة البند للجنة المستهدفة");
+    resetAddForm();
+    setAddOpen(false);
+  };
+
+  const addDraftTotal = (Number(addQuantity) || 0) * (Number(addUnitCost) || 0);
+
   if (loading) {
     return (
       <div className="flex justify-center py-10 text-muted-foreground">
@@ -150,6 +211,13 @@ export function BudgetOverviewPanel() {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              onClick={() => setAddOpen(true)}
+              className="gap-1.5 bg-gradient-to-l from-primary to-gold text-primary-foreground"
+            >
+              <Plus className="h-3.5 w-3.5" /> إضافة بند للجان
+            </Button>
             <Button size="sm" variant="outline" onClick={doExportXlsx} className="gap-1.5">
               <FileSpreadsheet className="h-3.5 w-3.5" /> Excel
             </Button>
@@ -285,7 +353,19 @@ export function BudgetOverviewPanel() {
                                 {g.rows.map((r, idx) => (
                                   <tr key={r.id} className="border-t">
                                     <td className="px-3 py-2 text-muted-foreground">{idx + 1}</td>
-                                    <td className="px-3 py-2">{r.item_name}</td>
+                                    <td className="px-3 py-2">
+                                      <span className="inline-flex items-center gap-1.5">
+                                        {r.item_name}
+                                        {r.assigned_by_finance && (
+                                          <span
+                                            className="text-[10px] px-1.5 py-0.5 rounded-full bg-gold/15 text-gold border border-gold/30 font-semibold inline-flex items-center gap-0.5"
+                                            title="بند معتمد من اللجنة المالية"
+                                          >
+                                            <Lock className="h-2.5 w-2.5" /> مالية
+                                          </span>
+                                        )}
+                                      </span>
+                                    </td>
                                     <td className="px-3 py-2">{fmt(Number(r.quantity))}</td>
                                     <td className="px-3 py-2">{fmt(Number(r.unit_cost))} ر.س</td>
                                     <td className="px-3 py-2 font-semibold text-primary">
@@ -317,6 +397,67 @@ export function BudgetOverviewPanel() {
           </table>
         </div>
       </div>
+
+      {/* Add Item dialog */}
+      <Dialog open={addOpen} onOpenChange={(o) => { setAddOpen(o); if (!o) resetAddForm(); }}>
+        <DialogContent dir="rtl" className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Plus className="h-5 w-5 text-primary" />
+              إضافة بند ميزانية للجنة
+            </DialogTitle>
+            <DialogDescription>
+              اختر اللجنة وأدخل تفاصيل البند. سيظهر البند فوراً في لوحة اللجنة المستهدفة مع شارة «مالية».
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-3">
+            <div className="space-y-1.5">
+              <Label>اللجنة المستهدفة</Label>
+              <Select value={addCommitteeId} onValueChange={setAddCommitteeId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="اختر اللجنة" />
+                </SelectTrigger>
+                <SelectContent>
+                  {committees.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label>اسم البند</Label>
+              <Input value={addItemName} onChange={(e) => setAddItemName(e.target.value)} placeholder="مثال: طباعة كروت الدعوة" />
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-1.5">
+                <Label>الكمية</Label>
+                <Input type="number" min={0} step="0.01" value={addQuantity} onChange={(e) => setAddQuantity(e.target.value)} dir="ltr" />
+              </div>
+              <div className="space-y-1.5">
+                <Label>تكلفة الوحدة (ر.س)</Label>
+                <Input type="number" min={0} step="0.01" value={addUnitCost} onChange={(e) => setAddUnitCost(e.target.value)} dir="ltr" />
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label>ملاحظات (اختياري)</Label>
+              <Input value={addNotes} onChange={(e) => setAddNotes(e.target.value)} />
+            </div>
+            <div className="rounded-lg border bg-muted/30 px-3 py-2 text-sm flex items-center justify-between">
+              <span className="text-muted-foreground">الإجمالي:</span>
+              <span className="font-bold text-primary">{fmt(addDraftTotal)} ر.س</span>
+            </div>
+          </div>
+
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setAddOpen(false)} disabled={submitting}>إلغاء</Button>
+            <Button onClick={submitAdd} disabled={submitting} className="gap-1.5">
+              {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+              حفظ البند
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
