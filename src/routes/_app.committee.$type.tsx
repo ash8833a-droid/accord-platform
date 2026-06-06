@@ -975,7 +975,7 @@ function CommitteePage() {
         storageKey={`committee:${type}:simple-purchase`}
         title={type === "procurement" ? "لوحة طلبات الشراء — قيد الانتظار" : "إنشاء طلب شراء جديد"}
         icon={Inbox}
-        defaultOpen={false}
+        defaultOpen
       >
         {type === "procurement" ? (
           <PurchasingDashboard />
