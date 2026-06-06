@@ -1,5 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useServerFn } from "@tanstack/react-start";
+import { analyzeTaskReportFile } from "@/lib/analyze-task-report.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -87,6 +89,9 @@ export function TaskResponseForm({ taskId, committeeId }: Props) {
   const [submitting, setSubmitting] = useState(false);
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState<Step>(1);
+  const [analyzing, setAnalyzing] = useState(false);
+  const aiFileRef = useRef<HTMLInputElement | null>(null);
+  const analyze = useServerFn(analyzeTaskReportFile);
 
   // Form state
   const [action, setAction] = useState("");
@@ -175,6 +180,48 @@ export function TaskResponseForm({ taskId, committeeId }: Props) {
     setStep((s) => (s === 3 ? 3 : ((s + 1) as Step)));
   };
   const prev = () => setStep((s) => (s === 1 ? 1 : ((s - 1) as Step)));
+
+  const onAiFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    if (file.size > 15 * 1024 * 1024) {
+      toast.error("الحد الأقصى للملف 15 ميجابايت للتحليل الذكي");
+      return;
+    }
+    setAnalyzing(true);
+    try {
+      const buf = await file.arrayBuffer();
+      let bin = "";
+      const bytes = new Uint8Array(buf);
+      const chunk = 0x8000;
+      for (let i = 0; i < bytes.length; i += chunk) {
+        bin += String.fromCharCode.apply(null, Array.from(bytes.subarray(i, i + chunk)) as unknown as number[]);
+      }
+      const base64 = btoa(bin);
+      const { report } = await analyze({
+        data: {
+          fileBase64: base64,
+          mimeType: file.type || "application/octet-stream",
+        },
+      });
+      // Prefill only empty fields, or merge into action when both have content
+      if (report.action_taken) setAction((cur) => (cur.trim() ? cur : report.action_taken));
+      if (report.outcomes) setOutcomes((cur) => (cur.trim() ? cur : report.outcomes));
+      if (report.challenges) setChallenges((cur) => (cur.trim() ? cur : report.challenges));
+      if (report.recommendations)
+        setRecommendations((cur) => (cur.trim() ? cur : report.recommendations));
+      if (report.execution_date) setExecutionDate((cur) => cur || report.execution_date);
+      if (report.attachments_note)
+        setAttachmentsNote((cur) => (cur.trim() ? cur : report.attachments_note));
+      if (report.completion_percent > 0) setPercent((cur) => (cur > 0 ? cur : report.completion_percent));
+      toast.success("تم استخراج البيانات من الملف — راجعها قبل الإرسال");
+    } catch (err: any) {
+      toast.error("تعذّر التحليل الذكي", { description: err?.message?.slice(0, 200) });
+    } finally {
+      setAnalyzing(false);
+    }
+  };
 
   const submit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -450,6 +497,34 @@ export function TaskResponseForm({ taskId, committeeId }: Props) {
           <div className="space-y-3 min-h-[180px]">
             {step === 1 && (
               <>
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={() => aiFileRef.current?.click()}
+                    disabled={analyzing}
+                    className="h-8 text-[11px] gap-1.5 border-primary/40 text-primary hover:bg-primary/10"
+                  >
+                    {analyzing ? (
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                    ) : (
+                      <Sparkles className="h-3 w-3" />
+                    )}
+                    {analyzing ? "جاري التحليل..." : "تعبئة تلقائية بالذكاء الاصطناعي"}
+                  </Button>
+                  <span className="text-[10px] text-muted-foreground">
+                    ارفق تقريراً (PDF/صورة) لاستخراج الحقول
+                  </span>
+                  <input
+                    ref={aiFileRef}
+                    type="file"
+                    className="hidden"
+                    accept="image/*,application/pdf"
+                    onChange={onAiFile}
+                    disabled={analyzing}
+                  />
+                </div>
                 <div className="space-y-1.5">
                   <Label className="text-[11px] flex items-center gap-1 font-bold">
                     <CheckCircle2 className="h-3 w-3 text-emerald-600" /> الإجراء المتخذ *
