@@ -10,6 +10,8 @@ import {
   ClipboardList, Upload, Loader2, Calendar, Eye, Trash2, Printer, Plus, X,
   Sparkles, FileText, Users, ListChecks, MessageSquareQuote, MapPin, Clock, Paperclip, Download,
 } from "lucide-react";
+import { CheckCircle2, Check } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
 import { ACCEPT_ANY_FILE, MAX_UPLOAD_SIZE, MAX_UPLOAD_SIZE_LABEL } from "@/lib/uploads";
