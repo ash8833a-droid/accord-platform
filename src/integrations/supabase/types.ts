@@ -62,6 +62,53 @@ export type Database = {
         }
         Relationships: []
       }
+      budget_items: {
+        Row: {
+          committee_id: string
+          created_at: string
+          created_by: string | null
+          id: string
+          item_name: string
+          notes: string | null
+          quantity: number
+          total_cost: number | null
+          unit_cost: number
+          updated_at: string
+        }
+        Insert: {
+          committee_id: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          item_name: string
+          notes?: string | null
+          quantity: number
+          total_cost?: number | null
+          unit_cost: number
+          updated_at?: string
+        }
+        Update: {
+          committee_id?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          item_name?: string
+          notes?: string | null
+          quantity?: number
+          total_cost?: number | null
+          unit_cost?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "budget_items_committee_id_fkey"
+            columns: ["committee_id"]
+            isOneToOne: false
+            referencedRelation: "committees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       committee_evaluations: {
         Row: {
           answered_count: number
