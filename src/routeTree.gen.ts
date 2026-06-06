@@ -13,6 +13,7 @@ import { Route as RegisterGroomRouteImport } from './routes/register-groom'
 import { Route as PendingRouteImport } from './routes/pending'
 import { Route as GroomEditRouteImport } from './routes/groom-edit'
 import { Route as CommitteesRouteImport } from './routes/committees'
+import { Route as BudgetEntryRouteImport } from './routes/budget-entry'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
@@ -57,6 +58,11 @@ const CommitteesRoute = CommitteesRouteImport.update({
   path: '/committees',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BudgetEntryRoute = BudgetEntryRouteImport.update({
+  id: '/budget-entry',
+  path: '/budget-entry',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
@@ -82,9 +88,9 @@ const GroomEditTokenRoute = GroomEditTokenRouteImport.update({
   getParentRoute: () => GroomEditRoute,
 } as any)
 const BudgetEntryCommitteeIdRoute = BudgetEntryCommitteeIdRouteImport.update({
-  id: '/budget-entry/$committeeId',
-  path: '/budget-entry/$committeeId',
-  getParentRoute: () => rootRouteImport,
+  id: '/$committeeId',
+  path: '/$committeeId',
+  getParentRoute: () => BudgetEntryRoute,
 } as any)
 const AppReportsRoute = AppReportsRouteImport.update({
   id: '/reports',
@@ -176,6 +182,7 @@ const ApiPublicHooksTaskDeadlineCheckRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/budget-entry': typeof BudgetEntryRouteWithChildren
   '/committees': typeof CommitteesRoute
   '/groom-edit': typeof GroomEditRouteWithChildren
   '/pending': typeof PendingRoute
@@ -204,6 +211,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/budget-entry': typeof BudgetEntryRouteWithChildren
   '/committees': typeof CommitteesRoute
   '/groom-edit': typeof GroomEditRouteWithChildren
   '/pending': typeof PendingRoute
@@ -234,6 +242,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_app': typeof AppRouteWithChildren
   '/auth': typeof AuthRoute
+  '/budget-entry': typeof BudgetEntryRouteWithChildren
   '/committees': typeof CommitteesRoute
   '/groom-edit': typeof GroomEditRouteWithChildren
   '/pending': typeof PendingRoute
@@ -264,6 +273,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/budget-entry'
     | '/committees'
     | '/groom-edit'
     | '/pending'
@@ -292,6 +302,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/budget-entry'
     | '/committees'
     | '/groom-edit'
     | '/pending'
@@ -321,6 +332,7 @@ export interface FileRouteTypes {
     | '/'
     | '/_app'
     | '/auth'
+    | '/budget-entry'
     | '/committees'
     | '/groom-edit'
     | '/pending'
@@ -351,11 +363,11 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AppRoute: typeof AppRouteWithChildren
   AuthRoute: typeof AuthRoute
+  BudgetEntryRoute: typeof BudgetEntryRouteWithChildren
   CommitteesRoute: typeof CommitteesRoute
   GroomEditRoute: typeof GroomEditRouteWithChildren
   PendingRoute: typeof PendingRoute
   RegisterGroomRoute: typeof RegisterGroomRoute
-  BudgetEntryCommitteeIdRoute: typeof BudgetEntryCommitteeIdRoute
   SurveyWomenTalentsRoute: typeof SurveyWomenTalentsRoute
   ApiPublicHooksTaskDeadlineCheckRoute: typeof ApiPublicHooksTaskDeadlineCheckRoute
 }
@@ -388,6 +400,13 @@ declare module '@tanstack/react-router' {
       path: '/committees'
       fullPath: '/committees'
       preLoaderRoute: typeof CommitteesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/budget-entry': {
+      id: '/budget-entry'
+      path: '/budget-entry'
+      fullPath: '/budget-entry'
+      preLoaderRoute: typeof BudgetEntryRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -427,10 +446,10 @@ declare module '@tanstack/react-router' {
     }
     '/budget-entry/$committeeId': {
       id: '/budget-entry/$committeeId'
-      path: '/budget-entry/$committeeId'
+      path: '/$committeeId'
       fullPath: '/budget-entry/$committeeId'
       preLoaderRoute: typeof BudgetEntryCommitteeIdRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof BudgetEntryRoute
     }
     '/_app/reports': {
       id: '/_app/reports'
@@ -604,6 +623,18 @@ const AppRouteChildren: AppRouteChildren = {
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 
+interface BudgetEntryRouteChildren {
+  BudgetEntryCommitteeIdRoute: typeof BudgetEntryCommitteeIdRoute
+}
+
+const BudgetEntryRouteChildren: BudgetEntryRouteChildren = {
+  BudgetEntryCommitteeIdRoute: BudgetEntryCommitteeIdRoute,
+}
+
+const BudgetEntryRouteWithChildren = BudgetEntryRoute._addFileChildren(
+  BudgetEntryRouteChildren,
+)
+
 interface GroomEditRouteChildren {
   GroomEditTokenRoute: typeof GroomEditTokenRoute
 }
@@ -620,11 +651,11 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AppRoute: AppRouteWithChildren,
   AuthRoute: AuthRoute,
+  BudgetEntryRoute: BudgetEntryRouteWithChildren,
   CommitteesRoute: CommitteesRoute,
   GroomEditRoute: GroomEditRouteWithChildren,
   PendingRoute: PendingRoute,
   RegisterGroomRoute: RegisterGroomRoute,
-  BudgetEntryCommitteeIdRoute: BudgetEntryCommitteeIdRoute,
   SurveyWomenTalentsRoute: SurveyWomenTalentsRoute,
   ApiPublicHooksTaskDeadlineCheckRoute: ApiPublicHooksTaskDeadlineCheckRoute,
 }
