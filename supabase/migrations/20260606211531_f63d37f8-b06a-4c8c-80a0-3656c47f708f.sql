@@ -1,0 +1,1 @@
+UPDATE public.committees SET name = 'اللجنة المالية', updated_at = now() WHERE type = 'finance';
