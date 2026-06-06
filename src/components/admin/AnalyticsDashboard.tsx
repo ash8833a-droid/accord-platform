@@ -584,8 +584,11 @@ function Inner() {
   );
 }
 
-function HeroKpi({ label, value, sub, icon: Icon, tone = "teal" }: { label: string; value: string | number; sub?: string; icon: any; tone?: "teal" | "rose" }) {
-  const iconBg = tone === "rose" ? "bg-rose-50 text-rose-700" : "bg-teal-50 text-teal-700";
+function HeroKpi({ label, value, sub, icon: Icon, tone = "teal" }: { label: string; value: string | number; sub?: string; icon: any; tone?: "teal" | "rose" | "amber" }) {
+  const iconBg =
+    tone === "rose" ? "bg-rose-50 text-rose-700" :
+    tone === "amber" ? "bg-amber-50 text-amber-700" :
+    "bg-teal-50 text-teal-700";
   return (
     <div className="rounded-2xl bg-white p-6 shadow-sm hover:shadow-md transition-shadow">
       <div className="flex items-start justify-between gap-3">
