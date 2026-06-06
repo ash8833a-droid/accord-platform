@@ -4,7 +4,7 @@ import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { ChevronDown, ChevronLeft, FileSpreadsheet, Printer, Search, Wallet, Loader2, ArrowDownUp, Plus, Lock, Link2, Check } from "lucide-react";
+import { ChevronDown, ChevronLeft, FileSpreadsheet, Printer, Search, Wallet, Loader2, ArrowDownUp, Plus, Lock, Link2, Check, Copy } from "lucide-react";
 import { exportBudgetXLSX, exportBudgetPDF } from "@/lib/budget-export";
 import { toast } from "sonner";
 import {
@@ -61,9 +61,21 @@ export function BudgetOverviewPanel() {
   const [submitting, setSubmitting] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
+  const copyUnifiedBudgetLink = async () => {
+    const url = `${window.location.origin}/budget-entry`;
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopiedId("unified");
+      toast.success("تم نسخ الرابط الموحد", { description: "أرسله لجميع مجموعات واتساب، وكل لجنة تختار اسمها من الرابط" });
+      setTimeout(() => setCopiedId((c) => (c === "unified" ? null : c)), 2000);
+    } catch {
+      toast.error("تعذّر النسخ");
+    }
+  };
+
   const copyShareLink = async (e: React.MouseEvent, committeeId: string) => {
     e.stopPropagation();
-    const url = `${window.location.origin}/budget-entry/${committeeId}`;
+    const url = `${window.location.origin}/budget-entry?committee=${committeeId}`;
     try {
       await navigator.clipboard.writeText(url);
       setCopiedId(committeeId);
@@ -104,8 +116,6 @@ export function BudgetOverviewPanel() {
     };
   }, []);
 
-  const cNameById = useMemo(() => new Map(committees.map((c) => [c.id, c.name])), [committees]);
-
   const filteredItems = useMemo(() => {
     const q = search.trim();
     return items.filter((r) => {
@@ -122,15 +132,30 @@ export function BudgetOverviewPanel() {
       arr.push(r);
       map.set(r.committee_id, arr);
     });
-    const list = Array.from(map.entries()).map(([cid, rows]) => ({
-      committee_id: cid,
-      committee_name: cNameById.get(cid) ?? "—",
+    const q = search.trim();
+    const visibleCommittees = committees.filter((c) => {
+      if (selectedIds.size > 0 && !selectedIds.has(c.id)) return false;
+      if (q && !c.name.includes(q) && !(map.get(c.id)?.length)) return false;
+      return true;
+    });
+    const list = visibleCommittees.map((c) => ({
+      committee_id: c.id,
+      committee_name: c.name,
+      rows: map.get(c.id) ?? [],
+      total: (map.get(c.id) ?? []).reduce((s, r) => s + Number(r.total_cost), 0),
+    }));
+    const missingCommittees = Array.from(map.entries())
+      .filter(([cid]) => !visibleCommittees.some((c) => c.id === cid))
+      .map(([cid, rows]) => ({
+        committee_id: cid,
+        committee_name: "—",
       rows,
       total: rows.reduce((s, r) => s + Number(r.total_cost), 0),
-    }));
+      }));
+    list.push(...missingCommittees);
     list.sort((a, b) => (sortDesc ? b.total - a.total : a.total - b.total));
     return list;
-  }, [filteredItems, cNameById, sortDesc]);
+  }, [committees, filteredItems, search, selectedIds, sortDesc]);
 
   const overall = useMemo(
     () => groups.reduce((s, g) => s + g.total, 0),
@@ -231,6 +256,15 @@ export function BudgetOverviewPanel() {
               className="gap-1.5 bg-gradient-to-l from-primary to-gold text-primary-foreground"
             >
               <Plus className="h-3.5 w-3.5" /> إضافة بند للجان
+            </Button>
+            <Button
+              size="sm"
+              variant="default"
+              onClick={copyUnifiedBudgetLink}
+              className="gap-1.5 bg-primary text-primary-foreground"
+            >
+              {copiedId === "unified" ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+              نسخ الرابط الموحد
             </Button>
             <Button size="sm" variant="outline" onClick={doExportXlsx} className="gap-1.5">
               <FileSpreadsheet className="h-3.5 w-3.5" /> Excel
