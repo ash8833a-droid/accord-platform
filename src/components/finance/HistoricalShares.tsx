@@ -120,6 +120,8 @@ export function HistoricalShares() {
       notes: "",
     });
     setCustomAmount(false);
+    setCustomBranch(false);
+    setCustomYear(false);
     setEditingId(null);
   };
 
