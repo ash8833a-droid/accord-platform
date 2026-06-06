@@ -16,7 +16,7 @@ function PageFallback() {
   return (
     <div className="min-h-[40vh] flex flex-col items-center justify-center gap-3 text-muted-foreground" dir="rtl">
       <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      <p className="text-sm">جارٍ تحميل إدارة المالية…</p>
+      <p className="text-sm">جارٍ تحميل الإدارة المالية…</p>
     </div>
   );
 }

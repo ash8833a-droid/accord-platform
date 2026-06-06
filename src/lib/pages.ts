@@ -26,7 +26,7 @@ export const PAGES: PageDef[] = [
   { key: "reports",            path: "/reports",            label: "التقارير والجودة",   icon: FileBarChart,   category: "محتوى" },
   { key: "communications",     path: "/communications",     label: "إدارة الطلبات",      icon: Inbox,          category: "عمل" },
   { key: "finance",            path: "/finance",            label: "المالية",            icon: Wallet,         category: "مالية" },
-  { key: "finance-management", path: "/finance-management", label: "إدارة المالية",      icon: Banknote,       category: "مالية" },
+  { key: "finance-management", path: "/finance-management", label: "الإدارة المالية",      icon: Banknote,       category: "مالية" },
   { key: "payment-requests",   path: "/payment-requests",   label: "طلبات الصرف",        icon: Wallet,         category: "مالية" },
   { key: "procurement-requests", path: "/procurement-requests", label: "طلبات الشراء",   icon: ShoppingCart,   category: "مالية" },
   // ===== اللجان: صفحة كل لجنة (يمكن منح صلاحية مخصصة لكل عضو) =====

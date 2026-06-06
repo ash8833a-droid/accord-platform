@@ -270,7 +270,7 @@ export function FinanceModule() {
     <div className="space-y-7">
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div>
-          <h2 className="text-2xl font-bold">إدارة المالية</h2>
+          <h2 className="text-2xl font-bold">الإدارة المالية</h2>
           <p className="text-muted-foreground text-sm mt-1">المحفظة، المناديب، الاشتراكات، وطلبات الصرف الواردة</p>
         </div>
 
