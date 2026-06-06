@@ -100,10 +100,17 @@ export function AppShell({ children, restricted = false, restrictedToCommitteeTy
   if (restrictedToCommitteeType === "media") {
     restrictedNav.push({ to: "/grooms", label: "سجل العرسان", icon: HeartHandshake });
   }
-  // Standard Committee Members (not admin/quality, not committee head): show ONLY Task Center.
+  // Standard Committee Members (not admin/quality, not committee head): show their committee, Task Center and Idea Bank.
   const isStandardMember = restricted && !isCommitteeHead && !hasRole("quality");
   const standardMemberNav: typeof restrictedNav = [];
-  // Unified entry-point for regular members: Task Center is auto-filtered to their committee.
+  if (restrictedToCommitteeType && myCommitteeMeta) {
+    standardMemberNav.push({
+      to: "/committee/$type",
+      params: { type: restrictedToCommitteeType },
+      label: myCommitteeMeta.label,
+      icon: myCommitteeMeta.icon,
+    });
+  }
   standardMemberNav.push({ to: "/admin/tasks", label: "مركز المهام", icon: Target });
   standardMemberNav.push({ to: "/ideas", label: "بنك الأفكار", icon: Lightbulb });
   // Media Committee members (incl. non-head) get the Grooms Registry in their sidebar.

@@ -62,17 +62,21 @@ function AppLayout() {
     }
     if (!restricted || !typeLoaded || !headLoaded) return;
 
-    // Standard committee members: ONLY their committee + Idea Bank.
+    // Standard committee members: their committee page + Task Center + Idea Bank.
     if (isStandardMember) {
-      // Consolidated: regular members work from the Task Center (auto-filtered to their committee) + Idea Bank.
       const allowed: string[] = ["/ideas", "/admin/tasks"];
+      if (myCommitteeType) allowed.push(`/committee/${myCommitteeType}`);
       // Media committee members get full access to the Grooms Registry.
       if (myCommitteeType === "media") {
         allowed.push("/grooms");
       }
       const ok = allowed.some((p) => path === p || path.startsWith(p + "/"));
       if (!ok) {
-        nav({ to: "/admin/tasks" });
+        if (myCommitteeType) {
+          nav({ to: "/committee/$type", params: { type: myCommitteeType } });
+        } else {
+          nav({ to: "/admin/tasks" });
+        }
       }
       return;
     }
