@@ -376,4 +376,32 @@ export const Route = createFileRoute("/budget-entry")({
     committee: typeof search.committee === "string" ? search.committee : undefined,
   }),
   component: UnifiedBudgetEntryPage,
+  head: () => {
+    const title = "موازنة اللجان — لجنة الزواج الجماعي";
+    const description =
+      "رابط موحّد لإدخال ميزانيات اللجان في برنامج لجنة الزواج الجماعي لقبيلة الهملة من قريش.";
+    const image = "https://www.lajnat-zawaj.org/brand/zawaj-logo.png";
+    const url = "https://www.lajnat-zawaj.org/budget-entry";
+    return {
+      meta: [
+        { title },
+        { name: "description", content: description },
+        { name: "theme-color", content: "#1B4F58" },
+        { property: "og:type", content: "website" },
+        { property: "og:site_name", content: "لجنة الزواج الجماعي" },
+        { property: "og:title", content: title },
+        { property: "og:description", content: description },
+        { property: "og:image", content: image },
+        { property: "og:image:alt", content: "شعار لجنة الزواج الجماعي" },
+        { property: "og:url", content: url },
+        { name: "twitter:card", content: "summary_large_image" },
+        { name: "twitter:title", content: title },
+        { name: "twitter:description", content: description },
+        { name: "twitter:image", content: image },
+      ],
+      links: [
+        { rel: "icon", type: "image/png", href: "/brand/zawaj-logo.png" },
+      ],
+    };
+  },
 });
