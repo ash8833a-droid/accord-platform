@@ -46,6 +46,19 @@ function fmtSar(n: number): string {
   return new Intl.NumberFormat("ar-SA", { maximumFractionDigits: 0 }).format(n) + " ر.س";
 }
 
+// Map a Gregorian year to its dominant Hijri year (used to align branch
+// shareholder contributions, which are stored in hijri_year, with the
+// dashboard's Gregorian year filter).
+function gregorianToHijriYear(g: number): number {
+  try {
+    const fmt = new Intl.DateTimeFormat("en-u-ca-islamic-umalqura", { year: "numeric" });
+    const n = Number(fmt.format(new Date(g, 5, 30)).replace(/\D+/g, ""));
+    return Number.isFinite(n) ? n : g - 579;
+  } catch {
+    return g - 579;
+  }
+}
+
 const AVAILABLE_YEARS = (() => {
   const cur = new Date().getFullYear();
   return [cur, cur - 1, cur - 2, cur - 3, cur - 4];
@@ -106,12 +119,13 @@ function Inner() {
     else setLoading(true);
 
     try {
-      const [committeesRes, tasksRes, groomsRes, paymentsRes, familyRes] = await Promise.all([
+      const [committeesRes, tasksRes, groomsRes, paymentsRes, familyRes, shareholdersRes] = await Promise.all([
         supabase.from("committees").select("id, name, type, budget_allocated, budget_spent"),
         supabase.from("committee_tasks").select("id, status, committee_id, created_at, updated_at, due_date"),
         supabase.from("grooms").select("id, status, created_at, wedding_date, groom_contribution"),
         supabase.from("payment_requests").select("id, amount, status, created_at"),
         supabase.from("family_contributions").select("id, amount, contribution_date"),
+        supabase.from("historical_shareholders").select("id, amount, hijri_year, family_branch"),
       ]);
       setData({
         committees: committeesRes.data ?? [],
@@ -119,6 +133,7 @@ function Inner() {
         grooms: groomsRes.data ?? [],
         payments: paymentsRes.data ?? [],
         family: familyRes.data ?? [],
+        shareholders: shareholdersRes.data ?? [],
       });
     } finally {
       loadInFlight.current = false;
@@ -134,6 +149,19 @@ function Inner() {
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "family_contributions" },
+        () => { void load({ silent: true }); },
+      )
+      .subscribe();
+    return () => { void supabase.removeChannel(channel); };
+  }, []);
+
+  // Real-time subscription for branch shareholder contributions.
+  useEffect(() => {
+    const channel = supabase
+      .channel("dashboard-historical-shareholders")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "historical_shareholders" },
         () => { void load({ silent: true }); },
       )
       .subscribe();
@@ -158,7 +186,13 @@ function Inner() {
     const expenses = paymentsY.filter((p: any) => p.status === "paid").reduce((s: number, p: any) => s + Number(p.amount || 0), 0);
     const groomRevenues = groomsY.reduce((s: number, g: any) => s + Number(g.groom_contribution || 0), 0);
     const familyY = (data.family ?? []).filter((f: any) => inRange(f.contribution_date, r));
-    const familyContributions = familyY.reduce((s: number, f: any) => s + Number(f.amount || 0), 0);
+    const familyCash = familyY.reduce((s: number, f: any) => s + Number(f.amount || 0), 0);
+    const shareholders = (data.shareholders ?? []) as Array<{ amount: number; hijri_year: number }>;
+    const branchShareholders = (year === "all"
+      ? shareholders
+      : shareholders.filter((s) => Number(s.hijri_year) === gregorianToHijriYear(year as number))
+    ).reduce((s: number, row: any) => s + Number(row.amount || 0), 0);
+    const familyContributions = familyCash + branchShareholders;
     const revenues = familyContributions + groomRevenues;
     // Allocated support = total grooms × fixed allocation (treated as projected expense)
     const allocatedFunds = totalMarriages * ALLOCATED_SUPPORT_PER_GROOM;
@@ -390,7 +424,14 @@ function Inner() {
         <HeroKpi label="إجمالي المهام" value={k.totalTasks} sub={`${k.completed} مُنجزة`} icon={ClipboardList} />
         <HeroKpi label="نسبة الإنجاز العامة" value={`${k.completionRate}%`} sub="عبر كل اللجان" icon={CheckCircle2} />
         <HeroKpi label="إجمالي العرسان" value={k.totalMarriages} sub={year === "all" ? "تراكمي" : `سنة ${year}`} icon={HeartHandshake} />
-        <HeroKpi label="مساهمات أفراد العائلة" value={fmtSar(k.familyContributions)} sub="إيراد حقيقي" icon={HandCoins} />
+        <HeroKpi
+          label="مساهمات أفراد العائلة"
+          value={fmtSar(k.familyContributions)}
+          sub={year === "all"
+            ? "تشمل مساهمات فروع العائلة"
+            : `يشمل أسهم الفروع ${gregorianToHijriYear(year as number)}هـ`}
+          icon={HandCoins}
+        />
         <HeroKpi label="المبالغ المخصصة للعرسان" value={fmtSar(k.allocatedFunds)} sub={`${k.totalMarriages} عريس × ${fmtSar(ALLOCATED_SUPPORT_PER_GROOM)}`} icon={Banknote} />
         <HeroKpi
           label="صافي الرصيد المالي"
