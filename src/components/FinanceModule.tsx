@@ -15,6 +15,7 @@ import { exportRequestsCSV, exportRequestsXLSX, exportRequestsPDF, type ExportRe
 import { SharesByBranch } from "@/components/finance/SharesByBranch";
 import { GroomContributions } from "@/components/finance/GroomContributions";
 import { CommitteeBudgetLimits } from "@/components/finance/CommitteeBudgetLimits";
+import { BudgetOverviewPanel } from "@/components/finance/BudgetOverviewPanel";
 import { FamilyContributionsPanel } from "@/components/finance/FamilyContributionsPanel";
 import { FinanceSummaryCard } from "@/components/finance/FinanceSummaryCard";
 import { DelegateUploadPanel } from "@/components/finance/DelegateUploadPanel";
