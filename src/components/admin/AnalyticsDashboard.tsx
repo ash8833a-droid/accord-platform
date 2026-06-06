@@ -219,12 +219,13 @@ function Inner() {
     // Allocated support = total grooms × fixed allocation (treated as projected expense)
     const allocatedFunds = totalMarriages * ALLOCATED_SUPPORT_PER_GROOM;
     const projectedExpenses = expenses + allocatedFunds;
-    // Net balance = (Family Contributions + Other Revenues) − (Allocated Support + Other Expenses)
-    const netBalance = revenues - projectedExpenses;
+    // Net balance = revenues − expenses (matches FinancialDashboard logic)
+    const netBalance = revenues - expenses;
+    const balanceStatus = netBalance > 0 ? "فائض" : netBalance < 0 ? "عجز" : "متوازن";
 
     return {
       totalTasks, completed, completionRate, totalMarriages,
-      revenues, expenses, allocatedFunds, projectedExpenses, netBalance,
+      revenues, expenses, allocatedFunds, projectedExpenses, netBalance, balanceStatus,
       familyContributions, groomRevenues, budgetTotal,
       tasksY, groomsY, paymentsY,
     };
