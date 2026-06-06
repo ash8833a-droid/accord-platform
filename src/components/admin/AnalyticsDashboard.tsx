@@ -478,9 +478,9 @@ function Inner() {
         <HeroKpi
           label="صافي الرصيد المالي"
           value={fmtSar(k.netBalance)}
-          sub={k.netBalance >= 0 ? "فائض" : "عجز"}
+          sub={k.balanceStatus}
           icon={Scale}
-          tone={k.netBalance >= 0 ? "teal" : "rose"}
+          tone={k.netBalance > 0 ? "teal" : k.netBalance < 0 ? "rose" : "amber"}
         />
       </div>
 
