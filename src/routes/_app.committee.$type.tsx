@@ -18,6 +18,8 @@ import { FinanceModule } from "@/components/FinanceModule";
 import { InvitationCards } from "@/components/media/InvitationCards";
 import { MediaInbox } from "@/components/media/MediaInbox";
 import { ProcurementRequestsBoard } from "@/components/procurement/ProcurementRequestsBoard";
+import { PurchasingDashboard } from "@/components/PurchasingDashboard";
+import { CreatePurchaseRequestForm } from "@/components/CreatePurchaseRequestForm";
 import { TaskAttachments } from "@/components/TaskAttachments";
 import { TaskComments } from "@/components/TaskComments";
 import { TaskEditorDialog, type EditorTask } from "@/components/TaskEditorDialog";
@@ -964,6 +966,22 @@ function CommitteePage() {
         defaultOpen={type === "procurement"}
       >
         <ProcurementRequestsBoard procurementOnly={type === "procurement"} />
+      </QualitySection>
+
+      {/* النموذج المبسّط الجديد (purchase_requests):
+          - لجنة المشتريات: لوحة الطلبات المعلقة مع موافقة/رفض
+          - باقي اللجان: نموذج إنشاء طلب شراء مبسّط */}
+      <QualitySection
+        storageKey={`committee:${type}:simple-purchase`}
+        title={type === "procurement" ? "لوحة طلبات الشراء — قيد الانتظار" : "إنشاء طلب شراء جديد"}
+        icon={Inbox}
+        defaultOpen={false}
+      >
+        {type === "procurement" ? (
+          <PurchasingDashboard />
+        ) : (
+          <CreatePurchaseRequestForm />
+        )}
       </QualitySection>
 
       <Dialog open={prOpen} onOpenChange={setPrOpen}>
