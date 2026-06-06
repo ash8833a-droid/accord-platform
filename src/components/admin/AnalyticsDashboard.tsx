@@ -194,6 +194,11 @@ function Inner() {
     ).reduce((s: number, row: any) => s + Number(row.amount || 0), 0);
     const familyContributions = familyCash + branchShareholders;
     const revenues = familyContributions + groomRevenues;
+    // Total estimated budget across all committees (sum of budget_allocated).
+    const budgetTotal = (data.committees ?? []).reduce(
+      (s: number, c: any) => s + Number(c.budget_allocated || 0),
+      0,
+    );
     // Allocated support = total grooms × fixed allocation (treated as projected expense)
     const allocatedFunds = totalMarriages * ALLOCATED_SUPPORT_PER_GROOM;
     const projectedExpenses = expenses + allocatedFunds;
@@ -203,7 +208,7 @@ function Inner() {
     return {
       totalTasks, completed, completionRate, totalMarriages,
       revenues, expenses, allocatedFunds, projectedExpenses, netBalance,
-      familyContributions, groomRevenues,
+      familyContributions, groomRevenues, budgetTotal,
       tasksY, groomsY, paymentsY,
     };
   }, [data, year]);
