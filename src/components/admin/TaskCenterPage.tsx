@@ -30,6 +30,7 @@ import { CreateTaskDialog } from "@/components/admin/CreateTaskDialog";
 import { TaskDetailsDialog } from "@/components/admin/TaskDetailsDialog";
 import { PageHeroHeader } from "@/components/PageHeroHeader";
 import { CommitteeMinutes } from "@/components/CommitteeMinutes";
+import { BudgetItemsPanel } from "@/components/finance/BudgetItemsPanel";
 
 
 interface CommitteeRow { id: string; name: string; type: string }
@@ -450,6 +451,16 @@ function TaskCenterInner({ canEdit }: { canEdit: boolean }) {
           onClose={() => setDetails(null)}
           onChanged={load}
         />
+      )}
+
+      {activeCommittee && (
+        <div className="mt-2">
+          <BudgetItemsPanel
+            committeeId={activeCommittee.id}
+            committeeName={activeCommittee.name}
+            canEdit={canEdit}
+          />
+        </div>
       )}
 
       {/* Mobile-only Floating Action Button — fixed bottom-left, above the bottom nav */}
