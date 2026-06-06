@@ -14,7 +14,7 @@ import {
   type TaskRow, type TaskReportSummary, type CommitteePerf,
   type FirstTaskRow, type CommitteeProgressBrief,
 } from "@/lib/task-reports";
-import { sendFirstTaskReminders } from "@/server/task-reminders.functions";
+import { sendFirstTaskReminders } from "@/lib/task-reminders.functions";
 
 interface Committee { id: string; name: string }
 interface Profile { user_id: string; full_name: string }
