@@ -889,30 +889,20 @@ function CommitteePage() {
           committeeName={committee.name}
           canEdit
         />
+      </QualitySection>
 
-        {/* قسم طلبات الشراء — مرتبط مباشرة ببنود الميزانية */}
-        <div className="mt-6 rounded-2xl border bg-gradient-to-bl from-primary/5 via-card to-card overflow-hidden">
-          <div className="px-5 py-3 border-b bg-card/60 flex items-center gap-2.5">
-            <span className="h-9 w-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
-              <Receipt className="h-4.5 w-4.5" />
-            </span>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-bold leading-tight">
-                {type === "procurement"
-                  ? "طلبات الشراء الواردة — قيد المراجعة"
-                  : "طلب شراء جديد من لجنة المشتريات"}
-              </p>
-              <p className="text-[11px] text-muted-foreground mt-0.5">
-                {type === "procurement"
-                  ? "مراجعة الطلبات الواردة من بقية اللجان واتخاذ القرار"
-                  : "أرسل طلبك مباشرة إلى لجنة المشتريات بناءً على بنود ميزانيتك"}
-              </p>
-            </div>
-          </div>
-          <div className="p-5">
-            {type === "procurement" ? <PurchasingDashboard /> : <CreatePurchaseRequestForm />}
-          </div>
-        </div>
+      {/* قسم مستقل لطلبات الشراء */}
+      <QualitySection
+        storageKey={`committee:${type}:simple-purchase`}
+        title={
+          type === "procurement"
+            ? "طلبات الشراء الواردة — قيد المراجعة"
+            : "طلبات الشراء — إرسال إلى لجنة المشتريات"
+        }
+        icon={Receipt}
+        defaultOpen
+      >
+        {type === "procurement" ? <PurchasingDashboard /> : <CreatePurchaseRequestForm />}
       </QualitySection>
 
       <QualitySection storageKey={`committee:${type}:grooms`} title="متابعة العرسان" icon={HeartHandshake}>
