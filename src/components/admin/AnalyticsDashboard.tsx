@@ -219,12 +219,13 @@ function Inner() {
     // Allocated support = total grooms × fixed allocation (treated as projected expense)
     const allocatedFunds = totalMarriages * ALLOCATED_SUPPORT_PER_GROOM;
     const projectedExpenses = expenses + allocatedFunds;
-    // Net balance = (Family Contributions + Other Revenues) − (Allocated Support + Other Expenses)
-    const netBalance = revenues - projectedExpenses;
+    // Net balance = revenues − expenses (matches FinancialDashboard logic)
+    const netBalance = revenues - expenses;
+    const balanceStatus = netBalance > 0 ? "فائض" : netBalance < 0 ? "عجز" : "متوازن";
 
     return {
       totalTasks, completed, completionRate, totalMarriages,
-      revenues, expenses, allocatedFunds, projectedExpenses, netBalance,
+      revenues, expenses, allocatedFunds, projectedExpenses, netBalance, balanceStatus,
       familyContributions, groomRevenues, budgetTotal,
       tasksY, groomsY, paymentsY,
     };
@@ -477,9 +478,9 @@ function Inner() {
         <HeroKpi
           label="صافي الرصيد المالي"
           value={fmtSar(k.netBalance)}
-          sub={k.netBalance >= 0 ? "فائض" : "عجز"}
+          sub={k.balanceStatus}
           icon={Scale}
-          tone={k.netBalance >= 0 ? "teal" : "rose"}
+          tone={k.netBalance > 0 ? "teal" : k.netBalance < 0 ? "rose" : "amber"}
         />
       </div>
 
@@ -583,8 +584,11 @@ function Inner() {
   );
 }
 
-function HeroKpi({ label, value, sub, icon: Icon, tone = "teal" }: { label: string; value: string | number; sub?: string; icon: any; tone?: "teal" | "rose" }) {
-  const iconBg = tone === "rose" ? "bg-rose-50 text-rose-700" : "bg-teal-50 text-teal-700";
+function HeroKpi({ label, value, sub, icon: Icon, tone = "teal" }: { label: string; value: string | number; sub?: string; icon: any; tone?: "teal" | "rose" | "amber" }) {
+  const iconBg =
+    tone === "rose" ? "bg-rose-50 text-rose-700" :
+    tone === "amber" ? "bg-amber-50 text-amber-700" :
+    "bg-teal-50 text-teal-700";
   return (
     <div className="rounded-2xl bg-white p-6 shadow-sm hover:shadow-md transition-shadow">
       <div className="flex items-start justify-between gap-3">
