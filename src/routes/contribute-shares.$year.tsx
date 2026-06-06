@@ -173,10 +173,10 @@ function ContributeSharesPage() {
 
   if (done) {
     return (
-      <div dir="rtl" className="min-h-screen flex items-center justify-center p-6 bg-[#F6F8F8]">
-        <Card className="max-w-md w-full border-[#1B4F58]/15 shadow-lg">
+      <div dir="rtl" className="min-h-screen flex items-center justify-center p-6 bg-[#F1F8F6]">
+        <Card className="max-w-md w-full border-[#1F8A7A]/15 shadow-lg">
           <CardContent className="p-8 text-center space-y-4">
-            <div className="mx-auto h-16 w-16 rounded-full bg-gradient-to-br from-[#1B4F58] to-[#0E3A42] flex items-center justify-center shadow-md">
+            <div className="mx-auto h-16 w-16 rounded-full bg-gradient-to-br from-[#1F8A7A] to-[#14655A] flex items-center justify-center shadow-md">
               <CheckCircle2 className="h-9 w-9 text-white" />
             </div>
             <h1 className="text-2xl font-extrabold">جزاكم الله خيراً</h1>
@@ -193,7 +193,7 @@ function ContributeSharesPage() {
                   setRows([emptyRow()]);
                   setDelegateName("");
                 }}
-                className="gap-1 bg-[#1B4F58] hover:bg-[#0E3A42] text-white"
+                className="gap-1 bg-[#1F8A7A] hover:bg-[#14655A] text-white"
               >
                 <Plus className="h-4 w-4" /> إضافة قائمة جديدة
               </Button>
@@ -210,17 +210,17 @@ function ContributeSharesPage() {
   }
 
   return (
-    <div dir="rtl" className="min-h-screen bg-[#F6F8F8] pb-12">
+    <div dir="rtl" className="min-h-screen bg-[#F1F8F6] pb-12">
       {/* Hero — هوية اللجنة (تيل + ذهبي) */}
       <div
         className="relative text-white overflow-hidden"
         style={{
           background:
-            "linear-gradient(135deg, #0E3A42 0%, #1B4F58 55%, #1B4F58 100%)",
+            "linear-gradient(135deg, #14655A 0%, #1F8A7A 55%, #1F8A7A 100%)",
         }}
       >
         {/* لمسة ذهبية رفيعة سفلية */}
-        <div className="absolute inset-x-0 bottom-0 h-[3px] bg-gradient-to-l from-transparent via-[#C4A25C] to-transparent" />
+        <div className="absolute inset-x-0 bottom-0 h-[3px] bg-gradient-to-l from-transparent via-[#D4A24C] to-transparent" />
         <div className="max-w-3xl mx-auto px-5 py-7">
           <div className="flex items-center gap-3.5">
             <div className="h-14 w-14 rounded-2xl bg-white p-1.5 shadow-md ring-1 ring-white/20 shrink-0">
@@ -232,12 +232,12 @@ function ContributeSharesPage() {
               />
             </div>
             <div className="min-w-0">
-              <p className="text-[11px] tracking-wide text-[#E6D6A8] font-semibold">
+              <p className="text-[11px] tracking-wide text-[#F0DDA4] font-semibold">
                 لجنة الزواج الجماعي · الإدارة المالية
               </p>
               <h1 className="text-lg md:text-xl font-extrabold leading-tight mt-0.5">
                 مساهمات الفرع للزواج الـ12
-                <span className="inline-block mx-2 text-[#E6D6A8]">·</span>
+                <span className="inline-block mx-2 text-[#F0DDA4]">·</span>
                 {hijriYear}هـ
               </h1>
             </div>
@@ -246,12 +246,12 @@ function ContributeSharesPage() {
       </div>
 
       <div className="max-w-3xl mx-auto px-4 -mt-5">
-        <Card className="shadow-xl border-[#1B4F58]/10 overflow-hidden">
+        <Card className="shadow-xl border-[#1F8A7A]/10 overflow-hidden">
           {/* شريط رفيع علوي بهوية اللجنة */}
-          <div className="h-1 bg-gradient-to-l from-[#C4A25C] via-[#1B4F58] to-[#C4A25C]" />
+          <div className="h-1 bg-gradient-to-l from-[#D4A24C] via-[#1F8A7A] to-[#D4A24C]" />
           <CardContent className="p-5 md:p-6 space-y-5">
             {/* تعليمات مختصرة */}
-            <p className="text-[13px] text-muted-foreground leading-7 border-r-2 border-[#C4A25C] pr-3">
+            <p className="text-[13px] text-muted-foreground leading-7 border-r-2 border-[#D4A24C] pr-3">
               مرحباً بممثل الفرع. يُرجى إدخال البيانات وتفاصيل المساهمين، أو إرفاق
               كشف للتحليل الآلي. تُوجَّه البيانات مباشرةً للإدارة المالية.
             </p>
@@ -275,7 +275,7 @@ function ContributeSharesPage() {
                     <Label className="text-xs text-muted-foreground">الفرع العائلي *</Label>
                     <button
                       type="button"
-                      className="text-[11px] text-[#1B4F58] hover:text-[#0E3A42] font-semibold hover:underline"
+                      className="text-[11px] text-[#1F8A7A] hover:text-[#14655A] font-semibold hover:underline"
                       onClick={() => {
                         const next = !customBranch;
                         setCustomBranch(next);
@@ -306,7 +306,7 @@ function ContributeSharesPage() {
                 </div>
               </div>
               <div className="text-[11px] text-muted-foreground flex items-center gap-1.5">
-                <Calendar className="h-3.5 w-3.5 text-[#C4A25C]" />
+                <Calendar className="h-3.5 w-3.5 text-[#D4A24C]" />
                 السنة الهجرية: <b className="text-foreground">{hijriYear}هـ</b>
               </div>
             </section>
@@ -320,7 +320,7 @@ function ContributeSharesPage() {
                   size="sm"
                   variant="outline"
                   onClick={addRow}
-                  className="gap-1 border-[#1B4F58]/30 text-[#1B4F58] hover:bg-[#1B4F58]/5"
+                  className="gap-1 border-[#1F8A7A]/30 text-[#1F8A7A] hover:bg-[#1F8A7A]/5"
                 >
                   <Plus className="h-4 w-4" /> إضافة مساهم
                 </Button>
@@ -334,11 +334,11 @@ function ContributeSharesPage() {
                   boxShadow: "inset 0 0 0 1px rgba(196,162,92,0.08)",
                 }}
               >
-                <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-[#1B4F58] to-[#0E3A42] text-[#E6D6A8] flex items-center justify-center shrink-0">
+                <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-[#1F8A7A] to-[#14655A] text-[#F0DDA4] flex items-center justify-center shrink-0">
                   <Sparkles className="h-5 w-5" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-[13px] font-bold text-[#0E3A42] leading-tight">
+                  <p className="text-[13px] font-bold text-[#14655A] leading-tight">
                     التحليل الذكي للكشوفات
                   </p>
                   <p className="text-[11px] text-muted-foreground mt-0.5">
@@ -350,7 +350,7 @@ function ContributeSharesPage() {
                   size="sm"
                   onClick={() => fileInputRef.current?.click()}
                   disabled={analyzing}
-                  className="gap-1.5 bg-[#1B4F58] hover:bg-[#0E3A42] text-white shrink-0"
+                  className="gap-1.5 bg-[#1F8A7A] hover:bg-[#14655A] text-white shrink-0"
                 >
                   {analyzing ? (
                     <><Loader2 className="h-4 w-4 animate-spin" /> جارٍ التحليل…</>
@@ -374,10 +374,10 @@ function ContributeSharesPage() {
                 {rows.map((row, i) => (
                   <div
                     key={i}
-                    className="rounded-lg border border-[#1B4F58]/10 bg-white p-2.5 grid md:grid-cols-12 gap-2 items-center hover:border-[#1B4F58]/25 transition"
+                    className="rounded-lg border border-[#1F8A7A]/10 bg-white p-2.5 grid md:grid-cols-12 gap-2 items-center hover:border-[#1F8A7A]/25 transition"
                   >
                     <div className="md:col-span-1 flex md:justify-center">
-                      <span className="inline-flex h-6 w-6 items-center justify-center rounded-md bg-[#1B4F58]/8 text-[#1B4F58] text-[11px] font-bold">
+                      <span className="inline-flex h-6 w-6 items-center justify-center rounded-md bg-[#1F8A7A]/8 text-[#1F8A7A] text-[11px] font-bold">
                         {i + 1}
                       </span>
                     </div>
@@ -387,7 +387,7 @@ function ContributeSharesPage() {
                         onChange={(e) => updateRow(i, { full_name: e.target.value })}
                         placeholder="اسم المساهم الكامل"
                         maxLength={120}
-                        className="h-9 border-transparent bg-[#F6F8F8] focus-visible:bg-white focus-visible:border-[#1B4F58]/40"
+                        className="h-9 border-transparent bg-[#F1F8F6] focus-visible:bg-white focus-visible:border-[#1F8A7A]/40"
                       />
                     </div>
                     <div className="md:col-span-3">
@@ -395,7 +395,7 @@ function ContributeSharesPage() {
                         value={String(row.amount)}
                         onValueChange={(v) => updateRow(i, { amount: Number(v) })}
                       >
-                        <SelectTrigger className="h-9 border-transparent bg-[#F6F8F8] focus:bg-white">
+                        <SelectTrigger className="h-9 border-transparent bg-[#F1F8F6] focus:bg-white">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -411,7 +411,7 @@ function ContributeSharesPage() {
                         onChange={(e) => updateRow(i, { notes: e.target.value })}
                         placeholder="ملاحظات"
                         maxLength={120}
-                        className="h-9 border-transparent bg-[#F6F8F8] focus-visible:bg-white focus-visible:border-[#1B4F58]/40"
+                        className="h-9 border-transparent bg-[#F1F8F6] focus-visible:bg-white focus-visible:border-[#1F8A7A]/40"
                       />
                     </div>
                     <div className="md:col-span-1 flex md:justify-center">
@@ -433,13 +433,13 @@ function ContributeSharesPage() {
 
               <div
                 className="flex items-center justify-between rounded-xl px-4 py-3 text-white"
-                style={{ background: "linear-gradient(135deg, #1B4F58 0%, #0E3A42 100%)" }}
+                style={{ background: "linear-gradient(135deg, #1F8A7A 0%, #14655A 100%)" }}
               >
                 <span className="text-[13px] font-semibold inline-flex items-center gap-2">
-                  <Users2 className="h-4 w-4 text-[#E6D6A8]" />
+                  <Users2 className="h-4 w-4 text-[#F0DDA4]" />
                   الإجمالي · {rows.length} مساهم
                 </span>
-                <span className="text-lg font-extrabold tracking-tight text-[#E6D6A8]">
+                <span className="text-lg font-extrabold tracking-tight text-[#F0DDA4]">
                   {fmt(total)} <span className="text-xs text-white/80 font-semibold">ر.س</span>
                 </span>
               </div>
@@ -450,7 +450,7 @@ function ContributeSharesPage() {
                 size="lg"
                 onClick={handleSubmit}
                 disabled={submitting}
-                className="gap-2 h-12 text-[15px] font-bold bg-[#1B4F58] hover:bg-[#0E3A42] text-white shadow-md"
+                className="gap-2 h-12 text-[15px] font-bold bg-[#1F8A7A] hover:bg-[#14655A] text-white shadow-md"
               >
                 {submitting ? (
                   <><Loader2 className="h-4 w-4 animate-spin" /> جارٍ الإرسال…</>
@@ -459,7 +459,7 @@ function ContributeSharesPage() {
                 )}
               </Button>
               <p className="text-[11px] text-center text-muted-foreground inline-flex items-center justify-center gap-1.5">
-                <ShieldCheck className="h-3.5 w-3.5 text-[#1B4F58]" />
+                <ShieldCheck className="h-3.5 w-3.5 text-[#1F8A7A]" />
                 بإرسالك القائمة فأنت تُقرّ بصحة البيانات — تصل مباشرةً للإدارة المالية للتدقيق.
               </p>
             </div>
@@ -484,13 +484,13 @@ function SectionHeader({
   title: string;
   accent?: "teal" | "gold";
 }) {
-  const bg = accent === "gold" ? "bg-[#C4A25C]/12 text-[#8A6E2E]" : "bg-[#1B4F58]/10 text-[#1B4F58]";
+  const bg = accent === "gold" ? "bg-[#D4A24C]/12 text-[#8A6B23]" : "bg-[#1F8A7A]/10 text-[#1F8A7A]";
   return (
     <div className="flex items-center gap-2">
       <span className={`h-7 w-7 rounded-lg flex items-center justify-center ${bg}`}>
         <Icon className="h-3.5 w-3.5" />
       </span>
-      <h2 className="font-bold text-[14px] text-[#0E3A42]">{title}</h2>
+      <h2 className="font-bold text-[14px] text-[#14655A]">{title}</h2>
     </div>
   );
 }
