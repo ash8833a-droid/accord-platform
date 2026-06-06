@@ -4,7 +4,7 @@ import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { ChevronDown, ChevronLeft, FileSpreadsheet, Printer, Search, Wallet, Loader2, ArrowDownUp, Plus, Lock } from "lucide-react";
+import { ChevronDown, ChevronLeft, FileSpreadsheet, Printer, Search, Wallet, Loader2, ArrowDownUp, Plus, Lock, Link2, Check } from "lucide-react";
 import { exportBudgetXLSX, exportBudgetPDF } from "@/lib/budget-export";
 import { toast } from "sonner";
 import {
@@ -59,6 +59,20 @@ export function BudgetOverviewPanel() {
   const [addUnitCost, setAddUnitCost] = useState("");
   const [addNotes, setAddNotes] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  const copyShareLink = async (e: React.MouseEvent, committeeId: string) => {
+    e.stopPropagation();
+    const url = `${window.location.origin}/budget-entry/${committeeId}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopiedId(committeeId);
+      toast.success("تم نسخ رابط الإدخال", { description: "جاهز للإرسال عبر واتساب" });
+      setTimeout(() => setCopiedId((c) => (c === committeeId ? null : c)), 2000);
+    } catch {
+      toast.error("تعذّر النسخ");
+    }
+  };
 
   const load = async () => {
     const [{ data: c }, { data: i, error }] = await Promise.all([
@@ -332,6 +346,19 @@ export function BudgetOverviewPanel() {
                             />
                           </div>
                           <span className="text-[11px] tabular-nums w-10 text-left">{pct.toFixed(1)}%</span>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={(e) => copyShareLink(e, g.committee_id)}
+                            className="h-7 gap-1 text-[11px] shrink-0"
+                            title="نسخ رابط إدخال البنود (للمشاركة عبر واتساب)"
+                          >
+                            {copiedId === g.committee_id ? (
+                              <><Check className="h-3 w-3 text-emerald-600" /> تم النسخ</>
+                            ) : (
+                              <><Link2 className="h-3 w-3" /> نسخ الرابط</>
+                            )}
+                          </Button>
                         </div>
                       </td>
                     </tr>
