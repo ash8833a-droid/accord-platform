@@ -420,7 +420,7 @@ function PublicHome() {
                 className="inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold border border-gold/40 bg-gold/10 text-foreground hover:bg-gold/20 transition-colors"
               >
                 <HeartHandshake className="h-4 w-4" />
-                ترشيح عريس
+                تسجيل عريس
               </Link>
             </div>
           </div>
