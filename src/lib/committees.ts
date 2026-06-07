@@ -51,7 +51,7 @@ export const COMMITTEES: CommitteeMeta[] = [
     label: "اللجنة المالية",
     icon: Wallet,
     tone: "bg-emerald-500/15 text-emerald-600",
-    description: "الميزانية والتحصيل والمناديب وطلبات الصرف",
+    description: "الميزانية والتحصيل وممثلو الأسر وطلبات الصرف",
     goals: [
       "إعداد موازنة سنوية معتمدة لجميع اللجان",
       "تحصيل اشتراكات أبناء العائلة في الوقت المحدد",

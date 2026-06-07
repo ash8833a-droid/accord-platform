@@ -55,7 +55,7 @@ const ROLE_LABELS: Record<Role, string> = {
   admin: "مدير نظام",
   committee: COMMITTEE_MEMBER_LABEL,
   committee_head: COMMITTEE_HEAD_LABEL,
-  delegate: "مندوب أسرة",
+  delegate: "ممثل أسرة",
   quality: "جودة",
 };
 

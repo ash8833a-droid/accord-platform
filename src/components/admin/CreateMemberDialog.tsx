@@ -34,7 +34,7 @@ interface Committee {
 const ROLE_OPTIONS: { value: Role; label: string; hint: string }[] = [
   { value: "committee", label: "عضو/منسق لجنة", hint: "يرى لجنته فقط — الخيار الافتراضي للأعضاء" },
   { value: "committee_head", label: "رئيس اللجنة", hint: "رئيس لجنة محدد — يدير اللجنة وأعضاءها" },
-  { value: "delegate", label: "مندوب أسرة", hint: "خاص بمندوبي الأسرة لتحصيل الاشتراكات" },
+  { value: "delegate", label: "ممثل أسرة", hint: "خاص بممثلي الأسر لتحصيل الاشتراكات" },
   { value: "quality", label: "الجودة (رقابي شامل)", hint: "⚠️ يرى جميع اللجان — استخدمه فقط لأعضاء لجنة الجودة" },
   { value: "admin", label: "مدير نظام (صلاحيات كاملة)", hint: "⚠️ صلاحيات إدارة كاملة على المنصة" },
 ];

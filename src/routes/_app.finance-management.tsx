@@ -79,7 +79,7 @@ function FinanceManagementInner() {
       <PageHeroHeader
         highlight="الإدارة"
         title="المالية"
-        subtitle="المحفظة، المناديب، الاشتراكات، وطلبات الصرف الواردة"
+        subtitle="المحفظة، ممثلو الأسر، الاشتراكات، وطلبات الصرف الواردة"
         icon={Banknote}
       />
       {allowed ? (

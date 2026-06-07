@@ -106,7 +106,7 @@ export function exportRequestsXLSX(
     ["البند", "القيمة"],
     ["إجمالي المحصّل (ر.س)", summary.totalCollected],
     ["عدد الاشتراكات المؤكدة", summary.totalSubs],
-    ["عدد المناديب", summary.delegatesCount],
+    ["عدد ممثلي الأسر", summary.delegatesCount],
     ["طلبات قيد المراجعة", summary.pendingCount],
     ["إجمالي المصروف (ر.س)", summary.totalPaid],
   ];
@@ -163,7 +163,7 @@ export function exportRequestsPDF(
   const cards = [
     { label: "إجمالي المحصّل", value: `${fmt(summary.totalCollected)} ر.س`, accent: "teal" },
     { label: "اشتراكات مؤكدة", value: fmt(summary.totalSubs), accent: "gold" },
-    { label: "عدد المناديب", value: fmt(summary.delegatesCount), accent: "teal" },
+    { label: "عدد ممثلي الأسر", value: fmt(summary.delegatesCount), accent: "teal" },
     { label: "قيد المراجعة", value: fmt(summary.pendingCount), accent: "gold" },
     { label: "إجمالي المصروف", value: `${fmt(summary.totalPaid)} ر.س`, accent: "teal" },
   ];

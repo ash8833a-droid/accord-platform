@@ -133,11 +133,11 @@ export function FinanceModule() {
         .update({ full_name: name, phone, family_branch: branch })
         .eq("id", editingDelegateId);
       if (error) return toast.error("تعذر التحديث", { description: error.message });
-      toast.success("تم تحديث بيانات المندوب");
+      toast.success("تم تحديث بيانات ممثل الأسرة");
     } else {
       const { error } = await supabase.from("delegates").insert({ full_name: name, phone, family_branch: branch });
-      if (error) return toast.error("تعذر إضافة المندوب", { description: error.message });
-      toast.success("تمت إضافة المندوب");
+      if (error) return toast.error("تعذر إضافة ممثل الأسرة", { description: error.message });
+      toast.success("تمت إضافة ممثل الأسرة");
     }
     resetDelegateForm();
     setOpen(false);
@@ -153,10 +153,10 @@ export function FinanceModule() {
   };
 
   const removeDelegate = async (d: Delegate) => {
-    if (!confirm(`حذف المندوب "${d.full_name}" نهائياً؟ سيتم حذف اشتراكاته المرتبطة أيضاً.`)) return;
+    if (!confirm(`حذف ممثل الأسرة "${d.full_name}" نهائياً؟ سيتم حذف اشتراكاته المرتبطة أيضاً.`)) return;
     const { error } = await supabase.from("delegates").delete().eq("id", d.id);
     if (error) return toast.error("تعذر الحذف", { description: error.message });
-    toast.success("تم حذف المندوب");
+    toast.success("تم حذف ممثل الأسرة");
     load();
   };
 
@@ -321,7 +321,7 @@ export function FinanceModule() {
             {pendingCount > 0 && <span className="bg-gold text-gold-foreground text-[10px] px-1.5 py-0.5 rounded-full font-bold">{pendingCount}</span>}
           </TabsTrigger>
           <TabsTrigger value="shares" className="gap-2"><TreePine className="h-4 w-4" /> أسهم الأسر</TabsTrigger>
-          <TabsTrigger value="delegates" className="gap-2"><Users2 className="h-4 w-4" /> المناديب</TabsTrigger>
+          <TabsTrigger value="delegates" className="gap-2"><Users2 className="h-4 w-4" /> ممثلو الأسر</TabsTrigger>
           <TabsTrigger value="safety" className="gap-2"><ShieldCheck className="h-4 w-4" /> السلامة المالية</TabsTrigger>
           <TabsTrigger value="budgets" className="gap-2"><Wallet className="h-4 w-4" /> ميزانيات اللجان</TabsTrigger>
         </TabsList>
@@ -329,7 +329,7 @@ export function FinanceModule() {
         <TabsContent value="overview" className="mt-5 space-y-4">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             <StatCard variant="teal" label="إجمالي المحصّل" value={`${fmt(totalCollected)} ر.س`} icon={Wallet} hint={`${totalSubs} اشتراك مؤكد`} />
-            <StatCard variant="gold" label="المناديب النشطون" value={delegates.length} icon={Users2} hint="في قاعدة البيانات" />
+            <StatCard variant="gold" label="ممثلو الأسر النشطون" value={delegates.length} icon={Users2} hint="في قاعدة البيانات" />
             <StatCard label="طلبات قيد المراجعة" value={pendingCount} icon={Clock} hint="بانتظار قرار المالية" />
             <StatCard label="إجمالي المصروف" value={`${fmt(expensesTotal)} ر.س`} icon={TrendingUp} hint="طلبات صُرفت + ميزانيات اللجان" />
           </div>
@@ -348,7 +348,7 @@ export function FinanceModule() {
             <h3 className="font-bold flex items-center gap-2 text-primary">
               <HandCoins className="h-4 w-4" /> مساهمات أفراد القبيلة
             </h3>
-            <p className="text-xs text-muted-foreground mt-1">سجّل مساهمة يدوياً، أو استخدم بوابة المناديب لاستخراجها تلقائياً من PDF/صورة.</p>
+            <p className="text-xs text-muted-foreground mt-1">سجّل مساهمة يدوياً، أو استخدم بوابة ممثلي الأسر لاستخراجها تلقائياً من PDF/صورة.</p>
           </div>
           <DelegateUploadPanel onSaved={load} />
           <FamilyContributionsPanel />
@@ -465,17 +465,17 @@ export function FinanceModule() {
           <div className="rounded-2xl border bg-card overflow-hidden shadow-soft">
             <div className="px-6 py-4 border-b bg-gradient-to-l from-primary/5 to-transparent flex items-center justify-between">
               <div>
-                <h3 className="font-bold">جدول المناديب</h3>
-                <p className="text-xs text-muted-foreground mt-1">المناديب المسؤولون عن تحصيل الاشتراكات (300 ر.س)</p>
+                <h3 className="font-bold">جدول ممثلي الأسر</h3>
+                <p className="text-xs text-muted-foreground mt-1">ممثلو الأسر المسؤولون عن تحصيل الاشتراكات (300 ر.س)</p>
               </div>
               <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) resetDelegateForm(); }}>
                 <DialogTrigger asChild>
                   <Button size="sm" className="bg-gradient-hero text-primary-foreground">
-                    <Plus className="h-4 w-4 ms-1" /> إضافة مندوب
+                    <Plus className="h-4 w-4 ms-1" /> إضافة ممثل أسرة
                   </Button>
                 </DialogTrigger>
                 <DialogContent dir="rtl">
-                  <DialogHeader><DialogTitle>{editingDelegateId ? "تعديل بيانات مندوب" : "مندوب جديد"}</DialogTitle></DialogHeader>
+                  <DialogHeader><DialogTitle>{editingDelegateId ? "تعديل بيانات ممثل أسرة" : "ممثل أسرة جديد"}</DialogTitle></DialogHeader>
                   <form onSubmit={addDelegate} className="space-y-3 pt-2">
                     <div className="space-y-2"><Label>الاسم</Label><Input value={name} onChange={(e) => setName(e.target.value)} required /></div>
                     <div className="space-y-2"><Label>الجوال</Label><Input value={phone} onChange={(e) => setPhone(e.target.value)} required dir="ltr" /></div>
@@ -491,7 +491,7 @@ export function FinanceModule() {
               <table className="w-full text-sm">
                 <thead className="bg-muted/40 text-muted-foreground">
                   <tr className="text-right">
-                    <th className="px-4 py-3 font-medium">المندوب</th>
+                    <th className="px-4 py-3 font-medium">ممثل الأسرة</th>
                     <th className="px-4 py-3 font-medium">الجوال</th>
                     <th className="px-4 py-3 font-medium">الأسرة</th>
                     <th className="px-4 py-3 font-medium">الاشتراكات</th>
@@ -544,7 +544,7 @@ export function FinanceModule() {
                     </tr>
                   ))}
                   {delegates.length === 0 && (
-                    <tr><td colSpan={canManage ? 7 : 6} className="text-center py-12 text-muted-foreground">لا يوجد مناديب بعد. أضف أول مندوب لتبدأ المتابعة.</td></tr>
+                    <tr><td colSpan={canManage ? 7 : 6} className="text-center py-12 text-muted-foreground">لا يوجد ممثلو أسر بعد. أضف أول ممثل أسرة لتبدأ المتابعة.</td></tr>
                   )}
                 </tbody>
               </table>

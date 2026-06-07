@@ -50,7 +50,7 @@ interface UserRow {
 }
 
 const ROLE_LABELS: Record<string, string> = {
-  admin: "مدير النظام", committee: "عضو لجنة", committee_head: "رئيس لجنة", delegate: "مندوب", quality: "جودة",
+  admin: "مدير النظام", committee: "عضو لجنة", committee_head: "رئيس لجنة", delegate: "ممثل أسرة", quality: "جودة",
 };
 
 const ROLE_BADGE_STYLES: Record<string, string> = {
@@ -214,7 +214,7 @@ function UsersPage() {
                 <SelectItem value="admin">مدير نظام</SelectItem>
                 <SelectItem value="committee_head">رئيس لجنة</SelectItem>
                 <SelectItem value="committee">عضو لجنة</SelectItem>
-                <SelectItem value="delegate">مندوب</SelectItem>
+                <SelectItem value="delegate">ممثل أسرة</SelectItem>
                 <SelectItem value="quality">جودة</SelectItem>
               </SelectContent>
             </Select>
@@ -294,7 +294,7 @@ function UsersPage() {
                           <SelectContent>
                             <SelectItem value="committee">عضو لجنة</SelectItem>
                             <SelectItem value="committee_head">رئيس لجنة</SelectItem>
-                            <SelectItem value="delegate">مندوب</SelectItem>
+                            <SelectItem value="delegate">ممثل أسرة</SelectItem>
                             <SelectItem value="quality">جودة</SelectItem>
                             <SelectItem value="admin">مدير نظام</SelectItem>
                           </SelectContent>
@@ -368,7 +368,7 @@ function UsersPage() {
                 <SelectContent>
                   <SelectItem value="committee">عضو لجنة</SelectItem>
                   <SelectItem value="committee_head">رئيس اللجنة</SelectItem>
-                  <SelectItem value="delegate">مندوب أسرة</SelectItem>
+                  <SelectItem value="delegate">ممثل أسرة</SelectItem>
                   <SelectItem value="quality">جودة</SelectItem>
                   <SelectItem value="admin">مدير نظام</SelectItem>
                 </SelectContent>

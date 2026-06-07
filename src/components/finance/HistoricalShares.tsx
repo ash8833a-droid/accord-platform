@@ -485,14 +485,14 @@ tfoot td:last-child{border-bottom-left-radius:10px}
                 const url = `https://lajnat-zawaj.org/contribute-shares/${activeYear}`;
                 try {
                   await navigator.clipboard.writeText(url);
-                  toast.success("تم نسخ رابط المندوب");
+                  toast.success("تم نسخ رابط ممثل الأسرة");
                 } catch {
                   toast.error("تعذّر النسخ — انسخ الرابط يدوياً: " + url);
                 }
               }}
-              title="نسخ رابط المندوب لتعبئة المساهمين"
+              title="نسخ رابط ممثل الأسرة لتعبئة المساهمين"
             >
-              <Copy className="h-4 w-4" /> نسخ رابط المندوب
+              <Copy className="h-4 w-4" /> نسخ رابط ممثل الأسرة
             </Button>
             <Button
               variant="outline"
@@ -502,7 +502,7 @@ tfoot td:last-child{border-bottom-left-radius:10px}
                 const url = `https://lajnat-zawaj.org/contribute-shares/${activeYear}`;
                 const msg =
                   `السلام عليكم،\n\n` +
-                  `يُرجى من مندوب الأسرة تعبئة قائمة المساهمين من العائلة في ` +
+                  `يُرجى من ممثل الأسرة تعبئة قائمة المساهمين من العائلة في ` +
                   `الزواج الجماعي الثاني عشر (${activeYear}هـ) عبر الرابط التالي:\n\n` +
                   `${url}\n\n` +
                   `جزاكم الله خيراً.\n— الإدارة المالية`;
