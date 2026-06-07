@@ -19,7 +19,7 @@ export function FinanceSummaryCard({
 
   const revenueData = [
     { name: "اشتراكات العرسان", value: groomSubsTotal, color: "hsl(190 80% 40%)" },
-    { name: "مساهمات 1448هـ", value: familyContribTotal, color: "hsl(142 70% 40%)" },
+    { name: "مساهمات أفراد القبيلة", value: familyContribTotal, color: "hsl(142 70% 40%)" },
   ].filter((d) => d.value > 0);
 
   const expensesData = committeeBreakdown
@@ -39,7 +39,7 @@ export function FinanceSummaryCard({
           arrow={ArrowUpRight}
           sublines={[
             { k: "اشتراكات العرسان", v: groomSubsTotal },
-            { k: "مساهمات 1448هـ", v: familyContribTotal },
+            { k: "مساهمات أفراد القبيلة", v: familyContribTotal },
           ]}
         />
         <KpiTile
