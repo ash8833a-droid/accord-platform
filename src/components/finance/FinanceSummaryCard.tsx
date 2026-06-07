@@ -1,7 +1,7 @@
 import { TrendingUp, TrendingDown, Wallet, ArrowUpRight, ArrowDownRight } from "lucide-react";
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts";
 
-const fmt = (n: number) => new Intl.NumberFormat("ar-SA").format(Math.round(n));
+const fmt = (n: number) => new Intl.NumberFormat("en-US").format(Math.round(n));
 
 interface Props {
   groomSubsTotal: number;
