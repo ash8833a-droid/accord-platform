@@ -133,11 +133,11 @@ export function FinanceModule() {
         .update({ full_name: name, phone, family_branch: branch })
         .eq("id", editingDelegateId);
       if (error) return toast.error("تعذر التحديث", { description: error.message });
-      toast.success("تم تحديث بيانات المندوب");
+      toast.success("تم تحديث بيانات ممثل الأسرة");
     } else {
       const { error } = await supabase.from("delegates").insert({ full_name: name, phone, family_branch: branch });
-      if (error) return toast.error("تعذر إضافة المندوب", { description: error.message });
-      toast.success("تمت إضافة المندوب");
+      if (error) return toast.error("تعذر إضافة ممثل الأسرة", { description: error.message });
+      toast.success("تمت إضافة ممثل الأسرة");
     }
     resetDelegateForm();
     setOpen(false);
@@ -153,10 +153,10 @@ export function FinanceModule() {
   };
 
   const removeDelegate = async (d: Delegate) => {
-    if (!confirm(`حذف المندوب "${d.full_name}" نهائياً؟ سيتم حذف اشتراكاته المرتبطة أيضاً.`)) return;
+    if (!confirm(`حذف ممثل الأسرة "${d.full_name}" نهائياً؟ سيتم حذف اشتراكاته المرتبطة أيضاً.`)) return;
     const { error } = await supabase.from("delegates").delete().eq("id", d.id);
     if (error) return toast.error("تعذر الحذف", { description: error.message });
-    toast.success("تم حذف المندوب");
+    toast.success("تم حذف ممثل الأسرة");
     load();
   };
 
@@ -471,11 +471,11 @@ export function FinanceModule() {
               <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) resetDelegateForm(); }}>
                 <DialogTrigger asChild>
                   <Button size="sm" className="bg-gradient-hero text-primary-foreground">
-                    <Plus className="h-4 w-4 ms-1" /> إضافة مندوب
+                    <Plus className="h-4 w-4 ms-1" /> إضافة ممثل أسرة
                   </Button>
                 </DialogTrigger>
                 <DialogContent dir="rtl">
-                  <DialogHeader><DialogTitle>{editingDelegateId ? "تعديل بيانات مندوب" : "مندوب جديد"}</DialogTitle></DialogHeader>
+                  <DialogHeader><DialogTitle>{editingDelegateId ? "تعديل بيانات ممثل أسرة" : "ممثل أسرة جديد"}</DialogTitle></DialogHeader>
                   <form onSubmit={addDelegate} className="space-y-3 pt-2">
                     <div className="space-y-2"><Label>الاسم</Label><Input value={name} onChange={(e) => setName(e.target.value)} required /></div>
                     <div className="space-y-2"><Label>الجوال</Label><Input value={phone} onChange={(e) => setPhone(e.target.value)} required dir="ltr" /></div>
@@ -491,7 +491,7 @@ export function FinanceModule() {
               <table className="w-full text-sm">
                 <thead className="bg-muted/40 text-muted-foreground">
                   <tr className="text-right">
-                    <th className="px-4 py-3 font-medium">المندوب</th>
+                    <th className="px-4 py-3 font-medium">ممثل الأسرة</th>
                     <th className="px-4 py-3 font-medium">الجوال</th>
                     <th className="px-4 py-3 font-medium">الأسرة</th>
                     <th className="px-4 py-3 font-medium">الاشتراكات</th>
@@ -544,7 +544,7 @@ export function FinanceModule() {
                     </tr>
                   ))}
                   {delegates.length === 0 && (
-                    <tr><td colSpan={canManage ? 7 : 6} className="text-center py-12 text-muted-foreground">لا يوجد مناديب بعد. أضف أول مندوب لتبدأ المتابعة.</td></tr>
+                    <tr><td colSpan={canManage ? 7 : 6} className="text-center py-12 text-muted-foreground">لا يوجد ممثلو أسر بعد. أضف أول ممثل أسرة لتبدأ المتابعة.</td></tr>
                   )}
                 </tbody>
               </table>

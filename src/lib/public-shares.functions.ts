@@ -20,7 +20,7 @@ export const submitFamilyShares = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => SubmissionSchema.parse(input))
   .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const delegateLabel = `المندوب: ${data.delegate_name}`;
+    const delegateLabel = `ممثل الأسرة: ${data.delegate_name}`;
     const rows = data.contributors.map((c) => ({
       full_name: c.full_name.trim(),
       family_branch: data.family_branch.trim(),
