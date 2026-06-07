@@ -83,20 +83,38 @@ export function FinanceModule() {
   const [totalBudgetNeeded, setTotalBudgetNeeded] = useState(0);
   const [familyContribTotal, setFamilyContribTotal] = useState(0);
   const [committeeBreakdown, setCommitteeBreakdown] = useState<Array<{ name: string; spent: number }>>([]);
+  const [groomContribTotal, setGroomContribTotal] = useState(0);
+  const [budgetItemsTotal, setBudgetItemsTotal] = useState(0);
 
   const load = async () => {
-    const [{ data: dels }, { data: subs }, { data: prs }, { data: coms }, { data: financeCom }, { data: fc }] = await Promise.all([
+    const [{ data: dels }, { data: subs }, { data: prs }, { data: coms }, { data: financeCom }, { data: fc }, { data: hs }, { data: gr }, { data: bi }] = await Promise.all([
       supabase.from("delegates").select("*").order("created_at", { ascending: false }),
       supabase.from("subscriptions").select("delegate_id, amount, status"),
       supabase.from("payment_requests").select("*").order("created_at", { ascending: false }),
       supabase.from("committees").select("id, name, type, budget_spent"),
       supabase.from("committees").select("head_user_id").eq("type", "finance").maybeSingle(),
       supabase.from("family_contributions").select("amount"),
+      supabase.from("historical_shareholders").select("amount"),
+      supabase.from("grooms").select("groom_contribution"),
+      supabase.from("budget_items").select("committee_id, total_cost"),
     ]);
     setFinanceHeadId(financeCom?.head_user_id ?? null);
-    setFamilyContribTotal((fc ?? []).reduce((s: number, r: any) => s + Number(r.amount || 0), 0));
+    const fcTotal = (fc ?? []).reduce((s: number, r: any) => s + Number(r.amount || 0), 0);
+    const hsTotal = (hs ?? []).reduce((s: number, r: any) => s + Number(r.amount || 0), 0);
+    setFamilyContribTotal(fcTotal + hsTotal);
+    setGroomContribTotal((gr ?? []).reduce((s: number, r: any) => s + Number(r.groom_contribution || 0), 0));
+    const biTotal = (bi ?? []).reduce((s: number, r: any) => s + Number(r.total_cost || 0), 0);
+    setBudgetItemsTotal(biTotal);
+    // Committee breakdown: prefer budget_items aggregation; fallback to committees.budget_spent
+    const biByCom = new Map<string, number>();
+    (bi ?? []).forEach((r: any) => {
+      biByCom.set(r.committee_id, (biByCom.get(r.committee_id) ?? 0) + Number(r.total_cost || 0));
+    });
     setCommitteeBreakdown(
-      (coms ?? []).map((c: any) => ({ name: c.name, spent: Number(c.budget_spent || 0) }))
+      (coms ?? []).map((c: any) => ({
+        name: c.name,
+        spent: Math.max(Number(c.budget_spent || 0), biByCom.get(c.id) ?? 0),
+      }))
     );
 
     const enriched =
@@ -235,9 +253,11 @@ export function FinanceModule() {
   const pendingCount = requests.filter((r) => r.status === "pending").length;
   const totalPaid = requests.filter((r) => r.status === "paid").reduce((a, r) => a + Number(r.amount), 0);
   const expensesTotal = Math.max(
-    totalPaid,
+    totalPaid + budgetItemsTotal,
     committeeBreakdown.reduce((s, c) => s + c.spent, 0)
   );
+  // Groom revenues = confirmed delegate subscriptions + grooms.groom_contribution
+  const groomSubsTotal = totalCollected + groomContribTotal;
   const fmt = (n: number) => new Intl.NumberFormat("ar-SA").format(n);
 
   const exportRows: ExportRequest[] = requests.map((r) => ({
@@ -296,7 +316,7 @@ export function FinanceModule() {
       </div>
 
       <FinanceSummaryCard
-        groomSubsTotal={totalCollected}
+        groomSubsTotal={groomSubsTotal}
         familyContribTotal={familyContribTotal}
         expensesTotal={expensesTotal}
         committeeBreakdown={committeeBreakdown}
