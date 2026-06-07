@@ -92,7 +92,7 @@ export function DelegateUploadPanel({ onSaved }: { onSaved?: () => void }) {
     <Card dir="rtl" className="border-primary/20 overflow-hidden">
       <div className="px-5 py-4 border-b bg-gradient-to-l from-primary/8 via-primary/3 to-transparent">
         <h3 className="font-bold flex items-center gap-2 text-primary">
-          <FileScan className="h-5 w-5" /> بوابة المناديب — استخراج تلقائي
+          <FileScan className="h-5 w-5" /> بوابة ممثلي الأسر — استخراج تلقائي
         </h3>
         <p className="text-xs text-muted-foreground mt-1">
           ارفع كشف المساهمات (PDF أو صورة)، وسيقوم النظام بقراءة الأسماء والمبالغ والتواريخ تلقائياً ثم إضافتها لسجل مساهمات أفراد القبيلة بعد مراجعتك.

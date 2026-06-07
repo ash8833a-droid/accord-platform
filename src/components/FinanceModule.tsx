@@ -321,7 +321,7 @@ export function FinanceModule() {
             {pendingCount > 0 && <span className="bg-gold text-gold-foreground text-[10px] px-1.5 py-0.5 rounded-full font-bold">{pendingCount}</span>}
           </TabsTrigger>
           <TabsTrigger value="shares" className="gap-2"><TreePine className="h-4 w-4" /> أسهم الأسر</TabsTrigger>
-          <TabsTrigger value="delegates" className="gap-2"><Users2 className="h-4 w-4" /> المناديب</TabsTrigger>
+          <TabsTrigger value="delegates" className="gap-2"><Users2 className="h-4 w-4" /> ممثلو الأسر</TabsTrigger>
           <TabsTrigger value="safety" className="gap-2"><ShieldCheck className="h-4 w-4" /> السلامة المالية</TabsTrigger>
           <TabsTrigger value="budgets" className="gap-2"><Wallet className="h-4 w-4" /> ميزانيات اللجان</TabsTrigger>
         </TabsList>
@@ -329,7 +329,7 @@ export function FinanceModule() {
         <TabsContent value="overview" className="mt-5 space-y-4">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             <StatCard variant="teal" label="إجمالي المحصّل" value={`${fmt(totalCollected)} ر.س`} icon={Wallet} hint={`${totalSubs} اشتراك مؤكد`} />
-            <StatCard variant="gold" label="المناديب النشطون" value={delegates.length} icon={Users2} hint="في قاعدة البيانات" />
+            <StatCard variant="gold" label="ممثلو الأسر النشطون" value={delegates.length} icon={Users2} hint="في قاعدة البيانات" />
             <StatCard label="طلبات قيد المراجعة" value={pendingCount} icon={Clock} hint="بانتظار قرار المالية" />
             <StatCard label="إجمالي المصروف" value={`${fmt(expensesTotal)} ر.س`} icon={TrendingUp} hint="طلبات صُرفت + ميزانيات اللجان" />
           </div>
@@ -348,7 +348,7 @@ export function FinanceModule() {
             <h3 className="font-bold flex items-center gap-2 text-primary">
               <HandCoins className="h-4 w-4" /> مساهمات أفراد القبيلة
             </h3>
-            <p className="text-xs text-muted-foreground mt-1">سجّل مساهمة يدوياً، أو استخدم بوابة المناديب لاستخراجها تلقائياً من PDF/صورة.</p>
+            <p className="text-xs text-muted-foreground mt-1">سجّل مساهمة يدوياً، أو استخدم بوابة ممثلي الأسر لاستخراجها تلقائياً من PDF/صورة.</p>
           </div>
           <DelegateUploadPanel onSaved={load} />
           <FamilyContributionsPanel />
@@ -465,8 +465,8 @@ export function FinanceModule() {
           <div className="rounded-2xl border bg-card overflow-hidden shadow-soft">
             <div className="px-6 py-4 border-b bg-gradient-to-l from-primary/5 to-transparent flex items-center justify-between">
               <div>
-                <h3 className="font-bold">جدول المناديب</h3>
-                <p className="text-xs text-muted-foreground mt-1">المناديب المسؤولون عن تحصيل الاشتراكات (300 ر.س)</p>
+                <h3 className="font-bold">جدول ممثلي الأسر</h3>
+                <p className="text-xs text-muted-foreground mt-1">ممثلو الأسر المسؤولون عن تحصيل الاشتراكات (300 ر.س)</p>
               </div>
               <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) resetDelegateForm(); }}>
                 <DialogTrigger asChild>

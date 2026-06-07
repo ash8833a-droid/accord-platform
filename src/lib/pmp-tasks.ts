@@ -77,7 +77,7 @@ export const PMP_TEMPLATES: Record<CommitteeType, PmpTaskTemplate[]> = {
     ...COMMON_INIT("اللجنة المالية"),
     { title: "إعداد الموازنة التقديرية السنوية", description: "تجميع احتياجات اللجان وإعداد موازنة معتمدة بنود وتفاصيل.", phase: "planning", priority: "urgent" },
     { title: "خطة إدارة التكاليف وضوابط الصرف", description: "وضع سياسة الصرف وحدود الصلاحيات ومسار اعتماد طلبات الصرف.", phase: "planning", priority: "high" },
-    { title: "تحصيل اشتراكات أبناء العائلة", description: "متابعة المناديب لتحصيل اشتراك 300 ر.س وتحديث حالة كل مشترك.", phase: "executing", priority: "high" },
+    { title: "تحصيل اشتراكات أبناء العائلة", description: "متابعة ممثلي الأسر لتحصيل اشتراك 300 ر.س وتحديث حالة كل مشترك.", phase: "executing", priority: "high" },
     { title: "مراجعة طلبات الصرف وصرفها", description: "اعتماد الطلبات المطابقة للسياسة وصرفها ضمن المهلة المحددة.", phase: "executing", priority: "high" },
     { title: "مراقبة الانحراف عن الموازنة (CV/CPI)", description: "تحليل الفرق بين المخطط والمنصرف لكل لجنة وإصدار تنبيهات الانحراف.", phase: "monitoring", priority: "high" },
     { title: "تقرير مالي شهري للإدارة العليا", description: "إعداد تقرير شهري بالإيرادات والمصروفات والتدفقات النقدية.", phase: "monitoring", priority: "medium" },
