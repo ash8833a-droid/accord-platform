@@ -93,8 +93,14 @@ export function FinanceModule() {
       supabase.from("payment_requests").select("*").order("created_at", { ascending: false }),
       supabase.from("committees").select("id, name, type, budget_spent"),
       supabase.from("committees").select("head_user_id").eq("type", "finance").maybeSingle(),
-      supabase.from("family_contributions").select("amount"),
-      supabase.from("historical_shareholders").select("amount"),
+      // مساهمات أفراد القبيلة للعام الحالي 1448هـ فقط
+      // 1448هـ يبدأ تقريباً في 2026-06-16م وينتهي في 2027-06-05م
+      supabase
+        .from("family_contributions")
+        .select("amount")
+        .gte("contribution_date", "2026-06-16")
+        .lte("contribution_date", "2027-06-05"),
+      supabase.from("historical_shareholders").select("amount").eq("hijri_year", 1448),
       supabase.from("grooms").select("groom_contribution"),
       supabase.from("budget_items").select("committee_id, total_cost"),
     ]);
