@@ -127,7 +127,7 @@ export function SharesByBranch() {
           <Select value={filter} onValueChange={setFilter}>
             <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">جميع الفروع</SelectItem>
+              <SelectItem value="all">جميع الأسر</SelectItem>
               {branches.map((b) => (
                 <SelectItem key={b.branch} value={b.branch}>{b.branch}</SelectItem>
               ))}
@@ -141,7 +141,7 @@ export function SharesByBranch() {
               <tr className="text-right">
                 <th className="px-4 py-3 font-medium">#</th>
                 <th className="px-4 py-3 font-medium">المساهم</th>
-                <th className="px-4 py-3 font-medium">الفرع</th>
+                <th className="px-4 py-3 font-medium">الأسرة</th>
                 <th className="px-4 py-3 font-medium">عدد الأسهم</th>
                 <th className="px-4 py-3 font-medium">الإجمالي</th>
               </tr>

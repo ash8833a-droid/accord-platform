@@ -320,7 +320,7 @@ export function FinanceModule() {
             <Receipt className="h-4 w-4" /> طلبات الصرف
             {pendingCount > 0 && <span className="bg-gold text-gold-foreground text-[10px] px-1.5 py-0.5 rounded-full font-bold">{pendingCount}</span>}
           </TabsTrigger>
-          <TabsTrigger value="shares" className="gap-2"><TreePine className="h-4 w-4" /> أسهم الفروع</TabsTrigger>
+          <TabsTrigger value="shares" className="gap-2"><TreePine className="h-4 w-4" /> أسهم الأسر</TabsTrigger>
           <TabsTrigger value="delegates" className="gap-2"><Users2 className="h-4 w-4" /> المناديب</TabsTrigger>
           <TabsTrigger value="safety" className="gap-2"><ShieldCheck className="h-4 w-4" /> السلامة المالية</TabsTrigger>
           <TabsTrigger value="budgets" className="gap-2"><Wallet className="h-4 w-4" /> ميزانيات اللجان</TabsTrigger>
@@ -479,7 +479,7 @@ export function FinanceModule() {
                   <form onSubmit={addDelegate} className="space-y-3 pt-2">
                     <div className="space-y-2"><Label>الاسم</Label><Input value={name} onChange={(e) => setName(e.target.value)} required /></div>
                     <div className="space-y-2"><Label>الجوال</Label><Input value={phone} onChange={(e) => setPhone(e.target.value)} required dir="ltr" /></div>
-                    <div className="space-y-2"><Label>الفرع العائلي</Label><Input value={branch} onChange={(e) => setBranch(e.target.value)} required /></div>
+                    <div className="space-y-2"><Label>الأسرة</Label><Input value={branch} onChange={(e) => setBranch(e.target.value)} required /></div>
                     <Button type="submit" className="w-full bg-gradient-hero text-primary-foreground">
                       {editingDelegateId ? "حفظ التعديلات" : "حفظ"}
                     </Button>
@@ -493,7 +493,7 @@ export function FinanceModule() {
                   <tr className="text-right">
                     <th className="px-4 py-3 font-medium">المندوب</th>
                     <th className="px-4 py-3 font-medium">الجوال</th>
-                    <th className="px-4 py-3 font-medium">الفرع</th>
+                    <th className="px-4 py-3 font-medium">الأسرة</th>
                     <th className="px-4 py-3 font-medium">الاشتراكات</th>
                     <th className="px-4 py-3 font-medium">المحصّل</th>
                     <th className="px-4 py-3 font-medium">الحالة</th>

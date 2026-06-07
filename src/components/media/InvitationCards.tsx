@@ -214,7 +214,7 @@ export function InvitationCards() {
             <thead className="bg-muted/40 text-muted-foreground">
               <tr className="text-right">
                 <th className="px-4 py-3 font-medium">العريس</th>
-                <th className="px-4 py-3 font-medium">الفرع</th>
+                <th className="px-4 py-3 font-medium">الأسرة</th>
                 <th className="px-4 py-3 font-medium">الحالة</th>
                 <th className="px-4 py-3 font-medium">كروت رجال</th>
                 <th className="px-4 py-3 font-medium">كروت نساء</th>

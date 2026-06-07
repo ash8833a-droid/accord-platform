@@ -452,7 +452,7 @@ function Inner() {
           value={fmtSar(k.familyContributions)}
           sub={year === "all"
             ? "تشمل مساهمات فروع العائلة"
-            : `يشمل أسهم الفروع ${gregorianToHijriYear(year as number)}هـ`}
+            : `يشمل أسهم الأسر ${gregorianToHijriYear(year as number)}هـ`}
           icon={HandCoins}
         />
         <HeroKpi label="المبالغ المخصصة للعرسان" value={fmtSar(k.allocatedFunds)} sub={`${k.totalMarriages} عريس × ${fmtSar(ALLOCATED_SUPPORT_PER_GROOM)}`} icon={Banknote} />

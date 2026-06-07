@@ -685,7 +685,7 @@ export function GroomsPage() {
           <Input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="ابحث بالاسم أو رقم الجوال أو الفرع العائلي..."
+            placeholder="ابحث بالاسم أو رقم الجوال أو الأسرة..."
             className="ps-3 pe-10 h-11 bg-slate-50/60 border-slate-200 focus-visible:ring-[#0D7C66]"
           />
         </div>
@@ -727,7 +727,7 @@ export function GroomsPage() {
             <thead className="bg-muted/40 text-muted-foreground">
               <tr className="text-right">
                 <th className="px-4 py-3 font-medium">العريس</th>
-                <th className="px-4 py-3 font-medium">الفرع</th>
+                <th className="px-4 py-3 font-medium">الأسرة</th>
                 <th className="px-4 py-3 font-medium">الجوال</th>
                 <th className="px-4 py-3 font-medium">الحالة</th>
                 <th className="px-4 py-3 font-medium">المستندات والطلبات</th>
@@ -1174,7 +1174,7 @@ function GroomsDatabaseDialog({ grooms }: { grooms: Groom[] }) {
   const hijriToday = formatHijri(now);
   const gregToday = formatGregorian(now);
 
-  const headers = ["م", "السنة الهجرية", "السنة الميلادية", "الاسم الرباعي", "رقم الجوال", "الفرع العائلي", "الحالة"];
+  const headers = ["م", "السنة الهجرية", "السنة الميلادية", "الاسم الرباعي", "رقم الجوال", "الأسرة", "الحالة"];
 
   const dataRows = () =>
     sorted.map((r) => [r.seq, r.yearH, r.yearG, r.full_name, r.phone, r.family_branch, r.status]);
@@ -1209,7 +1209,7 @@ function GroomsDatabaseDialog({ grooms }: { grooms: Groom[] }) {
       { wch: 14 },  // ميلادي
       { wch: 32 },  // الاسم
       { wch: 16 },  // الجوال
-      { wch: 22 },  // الفرع
+      { wch: 22 },  // الأسرة
       { wch: 14 },  // الحالة
     ];
     ws["!merges"] = [
@@ -1472,7 +1472,7 @@ function GroomsDatabaseDialog({ grooms }: { grooms: Groom[] }) {
         <th style="width:13%">السنة الميلادية</th>
         <th style="width:32%">الاسم الرباعي</th>
         <th style="width:14%">رقم الجوال</th>
-        <th style="width:14%">الفرع العائلي</th>
+        <th style="width:14%">الأسرة</th>
         <th style="width:8%">الحالة</th>
       </tr>
     </thead>
@@ -1546,7 +1546,7 @@ function GroomsDatabaseDialog({ grooms }: { grooms: Groom[] }) {
               <Input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="ابحث بالاسم، الجوال، الفرع، السنة…"
+                placeholder="ابحث بالاسم، الجوال، الأسرة، السنة…"
                 className="pr-9"
               />
             </div>
@@ -1601,7 +1601,7 @@ function GroomsDatabaseDialog({ grooms }: { grooms: Groom[] }) {
                 <th className="px-3 py-2.5 text-center text-xs font-bold w-28">السنة الميلادية</th>
                 <th className="px-3 py-2.5 text-right text-xs font-bold">الاسم الرباعي</th>
                 <th className="px-3 py-2.5 text-right text-xs font-bold">رقم الجوال</th>
-                <th className="px-3 py-2.5 text-right text-xs font-bold">الفرع العائلي</th>
+                <th className="px-3 py-2.5 text-right text-xs font-bold">الأسرة</th>
                 <th className="px-3 py-2.5 text-center text-xs font-bold">الحالة</th>
               </tr>
             </thead>
