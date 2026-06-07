@@ -125,7 +125,7 @@ export function GroomContributions({ totalCollected, totalBudgetNeeded }: Props)
             <thead className="bg-muted/40 text-muted-foreground">
               <tr className="text-right">
                 <th className="px-4 py-3 font-medium">العريس</th>
-                <th className="px-4 py-3 font-medium">الفرع</th>
+                <th className="px-4 py-3 font-medium">الأسرة</th>
                 <th className="px-4 py-3 font-medium">الحالة</th>
                 <th className="px-4 py-3 font-medium">المقدم</th>
                 <th className="px-4 py-3 font-medium">حصة العجز</th>

@@ -342,7 +342,7 @@ function PublicHome() {
               تفاصيلُ تكشفُ امتدادَ المسيرة
             </h2>
             <p className="text-sm text-muted-foreground mt-2 max-w-xl">
-              مؤشّراتٌ مكمِّلةٌ تُبرزُ عُمقَ التراكم عبر السنين وتوزّعَ الجهد بين الفروع.
+              مؤشّراتٌ مكمِّلةٌ تُبرزُ عُمقَ التراكم عبر السنين وتوزّعَ الجهد بين الأسر.
             </p>
           </div>
           <TrendingUp className="hidden md:block h-8 w-8 text-gold" />

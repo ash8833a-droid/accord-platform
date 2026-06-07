@@ -131,7 +131,7 @@ export function HistoricalShares() {
       return;
     }
     if (!form.family_branch) {
-      toast.error("الرجاء اختيار الفرع");
+      toast.error("الرجاء اختيار الأسرة");
       return;
     }
     if (!form.amount || form.amount <= 0) {
@@ -280,7 +280,7 @@ export function HistoricalShares() {
   };
 
   const downloadCSV = () => {
-    const header = ["الاسم", "الفرع", "السنة الهجرية", "المبلغ", "ملاحظات"];
+    const header = ["الاسم", "الأسرة", "السنة الهجرية", "المبلغ", "ملاحظات"];
     const lines = filtered.map((r) =>
       [r.full_name, r.family_branch, r.hijri_year, r.amount, r.notes ?? ""]
         .map((v) => `"${String(v).replace(/"/g, '""')}"`)
@@ -428,7 +428,7 @@ tfoot td:last-child{border-bottom-left-radius:10px}
       </div>
     </div>
     <div class="meta">
-      <div>الفرع: <b>${branchFilter === "all" ? "جميع الفروع" : esc(branchFilter)}</b></div>
+      <div>الأسرة: <b>${branchFilter === "all" ? "جميع الأسر" : esc(branchFilter)}</b></div>
       <div>تاريخ التصدير: <b>${esc(today)}</b></div>
     </div>
   </div>
@@ -439,7 +439,7 @@ tfoot td:last-child{border-bottom-left-radius:10px}
   </div>
   <div class="tablewrap">
     <table>
-      <thead><tr><th style="width:40px">#</th><th>المساهم</th><th>الفرع</th><th>المبلغ</th><th>ملاحظات</th></tr></thead>
+      <thead><tr><th style="width:40px">#</th><th>المساهم</th><th>الأسرة</th><th>المبلغ</th><th>ملاحظات</th></tr></thead>
       <tbody>${rowsHtml}</tbody>
       <tfoot><tr><td colspan="3">الإجمالي</td><td>${fmt(totalAmount)} ر.س</td><td>—</td></tr></tfoot>
     </table>
@@ -473,7 +473,7 @@ tfoot td:last-child{border-bottom-left-radius:10px}
               <h3 className="font-bold text-lg">سجل المساهمين للسنوات السابقة</h3>
             </div>
             <p className="text-sm text-muted-foreground mt-1">
-              إدارة وعرض أسماء المساهمين لكل سنة هجرية مفروزة على الفروع العائلية
+              إدارة وعرض أسماء المساهمين لكل سنة هجرية مفروزة على الأسر
             </p>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
@@ -502,7 +502,7 @@ tfoot td:last-child{border-bottom-left-radius:10px}
                 const url = `https://lajnat-zawaj.org/contribute-shares/${activeYear}`;
                 const msg =
                   `السلام عليكم،\n\n` +
-                  `يُرجى من مندوب الفرع تعبئة قائمة المساهمين من العائلة في ` +
+                  `يُرجى من مندوب الأسرة تعبئة قائمة المساهمين من العائلة في ` +
                   `الزواج الجماعي الثاني عشر (${activeYear}هـ) عبر الرابط التالي:\n\n` +
                   `${url}\n\n` +
                   `جزاكم الله خيراً.\n— الإدارة المالية`;
@@ -531,7 +531,7 @@ tfoot td:last-child{border-bottom-left-radius:10px}
                 </DialogHeader>
                 <div className="space-y-4">
                   <div className="rounded-lg bg-primary/5 border border-primary/20 p-3 text-xs text-muted-foreground">
-                    ارفع ملف PDF / صورة / Excel وسيتم استخراج الأسماء وفرزها على الفروع تلقائياً، ثم ستظهر شاشة معاينة قبل الإدراج النهائي.
+                    ارفع ملف PDF / صورة / Excel وسيتم استخراج الأسماء وفرزها على الأسر تلقائياً، ثم ستظهر شاشة معاينة قبل الإدراج النهائي.
                   </div>
                   <div>
                     <Label>السنة الهجرية</Label>
@@ -599,7 +599,7 @@ tfoot td:last-child{border-bottom-left-radius:10px}
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <div className="flex items-center justify-between mb-1">
-                        <Label>الفرع العائلي *</Label>
+                        <Label>الأسرة *</Label>
                         <button
                           type="button"
                           className="text-xs text-primary hover:underline"
@@ -610,14 +610,14 @@ tfoot td:last-child{border-bottom-left-radius:10px}
                             else setForm((f) => ({ ...f, family_branch: FAMILY_BRANCHES[0] as string }));
                           }}
                         >
-                          {customBranch ? "اختر من القائمة" : "إضافة فرع جديد"}
+                          {customBranch ? "اختر من القائمة" : "إضافة أسرة جديدة"}
                         </button>
                       </div>
                       {customBranch ? (
                         <Input
                           value={form.family_branch}
                           onChange={(e) => setForm({ ...form, family_branch: e.target.value })}
-                          placeholder="اسم الفرع الجديد"
+                          placeholder="اسم الأسرة الجديدة"
                           maxLength={80}
                         />
                       ) : (
@@ -772,7 +772,7 @@ tfoot td:last-child{border-bottom-left-radius:10px}
                 <Select value={branchFilter} onValueChange={setBranchFilter}>
                   <SelectTrigger className="w-44 h-9"><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">جميع الفروع</SelectItem>
+                    <SelectItem value="all">جميع الأسر</SelectItem>
                     {FAMILY_BRANCHES.map((b) => (
                       <SelectItem key={b} value={b}>{b}</SelectItem>
                     ))}
@@ -803,7 +803,7 @@ tfoot td:last-child{border-bottom-left-radius:10px}
                     <tr className="text-right">
                       <th className="px-4 py-2.5 font-medium">#</th>
                       <th className="px-4 py-2.5 font-medium">المساهم</th>
-                      <th className="px-4 py-2.5 font-medium">الفرع</th>
+                      <th className="px-4 py-2.5 font-medium">الأسرة</th>
                       <th className="px-4 py-2.5 font-medium">المبلغ</th>
                       <th className="px-4 py-2.5 font-medium">ملاحظات</th>
                       <th className="px-4 py-2.5 font-medium text-left">إجراءات</th>
@@ -899,7 +899,7 @@ tfoot td:last-child{border-bottom-left-radius:10px}
                 <tr className="text-right">
                   <th className="px-3 py-2 font-medium">#</th>
                   <th className="px-3 py-2 font-medium">الاسم</th>
-                  <th className="px-3 py-2 font-medium">الفرع</th>
+                  <th className="px-3 py-2 font-medium">الأسرة</th>
                   <th className="px-3 py-2 font-medium">المبلغ</th>
                   <th className="px-3 py-2"></th>
                 </tr>

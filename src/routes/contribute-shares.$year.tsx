@@ -128,7 +128,7 @@ function ContributeSharesPage() {
     const name = delegateName.trim();
     const fam = branch.trim();
     if (name.length < 2) return toast.error("الرجاء كتابة اسم الممثل");
-    if (fam.length < 2) return toast.error("الرجاء اختيار/كتابة الفرع العائلي");
+    if (fam.length < 2) return toast.error("الرجاء اختيار/كتابة الأسرة");
     const cleaned = rows
       .map((r) => ({
         full_name: r.full_name.trim(),
@@ -236,7 +236,7 @@ function ContributeSharesPage() {
                 لجنة الزواج الجماعي · الإدارة المالية
               </p>
               <h1 className="text-lg md:text-xl font-extrabold leading-tight mt-0.5">
-                مساهمات الفرع للزواج الـ12
+                مساهمات الأسرة للزواج الـ12
                 <span className="inline-block mx-2 text-[#F0DDA4]">·</span>
                 {hijriYear}هـ
               </h1>
@@ -252,7 +252,7 @@ function ContributeSharesPage() {
           <CardContent className="p-5 md:p-6 space-y-5">
             {/* تعليمات مختصرة */}
             <p className="text-[13px] text-muted-foreground leading-7 border-r-2 border-[#D4A24C] pr-3">
-              مرحباً بممثل الفرع. يُرجى إدخال البيانات وتفاصيل المساهمين، أو إرفاق
+              مرحباً بممثل الأسرة. يُرجى إدخال البيانات وتفاصيل المساهمين، أو إرفاق
               كشف للتحليل الآلي. تُوجَّه البيانات مباشرةً للإدارة المالية.
             </p>
 
@@ -272,7 +272,7 @@ function ContributeSharesPage() {
                 </div>
                 <div>
                   <div className="flex items-center justify-between mb-1">
-                    <Label className="text-xs text-muted-foreground">الفرع العائلي *</Label>
+                    <Label className="text-xs text-muted-foreground">الأسرة *</Label>
                     <button
                       type="button"
                       className="text-[11px] text-[#1F8A7A] hover:text-[#14655A] font-semibold hover:underline"
@@ -282,14 +282,14 @@ function ContributeSharesPage() {
                         setBranch(next ? "" : FAMILY_BRANCHES[0]);
                       }}
                     >
-                      {customBranch ? "اختر من القائمة" : "إضافة فرع جديد"}
+                      {customBranch ? "اختر من القائمة" : "إضافة أسرة جديدة"}
                     </button>
                   </div>
                   {customBranch ? (
                     <Input
                       value={branch}
                       onChange={(e) => setBranch(e.target.value)}
-                      placeholder="اكتب اسم الفرع"
+                      placeholder="اكتب اسم الأسرة"
                       maxLength={80}
                       className="h-10"
                     />
@@ -501,8 +501,8 @@ export const Route = createFileRoute("/contribute-shares/$year")({
     const y = params.year;
     const canonicalUrl = `https://lajnat-zawaj.org/contribute-shares/${y}`;
     const ogUrl = "https://lajnat-zawaj.org/brand/zawaj-logo.png";
-    const title = `مساهمات الفرع — الزواج الجماعي ${y}هـ`;
-    const description = `دعوة لممثل الفرع لتسجيل أسماء ومبالغ المساهمين من العائلة في الزواج الجماعي للسنة ${y}هـ. النموذج رسمي يصل مباشرةً للإدارة المالية في لجنة الزواج الجماعي.`;
+    const title = `مساهمات الأسرة — الزواج الجماعي ${y}هـ`;
+    const description = `دعوة لممثل الأسرة لتسجيل أسماء ومبالغ المساهمين من العائلة في الزواج الجماعي للسنة ${y}هـ. النموذج رسمي يصل مباشرةً للإدارة المالية في لجنة الزواج الجماعي.`;
     return {
       meta: [
         { title },

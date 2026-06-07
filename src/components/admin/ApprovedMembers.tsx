@@ -206,7 +206,7 @@ export function ApprovedMembers({ isAdmin }: Props) {
             <TableRow>
               <TableHead className="text-right">العضو</TableHead>
               <TableHead className="text-right">الجوال</TableHead>
-              <TableHead className="text-right">الفرع</TableHead>
+              <TableHead className="text-right">الأسرة</TableHead>
               <TableHead className="text-right">الدور</TableHead>
               <TableHead className="text-right">اللجنة</TableHead>
               <TableHead className="text-center">الإجراءات</TableHead>

@@ -148,7 +148,7 @@ export function CreateMemberDialog({ onCreated }: { onCreated?: () => void }) {
             </div>
           </div>
           <div className="grid gap-1.5">
-            <Label>الفخذ / الفرع العائلي (اختياري)</Label>
+            <Label>الفخذ / الأسرة (اختياري)</Label>
             <Input value={familyBranch} onChange={(e) => setFamilyBranch(e.target.value)} />
           </div>
 
