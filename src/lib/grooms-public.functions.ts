@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
 const PUBLIC_FIELDS =
-  "id, full_name, phone, national_id, family_branch, photo_url, national_id_url, request_type, request_details, status, edit_token, created_at";
+  "id, full_name, phone, family_branch, photo_url, national_id_url, request_type, request_details, status, edit_token, created_at";
 
 function normalizePhone(input: string): string {
   return input.replace(/[^\d]/g, "").replace(/^0+/, "");

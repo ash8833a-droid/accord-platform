@@ -1,5 +1,4 @@
 import { createServerFn } from "@tanstack/react-start";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 async function ensureAdminOrQuality(supabase: any, userId: string) {
@@ -20,6 +19,7 @@ export const sendFirstTaskReminders = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await ensureAdminOrQuality(context.supabase, context.userId);
 
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     let q = supabaseAdmin
       .from("committee_tasks")
       .select("id, title, committee_id, assigned_to, status, sort_order, created_at, due_date")
