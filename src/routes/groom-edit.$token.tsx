@@ -35,7 +35,6 @@ interface Groom {
   id: string;
   full_name: string;
   phone: string;
-  national_id: string | null;
   family_branch: string;
   photo_url: string | null;
   national_id_url: string | null;
