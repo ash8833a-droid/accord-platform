@@ -1,5 +1,4 @@
 import { createServerFn } from "@tanstack/react-start";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 async function ensureAdmin(supabase: any, userId: string) {
@@ -18,6 +17,7 @@ export const adminDeleteUser = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await ensureAdmin(context.supabase, context.userId);
     if (data.user_id === context.userId) throw new Error("لا يمكنك حذف حسابك");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     // Cleanup related rows that reference user
     await supabaseAdmin.from("user_roles").delete().eq("user_id", data.user_id);
     await supabaseAdmin.from("page_permissions").delete().eq("user_id", data.user_id);
@@ -39,6 +39,7 @@ export const adminResetPassword = createServerFn({ method: "POST" })
   })
   .handler(async ({ data, context }) => {
     await ensureAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { error } = await supabaseAdmin.auth.admin.updateUserById(data.user_id, {
       password: data.new_password,
     });
@@ -63,6 +64,7 @@ export const adminToggleAccount = createServerFn({ method: "POST" })
     await ensureAdmin(context.supabase, context.userId);
     if (data.user_id === context.userId && data.disabled)
       throw new Error("لا يمكنك تعطيل حسابك");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     // ban_duration: '876000h' (~100 years) for disable; 'none' to unban
     const { error: banErr } = await supabaseAdmin.auth.admin.updateUserById(data.user_id, {
       ban_duration: data.disabled ? "876000h" : "none",
@@ -89,6 +91,7 @@ export const adminUpdateUserRole = createServerFn({ method: "POST" })
   })
   .handler(async ({ data, context }) => {
     await ensureAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     // Replace user roles with single new role assignment
     const { error: delErr } = await supabaseAdmin
       .from("user_roles")
@@ -115,6 +118,7 @@ export const adminListUsers = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     await ensureAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: profiles } = await supabaseAdmin
       .from("profiles")
       .select("user_id, full_name, phone, family_branch, created_at")

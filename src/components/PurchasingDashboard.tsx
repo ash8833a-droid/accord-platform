@@ -174,8 +174,16 @@ export function PurchasingDashboard() {
       toast.error("تعذر فتح نافذة الطباعة");
       return;
     }
+    const escapeHtml = (s: string) =>
+      s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
     const date = new Date(r.created_at).toLocaleDateString("ar-SA");
-    w.document.write(`<!doctype html><html dir="rtl" lang="ar"><head><meta charset="utf-8"><title>طلب شراء - ${r.item_name}</title>
+    const itemName = escapeHtml(r.item_name ?? "");
+    const committeeName = escapeHtml(r.committee?.name ?? "—");
+    const qty = escapeHtml(String(r.quantity ?? ""));
+    const statusLabel = escapeHtml(STATUS_LABEL[r.status] ?? "");
+    const justification = r.justification ? escapeHtml(r.justification) : "";
+    w.document.write(`<!doctype html><html dir="rtl" lang="ar"><head><meta charset="utf-8"><title>طلب شراء - ${itemName}</title>
       <style>
         body{font-family:'Segoe UI',Tahoma,sans-serif;padding:32px;color:#111;}
         h1{font-size:22px;margin:0 0 4px;}
@@ -189,12 +197,12 @@ export function PurchasingDashboard() {
       <h1>طلب شراء</h1>
       <div class="muted">تاريخ الطلب: ${date}</div>
       <table>
-        <tr><th>اللجنة</th><td>${r.committee?.name ?? "—"}</td></tr>
-        <tr><th>الصنف</th><td>${r.item_name}</td></tr>
-        <tr><th>الكمية</th><td>${r.quantity}</td></tr>
-        <tr><th>الحالة</th><td>${STATUS_LABEL[r.status]}</td></tr>
+        <tr><th>اللجنة</th><td>${committeeName}</td></tr>
+        <tr><th>الصنف</th><td>${itemName}</td></tr>
+        <tr><th>الكمية</th><td>${qty}</td></tr>
+        <tr><th>الحالة</th><td>${statusLabel}</td></tr>
       </table>
-      ${r.justification ? `<div class="just"><b>المبرر:</b><br/>${r.justification.replace(/</g,"&lt;")}</div>` : ""}
+      ${justification ? `<div class="just"><b>المبرر:</b><br/>${justification}</div>` : ""}
       <div class="footer"><span>توقيع مقدم الطلب: ___________</span><span>توقيع لجنة المشتريات: ___________</span></div>
       <script>window.onload=()=>{window.print();}<\/script>
       </body></html>`);

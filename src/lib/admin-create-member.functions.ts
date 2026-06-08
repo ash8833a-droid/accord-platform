@@ -1,5 +1,4 @@
 import { createServerFn } from "@tanstack/react-start";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 type Role = "admin" | "committee" | "committee_head" | "delegate" | "quality";
@@ -38,6 +37,7 @@ export const adminCreateMember = createServerFn({ method: "POST" })
     if (!isAdmin) throw new Error("صلاحيات غير كافية");
 
     const email = phoneToEmail(data.phone);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: created, error: createErr } = await supabaseAdmin.auth.admin.createUser({
       email,
       password: data.password,

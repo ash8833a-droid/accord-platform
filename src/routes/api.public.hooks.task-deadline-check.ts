@@ -1,5 +1,4 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 // Public hook called by pg_cron periodically.
 // Scans tasks due in the next 24h (and not completed) and inserts a
@@ -20,6 +19,7 @@ export const Route = createFileRoute("/api/public/hooks/task-deadline-check")({
             headers: { "Content-Type": "application/json" },
           });
         }
+        const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
         const nowIso = new Date().toISOString();
         const in24hIso = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
 
