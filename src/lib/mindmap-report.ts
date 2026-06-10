@@ -475,19 +475,9 @@ function buildHtml(d: MindMapData): string {
     </style>
   `;
 }
-      .kpi-title { font-size:12px; font-weight:800; margin-bottom:4px; color:#8A6A12; }
-      .kpi-row { display:flex; justify-content:space-between; padding:3px 0;
-        border-bottom:1px dashed #E2E8F0; font-size:10.5px; }
-      .kpi-row:last-child { border-bottom:none; padding-top:5px; }
-      .kpi-row.net { font-weight:800; }
-
-      .mm-foot { margin-top:6px; text-align:center; font-size:9px; color:#94A3B8; }
-    </style>
-  `;
-}
 
 export async function exportMindMapReport(): Promise<void> {
   const data = await gatherData();
   const html = buildHtml(data);
-  await printHtmlDocument(html, "الخريطة-الذهنية-الشاملة");
+  await printHtmlDocument(html, "التقرير-الشامل-للميزانية");
 }
