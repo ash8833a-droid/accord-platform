@@ -6,17 +6,17 @@ import { buildReferenceNumber, fmtArDate } from "@/lib/report-shared";
 
 const fmt = (n: number) => new Intl.NumberFormat("ar-SA").format(Math.round(n));
 
-// Vibrant pastel palette per committee (background, border, accent)
-const PALETTE: Record<CommitteeType, { bg: string; bd: string; ic: string; emoji: string }> = {
-  supreme:     { bg: "#FFF8E1", bd: "#E0B84A", ic: "#8A6A12", emoji: "👑" },
-  finance:     { bg: "#E6F6EF", bd: "#1F9D6B", ic: "#0B6A47", emoji: "💰" },
-  women:       { bg: "#FCE7F3", bd: "#DB2777", ic: "#9D174D", emoji: "🌸" },
-  media:       { bg: "#FFE4E6", bd: "#E11D48", ic: "#9F1239", emoji: "📣" },
-  reception:   { bg: "#FFE7F0", bd: "#EC4899", ic: "#9D174D", emoji: "🤝" },
-  programs:    { bg: "#EDE9FE", bd: "#7C3AED", ic: "#4C1D95", emoji: "📅" },
-  quality:     { bg: "#E0F2FE", bd: "#0284C7", ic: "#075985", emoji: "🛡️" },
-  dinner:      { bg: "#FEF3C7", bd: "#D97706", ic: "#92400E", emoji: "🍽️" },
-  procurement: { bg: "#FFEDD5", bd: "#EA580C", ic: "#9A3412", emoji: "🛒" },
+// Committee color tags (used in legends + per-committee donuts)
+const COMMITTEE_COLOR: Record<CommitteeType, string> = {
+  supreme: "#8A6A12",
+  finance: "#0B6A47",
+  women: "#DB2777",
+  media: "#E11D48",
+  reception: "#EC4899",
+  programs: "#7C3AED",
+  quality: "#0284C7",
+  dinner: "#D97706",
+  procurement: "#EA580C",
 };
 
 interface CommitteeAgg {
@@ -33,19 +33,24 @@ interface CommitteeAgg {
 interface MindMapData {
   committees: CommitteeAgg[];
   totalRevenue: number;
-  revenueBreakdown: { label: string; amount: number }[];
+  revenueBreakdown: { label: string; amount: number; color: string }[];
   totalExpense: number;
-  expenseBreakdown: { label: string; amount: number; count: number }[];
+  expenseBreakdown: { label: string; amount: number; count: number; color: string }[];
   paidExpense: number;
+  approvedExpense: number;
+  pendingExpense: number;
+  totalAllocated: number;
+  hijriYear: number;
 }
 
 async function gatherData(): Promise<MindMapData> {
-  const [{ data: coms }, { data: tasks }, { data: items }, { data: contribs }, { data: prs }] = await Promise.all([
+  const [{ data: coms }, { data: tasks }, { data: items }, { data: contribs }, { data: prs }, { data: hist }] = await Promise.all([
     supabase.from("committees").select("id, name, type, budget_allocated, budget_spent"),
     supabase.from("committee_tasks").select("committee_id, status"),
     supabase.from("budget_items").select("committee_id, total_cost"),
     supabase.from("family_contributions").select("amount"),
     supabase.from("payment_requests").select("amount, status, committee_id"),
+    supabase.from("historical_shareholders").select("amount, hijri_year"),
   ]);
 
   const tasksByCom = new Map<string, { total: number; done: number }>();
@@ -80,9 +85,17 @@ async function gatherData(): Promise<MindMapData> {
   });
 
   const totalRevenue = (contribs ?? []).reduce((a, c: any) => a + Number(c.amount ?? 0), 0);
+  // Latest hijri year present in historical_shareholders, else current Hijri year (~1448)
+  const hijriYear = (hist ?? []).reduce<number>((m, r: any) => Math.max(m, Number(r.hijri_year ?? 0)), 1448);
+  const currentYearHist = (hist ?? []).filter((r: any) => Number(r.hijri_year ?? 0) === hijriYear)
+    .reduce((a, r: any) => a + Number(r.amount ?? 0), 0);
+  const otherHist = (hist ?? []).reduce((a, r: any) => a + Number(r.amount ?? 0), 0) - currentYearHist;
   const revenueBreakdown = [
-    { label: "مساهمات أفراد القبيلة", amount: totalRevenue },
-  ];
+    { label: "مساهمات الأفراد (مباشرة)", amount: totalRevenue, color: "#0D7C66" },
+    { label: `مساهمات تاريخية ${hijriYear}هـ`, amount: currentYearHist, color: "#D4A95E" },
+    { label: "مساهمات سنوات سابقة", amount: otherHist, color: "#94A3B8" },
+  ].filter((r) => r.amount > 0 || r.label.startsWith("مساهمات الأفراد"));
+  const grandRevenue = revenueBreakdown.reduce((a, r) => a + r.amount, 0);
 
   // Expenses: split by status
   const byStatus: Record<string, { count: number; sum: number }> = {};
@@ -92,16 +105,38 @@ async function gatherData(): Promise<MindMapData> {
     byStatus[s].count += 1;
     byStatus[s].sum += Number(p.amount ?? 0);
   });
-  const statusLabel: Record<string, string> = {
-    pending: "قيد المراجعة", approved: "معتمدة", paid: "مصروفة", rejected: "مرفوضة",
+  const statusMeta: Record<string, { label: string; color: string }> = {
+    paid:     { label: "مصروفة فعلياً", color: "#0D7C66" },
+    approved: { label: "معتمدة (لم تُصرف)", color: "#0EA5E9" },
+    pending:  { label: "قيد المراجعة", color: "#D4A95E" },
+    rejected: { label: "مرفوضة", color: "#94A3B8" },
   };
-  const expenseBreakdown = Object.entries(byStatus)
-    .filter(([s]) => s !== "rejected")
-    .map(([s, v]) => ({ label: statusLabel[s] ?? s, amount: v.sum, count: v.count }));
+  const expenseBreakdown = (["paid", "approved", "pending"] as const)
+    .map((s) => ({
+      label: statusMeta[s].label,
+      color: statusMeta[s].color,
+      amount: byStatus[s]?.sum ?? 0,
+      count: byStatus[s]?.count ?? 0,
+    }))
+    .filter((e) => e.amount > 0 || e.count > 0);
   const totalExpense = expenseBreakdown.reduce((a, b) => a + b.amount, 0);
   const paidExpense = byStatus.paid?.sum ?? 0;
+  const approvedExpense = byStatus.approved?.sum ?? 0;
+  const pendingExpense = byStatus.pending?.sum ?? 0;
+  const totalAllocated = committees.reduce((a, c) => a + c.allocated, 0);
 
-  return { committees, totalRevenue, revenueBreakdown, totalExpense, expenseBreakdown, paidExpense };
+  return {
+    committees,
+    totalRevenue: grandRevenue,
+    revenueBreakdown,
+    totalExpense,
+    expenseBreakdown,
+    paidExpense,
+    approvedExpense,
+    pendingExpense,
+    totalAllocated,
+    hijriYear,
+  };
 }
 
 function buildHtml(d: MindMapData): string {
