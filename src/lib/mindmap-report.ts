@@ -140,224 +140,341 @@ async function gatherData(): Promise<MindMapData> {
 }
 
 function buildHtml(d: MindMapData): string {
-  const ref = buildReferenceNumber("MIND");
+  const ref = buildReferenceNumber("DASH");
   const today = fmtArDate(new Date());
 
   // Order committees to match COMMITTEES catalog order so layout is stable
   const ordered = COMMITTEES
     .map((m) => d.committees.find((c) => c.type === m.type))
     .filter((x): x is CommitteeAgg => !!x);
-  const n = ordered.length || 1;
 
-  // Canvas geometry — fits inside A4 portrait content (~688 x 1017)
-  const W = 680, H = 660;          // mind-map canvas
-  const cx = W / 2, cy = H / 2 + 6;
-  const rX = 260, rY = 230;        // elliptical radial spread
-  const cardW = 160, cardH = 78;
+  const net = d.totalRevenue - d.paidExpense;
+  const surplus = net >= 0;
 
-  const nodes = ordered.map((c, i) => {
-    // Start at the top (angle = -90deg) and go clockwise
-    const ang = (-Math.PI / 2) + (i * 2 * Math.PI) / n;
-    const nx = cx + rX * Math.cos(ang);
-    const ny = cy + rY * Math.sin(ang);
-    return { c, ang, nx, ny };
-  });
-
-  const curves = nodes.map(({ nx, ny }) => {
-    // Build a soft S-curve from center to each node
-    const mx = (cx + nx) / 2;
-    const my = (cy + ny) / 2;
-    const dx = nx - cx, dy = ny - cy;
-    // Perpendicular offset for the bend
-    const off = 22;
-    const len = Math.hypot(dx, dy) || 1;
-    const px = -dy / len * off;
-    const py = dx / len * off;
-    return `<path d="M ${cx} ${cy} Q ${mx + px} ${my + py} ${nx} ${ny}" fill="none" stroke="url(#branch)" stroke-width="2.2" stroke-linecap="round" opacity="0.85" />`;
-  }).join("");
-
-  const leafCards = nodes.map(({ c, nx, ny }) => {
-    const p = PALETTE[c.type];
-    const x = nx - cardW / 2;
-    const y = ny - cardH / 2;
-    const pct = c.tasksTotal > 0 ? Math.round((c.tasksDone / c.tasksTotal) * 100) : 0;
+  // ---- Donut SVG helper (multi-segment ring) ------------------------------
+  function donut(
+    segments: { value: number; color: string }[],
+    size: number,
+    thickness: number,
+    center: { big: string; small?: string; tone?: string },
+  ): string {
+    const total = segments.reduce((a, s) => a + s.value, 0);
+    const r = (size - thickness) / 2;
+    const C = 2 * Math.PI * r;
+    const cxv = size / 2;
+    let offset = 0;
+    const rings = total > 0
+      ? segments.map((s) => {
+          const frac = s.value / total;
+          const len = frac * C;
+          const node = `<circle cx="${cxv}" cy="${cxv}" r="${r}"
+            fill="none" stroke="${s.color}" stroke-width="${thickness}"
+            stroke-dasharray="${len.toFixed(2)} ${(C - len).toFixed(2)}"
+            stroke-dashoffset="${(-offset).toFixed(2)}"
+            transform="rotate(-90 ${cxv} ${cxv})" />`;
+          offset += len;
+          return node;
+        }).join("")
+      : `<circle cx="${cxv}" cy="${cxv}" r="${r}" fill="none" stroke="#E2E8F0" stroke-width="${thickness}" />`;
+    const tone = center.tone ?? "#0D7C66";
     return `
-      <div class="leaf" style="left:${x}px; top:${y}px; width:${cardW}px; height:${cardH}px; background:${p.bg}; border-color:${p.bd}; color:${p.ic};">
-        <div class="leaf-head">
-          <span class="leaf-emoji">${p.emoji}</span>
-          <span class="leaf-name">${c.name}</span>
+      <div class="donut" style="width:${size}px; height:${size}px;">
+        <svg viewBox="0 0 ${size} ${size}" width="${size}" height="${size}">
+          <circle cx="${cxv}" cy="${cxv}" r="${r}" fill="none" stroke="#F1F5F9" stroke-width="${thickness}" />
+          ${rings}
+        </svg>
+        <div class="donut-center">
+          <div class="donut-big" style="color:${tone}">${center.big}</div>
+          ${center.small ? `<div class="donut-small">${center.small}</div>` : ""}
         </div>
-        <div class="leaf-stats">
-          <span>المهام <b>${c.tasksDone}/${c.tasksTotal}</b></span>
-          <span>الإنجاز <b>${pct}%</b></span>
-        </div>
-        <div class="leaf-stats">
-          <span>بنود <b>${c.budgetItems}</b></span>
-          <span>مخصص <b>${fmt(c.allocated)}</b></span>
+      </div>`;
+  }
+
+  function legend(items: { label: string; value: number; color: string; pct?: number }[], total: number): string {
+    return `<ul class="lg">` + items.map((i) => {
+      const pct = i.pct ?? (total > 0 ? Math.round((i.value / total) * 100) : 0);
+      return `<li>
+        <span class="lg-dot" style="background:${i.color}"></span>
+        <span class="lg-label">${i.label}</span>
+        <span class="lg-val">${fmt(i.value)}</span>
+        <span class="lg-pct" style="color:${i.color}">${pct}%</span>
+      </li>`;
+    }).join("") + `</ul>`;
+  }
+
+  // ---- Sections -----------------------------------------------------------
+  const revDonut = donut(
+    d.revenueBreakdown.map((r) => ({ value: r.amount, color: r.color })),
+    150, 22,
+    { big: fmt(d.totalRevenue), small: "إجمالي ر.س", tone: "#0D7C66" },
+  );
+  const expDonut = donut(
+    d.expenseBreakdown.map((e) => ({ value: e.amount, color: e.color })),
+    150, 22,
+    { big: fmt(d.totalExpense), small: "إجمالي ر.س", tone: "#B91C1C" },
+  );
+
+  // Top 3 committees by allocated budget for the bottom row
+  const topCommittees = [...ordered]
+    .filter((c) => c.allocated > 0 || c.tasksTotal > 0)
+    .sort((a, b) => (b.allocated || 0) - (a.allocated || 0))
+    .slice(0, 3);
+
+  // If we have fewer than 3 with budgets, pad with most-tasks committees
+  while (topCommittees.length < 3) {
+    const next = ordered.find((c) => !topCommittees.includes(c));
+    if (!next) break;
+    topCommittees.push(next);
+  }
+
+  const committeeMiniDonuts = topCommittees.map((c) => {
+    const color = COMMITTEE_COLOR[c.type];
+    const allocated = c.allocated;
+    const spent = Math.min(c.spent, allocated || c.spent);
+    const remaining = Math.max(allocated - spent, 0);
+    const pct = allocated > 0 ? Math.round((spent / allocated) * 100) : 0;
+    const segs = allocated > 0
+      ? [{ value: spent, color }, { value: remaining, color: "#E2E8F0" }]
+      : [{ value: 1, color: "#E2E8F0" }];
+    const ring = donut(segs, 110, 16, { big: `${pct}%`, small: "صرف", tone: color });
+    const taskPct = c.tasksTotal > 0 ? Math.round((c.tasksDone / c.tasksTotal) * 100) : 0;
+    return `
+      <div class="mini-card">
+        <div class="mini-title" style="color:${color}">${c.name}</div>
+        ${ring}
+        <div class="mini-stats">
+          <div><span>المخصص</span><b>${fmt(allocated)}</b></div>
+          <div><span>المنصرف</span><b>${fmt(c.spent)}</b></div>
+          <div><span>المهام</span><b>${c.tasksDone}/${c.tasksTotal} (${taskPct}%)</b></div>
+          <div><span>بنود الموازنة</span><b>${c.budgetItems}</b></div>
         </div>
       </div>`;
   }).join("");
 
-  const revRows = d.revenueBreakdown.map((r) => `
-    <tr><td>${r.label}</td><td style="text-align:left"><b>${fmt(r.amount)} ر.س</b></td></tr>`).join("");
-  const expRows = d.expenseBreakdown.map((e) => `
-    <tr><td>${e.label} <span class="muted">(${e.count})</span></td><td style="text-align:left"><b>${fmt(e.amount)} ر.س</b></td></tr>`).join("");
-  const net = d.totalRevenue - d.paidExpense;
+  // KPI rail
+  const kpiNet = surplus ? "الفائض" : "العجز (−)";
+  const netDisplay = surplus ? `+ ${fmt(net)}` : `(${fmt(Math.abs(net))})`;
 
-  const totalAlloc = ordered.reduce((a, c) => a + c.allocated, 0);
-  const totalTasks = ordered.reduce((a, c) => a + c.tasksTotal, 0);
-  const totalDone = ordered.reduce((a, c) => a + c.tasksDone, 0);
-  const totalItems = ordered.reduce((a, c) => a + c.budgetItems, 0);
+  // Committee performance table — compact, full breakdown
+  const tableRows = ordered.map((c) => {
+    const color = COMMITTEE_COLOR[c.type];
+    const pct = c.allocated > 0 ? Math.round((c.spent / c.allocated) * 100) : 0;
+    const taskPct = c.tasksTotal > 0 ? Math.round((c.tasksDone / c.tasksTotal) * 100) : 0;
+    return `<tr>
+      <td><span class="row-tag" style="background:${color}"></span> ${c.name}</td>
+      <td>${c.tasksDone}/${c.tasksTotal}</td>
+      <td><b style="color:${color}">${taskPct}%</b></td>
+      <td>${c.budgetItems}</td>
+      <td>${fmt(c.allocated)}</td>
+      <td>${fmt(c.spent)}</td>
+      <td><b style="color:${pct > 100 ? "#B91C1C" : color}">${pct}%</b></td>
+    </tr>`;
+  }).join("");
 
   return `
-    <div dir="rtl" class="mm">
-      <!-- Header -->
-      <header class="mm-hdr">
-        <img src="${logo}" class="mm-logo" alt="logo" />
-        <div class="mm-titles">
-          <p class="mm-kicker">كشاف ذهني تنفيذي · صفحة واحدة</p>
-          <h1>الخريطة الذهنية الشاملة للجان</h1>
-          <p class="mm-meta">المهام · خطة العمل · الميزانيات · الإيرادات · المصروفات — ${today}</p>
+    <div dir="rtl" class="db">
+      <!-- Header ribbon -->
+      <header class="db-hdr">
+        <img src="${logo}" class="db-logo" alt="logo" />
+        <div class="db-titles">
+          <h1>ملخص التقرير الشامل لأداء الميزانية العامة</h1>
+          <p class="db-meta">السنة الهجرية ${d.hijriYear}هـ · صادر بتاريخ ${today}</p>
         </div>
-        <div class="mm-ref">
-          <span class="mm-ref-label">مرجع</span>
-          <b>${ref}</b>
+        <div class="db-period">
+          <span>الفترة</span><b>${d.hijriYear}هـ</b>
         </div>
       </header>
 
-      <!-- Mind map canvas -->
-      <div class="canvas" style="width:${W}px; height:${H}px;">
-        <svg class="svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
-          <defs>
-            <radialGradient id="bg" cx="50%" cy="50%" r="60%">
-              <stop offset="0%" stop-color="#FFFDF7" />
-              <stop offset="100%" stop-color="#F5F1E6" stop-opacity="0" />
-            </radialGradient>
-            <linearGradient id="branch" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stop-color="#D4A95E" />
-              <stop offset="100%" stop-color="#0D7C66" />
-            </linearGradient>
-            <radialGradient id="hub" cx="50%" cy="50%" r="55%">
-              <stop offset="0%" stop-color="#0D7C66" />
-              <stop offset="100%" stop-color="#064F40" />
-            </radialGradient>
-            <pattern id="dots" x="0" y="0" width="22" height="22" patternUnits="userSpaceOnUse">
-              <circle cx="1.2" cy="1.2" r="1.2" fill="#0D7C66" fill-opacity="0.05"/>
-            </pattern>
-          </defs>
-          <rect width="${W}" height="${H}" fill="url(#dots)" />
-          <ellipse cx="${cx}" cy="${cy}" rx="${rX + 30}" ry="${rY + 30}" fill="url(#bg)" />
-          ${curves}
-          <!-- Hub -->
-          <circle cx="${cx}" cy="${cy}" r="74" fill="url(#hub)" />
-          <circle cx="${cx}" cy="${cy}" r="84" fill="none" stroke="#D4A95E" stroke-width="1.5" stroke-dasharray="3 4" opacity="0.7" />
-        </svg>
-        <!-- Hub label -->
-        <div class="hub-label" style="left:${cx - 80}px; top:${cy - 40}px;">
-          <div class="hub-crown">✦</div>
-          <div class="hub-title">لجنة الزواج الجماعي</div>
-          <div class="hub-sub">${ordered.length} لجان · ${totalTasks} مهمة</div>
-        </div>
-        ${leafCards}
-      </div>
+      <!-- Main 2-col grid: left (donuts) + right (executive summary rail) -->
+      <section class="grid-main">
 
-      <!-- Bottom finance + KPI strip -->
-      <section class="bottom">
-        <div class="fin-card rev">
-          <div class="fin-head">
-            <span class="fin-emoji">💵</span>
-            <div>
-              <div class="fin-title">الإيرادات</div>
-              <div class="fin-sub">جميع مصادر الدخل</div>
-            </div>
-            <div class="fin-total">${fmt(d.totalRevenue)} ر.س</div>
-          </div>
-          <table class="fin-tbl">${revRows || `<tr><td colspan="2" class="muted">لا توجد إيرادات مسجلة</td></tr>`}</table>
-        </div>
-
-        <div class="fin-card exp">
-          <div class="fin-head">
-            <span class="fin-emoji">💸</span>
-            <div>
-              <div class="fin-title">المصروفات</div>
-              <div class="fin-sub">طلبات الصرف بحسب الحالة</div>
-            </div>
-            <div class="fin-total">${fmt(d.totalExpense)} ر.س</div>
-          </div>
-          <table class="fin-tbl">${expRows || `<tr><td colspan="2" class="muted">لا توجد طلبات صرف</td></tr>`}</table>
-        </div>
-
-        <div class="kpi-card">
-          <div class="kpi-title">المؤشرات التنفيذية</div>
-          <div class="kpi-row"><span>إجمالي بنود الموازنة</span><b>${fmt(totalItems)}</b></div>
-          <div class="kpi-row"><span>إجمالي المخصص</span><b>${fmt(totalAlloc)} ر.س</b></div>
-          <div class="kpi-row"><span>المهام المنجزة</span><b>${totalDone}/${totalTasks}</b></div>
-          <div class="kpi-row net" style="color:${net >= 0 ? "#0B6A47" : "#9F1239"}">
-            <span>الرصيد الصافي (مصروف − إيراد)</span><b>${fmt(net)} ر.س</b>
+        <!-- Revenues card -->
+        <div class="chart-card rev-card">
+          <div class="chart-title"><span class="bar"></span>الإيرادات الفعلية</div>
+          <div class="chart-body">
+            ${revDonut}
+            ${legend(
+              d.revenueBreakdown.map((r) => ({ label: r.label, value: r.amount, color: r.color })),
+              d.totalRevenue,
+            )}
           </div>
         </div>
+
+        <!-- Expenses card -->
+        <div class="chart-card exp-card">
+          <div class="chart-title"><span class="bar" style="background:#B91C1C"></span>المنصرف الفعلي</div>
+          <div class="chart-body">
+            ${expDonut}
+            ${legend(
+              d.expenseBreakdown.map((e) => ({ label: `${e.label} (${e.count})`, value: e.amount, color: e.color })),
+              d.totalExpense,
+            )}
+          </div>
+        </div>
+
+        <!-- Executive summary rail -->
+        <aside class="exec-rail">
+          <div class="exec-title">الملخص التنفيذي</div>
+          <div class="exec-kpi rev">
+            <span class="exec-label">الإيرادات</span>
+            <span class="exec-val">${fmt(d.totalRevenue)}</span>
+          </div>
+          <div class="exec-kpi exp">
+            <span class="exec-label">المصروفات</span>
+            <span class="exec-val">${fmt(d.paidExpense)}</span>
+          </div>
+          <div class="exec-kpi net" data-surplus="${surplus ? "1" : "0"}">
+            <span class="exec-label">${kpiNet}</span>
+            <span class="exec-val">${netDisplay}</span>
+          </div>
+          <div class="exec-sub">
+            <div><span>معتمدة بانتظار الصرف</span><b>${fmt(d.approvedExpense)}</b></div>
+            <div><span>قيد المراجعة</span><b>${fmt(d.pendingExpense)}</b></div>
+            <div><span>إجمالي المخصصات</span><b>${fmt(d.totalAllocated)}</b></div>
+          </div>
+        </aside>
       </section>
 
-      <p class="mm-foot">منظومة لجنة الزواج الجماعي · ${ref} · كشاف ذهني لصفحة واحدة</p>
+      <!-- Mini donuts: top committees -->
+      <section class="mini-section">
+        <div class="section-title"><span class="bar gold"></span>أبرز اللجان من حيث الميزانية والأداء</div>
+        <div class="mini-grid">${committeeMiniDonuts}</div>
+      </section>
+
+      <!-- Full committee performance table -->
+      <section class="table-section">
+        <div class="section-title"><span class="bar teal"></span>مهام اللجان وميزانياتها — تفصيل كامل</div>
+        <table class="ptbl">
+          <thead>
+            <tr>
+              <th>اللجنة</th><th>المهام</th><th>الإنجاز</th><th>بنود الموازنة</th>
+              <th>المخصص (ر.س)</th><th>المنصرف (ر.س)</th><th>الاستهلاك</th>
+            </tr>
+          </thead>
+          <tbody>${tableRows}</tbody>
+          <tfoot>
+            <tr>
+              <th>الإجمالي</th>
+              <th>${ordered.reduce((a, c) => a + c.tasksDone, 0)}/${ordered.reduce((a, c) => a + c.tasksTotal, 0)}</th>
+              <th>—</th>
+              <th>${ordered.reduce((a, c) => a + c.budgetItems, 0)}</th>
+              <th>${fmt(d.totalAllocated)}</th>
+              <th>${fmt(ordered.reduce((a, c) => a + c.spent, 0))}</th>
+              <th>${d.totalAllocated > 0 ? Math.round((ordered.reduce((a, c) => a + c.spent, 0) / d.totalAllocated) * 100) : 0}%</th>
+            </tr>
+          </tfoot>
+        </table>
+      </section>
+
+      <p class="db-foot">منظومة لجنة الزواج الجماعي · ${ref} · لوحة معلومات تنفيذية في صفحة واحدة</p>
     </div>
 
     <style>
-      @page { size: A4 portrait; margin: 10mm 9mm 10mm; }
+      @page { size: A4 portrait; margin: 9mm 8mm; }
       @media print { html, body { margin:0; background:#fff; } }
-      .mm {
+      .db {
         font-family: 'Noto Naskh Arabic','Segoe UI','Tahoma',sans-serif;
-        color:#0F172A; direction: rtl; background:#fff;
-        width: 100%;
+        color:#0F172A; direction:rtl; background:#fff; width:100%;
       }
-      .mm * { box-sizing: border-box; }
+      .db * { box-sizing:border-box; }
 
-      .mm-hdr { display:flex; align-items:center; gap:12px;
-        border-bottom:2px solid #0D7C66; padding-bottom:8px; margin-bottom:8px; }
-      .mm-logo { width:48px; height:48px; object-fit:contain; }
-      .mm-titles { flex:1; }
-      .mm-kicker { margin:0; font-size:9.5px; letter-spacing:1.4px; font-weight:700; color:#0D7C66; }
-      .mm-titles h1 { margin:2px 0; font-size:18px; font-weight:800; }
-      .mm-meta { margin:0; font-size:10.5px; color:#64748B; }
-      .mm-ref { font-size:10px; color:#334155; border:1px solid #E2E8F0; border-radius:8px;
-        padding:6px 10px; text-align:left; min-width:140px; }
-      .mm-ref-label { font-size:9px; color:#64748B; display:block; }
-      .mm-ref b { color:#0D7C66; font-size:11px; }
+      /* Header */
+      .db-hdr { display:flex; align-items:center; gap:12px;
+        background: linear-gradient(90deg,#0D7C66 0%,#0a6655 60%,#064F40 100%);
+        color:#fff; border-radius:10px; padding:8px 14px; margin-bottom:8px;
+        box-shadow:0 4px 12px -6px rgba(13,124,102,0.4); }
+      .db-logo { width:42px; height:42px; object-fit:contain;
+        background:#fff; border-radius:8px; padding:4px; }
+      .db-titles { flex:1; }
+      .db-titles h1 { margin:0; font-size:17px; font-weight:800; }
+      .db-meta { margin:2px 0 0; font-size:10.5px; color:#FFEDD5; }
+      .db-period { background:#D4A95E; color:#0F172A; border-radius:8px;
+        padding:6px 12px; text-align:center; min-width:90px; }
+      .db-period span { font-size:9.5px; display:block; opacity:0.9; }
+      .db-period b { font-size:13px; }
 
-      .canvas { position:relative; margin:0 auto; }
-      .svg { position:absolute; inset:0; width:100%; height:100%; }
+      /* Main grid */
+      .grid-main { display:grid; grid-template-columns: 1fr 1fr 230px; gap:8px; }
 
-      .hub-label { position:absolute; width:160px; text-align:center; color:#fff;
-        display:flex; flex-direction:column; align-items:center; justify-content:center; }
-      .hub-crown { font-size:18px; color:#D4A95E; line-height:1; margin-bottom:2px; }
-      .hub-title { font-size:14px; font-weight:800; line-height:1.2; }
-      .hub-sub { font-size:10.5px; color:#FFEDD5; margin-top:4px; opacity:0.95; }
+      .chart-card { border:1px solid #E2E8F0; border-radius:12px; padding:10px 12px;
+        background:#fff; page-break-inside:avoid; }
+      .chart-title { font-size:12.5px; font-weight:800; color:#0F172A;
+        margin-bottom:6px; display:flex; align-items:center; gap:8px; }
+      .bar { display:inline-block; width:5px; height:16px; border-radius:3px; background:#0D7C66; }
+      .bar.gold { background:#D4A95E; }
+      .bar.teal { background:#0D7C66; }
+      .chart-body { display:flex; align-items:center; gap:10px; }
 
-      .leaf { position:absolute; border:2px solid; border-radius:14px;
-        padding:6px 10px; box-shadow:0 4px 10px -4px rgba(15,23,42,0.18);
-        display:flex; flex-direction:column; justify-content:space-between; }
-      .leaf-head { display:flex; align-items:center; gap:6px; }
-      .leaf-emoji { font-size:14px; line-height:1; }
-      .leaf-name { font-size:11.5px; font-weight:800; line-height:1.15; }
-      .leaf-stats { display:flex; justify-content:space-between; font-size:9.5px; opacity:0.92; }
-      .leaf-stats b { font-weight:800; }
+      .donut { position:relative; flex-shrink:0; }
+      .donut-center { position:absolute; inset:0; display:flex; flex-direction:column;
+        align-items:center; justify-content:center; pointer-events:none; }
+      .donut-big { font-size:18px; font-weight:800; line-height:1; }
+      .donut-small { font-size:9.5px; color:#64748B; margin-top:2px; }
 
-      .bottom { display:grid; grid-template-columns: 1fr 1fr 1fr; gap:8px; margin-top:8px; }
-      .fin-card { border:1px solid #E2E8F0; border-radius:12px; padding:8px 10px;
-        background:#fff; page-break-inside: avoid; }
-      .fin-card.rev { border-top:4px solid #1F9D6B; background: linear-gradient(180deg,#E6F6EF22,#fff); }
-      .fin-card.exp { border-top:4px solid #E11D48; background: linear-gradient(180deg,#FEE2E222,#fff); }
-      .fin-head { display:flex; align-items:center; gap:8px; margin-bottom:4px; }
-      .fin-emoji { font-size:18px; }
-      .fin-title { font-size:12px; font-weight:800; }
-      .fin-sub { font-size:9.5px; color:#64748B; }
-      .fin-total { margin-inline-start:auto; font-size:12.5px; font-weight:800; color:#0D7C66; }
-      .fin-tbl { width:100%; border-collapse:collapse; font-size:10px; }
-      .fin-tbl td { padding:3px 4px; border-bottom:1px dashed #E2E8F0; }
-      .fin-tbl td:last-child { text-align:left; color:#334155; }
-      .muted { color:#94A3B8; font-size:10px; }
+      .lg { list-style:none; padding:0; margin:0; flex:1; }
+      .lg li { display:grid; grid-template-columns: 10px 1fr auto auto; gap:6px;
+        align-items:center; padding:3px 0; font-size:10px;
+        border-bottom:1px dashed #E2E8F0; }
+      .lg li:last-child { border-bottom:none; }
+      .lg-dot { width:8px; height:8px; border-radius:50%; }
+      .lg-label { color:#334155; }
+      .lg-val { color:#0F172A; font-weight:700; }
+      .lg-pct { font-weight:800; font-size:10.5px; min-width:30px; text-align:left; }
 
-      .kpi-card { border:1px solid #E2E8F0; border-radius:12px; padding:8px 10px;
-        background: linear-gradient(180deg,#FFF8E1,#fff); border-top:4px solid #D4A95E; }
+      /* Executive rail */
+      .exec-rail { background:linear-gradient(180deg,#0D7C66,#064F40); color:#fff;
+        border-radius:12px; padding:10px 12px; display:flex; flex-direction:column;
+        gap:6px; page-break-inside:avoid; }
+      .exec-title { font-size:12px; font-weight:800; letter-spacing:0.5px;
+        border-bottom:1px solid rgba(255,255,255,0.25); padding-bottom:5px; margin-bottom:2px;
+        text-align:center; color:#FFEDD5; }
+      .exec-kpi { display:flex; justify-content:space-between; align-items:baseline;
+        padding:5px 8px; border-radius:8px; background:rgba(255,255,255,0.08); }
+      .exec-kpi.rev { background:rgba(212,169,94,0.18); }
+      .exec-kpi.exp { background:rgba(220,38,38,0.18); }
+      .exec-kpi.net[data-surplus="1"] { background:rgba(34,197,94,0.22); }
+      .exec-kpi.net[data-surplus="0"] { background:rgba(220,38,38,0.28); }
+      .exec-label { font-size:10.5px; color:#FFEDD5; font-weight:700; }
+      .exec-val { font-size:15px; font-weight:800; color:#fff; }
+      .exec-sub { background:#fff; color:#0F172A; border-radius:8px; padding:6px 8px;
+        margin-top:4px; font-size:9.5px; display:flex; flex-direction:column; gap:3px; }
+      .exec-sub > div { display:flex; justify-content:space-between;
+        border-bottom:1px dashed #E2E8F0; padding-bottom:2px; }
+      .exec-sub > div:last-child { border-bottom:none; }
+      .exec-sub b { color:#0D7C66; }
+
+      /* Mini section */
+      .section-title { font-size:12px; font-weight:800; display:flex; align-items:center; gap:8px;
+        margin:10px 0 6px; color:#0F172A; }
+      .mini-grid { display:grid; grid-template-columns: repeat(3, 1fr); gap:8px; }
+      .mini-card { border:1px solid #E2E8F0; border-radius:12px; padding:8px 10px;
+        background:linear-gradient(180deg,#FAFAFA,#fff); page-break-inside:avoid;
+        display:flex; flex-direction:column; align-items:center; gap:4px; }
+      .mini-title { font-size:11.5px; font-weight:800; text-align:center; }
+      .mini-stats { width:100%; display:grid; grid-template-columns: 1fr 1fr; gap:2px 8px;
+        font-size:9.5px; color:#334155; }
+      .mini-stats > div { display:flex; justify-content:space-between;
+        border-bottom:1px dashed #E2E8F0; padding:2px 0; }
+      .mini-stats b { font-weight:800; color:#0F172A; }
+
+      /* Performance table */
+      .table-section { page-break-inside:avoid; }
+      .ptbl { width:100%; border-collapse:collapse; font-size:10px;
+        border-radius:8px; overflow:hidden; border:1px solid #E2E8F0; }
+      .ptbl thead th { background:#0D7C66; color:#fff; padding:5px 6px;
+        font-weight:700; text-align:right; font-size:10px; }
+      .ptbl tbody td { padding:4px 6px; border-bottom:1px solid #F1F5F9; text-align:right;
+        color:#334155; }
+      .ptbl tbody tr:nth-child(even) td { background:#F8FAFC; }
+      .ptbl tfoot th { background:#FFF8E1; color:#8A6A12; padding:5px 6px;
+        text-align:right; font-size:10.5px; border-top:2px solid #D4A95E; }
+      .row-tag { display:inline-block; width:8px; height:8px; border-radius:2px;
+        vertical-align:middle; margin-inline-start:4px; }
+
+      .db-foot { margin-top:6px; text-align:center; font-size:9px; color:#94A3B8; }
+    </style>
+  `;
+}
       .kpi-title { font-size:12px; font-weight:800; margin-bottom:4px; color:#8A6A12; }
       .kpi-row { display:flex; justify-content:space-between; padding:3px 0;
         border-bottom:1px dashed #E2E8F0; font-size:10.5px; }
