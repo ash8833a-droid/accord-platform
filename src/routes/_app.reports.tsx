@@ -15,7 +15,7 @@ import { EvaluationForm } from "@/components/quality/EvaluationForm";
 import { LatestEvaluationsPanel } from "@/components/quality/LatestEvaluationsPanel";
 import { isExcludedFromWomenSurvey } from "@/lib/women-committee-access";
 import { exportMindMapReport } from "@/lib/mindmap-report";
-import { Brain } from "lucide-react";
+import { PieChart } from "lucide-react";
 
 export const Route = createFileRoute("/_app/reports")({
   component: ReportsPage,
@@ -285,22 +285,22 @@ function ReportsTabContent(props: {
         </div>
       </div>
 
-      {/* Mind-map shoot-the-works report */}
-      <div className="rounded-2xl border-2 border-gold/40 bg-gradient-to-br from-amber-50 via-rose-50 to-emerald-50 p-5 shadow-soft flex items-center gap-4 flex-wrap">
-        <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-gold to-primary text-white flex items-center justify-center shrink-0">
-          <Brain className="h-6 w-6" />
+      {/* Comprehensive infographic dashboard report */}
+      <div className="rounded-2xl border-2 border-primary/30 bg-gradient-to-br from-emerald-50 via-amber-50 to-rose-50 p-5 shadow-soft flex items-center gap-4 flex-wrap">
+        <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-primary to-gold text-white flex items-center justify-center shrink-0">
+          <PieChart className="h-6 w-6" />
         </div>
         <div className="flex-1 min-w-[220px]">
-          <h3 className="font-extrabold text-base">الكشاف الذهني الشامل</h3>
+          <h3 className="font-extrabold text-base">ملخص التقرير الشامل لأداء الميزانية</h3>
           <p className="text-xs text-muted-foreground mt-0.5">
-            تقرير إبداعي في صفحة واحدة على مقاس A4: مهام اللجان وخطة العمل والميزانيات وجميع الإيرادات والمصروفات على شكل خريطة ذهنية بالأيقونات.
+            لوحة معلومات تنفيذية في صفحة واحدة على مقاس A4: ملخص تنفيذي، دوائر بيانية للإيرادات والمصروفات، وأبرز اللجان من حيث الميزانية والأداء، وجدول تفصيلي كامل للجان ومهامها.
           </p>
         </div>
         <Button
           onClick={async () => { try { await exportMindMapReport(); } catch (e: any) { toast.error("تعذر إصدار التقرير", { description: e?.message }); } }}
           className="bg-gradient-hero text-primary-foreground gap-2"
         >
-          <Download className="h-4 w-4" /> إصدار الكشاف الذهني
+          <Download className="h-4 w-4" /> إصدار التقرير الشامل
         </Button>
       </div>
 
