@@ -14,6 +14,8 @@ import { EvaluationCriteria } from "@/components/quality/EvaluationCriteria";
 import { EvaluationForm } from "@/components/quality/EvaluationForm";
 import { LatestEvaluationsPanel } from "@/components/quality/LatestEvaluationsPanel";
 import { isExcludedFromWomenSurvey } from "@/lib/women-committee-access";
+import { exportMindMapReport } from "@/lib/mindmap-report";
+import { Brain } from "lucide-react";
 
 export const Route = createFileRoute("/_app/reports")({
   component: ReportsPage,
