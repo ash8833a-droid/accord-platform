@@ -141,7 +141,7 @@ async function gather(): Promise<Data> {
 
   return {
     committees,
-    contributions: (contribs ?? []) as ContribRow[],
+    contributions: (contribs ?? []) as unknown as ContribRow[],
     historical: (hist ?? []) as any[],
     hijriYear,
     totalRevenue,
