@@ -107,7 +107,7 @@ function ArchivePage() {
   };
 
   const removeItem = async (it: ArchiveItem) => {
-    if (!confirm(`حذف "${it.title}" من أرشيف ${it.wedding_year}؟`)) return;
+    if (!confirm(`حذف "${it.title}" من أرشيف ${it.wedding_year}هـ؟`)) return;
     if (it.file_url) await supabase.storage.from("wedding-archive").remove([it.file_url]);
     const { error } = await supabase.from("wedding_archive_items").delete().eq("id", it.id);
     if (error) return toast.error("تعذر الحذف", { description: error.message });
@@ -219,7 +219,7 @@ function ArchivePage() {
         <div className="px-6 py-4 border-b bg-gradient-to-l from-primary/5 to-transparent flex items-center justify-between flex-wrap gap-2">
           <div className="flex items-center gap-2">
             <Archive className="h-5 w-5 text-primary" />
-            <h2 className="font-bold">أرشيف {year}</h2>
+            <h2 className="font-bold">أرشيف {year}هـ</h2>
             <Badge variant="outline" className="text-[10px]">{filtered.length} عنصر</Badge>
             {category !== "all" && (
               <Badge className="text-[10px]">{CATEGORIES.find((c) => c.key === category)?.label}</Badge>
@@ -234,7 +234,7 @@ function ArchivePage() {
         ) : filtered.length === 0 ? (
           <div className="py-16 text-center text-sm text-muted-foreground">
             <Archive className="h-12 w-12 mx-auto opacity-30 mb-3" />
-            لا توجد عناصر في هذا التصنيف لعام {year}.<br />
+            لا توجد عناصر في هذا التصنيف لعام {year}هـ.<br />
             ابدأ بإضافة أول ملف ليبدأ التوثيق.
           </div>
         ) : (
@@ -402,7 +402,7 @@ function UploadPanel({
         created_by: userId,
       });
       if (error) { toast.error("تعذر الحفظ", { description: error.message }); return; }
-      toast.success(`تمت الإضافة لأرشيف ${year}`);
+      toast.success(`تمت الإضافة لأرشيف ${year}هـ`);
       resetForm();
       setOpen(false);
       onSaved();
@@ -417,7 +417,7 @@ function UploadPanel({
             <Wand2 className="h-6 w-6" />
           </div>
           <div>
-            <p className="font-bold text-sm">أضف ملف لأرشيف عام {year} — مع تحليل ذكي تلقائي</p>
+            <p className="font-bold text-sm">أضف ملف لأرشيف عام {year}هـ — مع تحليل ذكي تلقائي</p>
             <p className="text-[11px] text-muted-foreground mt-0.5">
               يقرأ الذكاء الاصطناعي محتوى الملف ويصنّفه تلقائياً (صور عرسان، إعلامي، برامج، مالي، تنظيم) ويقترح عنواناً وملخصاً.
             </p>
@@ -433,7 +433,7 @@ function UploadPanel({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Archive className="h-5 w-5 text-primary" />
-            ملف جديد في أرشيف {year}
+            ملف جديد في أرشيف {year}هـ
           </DialogTitle>
         </DialogHeader>
         <form onSubmit={submit} className="space-y-3">
@@ -494,7 +494,7 @@ function UploadPanel({
           </div>
           <div className="space-y-1.5">
             <Label className="text-xs">عنوان الملف</Label>
-            <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder={`مثال: ألبوم صور حفل ${year}`} />
+            <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder={`مثال: ألبوم صور حفل ${year}هـ`} />
           </div>
           <div className="space-y-1.5">
             <Label className="text-xs">وصف مختصر (اختياري)</Label>
