@@ -38,8 +38,14 @@ interface ArchiveItem {
   created_at: string;
 }
 
-const CURRENT_YEAR = new Date().getFullYear(); // 2026
-const ARCHIVE_YEARS = Array.from({ length: 11 }, (_, i) => CURRENT_YEAR - 1 - i); // 2025..2015
+// السنوات الهجرية الموثّقة — أول زواج جماعي للجنة كان عام 1434هـ
+const FIRST_HIJRI_YEAR = 1434;
+const LAST_HIJRI_YEAR = 1446; // آخر سنة هجرية مكتملة (نحن الآن في 1447هـ)
+const ARCHIVE_YEARS = Array.from(
+  { length: LAST_HIJRI_YEAR - FIRST_HIJRI_YEAR + 1 },
+  (_, i) => LAST_HIJRI_YEAR - i,
+); // 1446..1434
+const YEARS_COUNT = ARCHIVE_YEARS.length;
 
 const CATEGORIES: { key: Category; label: string; icon: typeof Camera; color: string; gradient: string; description: string }[] = [
   { key: "grooms",       label: "صور العرسان",            icon: Camera,        color: "text-rose-600",    gradient: "from-rose-500 to-pink-600",     description: "ألبومات وصور العرسان من حفلات الزواج السابقة" },
@@ -128,9 +134,9 @@ function ArchivePage() {
               المالية، والتنظيم والمقترحات. أرشيف شامل وقابل للحفظ يستلهم منه القادمون ويبني عليه المطوّرون.
             </p>
             <div className="flex items-center gap-2 mt-4 flex-wrap text-xs">
-              <Badge className="bg-white/20 text-primary-foreground border-0 backdrop-blur">11 سنة موثّقة</Badge>
+              <Badge className="bg-white/20 text-primary-foreground border-0 backdrop-blur">{YEARS_COUNT} سنة موثّقة</Badge>
               <Badge className="bg-white/20 text-primary-foreground border-0 backdrop-blur">5 جوانب رئيسية</Badge>
-              <Badge className="bg-gold/30 text-primary-foreground border-0 backdrop-blur">{ARCHIVE_YEARS[ARCHIVE_YEARS.length - 1]} — {ARCHIVE_YEARS[0]}</Badge>
+              <Badge className="bg-gold/30 text-primary-foreground border-0 backdrop-blur">{FIRST_HIJRI_YEAR}هـ — {LAST_HIJRI_YEAR}هـ</Badge>
             </div>
           </div>
         </div>
@@ -141,7 +147,7 @@ function ArchivePage() {
         <div className="flex items-center gap-2 mb-3">
           <Archive className="h-4 w-4 text-primary" />
           <h2 className="text-sm font-bold">اختر السنة</h2>
-          <span className="text-[11px] text-muted-foreground">آخر 11 سنة</span>
+          <span className="text-[11px] text-muted-foreground">من 1434هـ حتى 1446هـ</span>
         </div>
         <div className="flex flex-wrap gap-2">
           {ARCHIVE_YEARS.map((y) => {
@@ -156,7 +162,7 @@ function ArchivePage() {
                     : "bg-card hover:border-gold hover:shadow-gold hover:-translate-y-0.5"
                 }`}
               >
-                {y}
+                {y}هـ
               </button>
             );
           })}
