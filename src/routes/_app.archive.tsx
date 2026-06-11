@@ -207,12 +207,15 @@ function ArchivePage() {
 
       {/* Add panel */}
       {user && (
-        <UploadPanel
-          year={year}
-          defaultCategory={category === "all" ? "grooms" : category}
-          onSaved={load}
-          userId={user.id}
-        />
+        <div className="grid md:grid-cols-2 gap-3">
+          <SmartDistributePanel year={year} onSaved={load} userId={user.id} />
+          <UploadPanel
+            year={year}
+            defaultCategory={category === "all" ? "grooms" : category}
+            onSaved={load}
+            userId={user.id}
+          />
+        </div>
       )}
 
       {/* Items list */}
