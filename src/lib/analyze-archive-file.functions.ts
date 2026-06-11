@@ -7,7 +7,7 @@ const InputSchema = z.object({
   filename: z.string().min(1).max(500),
   mime_type: z.string().max(200).optional().default(""),
   description: z.string().max(2000).optional().default(""),
-  wedding_year: z.number().int().min(2000).max(2100),
+  wedding_year: z.number().int().min(1300).max(2100),
 });
 
 export type ArchiveCategory = "grooms" | "media" | "programs" | "finance" | "organization";
