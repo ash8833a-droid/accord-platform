@@ -33,8 +33,8 @@ interface Row {
 
 const LABELS: { key: keyof Row; label: string; tone: string }[] = [
   { key: "organization_score", label: "التنظيم والاستقبال", tone: "bg-emerald-500/10 text-emerald-700 border-emerald-500/30" },
-  { key: "hospitality_score", label: "الضيافة والعشاء", tone: "bg-amber-500/10 text-amber-700 border-amber-500/30" },
   { key: "program_score", label: "البرامج والفقرات", tone: "bg-violet-500/10 text-violet-700 border-violet-500/30" },
+  { key: "hospitality_score", label: "الضيافة والعشاء", tone: "bg-amber-500/10 text-amber-700 border-amber-500/30" },
   { key: "overall_score", label: "الانطباع العام", tone: "bg-rose-500/10 text-rose-700 border-rose-500/30" },
 ];
 
