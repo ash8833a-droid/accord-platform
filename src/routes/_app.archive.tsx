@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import {
   Archive, Upload, Loader2, Eye, Download, Trash2, Image as ImageIcon,
   Camera, Megaphone, CalendarRange, Wallet, Sparkles, FileText, Plus, History, Wand2,
+  CheckCircle2, AlertCircle, Layers,
 } from "lucide-react";
 import { analyzeArchiveFile, type ArchiveAnalysis } from "@/lib/analyze-archive-file.functions";
 
