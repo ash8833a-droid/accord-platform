@@ -207,14 +207,27 @@ function ArchivePage() {
 
       {/* Add panel */}
       {user && (
-        <div className="grid md:grid-cols-2 gap-3">
-          <SmartDistributePanel year={year} onSaved={load} userId={user.id} />
-          <UploadPanel
-            year={year}
-            defaultCategory={category === "all" ? "grooms" : category}
-            onSaved={load}
-            userId={user.id}
-          />
+        <div className="rounded-2xl border-2 border-dashed border-primary/30 bg-gradient-to-br from-fuchsia-50 via-white to-amber-50 p-5 flex items-center justify-between gap-4 flex-wrap">
+          <div className="flex items-center gap-3 min-w-0 flex-1">
+            <div className="h-12 w-12 shrink-0 rounded-xl bg-gradient-to-br from-fuchsia-600 to-purple-700 text-white flex items-center justify-center">
+              <Wand2 className="h-6 w-6" />
+            </div>
+            <div className="min-w-0">
+              <p className="font-bold text-sm">إضافة ذكية لأرشيف {year}هـ — اختر الطريقة المناسبة</p>
+              <p className="text-[11px] text-muted-foreground mt-0.5">
+                يقرأ الذكاء الاصطناعي محتوى الملفات ويصنّفها تلقائياً (صور عرسان، إعلامي، برامج، مالي، خطط) ويوزّعها على أقسامها.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 flex-wrap">
+            <UploadPanel
+              year={year}
+              defaultCategory={category === "all" ? "grooms" : category}
+              onSaved={load}
+              userId={user.id}
+            />
+            <SmartDistributePanel year={year} onSaved={load} userId={user.id} />
+          </div>
         </div>
       )}
 
@@ -415,24 +428,11 @@ function UploadPanel({
 
   return (
     <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) resetForm(); }}>
-      <div className="rounded-2xl border-2 border-dashed border-primary/30 bg-gradient-to-br from-primary/5 via-transparent to-gold/5 p-5 flex items-center justify-between gap-4 flex-wrap">
-        <div className="flex items-center gap-3">
-          <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-primary to-gold text-white flex items-center justify-center">
-            <Wand2 className="h-6 w-6" />
-          </div>
-          <div>
-            <p className="font-bold text-sm">أضف ملف لأرشيف عام {year}هـ — مع تحليل ذكي تلقائي</p>
-            <p className="text-[11px] text-muted-foreground mt-0.5">
-              يقرأ الذكاء الاصطناعي محتوى الملف ويصنّفه تلقائياً (صور عرسان، إعلامي، برامج، مالي، تنظيم) ويقترح عنواناً وملخصاً.
-            </p>
-          </div>
-        </div>
-        <DialogTrigger asChild>
-          <Button className="bg-gradient-hero text-primary-foreground gap-2">
-            <Plus className="h-4 w-4" /> إضافة ملف للأرشيف
-          </Button>
-        </DialogTrigger>
-      </div>
+      <DialogTrigger asChild>
+        <Button className="bg-gradient-hero text-primary-foreground gap-2 w-full sm:w-auto">
+          <Plus className="h-4 w-4" /> إضافة ملف واحد
+        </Button>
+      </DialogTrigger>
       <DialogContent className="max-w-xl" dir="rtl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -654,24 +654,11 @@ function SmartDistributePanel({
 
   return (
     <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) { setItems([]); } }}>
-      <div className="rounded-2xl border-2 border-dashed border-fuchsia-300 bg-gradient-to-br from-fuchsia-50 via-white to-amber-50 p-5 flex items-center justify-between gap-4 flex-wrap">
-        <div className="flex items-center gap-3">
-          <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-fuchsia-600 to-purple-700 text-white flex items-center justify-center">
-            <Layers className="h-6 w-6" />
-          </div>
-          <div>
-            <p className="font-bold text-sm">توزيع ذكي تلقائي — أرفق عدة ملفات مرة واحدة</p>
-            <p className="text-[11px] text-muted-foreground mt-0.5">
-              يقرأ الذكاء الاصطناعي كل ملف ويرسله إلى قسمه: الصور لـ"صور العرسان"، الفواتير لـ"المالي"، الفقرات لـ"البرامج"، والخطط لـ"الخطط".
-            </p>
-          </div>
-        </div>
-        <DialogTrigger asChild>
-          <Button className="bg-gradient-to-br from-fuchsia-600 to-purple-700 text-white gap-2 hover:opacity-95">
-            <Sparkles className="h-4 w-4" /> ابدأ التوزيع الذكي
-          </Button>
-        </DialogTrigger>
-      </div>
+      <DialogTrigger asChild>
+        <Button className="bg-gradient-to-br from-fuchsia-600 to-purple-700 text-white gap-2 hover:opacity-95 w-full sm:w-auto">
+          <Sparkles className="h-4 w-4" /> توزيع ذكي لعدة ملفات
+        </Button>
+      </DialogTrigger>
       <DialogContent className="max-w-2xl" dir="rtl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
