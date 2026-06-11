@@ -12,6 +12,7 @@ import {
   UserCog,
   KeyRound,
   Target,
+  History,
 } from "lucide-react";
 import { ShoppingCart, Inbox, LayoutGrid } from "lucide-react";
 import { Logo } from "./Logo";
@@ -36,6 +37,7 @@ const ADMIN_BOTTOM = [
   { to: "/ideas", label: "بنك الأفكار", icon: Lightbulb },
   { to: "/grooms", label: "سجل العرسان", icon: HeartHandshake },
   { to: "/reports", label: "التقارير والجودة", icon: FileBarChart },
+  { to: "/archive", label: "أرشيف الزواجات", icon: History },
   { to: "/communications", label: "إدارة الطلبات", icon: Inbox },
   { to: "/finance-management", label: "الإدارة المالية", icon: Wallet },
   { to: "/admin/users", label: "إدارة المستخدمين", icon: UserCog },

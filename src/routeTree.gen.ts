@@ -32,6 +32,7 @@ import { Route as AppFinanceRouteImport } from './routes/_app.finance'
 import { Route as AppDashboardRouteImport } from './routes/_app.dashboard'
 import { Route as AppCommunicationsRouteImport } from './routes/_app.communications'
 import { Route as AppBrandRouteImport } from './routes/_app.brand'
+import { Route as AppArchiveRouteImport } from './routes/_app.archive'
 import { Route as AppAdminRouteImport } from './routes/_app.admin'
 import { Route as AppCommitteeTypeRouteImport } from './routes/_app.committee.$type'
 import { Route as AppAdminWeeklyRouteImport } from './routes/_app.admin.weekly'
@@ -154,6 +155,11 @@ const AppBrandRoute = AppBrandRouteImport.update({
   path: '/brand',
   getParentRoute: () => AppRoute,
 } as any)
+const AppArchiveRoute = AppArchiveRouteImport.update({
+  id: '/archive',
+  path: '/archive',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppAdminRoute = AppAdminRouteImport.update({
   id: '/admin',
   path: '/admin',
@@ -201,6 +207,7 @@ export interface FileRoutesByFullPath {
   '/register-groom': typeof RegisterGroomRoute
   '/wedding-feedback': typeof WeddingFeedbackRoute
   '/admin': typeof AppAdminRouteWithChildren
+  '/archive': typeof AppArchiveRoute
   '/brand': typeof AppBrandRoute
   '/communications': typeof AppCommunicationsRoute
   '/dashboard': typeof AppDashboardRoute
@@ -232,6 +239,7 @@ export interface FileRoutesByTo {
   '/register-groom': typeof RegisterGroomRoute
   '/wedding-feedback': typeof WeddingFeedbackRoute
   '/admin': typeof AppAdminRouteWithChildren
+  '/archive': typeof AppArchiveRoute
   '/brand': typeof AppBrandRoute
   '/communications': typeof AppCommunicationsRoute
   '/dashboard': typeof AppDashboardRoute
@@ -265,6 +273,7 @@ export interface FileRoutesById {
   '/register-groom': typeof RegisterGroomRoute
   '/wedding-feedback': typeof WeddingFeedbackRoute
   '/_app/admin': typeof AppAdminRouteWithChildren
+  '/_app/archive': typeof AppArchiveRoute
   '/_app/brand': typeof AppBrandRoute
   '/_app/communications': typeof AppCommunicationsRoute
   '/_app/dashboard': typeof AppDashboardRoute
@@ -298,6 +307,7 @@ export interface FileRouteTypes {
     | '/register-groom'
     | '/wedding-feedback'
     | '/admin'
+    | '/archive'
     | '/brand'
     | '/communications'
     | '/dashboard'
@@ -329,6 +339,7 @@ export interface FileRouteTypes {
     | '/register-groom'
     | '/wedding-feedback'
     | '/admin'
+    | '/archive'
     | '/brand'
     | '/communications'
     | '/dashboard'
@@ -361,6 +372,7 @@ export interface FileRouteTypes {
     | '/register-groom'
     | '/wedding-feedback'
     | '/_app/admin'
+    | '/_app/archive'
     | '/_app/brand'
     | '/_app/communications'
     | '/_app/dashboard'
@@ -561,6 +573,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppBrandRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/archive': {
+      id: '/_app/archive'
+      path: '/archive'
+      fullPath: '/archive'
+      preLoaderRoute: typeof AppArchiveRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/admin': {
       id: '/_app/admin'
       path: '/admin'
@@ -633,6 +652,7 @@ const AppAdminRouteWithChildren = AppAdminRoute._addFileChildren(
 
 interface AppRouteChildren {
   AppAdminRoute: typeof AppAdminRouteWithChildren
+  AppArchiveRoute: typeof AppArchiveRoute
   AppBrandRoute: typeof AppBrandRoute
   AppCommunicationsRoute: typeof AppCommunicationsRoute
   AppDashboardRoute: typeof AppDashboardRoute
@@ -648,6 +668,7 @@ interface AppRouteChildren {
 
 const AppRouteChildren: AppRouteChildren = {
   AppAdminRoute: AppAdminRouteWithChildren,
+  AppArchiveRoute: AppArchiveRoute,
   AppBrandRoute: AppBrandRoute,
   AppCommunicationsRoute: AppCommunicationsRoute,
   AppDashboardRoute: AppDashboardRoute,
