@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
@@ -14,8 +15,9 @@ import { ACCEPT_ANY_FILE, MAX_UPLOAD_SIZE, MAX_UPLOAD_SIZE_LABEL, safeStorageKey
 import { toast } from "sonner";
 import {
   Archive, Upload, Loader2, Eye, Download, Trash2, Image as ImageIcon,
-  Camera, Megaphone, CalendarRange, Wallet, Sparkles, FileText, Plus, History,
+  Camera, Megaphone, CalendarRange, Wallet, Sparkles, FileText, Plus, History, Wand2,
 } from "lucide-react";
+import { analyzeArchiveFile, type ArchiveAnalysis } from "@/lib/analyze-archive-file.functions";
 
 export const Route = createFileRoute("/_app/archive")({
   component: ArchivePage,
