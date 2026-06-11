@@ -1816,6 +1816,45 @@ export type Database = {
           },
         ]
       }
+      wedding_feedback: {
+        Row: {
+          created_at: string
+          event_year: number
+          hospitality_score: number
+          id: string
+          organization_score: number
+          overall_score: number
+          program_score: number
+          respondent_phone: string | null
+          respondent_role: string | null
+          suggestions: string | null
+        }
+        Insert: {
+          created_at?: string
+          event_year?: number
+          hospitality_score: number
+          id?: string
+          organization_score: number
+          overall_score: number
+          program_score: number
+          respondent_phone?: string | null
+          respondent_role?: string | null
+          suggestions?: string | null
+        }
+        Update: {
+          created_at?: string
+          event_year?: number
+          hospitality_score?: number
+          id?: string
+          organization_score?: number
+          overall_score?: number
+          program_score?: number
+          respondent_phone?: string | null
+          respondent_role?: string | null
+          suggestions?: string | null
+        }
+        Relationships: []
+      }
       women_talent_responses: {
         Row: {
           age: number | null

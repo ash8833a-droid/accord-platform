@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as WeddingFeedbackRouteImport } from './routes/wedding-feedback'
 import { Route as RegisterGroomRouteImport } from './routes/register-groom'
 import { Route as PendingRouteImport } from './routes/pending'
 import { Route as GroomEditRouteImport } from './routes/groom-edit'
@@ -39,6 +40,11 @@ import { Route as AppAdminTasksRouteImport } from './routes/_app.admin.tasks'
 import { Route as AppAdminSupremeMinutesRouteImport } from './routes/_app.admin.supreme-minutes'
 import { Route as ApiPublicHooksTaskDeadlineCheckRouteImport } from './routes/api.public.hooks.task-deadline-check'
 
+const WeddingFeedbackRoute = WeddingFeedbackRouteImport.update({
+  id: '/wedding-feedback',
+  path: '/wedding-feedback',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RegisterGroomRoute = RegisterGroomRouteImport.update({
   id: '/register-groom',
   path: '/register-groom',
@@ -193,6 +199,7 @@ export interface FileRoutesByFullPath {
   '/groom-edit': typeof GroomEditRouteWithChildren
   '/pending': typeof PendingRoute
   '/register-groom': typeof RegisterGroomRoute
+  '/wedding-feedback': typeof WeddingFeedbackRoute
   '/admin': typeof AppAdminRouteWithChildren
   '/brand': typeof AppBrandRoute
   '/communications': typeof AppCommunicationsRoute
@@ -223,6 +230,7 @@ export interface FileRoutesByTo {
   '/groom-edit': typeof GroomEditRouteWithChildren
   '/pending': typeof PendingRoute
   '/register-groom': typeof RegisterGroomRoute
+  '/wedding-feedback': typeof WeddingFeedbackRoute
   '/admin': typeof AppAdminRouteWithChildren
   '/brand': typeof AppBrandRoute
   '/communications': typeof AppCommunicationsRoute
@@ -255,6 +263,7 @@ export interface FileRoutesById {
   '/groom-edit': typeof GroomEditRouteWithChildren
   '/pending': typeof PendingRoute
   '/register-groom': typeof RegisterGroomRoute
+  '/wedding-feedback': typeof WeddingFeedbackRoute
   '/_app/admin': typeof AppAdminRouteWithChildren
   '/_app/brand': typeof AppBrandRoute
   '/_app/communications': typeof AppCommunicationsRoute
@@ -287,6 +296,7 @@ export interface FileRouteTypes {
     | '/groom-edit'
     | '/pending'
     | '/register-groom'
+    | '/wedding-feedback'
     | '/admin'
     | '/brand'
     | '/communications'
@@ -317,6 +327,7 @@ export interface FileRouteTypes {
     | '/groom-edit'
     | '/pending'
     | '/register-groom'
+    | '/wedding-feedback'
     | '/admin'
     | '/brand'
     | '/communications'
@@ -348,6 +359,7 @@ export interface FileRouteTypes {
     | '/groom-edit'
     | '/pending'
     | '/register-groom'
+    | '/wedding-feedback'
     | '/_app/admin'
     | '/_app/brand'
     | '/_app/communications'
@@ -380,6 +392,7 @@ export interface RootRouteChildren {
   GroomEditRoute: typeof GroomEditRouteWithChildren
   PendingRoute: typeof PendingRoute
   RegisterGroomRoute: typeof RegisterGroomRoute
+  WeddingFeedbackRoute: typeof WeddingFeedbackRoute
   ContributeSharesYearRoute: typeof ContributeSharesYearRoute
   SurveyWomenTalentsRoute: typeof SurveyWomenTalentsRoute
   ApiPublicHooksTaskDeadlineCheckRoute: typeof ApiPublicHooksTaskDeadlineCheckRoute
@@ -387,6 +400,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/wedding-feedback': {
+      id: '/wedding-feedback'
+      path: '/wedding-feedback'
+      fullPath: '/wedding-feedback'
+      preLoaderRoute: typeof WeddingFeedbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/register-groom': {
       id: '/register-groom'
       path: '/register-groom'
@@ -676,6 +696,7 @@ const rootRouteChildren: RootRouteChildren = {
   GroomEditRoute: GroomEditRouteWithChildren,
   PendingRoute: PendingRoute,
   RegisterGroomRoute: RegisterGroomRoute,
+  WeddingFeedbackRoute: WeddingFeedbackRoute,
   ContributeSharesYearRoute: ContributeSharesYearRoute,
   SurveyWomenTalentsRoute: SurveyWomenTalentsRoute,
   ApiPublicHooksTaskDeadlineCheckRoute: ApiPublicHooksTaskDeadlineCheckRoute,

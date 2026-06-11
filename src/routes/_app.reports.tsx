@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
 import { TasksReportPanel } from "@/components/reports/TasksReportPanel";
+import { WeddingFeedbackPanel } from "@/components/reports/WeddingFeedbackPanel";
 import { WomenTalentsPanel } from "@/components/committee/WomenTalentsPanel";
 import { EvaluationCriteria } from "@/components/quality/EvaluationCriteria";
 import { EvaluationForm } from "@/components/quality/EvaluationForm";
@@ -306,6 +307,9 @@ function ReportsTabContent(props: {
 
       {/* Latest committee evaluations (linked to evaluation form) */}
       <LatestEvaluationsPanel />
+
+      {/* Wedding day guest feedback */}
+      <WeddingFeedbackPanel />
 
       {/* Tasks performance report */}
       <TasksReportPanel />
