@@ -309,22 +309,82 @@ function UploadPanel({
   const [desc, setDesc] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
+  const [uploadedPath, setUploadedPath] = useState<string | null>(null);
+  const [analyzing, setAnalyzing] = useState(false);
+  const [analysis, setAnalysis] = useState<ArchiveAnalysis | null>(null);
+  const analyzeFn = useServerFn(analyzeArchiveFile);
 
   useEffect(() => { setCat(defaultCategory); }, [defaultCategory]);
+
+  const resetForm = () => {
+    setTitle(""); setDesc(""); setFile(null);
+    setUploadedPath(null); setAnalysis(null);
+  };
+
+  // If user replaces the picked file, drop any previous upload reference.
+  const onPickFile = (f: File | null) => {
+    setFile(f);
+    setUploadedPath(null);
+    setAnalysis(null);
+  };
+
+  const ensureUpload = async (): Promise<string | null> => {
+    if (uploadedPath) return uploadedPath;
+    if (!file) return null;
+    if (file.size > MAX_UPLOAD_SIZE) {
+      toast.error(`حجم الملف أكبر من ${MAX_UPLOAD_SIZE_LABEL}`);
+      return null;
+    }
+    const path = safeStorageKey(file.name, `${year}/${cat}`);
+    const { error: upErr } = await supabase.storage.from("wedding-archive").upload(path, file, {
+      contentType: file.type || "application/octet-stream",
+      upsert: false,
+    });
+    if (upErr) {
+      toast.error("تعذر الرفع", { description: upErr.message });
+      return null;
+    }
+    setUploadedPath(path);
+    return path;
+  };
+
+  const runAnalysis = async () => {
+    if (!file) return toast.error("اختر ملفًا أولًا");
+    setAnalyzing(true);
+    try {
+      const path = await ensureUpload();
+      if (!path) return;
+      const result = await analyzeFn({
+        data: {
+          storage_path: path,
+          filename: file.name,
+          mime_type: file.type || "",
+          description: desc.trim(),
+          wedding_year: year,
+        },
+      });
+      setAnalysis(result);
+      setCat(result.category);
+      if (result.suggested_title) setTitle(result.suggested_title);
+      if (result.summary && !desc.trim()) setDesc(result.summary);
+      toast.success("تم التحليل الذكي", {
+        description: `صُنّف تحت: ${result.category_label}`,
+      });
+    } catch (e) {
+      toast.error("تعذر التحليل", { description: e instanceof Error ? e.message : "" });
+    } finally {
+      setAnalyzing(false);
+    }
+  };
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!file) return toast.error("يرجى اختيار ملف");
     if (!title.trim()) return toast.error("يرجى كتابة عنوان للملف");
-    if (file.size > MAX_UPLOAD_SIZE) return toast.error(`حجم الملف أكبر من ${MAX_UPLOAD_SIZE_LABEL}`);
     setBusy(true);
     try {
-      const path = safeStorageKey(file.name, `${year}/${cat}`);
-      const { error: upErr } = await supabase.storage.from("wedding-archive").upload(path, file, {
-        contentType: file.type || "application/octet-stream",
-        upsert: false,
-      });
-      if (upErr) { toast.error("تعذر الرفع", { description: upErr.message }); return; }
+      const path = await ensureUpload();
+      if (!path) return;
       const { error } = await supabase.from("wedding_archive_items").insert({
         wedding_year: year,
         category: cat,
@@ -337,22 +397,23 @@ function UploadPanel({
       });
       if (error) { toast.error("تعذر الحفظ", { description: error.message }); return; }
       toast.success(`تمت الإضافة لأرشيف ${year}`);
-      setTitle(""); setDesc(""); setFile(null); setOpen(false);
+      resetForm();
+      setOpen(false);
       onSaved();
     } finally { setBusy(false); }
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) resetForm(); }}>
       <div className="rounded-2xl border-2 border-dashed border-primary/30 bg-gradient-to-br from-primary/5 via-transparent to-gold/5 p-5 flex items-center justify-between gap-4 flex-wrap">
         <div className="flex items-center gap-3">
           <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-primary to-gold text-white flex items-center justify-center">
-            <Upload className="h-6 w-6" />
+            <Wand2 className="h-6 w-6" />
           </div>
           <div>
-            <p className="font-bold text-sm">أضف ملف لأرشيف عام {year}</p>
+            <p className="font-bold text-sm">أضف ملف لأرشيف عام {year} — مع تحليل ذكي تلقائي</p>
             <p className="text-[11px] text-muted-foreground mt-0.5">
-              صور، تقارير PDF، فيديو، ملفات Office. الحد الأقصى {MAX_UPLOAD_SIZE_LABEL}.
+              يقرأ الذكاء الاصطناعي محتوى الملف ويصنّفه تلقائياً (صور عرسان، إعلامي، برامج، مالي، تنظيم) ويقترح عنواناً وملخصاً.
             </p>
           </div>
         </div>
@@ -362,7 +423,7 @@ function UploadPanel({
           </Button>
         </DialogTrigger>
       </div>
-      <DialogContent className="max-w-lg" dir="rtl">
+      <DialogContent className="max-w-xl" dir="rtl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Archive className="h-5 w-5 text-primary" />
@@ -370,6 +431,47 @@ function UploadPanel({
           </DialogTitle>
         </DialogHeader>
         <form onSubmit={submit} className="space-y-3">
+          <div className="space-y-1.5">
+            <Label className="text-xs">الملف</Label>
+            <label className="flex items-center gap-2 h-10 px-3 rounded-md border border-dashed border-input cursor-pointer hover:border-primary/60 hover:bg-muted/40 transition text-xs">
+              <Upload className="h-4 w-4 text-muted-foreground" />
+              <span className="text-muted-foreground truncate flex-1">{file ? file.name : "اختر ملفًا للرفع"}</span>
+              {file && <FileText className="h-3.5 w-3.5 text-primary" />}
+              <input
+                type="file"
+                accept={ACCEPT_ANY_FILE}
+                className="hidden"
+                onChange={(e) => onPickFile(e.target.files?.[0] ?? null)}
+              />
+            </label>
+            {file && (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={runAnalysis}
+                disabled={analyzing}
+                className="w-full gap-2 border-fuchsia-300 hover:bg-fuchsia-50 hover:border-fuchsia-400"
+              >
+                {analyzing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wand2 className="h-4 w-4 text-fuchsia-600" />}
+                {analyzing ? "جاري التحليل الذكي..." : "تحليل ذكي: صنّف الملف واقترح عنواناً تلقائياً"}
+              </Button>
+            )}
+            {analysis && (
+              <div className="rounded-xl border bg-gradient-to-br from-fuchsia-50 via-white to-amber-50 p-3 text-xs space-y-1.5">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <Badge className="bg-fuchsia-600 hover:bg-fuchsia-600 text-white gap-1">
+                    <Sparkles className="h-3 w-3" /> {analysis.category_label}
+                  </Badge>
+                  <Badge variant="outline" className="text-[10px]">
+                    دقة: {analysis.confidence === "high" ? "عالية" : analysis.confidence === "low" ? "منخفضة" : "متوسطة"}
+                  </Badge>
+                </div>
+                {analysis.summary && <p className="text-muted-foreground">{analysis.summary}</p>}
+                {analysis.reasoning && <p className="text-[10px] text-muted-foreground italic">السبب: {analysis.reasoning}</p>}
+              </div>
+            )}
+          </div>
+
           <div className="space-y-1.5">
             <Label className="text-xs">التصنيف</Label>
             <Select value={cat} onValueChange={(v) => setCat(v as Category)}>
@@ -391,20 +493,6 @@ function UploadPanel({
           <div className="space-y-1.5">
             <Label className="text-xs">وصف مختصر (اختياري)</Label>
             <Textarea rows={3} value={desc} onChange={(e) => setDesc(e.target.value)} placeholder="نبذة عن المحتوى أو الفترة" />
-          </div>
-          <div className="space-y-1.5">
-            <Label className="text-xs">الملف</Label>
-            <label className="flex items-center gap-2 h-10 px-3 rounded-md border border-dashed border-input cursor-pointer hover:border-primary/60 hover:bg-muted/40 transition text-xs">
-              <Upload className="h-4 w-4 text-muted-foreground" />
-              <span className="text-muted-foreground truncate flex-1">{file ? file.name : "اختر ملفًا للرفع"}</span>
-              {file && <FileText className="h-3.5 w-3.5 text-primary" />}
-              <input
-                type="file"
-                accept={ACCEPT_ANY_FILE}
-                className="hidden"
-                onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-              />
-            </label>
           </div>
           <div className="flex justify-end gap-2 pt-2">
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>إلغاء</Button>
