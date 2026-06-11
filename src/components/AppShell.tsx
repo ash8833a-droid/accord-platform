@@ -203,7 +203,7 @@ export function AppShell({ children, restricted = false, restrictedToCommitteeTy
 
   return (
     <div className="min-h-screen flex" dir="rtl">
-      <aside className="hidden lg:flex w-72 shrink-0 sticky top-0 h-screen border-l border-sidebar-border">
+      <aside className="hidden lg:flex w-72 shrink-0 sticky top-0 h-screen">
         {SidebarInner}
       </aside>
 
