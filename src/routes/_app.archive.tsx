@@ -52,7 +52,7 @@ const CATEGORIES: { key: Category; label: string; icon: typeof Camera; color: st
   { key: "media",        label: "الجانب الإعلامي",        icon: Megaphone,     color: "text-sky-600",     gradient: "from-sky-500 to-indigo-600",    description: "تغطيات إعلامية، فيديوهات، نشرات، تصاميم وبوسترات" },
   { key: "programs",     label: "البرامج والفقرات",       icon: CalendarRange, color: "text-amber-600",   gradient: "from-amber-500 to-orange-600",  description: "أجندة الحفل، الفقرات، الكلمات، البرامج المصاحبة" },
   { key: "finance",      label: "الجانب المالي",          icon: Wallet,        color: "text-emerald-600", gradient: "from-emerald-500 to-teal-600",  description: "ميزانيات، تقارير صرف، مساهمات، ختامات مالية" },
-  { key: "organization", label: "التنظيم والتحسين",       icon: Sparkles,      color: "text-fuchsia-600", gradient: "from-fuchsia-500 to-purple-600", description: "خطط التنظيم، الدروس المستفادة، المقترحات والتطوير" },
+  { key: "organization", label: "الخطط",                    icon: Sparkles,      color: "text-fuchsia-600", gradient: "from-fuchsia-500 to-purple-600", description: "جميع خطط التنظيم والتشغيل، الدروس المستفادة، المقترحات والتطوير" },
 ];
 
 function ArchivePage() {
