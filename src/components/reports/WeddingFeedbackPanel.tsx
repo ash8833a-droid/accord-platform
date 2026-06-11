@@ -1,9 +1,23 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useServerFn } from "@tanstack/react-start";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Star, Copy, ExternalLink, MessageSquareHeart, Loader2 } from "lucide-react";
+import {
+  Star, Copy, ExternalLink, MessageSquareHeart, Loader2,
+  Sparkles, FileSpreadsheet, FileText, Download,
+  TrendingUp, AlertTriangle, Lightbulb, Target,
+} from "lucide-react";
 import { toast } from "sonner";
+import * as XLSX from "xlsx";
+import { analyzeWeddingFeedback, type FeedbackAnalysis } from "@/lib/analyze-wedding-feedback.functions";
+import { printHtmlDocument } from "@/lib/print-frame";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface Row {
   id: string;
@@ -24,9 +38,30 @@ const LABELS: { key: keyof Row; label: string; tone: string }[] = [
   { key: "overall_score", label: "الانطباع العام", tone: "bg-rose-500/10 text-rose-700 border-rose-500/30" },
 ];
 
+const SENTIMENT_META: Record<FeedbackAnalysis["sentiment"], { label: string; tone: string }> = {
+  positive: { label: "إيجابي", tone: "bg-emerald-500/15 text-emerald-700 border-emerald-500/30" },
+  neutral: { label: "محايد", tone: "bg-slate-500/15 text-slate-700 border-slate-500/30" },
+  negative: { label: "سلبي", tone: "bg-rose-500/15 text-rose-700 border-rose-500/30" },
+  mixed: { label: "متفاوت", tone: "bg-amber-500/15 text-amber-700 border-amber-500/30" },
+};
+
+const downloadBlob = (blob: Blob, filename: string) => {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+};
+
 export function WeddingFeedbackPanel() {
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
+  const [analyzing, setAnalyzing] = useState(false);
+  const [analysis, setAnalysis] = useState<FeedbackAnalysis | null>(null);
+  const runAnalyze = useServerFn(analyzeWeddingFeedback);
   const link = typeof window !== "undefined" ? `${window.location.origin}/wedding-feedback` : "/wedding-feedback";
 
   useEffect(() => {
@@ -49,6 +84,153 @@ export function WeddingFeedbackPanel() {
     toast.success("تم نسخ رابط الاستبيان");
   };
 
+  const handleAnalyze = async () => {
+    if (rows.length === 0) {
+      toast.error("لا توجد تقييمات للتحليل بعد");
+      return;
+    }
+    setAnalyzing(true);
+    try {
+      const res = await runAnalyze({ data: {} });
+      setAnalysis(res.analysis);
+      toast.success("اكتمل التحليل الذكي");
+    } catch (e: any) {
+      toast.error("تعذر التحليل", { description: e?.message });
+    } finally {
+      setAnalyzing(false);
+    }
+  };
+
+  const buildRows = () =>
+    rows.map((r, i) => ({
+      "#": i + 1,
+      "التاريخ": new Date(r.created_at).toLocaleDateString("ar-SA"),
+      "الصفة": r.respondent_role || "—",
+      "التنظيم والاستقبال": r.organization_score,
+      "الضيافة والعشاء": r.hospitality_score,
+      "البرامج والفقرات": r.program_score,
+      "الانطباع العام": r.overall_score,
+      "المتوسط": +(
+        (r.organization_score + r.hospitality_score + r.program_score + r.overall_score) / 4
+      ).toFixed(2),
+      "المقترحات": r.suggestions || "",
+    }));
+
+  const exportCSV = () => {
+    if (rows.length === 0) return toast.error("لا توجد بيانات للتصدير");
+    const data = buildRows();
+    const ws = XLSX.utils.json_to_sheet(data);
+    const csv = XLSX.utils.sheet_to_csv(ws);
+    // BOM for Excel Arabic compatibility
+    const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8;" });
+    downloadBlob(blob, `wedding-feedback-${Date.now()}.csv`);
+    toast.success("تم تصدير CSV");
+  };
+
+  const exportExcel = () => {
+    if (rows.length === 0) return toast.error("لا توجد بيانات للتصدير");
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.json_to_sheet(buildRows());
+    ws["!cols"] = [
+      { wch: 5 }, { wch: 14 }, { wch: 16 }, { wch: 16 },
+      { wch: 16 }, { wch: 16 }, { wch: 14 }, { wch: 10 }, { wch: 60 },
+    ];
+    XLSX.utils.book_append_sheet(wb, ws, "التقييمات");
+
+    // Summary sheet
+    const sumData = [
+      ["المحور", "المتوسط"],
+      ["التنظيم والاستقبال", +avg("organization_score").toFixed(2)],
+      ["الضيافة والعشاء", +avg("hospitality_score").toFixed(2)],
+      ["البرامج والفقرات", +avg("program_score").toFixed(2)],
+      ["الانطباع العام", +avg("overall_score").toFixed(2)],
+      [],
+      ["عدد التقييمات", rows.length],
+    ];
+    const sws = XLSX.utils.aoa_to_sheet(sumData);
+    sws["!cols"] = [{ wch: 24 }, { wch: 14 }];
+    XLSX.utils.book_append_sheet(wb, sws, "الملخص");
+    XLSX.writeFile(wb, `wedding-feedback-${Date.now()}.xlsx`);
+    toast.success("تم تصدير Excel");
+  };
+
+  const exportPDF = async () => {
+    if (rows.length === 0) return toast.error("لا توجد بيانات للتصدير");
+    const esc = (s: string) =>
+      String(s ?? "").replace(/[&<>"']/g, (c) =>
+        ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c] as string),
+      );
+    const list = (arr?: string[]) =>
+      arr && arr.length
+        ? `<ul style="margin:6px 0;padding-inline-start:18px;">${arr.map((x) => `<li>${esc(x)}</li>`).join("")}</ul>`
+        : `<p style="color:#888;font-size:11px;">—</p>`;
+    const avgCard = (label: string, v: number, color: string) => `
+      <div style="border:1px solid #e5e7eb;border-top:4px solid ${color};border-radius:10px;padding:10px;flex:1;min-width:140px;">
+        <div style="font-size:11px;color:#555;">${label}</div>
+        <div style="font-size:22px;font-weight:800;color:${color};margin-top:4px;">${v.toFixed(2)} <span style="font-size:11px;color:#999;">/ 5</span></div>
+      </div>`;
+    const tableRows = rows
+      .map(
+        (r, i) => `<tr>
+          <td>${i + 1}</td>
+          <td>${esc(new Date(r.created_at).toLocaleDateString("ar-SA"))}</td>
+          <td>${esc(r.respondent_role || "—")}</td>
+          <td>${r.organization_score}</td>
+          <td>${r.hospitality_score}</td>
+          <td>${r.program_score}</td>
+          <td>${r.overall_score}</td>
+          <td style="text-align:start;">${esc(r.suggestions || "—")}</td>
+        </tr>`,
+      )
+      .join("");
+
+    const analysisBlock = analysis
+      ? `<div style="border:1px solid #e5e7eb;border-radius:12px;padding:16px;margin:18px 0;background:#fffaf3;">
+          <h2 style="margin:0 0 8px;color:#0D7C66;font-size:16px;">🧠 التحليل الذكي</h2>
+          <p style="margin:0 0 10px;line-height:1.8;">${esc(analysis.executive_summary)}</p>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div><h3 style="margin:6px 0;color:#16a34a;font-size:13px;">نقاط القوة</h3>${list(analysis.strengths)}</div>
+            <div><h3 style="margin:6px 0;color:#dc2626;font-size:13px;">نقاط الضعف</h3>${list(analysis.weaknesses)}</div>
+            <div><h3 style="margin:6px 0;color:#0ea5e9;font-size:13px;">فرص التحسين</h3>${list(analysis.opportunities)}</div>
+            <div><h3 style="margin:6px 0;color:#7c3aed;font-size:13px;">التوصيات</h3>${list(analysis.recommendations)}</div>
+          </div>
+        </div>`
+      : "";
+
+    const html = `
+      <style>
+        @page { size: A4; margin: 14mm; }
+        body { font-family: -apple-system, "Tahoma", "Arial", sans-serif; color:#222; }
+        h1 { font-size: 20px; margin: 0; }
+        table { width:100%; border-collapse: collapse; font-size: 11px; margin-top: 8px; }
+        th, td { border: 1px solid #e5e7eb; padding: 6px; text-align:center; }
+        th { background:#f3f4f6; }
+        tr:nth-child(even) td { background:#fafafa; }
+      </style>
+      <div style="text-align:center;margin-bottom:14px;">
+        <h1>تقرير استبيان رضا ضيوف الزواج الجماعي</h1>
+        <p style="color:#666;font-size:12px;margin:4px 0;">${rows.length} تقييم · ${new Date().toLocaleDateString("ar-SA")}</p>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        ${avgCard("التنظيم والاستقبال", avg("organization_score"), "#059669")}
+        ${avgCard("الضيافة والعشاء", avg("hospitality_score"), "#d97706")}
+        ${avgCard("البرامج والفقرات", avg("program_score"), "#7c3aed")}
+        ${avgCard("الانطباع العام", avg("overall_score"), "#e11d48")}
+      </div>
+      ${analysisBlock}
+      <h2 style="font-size:14px;margin:18px 0 4px;">تفاصيل التقييمات</h2>
+      <table>
+        <thead><tr>
+          <th>#</th><th>التاريخ</th><th>الصفة</th>
+          <th>التنظيم</th><th>الضيافة</th><th>البرامج</th><th>الانطباع</th><th>المقترحات</th>
+        </tr></thead>
+        <tbody>${tableRows}</tbody>
+      </table>
+    `;
+    await printHtmlDocument(html, "تقرير رضا الضيوف");
+    toast.success("تم تجهيز ملف PDF (اختر حفظ كـ PDF من نافذة الطباعة)");
+  };
+
   return (
     <div className="rounded-2xl border bg-card shadow-soft overflow-hidden">
       <div className="px-6 py-4 border-b bg-gradient-to-l from-rose-500/5 via-amber-500/5 to-emerald-500/5 flex items-center justify-between gap-3 flex-wrap">
@@ -60,6 +242,33 @@ export function WeddingFeedbackPanel() {
         <div className="flex items-center gap-2">
           <Button size="sm" variant="outline" onClick={copy} className="gap-1.5 text-xs">
             <Copy className="h-3.5 w-3.5" /> نسخ رابط الاستبيان
+          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button size="sm" variant="outline" className="gap-1.5 text-xs">
+                <Download className="h-3.5 w-3.5" /> تصدير
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={exportExcel} className="gap-2">
+                <FileSpreadsheet className="h-4 w-4 text-emerald-600" /> Excel (xlsx)
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={exportCSV} className="gap-2">
+                <FileText className="h-4 w-4 text-sky-600" /> CSV
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={exportPDF} className="gap-2">
+                <FileText className="h-4 w-4 text-rose-600" /> PDF (طباعة)
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <Button
+            size="sm"
+            onClick={handleAnalyze}
+            disabled={analyzing || rows.length === 0}
+            className="gap-1.5 text-xs bg-gradient-to-l from-violet-600 to-fuchsia-600 text-white"
+          >
+            {analyzing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
+            تحليل ذكي
           </Button>
           <Button size="sm" asChild className="gap-1.5 text-xs bg-gradient-to-l from-emerald-600 to-amber-500 text-white">
             <a href="/wedding-feedback" target="_blank" rel="noreferrer">
@@ -89,6 +298,36 @@ export function WeddingFeedbackPanel() {
             );
           })}
         </div>
+
+        {analysis && (
+          <div className="rounded-2xl border-2 border-violet-500/30 bg-gradient-to-br from-violet-50 via-fuchsia-50 to-rose-50 p-5 space-y-4">
+            <div className="flex items-center justify-between gap-3 flex-wrap">
+              <h3 className="font-extrabold text-base flex items-center gap-2">
+                <Sparkles className="h-5 w-5 text-violet-600" />
+                التحليل الذكي للنتائج
+              </h3>
+              <div className="flex items-center gap-2">
+                <Badge className={SENTIMENT_META[analysis.sentiment].tone}>
+                  الانطباع العام: {SENTIMENT_META[analysis.sentiment].label}
+                </Badge>
+                {analysis.overall_satisfaction_label && (
+                  <Badge variant="outline" className="bg-white/70">
+                    {analysis.overall_satisfaction_label}
+                  </Badge>
+                )}
+              </div>
+            </div>
+            <p className="text-sm leading-relaxed bg-white/70 rounded-xl p-3 border">
+              {analysis.executive_summary}
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <AnalysisList title="نقاط القوة" items={analysis.strengths} icon={TrendingUp} color="text-emerald-700" />
+              <AnalysisList title="نقاط الضعف" items={analysis.weaknesses} icon={AlertTriangle} color="text-rose-700" />
+              <AnalysisList title="فرص التحسين" items={analysis.opportunities} icon={Lightbulb} color="text-sky-700" />
+              <AnalysisList title="التوصيات العملية" items={analysis.recommendations} icon={Target} color="text-violet-700" />
+            </div>
+          </div>
+        )}
 
         <div>
           <h3 className="font-bold text-sm mb-2 flex items-center gap-2">
@@ -120,6 +359,38 @@ export function WeddingFeedbackPanel() {
           )}
         </div>
       </div>
+    </div>
+  );
+}
+
+function AnalysisList({
+  title,
+  items,
+  icon: Icon,
+  color,
+}: {
+  title: string;
+  items: string[];
+  icon: any;
+  color: string;
+}) {
+  return (
+    <div className="rounded-xl bg-white/70 border p-3">
+      <h4 className={`font-bold text-sm flex items-center gap-1.5 mb-2 ${color}`}>
+        <Icon className="h-4 w-4" /> {title}
+      </h4>
+      {items.length === 0 ? (
+        <p className="text-xs text-muted-foreground">—</p>
+      ) : (
+        <ul className="space-y-1.5 text-sm leading-relaxed">
+          {items.map((it, i) => (
+            <li key={i} className="flex gap-2">
+              <span className={`mt-1 h-1.5 w-1.5 rounded-full shrink-0 ${color.replace("text-", "bg-")}`} />
+              <span>{it}</span>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }
