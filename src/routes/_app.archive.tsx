@@ -641,24 +641,11 @@ function SmartDistributePanel({
 
   return (
     <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) { setItems([]); } }}>
-      <div className="rounded-2xl border-2 border-dashed border-fuchsia-300 bg-gradient-to-br from-fuchsia-50 via-white to-amber-50 p-5 flex items-center justify-between gap-4 flex-wrap">
-        <div className="flex items-center gap-3">
-          <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-fuchsia-600 to-purple-700 text-white flex items-center justify-center">
-            <Layers className="h-6 w-6" />
-          </div>
-          <div>
-            <p className="font-bold text-sm">توزيع ذكي تلقائي — أرفق عدة ملفات مرة واحدة</p>
-            <p className="text-[11px] text-muted-foreground mt-0.5">
-              يقرأ الذكاء الاصطناعي كل ملف ويرسله إلى قسمه: الصور لـ"صور العرسان"، الفواتير لـ"المالي"، الفقرات لـ"البرامج"، والخطط لـ"الخطط".
-            </p>
-          </div>
-        </div>
-        <DialogTrigger asChild>
-          <Button className="bg-gradient-to-br from-fuchsia-600 to-purple-700 text-white gap-2 hover:opacity-95">
-            <Sparkles className="h-4 w-4" /> ابدأ التوزيع الذكي
-          </Button>
-        </DialogTrigger>
-      </div>
+      <DialogTrigger asChild>
+        <Button className="bg-gradient-to-br from-fuchsia-600 to-purple-700 text-white gap-2 hover:opacity-95 w-full sm:w-auto">
+          <Sparkles className="h-4 w-4" /> توزيع ذكي لعدة ملفات
+        </Button>
+      </DialogTrigger>
       <DialogContent className="max-w-2xl" dir="rtl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
