@@ -38,8 +38,14 @@ interface ArchiveItem {
   created_at: string;
 }
 
-const CURRENT_YEAR = new Date().getFullYear(); // 2026
-const ARCHIVE_YEARS = Array.from({ length: 11 }, (_, i) => CURRENT_YEAR - 1 - i); // 2025..2015
+// السنوات الهجرية الموثّقة — أول زواج جماعي للجنة كان عام 1434هـ
+const FIRST_HIJRI_YEAR = 1434;
+const LAST_HIJRI_YEAR = 1446; // آخر سنة هجرية مكتملة (نحن الآن في 1447هـ)
+const ARCHIVE_YEARS = Array.from(
+  { length: LAST_HIJRI_YEAR - FIRST_HIJRI_YEAR + 1 },
+  (_, i) => LAST_HIJRI_YEAR - i,
+); // 1446..1434
+const YEARS_COUNT = ARCHIVE_YEARS.length;
 
 const CATEGORIES: { key: Category; label: string; icon: typeof Camera; color: string; gradient: string; description: string }[] = [
   { key: "grooms",       label: "صور العرسان",            icon: Camera,        color: "text-rose-600",    gradient: "from-rose-500 to-pink-600",     description: "ألبومات وصور العرسان من حفلات الزواج السابقة" },
@@ -101,7 +107,7 @@ function ArchivePage() {
   };
 
   const removeItem = async (it: ArchiveItem) => {
-    if (!confirm(`حذف "${it.title}" من أرشيف ${it.wedding_year}؟`)) return;
+    if (!confirm(`حذف "${it.title}" من أرشيف ${it.wedding_year}هـ؟`)) return;
     if (it.file_url) await supabase.storage.from("wedding-archive").remove([it.file_url]);
     const { error } = await supabase.from("wedding_archive_items").delete().eq("id", it.id);
     if (error) return toast.error("تعذر الحذف", { description: error.message });
@@ -128,9 +134,9 @@ function ArchivePage() {
               المالية، والتنظيم والمقترحات. أرشيف شامل وقابل للحفظ يستلهم منه القادمون ويبني عليه المطوّرون.
             </p>
             <div className="flex items-center gap-2 mt-4 flex-wrap text-xs">
-              <Badge className="bg-white/20 text-primary-foreground border-0 backdrop-blur">11 سنة موثّقة</Badge>
+              <Badge className="bg-white/20 text-primary-foreground border-0 backdrop-blur">{YEARS_COUNT} سنة موثّقة</Badge>
               <Badge className="bg-white/20 text-primary-foreground border-0 backdrop-blur">5 جوانب رئيسية</Badge>
-              <Badge className="bg-gold/30 text-primary-foreground border-0 backdrop-blur">{ARCHIVE_YEARS[ARCHIVE_YEARS.length - 1]} — {ARCHIVE_YEARS[0]}</Badge>
+              <Badge className="bg-gold/30 text-primary-foreground border-0 backdrop-blur">{FIRST_HIJRI_YEAR}هـ — {LAST_HIJRI_YEAR}هـ</Badge>
             </div>
           </div>
         </div>
@@ -141,7 +147,7 @@ function ArchivePage() {
         <div className="flex items-center gap-2 mb-3">
           <Archive className="h-4 w-4 text-primary" />
           <h2 className="text-sm font-bold">اختر السنة</h2>
-          <span className="text-[11px] text-muted-foreground">آخر 11 سنة</span>
+          <span className="text-[11px] text-muted-foreground">من 1434هـ حتى 1446هـ</span>
         </div>
         <div className="flex flex-wrap gap-2">
           {ARCHIVE_YEARS.map((y) => {
@@ -156,7 +162,7 @@ function ArchivePage() {
                     : "bg-card hover:border-gold hover:shadow-gold hover:-translate-y-0.5"
                 }`}
               >
-                {y}
+                {y}هـ
               </button>
             );
           })}
@@ -213,7 +219,7 @@ function ArchivePage() {
         <div className="px-6 py-4 border-b bg-gradient-to-l from-primary/5 to-transparent flex items-center justify-between flex-wrap gap-2">
           <div className="flex items-center gap-2">
             <Archive className="h-5 w-5 text-primary" />
-            <h2 className="font-bold">أرشيف {year}</h2>
+            <h2 className="font-bold">أرشيف {year}هـ</h2>
             <Badge variant="outline" className="text-[10px]">{filtered.length} عنصر</Badge>
             {category !== "all" && (
               <Badge className="text-[10px]">{CATEGORIES.find((c) => c.key === category)?.label}</Badge>
@@ -228,7 +234,7 @@ function ArchivePage() {
         ) : filtered.length === 0 ? (
           <div className="py-16 text-center text-sm text-muted-foreground">
             <Archive className="h-12 w-12 mx-auto opacity-30 mb-3" />
-            لا توجد عناصر في هذا التصنيف لعام {year}.<br />
+            لا توجد عناصر في هذا التصنيف لعام {year}هـ.<br />
             ابدأ بإضافة أول ملف ليبدأ التوثيق.
           </div>
         ) : (
@@ -396,7 +402,7 @@ function UploadPanel({
         created_by: userId,
       });
       if (error) { toast.error("تعذر الحفظ", { description: error.message }); return; }
-      toast.success(`تمت الإضافة لأرشيف ${year}`);
+      toast.success(`تمت الإضافة لأرشيف ${year}هـ`);
       resetForm();
       setOpen(false);
       onSaved();
@@ -411,7 +417,7 @@ function UploadPanel({
             <Wand2 className="h-6 w-6" />
           </div>
           <div>
-            <p className="font-bold text-sm">أضف ملف لأرشيف عام {year} — مع تحليل ذكي تلقائي</p>
+            <p className="font-bold text-sm">أضف ملف لأرشيف عام {year}هـ — مع تحليل ذكي تلقائي</p>
             <p className="text-[11px] text-muted-foreground mt-0.5">
               يقرأ الذكاء الاصطناعي محتوى الملف ويصنّفه تلقائياً (صور عرسان، إعلامي، برامج، مالي، تنظيم) ويقترح عنواناً وملخصاً.
             </p>
@@ -427,7 +433,7 @@ function UploadPanel({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Archive className="h-5 w-5 text-primary" />
-            ملف جديد في أرشيف {year}
+            ملف جديد في أرشيف {year}هـ
           </DialogTitle>
         </DialogHeader>
         <form onSubmit={submit} className="space-y-3">
@@ -488,7 +494,7 @@ function UploadPanel({
           </div>
           <div className="space-y-1.5">
             <Label className="text-xs">عنوان الملف</Label>
-            <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder={`مثال: ألبوم صور حفل ${year}`} />
+            <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder={`مثال: ألبوم صور حفل ${year}هـ`} />
           </div>
           <div className="space-y-1.5">
             <Label className="text-xs">وصف مختصر (اختياري)</Label>
