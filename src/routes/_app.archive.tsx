@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import {
   Archive, Upload, Loader2, Eye, Download, Trash2, Image as ImageIcon,
   Camera, Megaphone, CalendarRange, Wallet, Sparkles, FileText, Plus, History, Wand2,
+  CheckCircle2, AlertCircle, Layers,
 } from "lucide-react";
 import { analyzeArchiveFile, type ArchiveAnalysis } from "@/lib/analyze-archive-file.functions";
 
@@ -52,7 +53,7 @@ const CATEGORIES: { key: Category; label: string; icon: typeof Camera; color: st
   { key: "media",        label: "الجانب الإعلامي",        icon: Megaphone,     color: "text-sky-600",     gradient: "from-sky-500 to-indigo-600",    description: "تغطيات إعلامية، فيديوهات، نشرات، تصاميم وبوسترات" },
   { key: "programs",     label: "البرامج والفقرات",       icon: CalendarRange, color: "text-amber-600",   gradient: "from-amber-500 to-orange-600",  description: "أجندة الحفل، الفقرات، الكلمات، البرامج المصاحبة" },
   { key: "finance",      label: "الجانب المالي",          icon: Wallet,        color: "text-emerald-600", gradient: "from-emerald-500 to-teal-600",  description: "ميزانيات، تقارير صرف، مساهمات، ختامات مالية" },
-  { key: "organization", label: "التنظيم والتحسين",       icon: Sparkles,      color: "text-fuchsia-600", gradient: "from-fuchsia-500 to-purple-600", description: "خطط التنظيم، الدروس المستفادة، المقترحات والتطوير" },
+  { key: "organization", label: "الخطط",                    icon: Sparkles,      color: "text-fuchsia-600", gradient: "from-fuchsia-500 to-purple-600", description: "جميع خطط التنظيم والتشغيل، الدروس المستفادة، المقترحات والتطوير" },
 ];
 
 function ArchivePage() {
@@ -206,12 +207,15 @@ function ArchivePage() {
 
       {/* Add panel */}
       {user && (
-        <UploadPanel
-          year={year}
-          defaultCategory={category === "all" ? "grooms" : category}
-          onSaved={load}
-          userId={user.id}
-        />
+        <div className="grid md:grid-cols-2 gap-3">
+          <SmartDistributePanel year={year} onSaved={load} userId={user.id} />
+          <UploadPanel
+            year={year}
+            defaultCategory={category === "all" ? "grooms" : category}
+            onSaved={load}
+            userId={user.id}
+          />
+        </div>
       )}
 
       {/* Items list */}
@@ -508,6 +512,257 @@ function UploadPanel({
             </Button>
           </div>
         </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// ----------------- Smart bulk-distribute panel -----------------
+
+type DistItemStatus = "pending" | "uploading" | "analyzing" | "saving" | "done" | "error";
+
+interface DistItem {
+  id: string;
+  file: File;
+  status: DistItemStatus;
+  category?: Category;
+  category_label?: string;
+  title?: string;
+  summary?: string;
+  confidence?: ArchiveAnalysis["confidence"];
+  error?: string;
+}
+
+function SmartDistributePanel({
+  year, onSaved, userId,
+}: { year: number; onSaved: () => void; userId: string }) {
+  const [open, setOpen] = useState(false);
+  const [items, setItems] = useState<DistItem[]>([]);
+  const [running, setRunning] = useState(false);
+  const analyzeFn = useServerFn(analyzeArchiveFile);
+
+  const addFiles = (files: FileList | null) => {
+    if (!files || !files.length) return;
+    const next: DistItem[] = [];
+    for (const f of Array.from(files)) {
+      if (f.size > MAX_UPLOAD_SIZE) {
+        toast.error(`"${f.name}" أكبر من ${MAX_UPLOAD_SIZE_LABEL}`);
+        continue;
+      }
+      next.push({ id: crypto.randomUUID(), file: f, status: "pending" });
+    }
+    setItems((prev) => [...prev, ...next]);
+  };
+
+  const remove = (id: string) => setItems((prev) => prev.filter((i) => i.id !== id));
+
+  const update = (id: string, patch: Partial<DistItem>) =>
+    setItems((prev) => prev.map((i) => (i.id === id ? { ...i, ...patch } : i)));
+
+  const processOne = async (item: DistItem) => {
+    try {
+      // 1) Temporary upload under inbox/ so analyzer can fetch it
+      update(item.id, { status: "uploading" });
+      const tempPath = safeStorageKey(item.file.name, `${year}/_inbox`);
+      const { error: upErr } = await supabase.storage
+        .from("wedding-archive")
+        .upload(tempPath, item.file, {
+          contentType: item.file.type || "application/octet-stream",
+          upsert: false,
+        });
+      if (upErr) throw new Error(upErr.message);
+
+      // 2) Analyze
+      update(item.id, { status: "analyzing" });
+      const result = await analyzeFn({
+        data: {
+          storage_path: tempPath,
+          filename: item.file.name,
+          mime_type: item.file.type || "",
+          description: "",
+          wedding_year: year,
+        },
+      });
+
+      // 3) Move to category folder (copy + remove)
+      const finalPath = safeStorageKey(item.file.name, `${year}/${result.category}`);
+      const { error: mvErr } = await supabase.storage
+        .from("wedding-archive")
+        .move(tempPath, finalPath);
+      const usedPath = mvErr ? tempPath : finalPath;
+
+      // 4) Insert archive row
+      update(item.id, { status: "saving" });
+      const { error: insErr } = await supabase.from("wedding_archive_items").insert({
+        wedding_year: year,
+        category: result.category,
+        title: result.suggested_title || item.file.name.replace(/\.[^.]+$/, ""),
+        description: result.summary || null,
+        file_url: usedPath,
+        file_type: item.file.type,
+        file_size: item.file.size,
+        created_by: userId,
+      });
+      if (insErr) throw new Error(insErr.message);
+
+      update(item.id, {
+        status: "done",
+        category: result.category,
+        category_label: result.category_label,
+        title: result.suggested_title,
+        summary: result.summary,
+        confidence: result.confidence,
+      });
+    } catch (e) {
+      update(item.id, {
+        status: "error",
+        error: e instanceof Error ? e.message : "خطأ غير معروف",
+      });
+    }
+  };
+
+  const runAll = async () => {
+    const queue = items.filter((i) => i.status === "pending" || i.status === "error");
+    if (!queue.length) return;
+    setRunning(true);
+    try {
+      // Process serially to avoid overloading the AI gateway and storage.
+      for (const it of queue) {
+        // Reset error state before retry
+        if (it.status === "error") update(it.id, { status: "pending", error: undefined });
+        await processOne(it);
+      }
+      const doneCount = items.filter((i) => i.status === "done").length + queue.length;
+      toast.success(`تم توزيع الملفات على أقسام الأرشيف`, {
+        description: `الملفات المعالجة: ${doneCount}`,
+      });
+      onSaved();
+    } finally {
+      setRunning(false);
+    }
+  };
+
+  const stats = useMemo(() => {
+    const by: Record<string, number> = {};
+    for (const it of items) {
+      if (it.status === "done" && it.category_label) {
+        by[it.category_label] = (by[it.category_label] || 0) + 1;
+      }
+    }
+    return by;
+  }, [items]);
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) { setItems([]); } }}>
+      <div className="rounded-2xl border-2 border-dashed border-fuchsia-300 bg-gradient-to-br from-fuchsia-50 via-white to-amber-50 p-5 flex items-center justify-between gap-4 flex-wrap">
+        <div className="flex items-center gap-3">
+          <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-fuchsia-600 to-purple-700 text-white flex items-center justify-center">
+            <Layers className="h-6 w-6" />
+          </div>
+          <div>
+            <p className="font-bold text-sm">توزيع ذكي تلقائي — أرفق عدة ملفات مرة واحدة</p>
+            <p className="text-[11px] text-muted-foreground mt-0.5">
+              يقرأ الذكاء الاصطناعي كل ملف ويرسله إلى قسمه: الصور لـ"صور العرسان"، الفواتير لـ"المالي"، الفقرات لـ"البرامج"، والخطط لـ"الخطط".
+            </p>
+          </div>
+        </div>
+        <DialogTrigger asChild>
+          <Button className="bg-gradient-to-br from-fuchsia-600 to-purple-700 text-white gap-2 hover:opacity-95">
+            <Sparkles className="h-4 w-4" /> ابدأ التوزيع الذكي
+          </Button>
+        </DialogTrigger>
+      </div>
+      <DialogContent className="max-w-2xl" dir="rtl">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Layers className="h-5 w-5 text-fuchsia-600" />
+            توزيع ذكي للملفات — أرشيف {year}هـ
+          </DialogTitle>
+        </DialogHeader>
+        <div className="space-y-3">
+          <label className="flex flex-col items-center justify-center gap-2 h-28 rounded-xl border-2 border-dashed border-fuchsia-300 cursor-pointer hover:bg-fuchsia-50/60 transition">
+            <Upload className="h-6 w-6 text-fuchsia-600" />
+            <span className="text-sm font-bold">اسحب الملفات هنا أو اختر عدة ملفات</span>
+            <span className="text-[11px] text-muted-foreground">صور · PDF · مستندات · حد الحجم {MAX_UPLOAD_SIZE_LABEL} للملف</span>
+            <input
+              type="file"
+              multiple
+              accept={ACCEPT_ANY_FILE}
+              className="hidden"
+              onChange={(e) => { addFiles(e.target.files); e.currentTarget.value = ""; }}
+            />
+          </label>
+
+          {items.length > 0 && (
+            <div className="rounded-xl border bg-card max-h-72 overflow-y-auto divide-y">
+              {items.map((it) => (
+                <div key={it.id} className="p-3 flex items-start gap-3 text-xs">
+                  <div className="mt-0.5">
+                    {it.status === "done" && <CheckCircle2 className="h-4 w-4 text-emerald-600" />}
+                    {it.status === "error" && <AlertCircle className="h-4 w-4 text-rose-600" />}
+                    {(it.status === "uploading" || it.status === "analyzing" || it.status === "saving") && (
+                      <Loader2 className="h-4 w-4 animate-spin text-fuchsia-600" />
+                    )}
+                    {it.status === "pending" && <FileText className="h-4 w-4 text-muted-foreground" />}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold truncate">{it.title || it.file.name}</p>
+                    <p className="text-[10px] text-muted-foreground truncate">
+                      {it.file.name} · {(it.file.size / 1024).toFixed(0)} KB
+                    </p>
+                    <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                      {it.category_label && (
+                        <Badge className="bg-fuchsia-600 hover:bg-fuchsia-600 text-white gap-1 text-[10px]">
+                          <Sparkles className="h-3 w-3" /> {it.category_label}
+                        </Badge>
+                      )}
+                      {it.status === "uploading" && <Badge variant="outline" className="text-[10px]">جاري الرفع…</Badge>}
+                      {it.status === "analyzing" && <Badge variant="outline" className="text-[10px]">جاري التحليل…</Badge>}
+                      {it.status === "saving" && <Badge variant="outline" className="text-[10px]">جاري الحفظ…</Badge>}
+                      {it.status === "done" && <Badge variant="outline" className="text-[10px] text-emerald-700">تم</Badge>}
+                      {it.status === "error" && (
+                        <Badge variant="outline" className="text-[10px] text-rose-700">خطأ: {it.error}</Badge>
+                      )}
+                    </div>
+                    {it.summary && it.status === "done" && (
+                      <p className="text-[10px] text-muted-foreground mt-1 line-clamp-2">{it.summary}</p>
+                    )}
+                  </div>
+                  {!running && it.status !== "done" && (
+                    <Button type="button" variant="ghost" size="icon" className="h-6 w-6" onClick={() => remove(it.id)}>
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {Object.keys(stats).length > 0 && (
+            <div className="flex flex-wrap gap-1.5">
+              {Object.entries(stats).map(([label, n]) => (
+                <Badge key={label} variant="outline" className="text-[10px]">
+                  {label}: {n}
+                </Badge>
+              ))}
+            </div>
+          )}
+
+          <div className="flex justify-end gap-2 pt-1">
+            <Button type="button" variant="outline" onClick={() => setOpen(false)} disabled={running}>
+              إغلاق
+            </Button>
+            <Button
+              type="button"
+              onClick={runAll}
+              disabled={running || !items.some((i) => i.status === "pending" || i.status === "error")}
+              className="bg-gradient-to-br from-fuchsia-600 to-purple-700 text-white gap-2"
+            >
+              {running ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wand2 className="h-4 w-4" />}
+              {running ? "جاري التوزيع الذكي…" : "ابدأ التحليل والتوزيع"}
+            </Button>
+          </div>
+        </div>
       </DialogContent>
     </Dialog>
   );
