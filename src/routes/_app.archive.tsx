@@ -207,14 +207,27 @@ function ArchivePage() {
 
       {/* Add panel */}
       {user && (
-        <div className="grid md:grid-cols-2 gap-3">
-          <SmartDistributePanel year={year} onSaved={load} userId={user.id} />
-          <UploadPanel
-            year={year}
-            defaultCategory={category === "all" ? "grooms" : category}
-            onSaved={load}
-            userId={user.id}
-          />
+        <div className="rounded-2xl border-2 border-dashed border-primary/30 bg-gradient-to-br from-fuchsia-50 via-white to-amber-50 p-5 flex items-center justify-between gap-4 flex-wrap">
+          <div className="flex items-center gap-3 min-w-0 flex-1">
+            <div className="h-12 w-12 shrink-0 rounded-xl bg-gradient-to-br from-fuchsia-600 to-purple-700 text-white flex items-center justify-center">
+              <Wand2 className="h-6 w-6" />
+            </div>
+            <div className="min-w-0">
+              <p className="font-bold text-sm">إضافة ذكية لأرشيف {year}هـ — اختر الطريقة المناسبة</p>
+              <p className="text-[11px] text-muted-foreground mt-0.5">
+                يقرأ الذكاء الاصطناعي محتوى الملفات ويصنّفها تلقائياً (صور عرسان، إعلامي، برامج، مالي، خطط) ويوزّعها على أقسامها.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 flex-wrap">
+            <UploadPanel
+              year={year}
+              defaultCategory={category === "all" ? "grooms" : category}
+              onSaved={load}
+              userId={user.id}
+            />
+            <SmartDistributePanel year={year} onSaved={load} userId={user.id} />
+          </div>
         </div>
       )}
 
