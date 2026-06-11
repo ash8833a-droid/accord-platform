@@ -2,7 +2,7 @@ import {
   ShieldCheck, Users, Lightbulb,
   HeartHandshake, FileBarChart, Inbox, Wallet, ShoppingCart,
   Palette, Target, Banknote,
-  Crown, Megaphone, CalendarRange, UtensilsCrossed, Sparkles, type LucideIcon,
+  Crown, Megaphone, CalendarRange, UtensilsCrossed, Sparkles, History, type LucideIcon,
 } from "lucide-react";
 
 export interface PageDef {
@@ -24,6 +24,7 @@ export const PAGES: PageDef[] = [
   { key: "ideas",              path: "/ideas",              label: "بنك الأفكار",        icon: Lightbulb,      category: "محتوى" },
   { key: "grooms",             path: "/grooms",             label: "سجل العرسان",        icon: HeartHandshake, category: "محتوى" },
   { key: "reports",            path: "/reports",            label: "التقارير والجودة",   icon: FileBarChart,   category: "محتوى" },
+  { key: "archive",            path: "/archive",            label: "أرشيف الزواجات",     icon: History,        category: "محتوى" },
   { key: "communications",     path: "/communications",     label: "إدارة الطلبات",      icon: Inbox,          category: "عمل" },
   { key: "finance",            path: "/finance",            label: "المالية",            icon: Wallet,         category: "مالية" },
   { key: "finance-management", path: "/finance-management", label: "الإدارة المالية",      icon: Banknote,       category: "مالية" },
