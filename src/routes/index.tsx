@@ -62,8 +62,11 @@ function PublicHome() {
         grooms: Number(d.grooms ?? 0),
         historicalShareholders: Number(d.historical_shareholders ?? 0),
         historicalAmount: Number(d.historical_amount ?? 0),
-        historicalYears: Number(d.historical_years ?? 0),
-        firstYear: Number(d.first_year ?? 0),
+        historicalYears: Math.max(
+          Number(d.historical_years ?? 0),
+          new Date().getFullYear() - 622 + 1 - 1434 + 1,
+        ),
+        firstYear: Math.min(1434, Number(d.first_year ?? 1434) || 1434),
         confirmedSubs: Number(d.confirmed_subs ?? 0),
         confirmedAmount: Number(d.confirmed_amount ?? 0),
         committees: Number(d.committees ?? 0),
