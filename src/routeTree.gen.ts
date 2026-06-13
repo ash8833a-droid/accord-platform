@@ -13,6 +13,7 @@ import { Route as WeddingFeedbackRouteImport } from './routes/wedding-feedback'
 import { Route as RegisterGroomRouteImport } from './routes/register-groom'
 import { Route as PendingRouteImport } from './routes/pending'
 import { Route as GroomEditRouteImport } from './routes/groom-edit'
+import { Route as FeedbackQrRouteImport } from './routes/feedback-qr'
 import { Route as CommitteesRouteImport } from './routes/committees'
 import { Route as BudgetEntryRouteImport } from './routes/budget-entry'
 import { Route as AuthRouteImport } from './routes/auth'
@@ -59,6 +60,11 @@ const PendingRoute = PendingRouteImport.update({
 const GroomEditRoute = GroomEditRouteImport.update({
   id: '/groom-edit',
   path: '/groom-edit',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FeedbackQrRoute = FeedbackQrRouteImport.update({
+  id: '/feedback-qr',
+  path: '/feedback-qr',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CommitteesRoute = CommitteesRouteImport.update({
@@ -202,6 +208,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/budget-entry': typeof BudgetEntryRouteWithChildren
   '/committees': typeof CommitteesRoute
+  '/feedback-qr': typeof FeedbackQrRoute
   '/groom-edit': typeof GroomEditRouteWithChildren
   '/pending': typeof PendingRoute
   '/register-groom': typeof RegisterGroomRoute
@@ -234,6 +241,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/budget-entry': typeof BudgetEntryRouteWithChildren
   '/committees': typeof CommitteesRoute
+  '/feedback-qr': typeof FeedbackQrRoute
   '/groom-edit': typeof GroomEditRouteWithChildren
   '/pending': typeof PendingRoute
   '/register-groom': typeof RegisterGroomRoute
@@ -268,6 +276,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/budget-entry': typeof BudgetEntryRouteWithChildren
   '/committees': typeof CommitteesRoute
+  '/feedback-qr': typeof FeedbackQrRoute
   '/groom-edit': typeof GroomEditRouteWithChildren
   '/pending': typeof PendingRoute
   '/register-groom': typeof RegisterGroomRoute
@@ -302,6 +311,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/budget-entry'
     | '/committees'
+    | '/feedback-qr'
     | '/groom-edit'
     | '/pending'
     | '/register-groom'
@@ -334,6 +344,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/budget-entry'
     | '/committees'
+    | '/feedback-qr'
     | '/groom-edit'
     | '/pending'
     | '/register-groom'
@@ -367,6 +378,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/budget-entry'
     | '/committees'
+    | '/feedback-qr'
     | '/groom-edit'
     | '/pending'
     | '/register-groom'
@@ -401,6 +413,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   BudgetEntryRoute: typeof BudgetEntryRouteWithChildren
   CommitteesRoute: typeof CommitteesRoute
+  FeedbackQrRoute: typeof FeedbackQrRoute
   GroomEditRoute: typeof GroomEditRouteWithChildren
   PendingRoute: typeof PendingRoute
   RegisterGroomRoute: typeof RegisterGroomRoute
@@ -438,6 +451,13 @@ declare module '@tanstack/react-router' {
       path: '/groom-edit'
       fullPath: '/groom-edit'
       preLoaderRoute: typeof GroomEditRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/feedback-qr': {
+      id: '/feedback-qr'
+      path: '/feedback-qr'
+      fullPath: '/feedback-qr'
+      preLoaderRoute: typeof FeedbackQrRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/committees': {
@@ -714,6 +734,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   BudgetEntryRoute: BudgetEntryRouteWithChildren,
   CommitteesRoute: CommitteesRoute,
+  FeedbackQrRoute: FeedbackQrRoute,
   GroomEditRoute: GroomEditRouteWithChildren,
   PendingRoute: PendingRoute,
   RegisterGroomRoute: RegisterGroomRoute,
@@ -725,3 +746,12 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}
