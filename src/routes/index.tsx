@@ -235,22 +235,6 @@ function PublicHome() {
               وإصدارِ التقارير، ليَبقى الأَثَرُ مُمتدّاً وفَرَحُ العائلةِ مُكتمِلاً.
             </p>
 
-            <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3">
-              <Link
-                to="/register-groom"
-                className="inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold bg-gradient-gold text-gold-foreground shadow-gold hover:opacity-95 transition-opacity"
-              >
-                <HeartHandshake className="h-4 w-4" />
-                تسجيل عريس
-              </Link>
-              <Link
-                to="/auth"
-                className="inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold border border-primary/30 bg-card text-primary hover:bg-primary/5 transition-colors"
-              >
-                <ShieldCheck className="h-4 w-4" />
-                دخول الأعضاء
-              </Link>
-            </div>
           </div>
 
           {/* LEFT — Transparent logo (no frame, balanced for mobile + desktop) */}
