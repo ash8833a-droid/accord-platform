@@ -158,7 +158,7 @@ function WeddingFeedbackPage() {
           <div className="mx-auto h-px w-24" style={{ background: `linear-gradient(90deg, transparent, ${BRAND_GOLD}, transparent)` }} />
           <h1 className="text-2xl sm:text-3xl font-extrabold" style={{ color: BRAND_TEAL }}>استبيان تقييم الزواج الجماعي الثاني عشر 1448هـ</h1>
           <p className="text-sm text-muted-foreground max-w-lg mx-auto">
-            رأيك يهمّنا… شاركنا تقييمك لأركان الحفل الأربعة لنطوّر تجربتنا في الحفلات القادمة.
+            شاركنا رأيك في الحفل… ملاحظاتك تصنع الفرق.
           </p>
         </div>
 
