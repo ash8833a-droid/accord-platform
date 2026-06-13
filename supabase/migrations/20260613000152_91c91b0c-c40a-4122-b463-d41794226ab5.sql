@@ -1,0 +1,1 @@
+CREATE POLICY "wf_delete_staff" ON public.wedding_feedback FOR DELETE TO authenticated USING (has_role(auth.uid(), 'admin'::app_role) OR has_role(auth.uid(), 'quality'::app_role));
