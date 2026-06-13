@@ -1,4 +1,7 @@
 import { useEffect, useState } from "react";
+import { useRef } from "react";
+import { QRCodeSVG } from "qrcode.react";
+import weddingLogo from "@/assets/wedding-logo.png.asset.json";
 import { supabase } from "@/integrations/supabase/client";
 import { useServerFn } from "@tanstack/react-start";
 import { Button } from "@/components/ui/button";
@@ -6,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   Star, Copy, ExternalLink, MessageSquareHeart, Loader2,
   Sparkles, FileSpreadsheet, FileText, Download,
-  TrendingUp, AlertTriangle, Lightbulb, Target, Trash2,
+  TrendingUp, AlertTriangle, Lightbulb, Target, Trash2, QrCode,
 } from "lucide-react";
 import { toast } from "sonner";
 import * as XLSX from "xlsx";
