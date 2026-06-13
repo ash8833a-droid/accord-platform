@@ -1,4 +1,7 @@
 import { useEffect, useState } from "react";
+import { useRef } from "react";
+import { QRCodeSVG } from "qrcode.react";
+import weddingLogo from "@/assets/wedding-logo.png.asset.json";
 import { supabase } from "@/integrations/supabase/client";
 import { useServerFn } from "@tanstack/react-start";
 import { Button } from "@/components/ui/button";
@@ -6,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   Star, Copy, ExternalLink, MessageSquareHeart, Loader2,
   Sparkles, FileSpreadsheet, FileText, Download,
-  TrendingUp, AlertTriangle, Lightbulb, Target, Trash2,
+  TrendingUp, AlertTriangle, Lightbulb, Target, Trash2, QrCode,
 } from "lucide-react";
 import { toast } from "sonner";
 import * as XLSX from "xlsx";
@@ -342,6 +345,8 @@ export function WeddingFeedbackPanel() {
         </div>
       </div>
 
+      <QrCard link={link} />
+
       <div className="p-6 space-y-6">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {LABELS.map((l) => {
@@ -503,6 +508,96 @@ function AnalysisList({
           ))}
         </ul>
       )}
+    </div>
+  );
+}
+
+function QrCard({ link }: { link: string }) {
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const BRAND_GOLD = "#C9A24C";
+  const BRAND_TEAL = "#0E7C6B";
+
+  const downloadPng = async () => {
+    const svg = wrapRef.current?.querySelector("svg");
+    if (!svg) return;
+    const clone = svg.cloneNode(true) as SVGSVGElement;
+    // Ensure xmlns so the SVG renders standalone
+    clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+    const xml = new XMLSerializer().serializeToString(clone);
+    const svgBlob = new Blob([xml], { type: "image/svg+xml;charset=utf-8" });
+    const url = URL.createObjectURL(svgBlob);
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = url; });
+    const size = 1024;
+    const canvas = document.createElement("canvas");
+    canvas.width = size; canvas.height = size + 140;
+    const ctx = canvas.getContext("2d")!;
+    // transparent background, draw QR centered
+    ctx.drawImage(img, 0, 0, size, size);
+    // caption
+    ctx.fillStyle = BRAND_TEAL;
+    ctx.font = "bold 64px system-ui, 'Segoe UI', Tahoma, sans-serif";
+    ctx.textAlign = "center";
+    ctx.direction = "rtl";
+    ctx.fillText("رأيك يهمّنا", size / 2, size + 80);
+    URL.revokeObjectURL(url);
+    canvas.toBlob((blob) => {
+      if (!blob) return;
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "wedding-feedback-qr.png";
+      a.click();
+      URL.revokeObjectURL(a.href);
+    }, "image/png");
+  };
+
+  return (
+    <div className="px-6 pt-6">
+      <div className="rounded-2xl border bg-gradient-to-br from-emerald-50/60 via-white to-amber-50/60 p-6 flex flex-col items-center gap-4">
+        <div className="flex items-center gap-2 text-sm font-bold" style={{ color: BRAND_TEAL }}>
+          <QrCode className="h-4 w-4" />
+          باركود الاستبيان
+        </div>
+
+        <div
+          ref={wrapRef}
+          className="relative rounded-2xl p-5 bg-white"
+          style={{ border: `2px solid ${BRAND_GOLD}` }}
+        >
+          {["top-1.5 right-1.5 border-t-4 border-r-4 rounded-tr-lg",
+            "top-1.5 left-1.5 border-t-4 border-l-4 rounded-tl-lg",
+            "bottom-1.5 right-1.5 border-b-4 border-r-4 rounded-br-lg",
+            "bottom-1.5 left-1.5 border-b-4 border-l-4 rounded-bl-lg",
+          ].map((c, i) => (
+            <span key={i} className={`absolute w-5 h-5 ${c}`} style={{ borderColor: BRAND_TEAL }} />
+          ))}
+          <QRCodeSVG
+            value={link}
+            size={220}
+            level="H"
+            bgColor="#ffffff"
+            fgColor={BRAND_TEAL}
+            imageSettings={{
+              src: weddingLogo.url,
+              height: 48,
+              width: 48,
+              excavate: true,
+            }}
+          />
+        </div>
+
+        <p className="text-lg font-extrabold tracking-wide" style={{ color: BRAND_TEAL }}>
+          رأيك يهمّنا
+        </p>
+        <p className="text-[11px] text-muted-foreground -mt-2 text-center">
+          امسح الباركود للمشاركة في استبيان تقييم الزواج الجماعي
+        </p>
+
+        <Button size="sm" variant="outline" onClick={downloadPng} className="gap-1.5 text-xs">
+          <Download className="h-3.5 w-3.5" /> تحميل كصورة PNG
+        </Button>
+      </div>
     </div>
   );
 }
