@@ -12,8 +12,7 @@ export const Route = createFileRoute("/wedding-feedback")({
   component: WeddingFeedbackPage,
   head: () => {
     const title = "رأيك يهمّنا | الزواج الجماعي";
-    const description =
-      "شاركنا تقييمك لتجربة الزواج الجماعي للعائلة، رأيك يصنع التميّز ويُلهم التطوير — انسجاماً مع رؤية المملكة 2030 في تمكين الأسرة وجودة الحياة.";
+    const description = "شاركنا تقييمك لتجربة الزواج الجماعي للعائلة";
     const image = "https://www.lajnat-zawaj.org/__l5e/assets-v1/6be359cf-47ce-4a4f-806d-4205d334eaf6/wedding-logo.png";
     const url = "https://www.lajnat-zawaj.org/wedding-feedback";
     return {
