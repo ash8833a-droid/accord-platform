@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   Star, Copy, ExternalLink, MessageSquareHeart, Loader2,
   Sparkles, FileSpreadsheet, FileText, Download,
-  TrendingUp, AlertTriangle, Lightbulb, Target,
+  TrendingUp, AlertTriangle, Lightbulb, Target, Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
 import * as XLSX from "xlsx";
@@ -18,6 +18,17 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface Row {
   id: string;
@@ -63,6 +74,7 @@ export function WeddingFeedbackPanel() {
   const [analysis, setAnalysis] = useState<FeedbackAnalysis | null>(null);
   const runAnalyze = useServerFn(analyzeWeddingFeedback);
   const link = typeof window !== "undefined" ? `${window.location.origin}/wedding-feedback` : "/wedding-feedback";
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -78,6 +90,31 @@ export function WeddingFeedbackPanel() {
 
   const avg = (k: keyof Row) =>
     rows.length ? (rows.reduce((a, r) => a + (r[k] as number), 0) / rows.length) : 0;
+
+  const deleteOne = async (id: string) => {
+    setDeletingId(id);
+    const { error } = await supabase.from("wedding_feedback").delete().eq("id", id);
+    setDeletingId(null);
+    if (error) {
+      toast.error("تعذر حذف التقييم", { description: error.message });
+      return;
+    }
+    setRows((prev) => prev.filter((r) => r.id !== id));
+    toast.success("تم حذف التقييم");
+  };
+
+  const deleteAll = async () => {
+    const ids = rows.map((r) => r.id);
+    if (ids.length === 0) return;
+    const { error } = await supabase.from("wedding_feedback").delete().in("id", ids);
+    if (error) {
+      toast.error("تعذر حذف التقييمات", { description: error.message });
+      return;
+    }
+    setRows([]);
+    setAnalysis(null);
+    toast.success(`تم حذف ${ids.length} تقييم`);
+  };
 
   const copy = async () => {
     await navigator.clipboard.writeText(link);
@@ -243,6 +280,29 @@ export function WeddingFeedbackPanel() {
           <Button size="sm" variant="outline" onClick={copy} className="gap-1.5 text-xs">
             <Copy className="h-3.5 w-3.5" /> نسخ رابط الاستبيان
           </Button>
+          {rows.length > 0 && (
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button size="sm" variant="outline" className="gap-1.5 text-xs text-rose-700 border-rose-300 hover:bg-rose-50">
+                  <Trash2 className="h-3.5 w-3.5" /> حذف التقييمات التجريبية
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent dir="rtl">
+                <AlertDialogHeader>
+                  <AlertDialogTitle>حذف جميع التقييمات؟</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    سيتم حذف {rows.length} تقييم بشكل نهائي. هذا الإجراء لا يمكن التراجع عنه.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>إلغاء</AlertDialogCancel>
+                  <AlertDialogAction onClick={deleteAll} className="bg-rose-600 hover:bg-rose-700">
+                    حذف الكل
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          )}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button size="sm" variant="outline" className="gap-1.5 text-xs">
