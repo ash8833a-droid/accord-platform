@@ -10,6 +10,30 @@ import { toast } from "sonner";
 
 export const Route = createFileRoute("/wedding-feedback")({
   component: WeddingFeedbackPage,
+  head: () => {
+    const title = "رأيك يهمّنا | الزواج الجماعي";
+    const description =
+      "شاركنا تقييمك لتجربة الزواج الجماعي للعائلة، رأيك يصنع التميّز ويُلهم التطوير — انسجاماً مع رؤية المملكة 2030 في تمكين الأسرة وجودة الحياة.";
+    const image = "https://www.lajnat-zawaj.org/__l5e/assets-v1/6be359cf-47ce-4a4f-806d-4205d334eaf6/wedding-logo.png";
+    const url = "https://www.lajnat-zawaj.org/wedding-feedback";
+    return {
+      meta: [
+        { title },
+        { name: "description", content: description },
+        { property: "og:title", content: title },
+        { property: "og:description", content: description },
+        { property: "og:type", content: "website" },
+        { property: "og:url", content: url },
+        { property: "og:image", content: image },
+        { property: "og:image:alt", content: "شعار الزواج الجماعي" },
+        { name: "twitter:card", content: "summary_large_image" },
+        { name: "twitter:title", content: title },
+        { name: "twitter:description", content: description },
+        { name: "twitter:image", content: image },
+      ],
+      links: [{ rel: "canonical", href: url }],
+    };
+  },
 });
 
 interface Q {
