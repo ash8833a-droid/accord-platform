@@ -403,14 +403,26 @@ export function WeddingFeedbackPanel() {
             <div className="space-y-2 max-h-[400px] overflow-y-auto">
               {rows.filter((r) => r.suggestions).slice(0, 50).map((r) => (
                 <div key={r.id} className="rounded-xl border bg-muted/20 p-3">
-                  <div className="flex items-center gap-2 flex-wrap text-[11px] text-muted-foreground mb-1">
-                    {r.respondent_role && <Badge variant="outline" className="text-[10px]">{r.respondent_role}</Badge>}
-                    <span>{new Date(r.created_at).toLocaleDateString("ar-SA")}</span>
-                    <span>·</span>
-                    <span className="inline-flex items-center gap-0.5">
-                      <Star className="h-3 w-3 fill-amber-400 text-amber-500" />
-                      {((r.organization_score + r.hospitality_score + r.program_score + r.overall_score) / 4).toFixed(1)}
-                    </span>
+                  <div className="flex items-center justify-between gap-2 mb-1">
+                    <div className="flex items-center gap-2 flex-wrap text-[11px] text-muted-foreground">
+                      {r.respondent_role && <Badge variant="outline" className="text-[10px]">{r.respondent_role}</Badge>}
+                      <span>{new Date(r.created_at).toLocaleDateString("ar-SA")}</span>
+                      <span>·</span>
+                      <span className="inline-flex items-center gap-0.5">
+                        <Star className="h-3 w-3 fill-amber-400 text-amber-500" />
+                        {((r.organization_score + r.hospitality_score + r.program_score + r.overall_score) / 4).toFixed(1)}
+                      </span>
+                    </div>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="h-7 w-7 text-rose-600 hover:bg-rose-50"
+                      disabled={deletingId === r.id}
+                      onClick={() => deleteOne(r.id)}
+                      aria-label="حذف"
+                    >
+                      {deletingId === r.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
+                    </Button>
                   </div>
                   <p className="text-sm leading-relaxed whitespace-pre-line">{r.suggestions}</p>
                 </div>
@@ -418,6 +430,42 @@ export function WeddingFeedbackPanel() {
             </div>
           )}
         </div>
+
+        {rows.length > 0 && (
+          <div>
+            <h3 className="font-bold text-sm mb-2 flex items-center gap-2">
+              <MessageSquareHeart className="h-4 w-4 text-rose-600" /> كل التقييمات ({rows.length})
+            </h3>
+            <div className="space-y-1.5 max-h-[300px] overflow-y-auto rounded-xl border divide-y">
+              {rows.map((r, i) => {
+                const m = (r.organization_score + r.hospitality_score + r.program_score + r.overall_score) / 4;
+                return (
+                  <div key={r.id} className="flex items-center justify-between gap-3 px-3 py-2 text-xs">
+                    <div className="flex items-center gap-2 flex-wrap min-w-0">
+                      <Badge variant="outline" className="text-[10px]">#{i + 1}</Badge>
+                      <span className="text-muted-foreground">{new Date(r.created_at).toLocaleString("ar-SA")}</span>
+                      {r.respondent_role && <span className="text-muted-foreground">· {r.respondent_role}</span>}
+                      <span className="inline-flex items-center gap-0.5">
+                        <Star className="h-3 w-3 fill-amber-400 text-amber-500" />
+                        {m.toFixed(1)}
+                      </span>
+                    </div>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="h-7 w-7 text-rose-600 hover:bg-rose-50 shrink-0"
+                      disabled={deletingId === r.id}
+                      onClick={() => deleteOne(r.id)}
+                      aria-label="حذف"
+                    >
+                      {deletingId === r.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
+                    </Button>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
