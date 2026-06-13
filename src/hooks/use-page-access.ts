@@ -31,20 +31,40 @@ export function usePageAccess(pageKey: string): PageAccess {
       setLoading(false);
       return;
     }
-    supabase
-      .from("page_permissions")
-      .select("access_level")
-      .eq("user_id", user.id)
-      .eq("page_key", pageKey)
-      .maybeSingle()
-      .then(({ data }) => {
+    const FINANCE_HEAD_PAGES = new Set([
+      "finance-management",
+      "finance",
+      "committee-finance",
+      "payment-requests",
+    ]);
+    (async () => {
+      // Finance committee head gets full edit on all finance-related pages.
+      if (FINANCE_HEAD_PAGES.has(pageKey)) {
+        const { data: fin } = await supabase
+          .from("committees")
+          .select("head_user_id")
+          .eq("type", "finance")
+          .maybeSingle();
         if (cancelled) return;
-        // Default for "admin-tasks" is "edit" so committee members can manage
-        // their own committee tasks (RLS already restricts visibility per committee).
-        const fallback: AccessLevel = pageKey === "admin-tasks" ? "edit" : "read";
-        setLevel((data?.access_level as AccessLevel) ?? fallback);
-        setLoading(false);
-      });
+        if (fin?.head_user_id === user.id) {
+          setLevel("edit");
+          setLoading(false);
+          return;
+        }
+      }
+      const { data } = await supabase
+        .from("page_permissions")
+        .select("access_level")
+        .eq("user_id", user.id)
+        .eq("page_key", pageKey)
+        .maybeSingle();
+      if (cancelled) return;
+      // Default for "admin-tasks" is "edit" so committee members can manage
+      // their own committee tasks (RLS already restricts visibility per committee).
+      const fallback: AccessLevel = pageKey === "admin-tasks" ? "edit" : "read";
+      setLevel((data?.access_level as AccessLevel) ?? fallback);
+      setLoading(false);
+    })();
     return () => { cancelled = true; };
   }, [user, pageKey, authLoading, hasRole]);
 
