@@ -263,21 +263,32 @@ function PublicHome() {
         </div>
       </section>
 
-      {/* Hero KPIs — the headline numbers */}
-      <section className="relative max-w-7xl mx-auto px-4 lg:px-8 mt-10 lg:mt-14 z-10">
+      {/* Unified KPIs section — single heading, all live platform metrics */}
+      <section className="relative overflow-hidden max-w-7xl mx-auto px-4 lg:px-8 mt-10 lg:mt-14 pb-10">
+        <div className="absolute -top-10 right-1/4 w-[360px] h-[360px] rounded-full bg-gold/8 blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-10 left-1/4 w-[360px] h-[360px] rounded-full bg-primary/8 blur-3xl pointer-events-none" />
         <DotsPattern
-          fade="br"
+          fade="bl"
           cols={10}
           rows={5}
-          className="absolute -top-6 right-0 h-28 w-72 text-primary/20"
+          className="absolute top-6 left-0 h-28 w-72 text-gold/25"
         />
-        <DotsPattern
-          fade="tl"
-          cols={10}
-          rows={5}
-          className="absolute -bottom-6 left-0 h-24 w-64 text-gold/25"
-        />
-        <div className="relative grid grid-cols-1 sm:grid-cols-3 gap-4 lg:gap-5">
+        <div className="relative flex items-end justify-between mb-8">
+          <div>
+            <p className="text-xs font-semibold text-primary uppercase tracking-wider mb-1">
+              قراءةٌ أعمق
+            </p>
+            <h2 className="text-2xl lg:text-3xl font-bold">
+              تفاصيلُ تكشفُ امتدادَ المسيرة
+            </h2>
+            <p className="text-sm text-muted-foreground mt-2 max-w-xl">
+              مؤشّراتٌ حيّةٌ من المنصّة تُبرزُ عُمقَ التراكم عبر السنين وتوزّعَ الجهد بين الأسر.
+            </p>
+          </div>
+          <TrendingUp className="hidden md:block h-8 w-8 text-gold" />
+        </div>
+
+        <div className="relative grid grid-cols-1 sm:grid-cols-3 gap-4 lg:gap-5 mb-4">
           <HeroKpi
             label="إجمالي العرسان"
             value={fmt(s.grooms)}
@@ -308,34 +319,8 @@ function PublicHome() {
             />
           </Link>
         </div>
-      </section>
 
-      {/* Detailed grid — DIFFERENT metrics only (no overlap with hero KPIs) */}
-      <section className="relative overflow-hidden max-w-7xl mx-auto px-4 lg:px-8 pt-14 lg:pt-20 pb-10">
-        <div className="absolute -top-10 right-1/4 w-[360px] h-[360px] rounded-full bg-gold/8 blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-10 left-1/4 w-[360px] h-[360px] rounded-full bg-primary/8 blur-3xl pointer-events-none" />
-        <DotsPattern
-          fade="bl"
-          cols={10}
-          rows={5}
-          className="absolute top-6 left-0 h-28 w-72 text-gold/25"
-        />
-        <div className="relative flex items-end justify-between mb-8">
-          <div>
-            <p className="text-xs font-semibold text-primary uppercase tracking-wider mb-1">
-              قراءةٌ أعمق
-            </p>
-            <h2 className="text-2xl lg:text-3xl font-bold">
-              تفاصيلُ تكشفُ امتدادَ المسيرة
-            </h2>
-            <p className="text-sm text-muted-foreground mt-2 max-w-xl">
-              مؤشّراتٌ مكمِّلةٌ تُبرزُ عُمقَ التراكم عبر السنين وتوزّعَ الجهد بين الأسر.
-            </p>
-          </div>
-          <TrendingUp className="hidden md:block h-8 w-8 text-gold" />
-        </div>
-
-        <div className="relative grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="relative grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <DetailCard
             icon={CalendarRange}
             label="سنوات هجرية موثّقة"
