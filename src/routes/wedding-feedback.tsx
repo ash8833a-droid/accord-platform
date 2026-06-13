@@ -7,6 +7,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Star, Heart, Sparkles, CheckCircle2, UtensilsCrossed, CalendarRange, HandHeart } from "lucide-react";
 import { toast } from "sonner";
+import weddingLogo from "@/assets/wedding-logo.png.asset.json";
+
+const BRAND_GOLD = "#C9A24C";
+const BRAND_TEAL = "#0E7C6B";
 
 export const Route = createFileRoute("/wedding-feedback")({
   component: WeddingFeedbackPage,
@@ -49,28 +53,28 @@ const QUESTIONS: Q[] = [
     title: "١. التنظيم والاستقبال",
     hint: "وضوح الإرشادات، حسن الاستقبال، تنظيم الدخول والمواقف، إدارة الحشد.",
     icon: HandHeart,
-    tone: "from-emerald-500/15 to-emerald-500/5 border-emerald-500/30 text-emerald-700",
+    tone: "teal",
   },
   {
     key: "program_score",
     title: "٢. البرامج والفقرات",
     hint: "تنوع الفقرات، التزام الوقت، جودة الصوت والإضاءة، تفاعل الحضور.",
     icon: CalendarRange,
-    tone: "from-violet-500/15 to-violet-500/5 border-violet-500/30 text-violet-700",
+    tone: "gold",
   },
   {
     key: "hospitality_score",
     title: "٣. الضيافة والعشاء",
     hint: "جودة الطعام، كفاية الكميات، ترتيب الموائد، نظافة المكان.",
     icon: UtensilsCrossed,
-    tone: "from-amber-500/15 to-amber-500/5 border-amber-500/30 text-amber-700",
+    tone: "teal",
   },
   {
     key: "overall_score",
     title: "٤. الانطباع العام",
     hint: "الانطباع الكلي عن الزفاف الجماعي وروح العائلة وقابلية حضور المرات القادمة.",
     icon: Heart,
-    tone: "from-rose-500/15 to-rose-500/5 border-rose-500/30 text-rose-700",
+    tone: "gold",
   },
 ];
 
@@ -131,9 +135,10 @@ function WeddingFeedbackPage() {
 
   if (done) {
     return (
-      <div dir="rtl" className="min-h-screen bg-gradient-to-br from-emerald-50 via-amber-50 to-rose-50 flex items-center justify-center p-6">
-        <div className="max-w-md w-full bg-white rounded-3xl shadow-elegant p-8 text-center space-y-4">
-          <div className="h-16 w-16 rounded-full bg-emerald-500/10 text-emerald-600 mx-auto flex items-center justify-center">
+      <div dir="rtl" className="min-h-screen bg-white flex items-center justify-center p-6">
+        <div className="max-w-md w-full bg-white border rounded-3xl shadow-elegant p-8 text-center space-y-4">
+          <img src={weddingLogo.url} alt="شعار الزواج الجماعي" className="h-20 w-auto mx-auto" />
+          <div className="h-16 w-16 rounded-full mx-auto flex items-center justify-center" style={{ backgroundColor: `${BRAND_TEAL}14`, color: BRAND_TEAL }}>
             <CheckCircle2 className="h-9 w-9" />
           </div>
           <h1 className="text-2xl font-bold">شكراً جزيلاً لك</h1>
@@ -146,13 +151,12 @@ function WeddingFeedbackPage() {
   }
 
   return (
-    <div dir="rtl" className="min-h-screen bg-gradient-to-br from-emerald-50 via-amber-50 to-rose-50 py-8 px-4">
+    <div dir="rtl" className="min-h-screen bg-white py-8 px-4">
       <div className="max-w-2xl mx-auto space-y-6">
-        <div className="text-center space-y-2">
-          <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-emerald-600 to-amber-500 text-white mx-auto flex items-center justify-center shadow-elegant">
-            <Sparkles className="h-7 w-7" />
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold">استبيان تقييم الزواج الجماعي</h1>
+        <div className="text-center space-y-3 pt-2">
+          <img src={weddingLogo.url} alt="شعار الزواج الجماعي" className="h-24 sm:h-28 w-auto mx-auto" />
+          <div className="mx-auto h-px w-24" style={{ background: `linear-gradient(90deg, transparent, ${BRAND_GOLD}, transparent)` }} />
+          <h1 className="text-2xl sm:text-3xl font-extrabold" style={{ color: BRAND_TEAL }}>استبيان تقييم الزواج الجماعي</h1>
           <p className="text-sm text-muted-foreground max-w-lg mx-auto">
             رأيك يهمّنا… شاركنا تقييمك لأركان الحفل الأربعة لنطوّر تجربتنا في الحفلات القادمة.
           </p>
@@ -161,17 +165,22 @@ function WeddingFeedbackPage() {
         <div className="space-y-4">
           {QUESTIONS.map((q) => {
             const Icon = q.icon;
+            const color = q.tone === "gold" ? BRAND_GOLD : BRAND_TEAL;
             return (
               <div
                 key={q.key}
-                className={`rounded-2xl border-2 bg-gradient-to-br ${q.tone} p-5 shadow-soft bg-white/70 backdrop-blur`}
+                className="rounded-2xl border bg-white p-5 shadow-soft"
+                style={{ borderColor: `${color}33` }}
               >
                 <div className="flex items-start gap-3 mb-3">
-                  <div className="h-10 w-10 rounded-xl bg-white flex items-center justify-center shrink-0 shadow-soft">
+                  <div
+                    className="h-11 w-11 rounded-xl flex items-center justify-center shrink-0 border"
+                    style={{ backgroundColor: `${color}12`, borderColor: `${color}33`, color }}
+                  >
                     <Icon className="h-5 w-5" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h2 className="font-bold text-base">{q.title}</h2>
+                    <h2 className="font-bold text-base" style={{ color }}>{q.title}</h2>
                     <p className="text-xs text-muted-foreground mt-0.5">{q.hint}</p>
                   </div>
                 </div>
@@ -181,7 +190,7 @@ function WeddingFeedbackPage() {
           })}
         </div>
 
-        <div className="rounded-2xl border bg-white/80 backdrop-blur p-5 space-y-4 shadow-soft">
+        <div className="rounded-2xl border bg-white p-5 space-y-4 shadow-soft">
           <div className="space-y-2">
             <Label htmlFor="suggestions" className="font-bold">مقترحاتك للتحسين (اختياري)</Label>
             <Textarea
@@ -208,7 +217,8 @@ function WeddingFeedbackPage() {
         <Button
           onClick={submit}
           disabled={submitting}
-          className="w-full h-12 text-base bg-gradient-to-l from-emerald-600 to-amber-500 text-white shadow-elegant"
+          className="w-full h-12 text-base text-white shadow-elegant border-0"
+          style={{ background: `linear-gradient(90deg, ${BRAND_TEAL}, ${BRAND_GOLD})` }}
         >
           {submitting ? "جاري الإرسال…" : "إرسال التقييم"}
         </Button>
