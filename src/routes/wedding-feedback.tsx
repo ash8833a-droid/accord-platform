@@ -156,7 +156,7 @@ function WeddingFeedbackPage() {
         <div className="text-center space-y-3 pt-2">
           <img src={weddingLogo.url} alt="شعار الزواج الجماعي" className="h-24 sm:h-28 w-auto mx-auto" />
           <div className="mx-auto h-px w-24" style={{ background: `linear-gradient(90deg, transparent, ${BRAND_GOLD}, transparent)` }} />
-          <h1 className="text-2xl sm:text-3xl font-extrabold" style={{ color: BRAND_TEAL }}>استبيان تقييم الزواج الجماعي</h1>
+          <h1 className="text-2xl sm:text-3xl font-extrabold" style={{ color: BRAND_TEAL }}>استبيان تقييم الزواج الجماعي الثاني عشر 1448هـ</h1>
           <p className="text-sm text-muted-foreground max-w-lg mx-auto">
             رأيك يهمّنا… شاركنا تقييمك لأركان الحفل الأربعة لنطوّر تجربتنا في الحفلات القادمة.
           </p>
