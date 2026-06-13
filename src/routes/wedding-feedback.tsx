@@ -51,7 +51,7 @@ const QUESTIONS: Q[] = [
   {
     key: "organization_score",
     title: "١. التنظيم والاستقبال",
-    hint: "وضوح الإرشادات، حسن الاستقبال، تنظيم الدخول والمواقف، إدارة الحشد.",
+    hint: "حسن الاستقبال، تنظيم الدخول والمواقف.",
     icon: HandHeart,
     tone: "teal",
   },
