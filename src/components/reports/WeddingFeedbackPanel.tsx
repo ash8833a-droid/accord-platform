@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   Star, Copy, ExternalLink, MessageSquareHeart, Loader2,
   Sparkles, FileSpreadsheet, FileText, Download,
-  TrendingUp, AlertTriangle, Lightbulb, Target,
+  TrendingUp, AlertTriangle, Lightbulb, Target, Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
 import * as XLSX from "xlsx";
@@ -18,6 +18,17 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface Row {
   id: string;
@@ -63,6 +74,7 @@ export function WeddingFeedbackPanel() {
   const [analysis, setAnalysis] = useState<FeedbackAnalysis | null>(null);
   const runAnalyze = useServerFn(analyzeWeddingFeedback);
   const link = typeof window !== "undefined" ? `${window.location.origin}/wedding-feedback` : "/wedding-feedback";
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -78,6 +90,31 @@ export function WeddingFeedbackPanel() {
 
   const avg = (k: keyof Row) =>
     rows.length ? (rows.reduce((a, r) => a + (r[k] as number), 0) / rows.length) : 0;
+
+  const deleteOne = async (id: string) => {
+    setDeletingId(id);
+    const { error } = await supabase.from("wedding_feedback").delete().eq("id", id);
+    setDeletingId(null);
+    if (error) {
+      toast.error("تعذر حذف التقييم", { description: error.message });
+      return;
+    }
+    setRows((prev) => prev.filter((r) => r.id !== id));
+    toast.success("تم حذف التقييم");
+  };
+
+  const deleteAll = async () => {
+    const ids = rows.map((r) => r.id);
+    if (ids.length === 0) return;
+    const { error } = await supabase.from("wedding_feedback").delete().in("id", ids);
+    if (error) {
+      toast.error("تعذر حذف التقييمات", { description: error.message });
+      return;
+    }
+    setRows([]);
+    setAnalysis(null);
+    toast.success(`تم حذف ${ids.length} تقييم`);
+  };
 
   const copy = async () => {
     await navigator.clipboard.writeText(link);
@@ -243,6 +280,29 @@ export function WeddingFeedbackPanel() {
           <Button size="sm" variant="outline" onClick={copy} className="gap-1.5 text-xs">
             <Copy className="h-3.5 w-3.5" /> نسخ رابط الاستبيان
           </Button>
+          {rows.length > 0 && (
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button size="sm" variant="outline" className="gap-1.5 text-xs text-rose-700 border-rose-300 hover:bg-rose-50">
+                  <Trash2 className="h-3.5 w-3.5" /> حذف التقييمات التجريبية
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent dir="rtl">
+                <AlertDialogHeader>
+                  <AlertDialogTitle>حذف جميع التقييمات؟</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    سيتم حذف {rows.length} تقييم بشكل نهائي. هذا الإجراء لا يمكن التراجع عنه.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>إلغاء</AlertDialogCancel>
+                  <AlertDialogAction onClick={deleteAll} className="bg-rose-600 hover:bg-rose-700">
+                    حذف الكل
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          )}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button size="sm" variant="outline" className="gap-1.5 text-xs">
@@ -343,14 +403,26 @@ export function WeddingFeedbackPanel() {
             <div className="space-y-2 max-h-[400px] overflow-y-auto">
               {rows.filter((r) => r.suggestions).slice(0, 50).map((r) => (
                 <div key={r.id} className="rounded-xl border bg-muted/20 p-3">
-                  <div className="flex items-center gap-2 flex-wrap text-[11px] text-muted-foreground mb-1">
-                    {r.respondent_role && <Badge variant="outline" className="text-[10px]">{r.respondent_role}</Badge>}
-                    <span>{new Date(r.created_at).toLocaleDateString("ar-SA")}</span>
-                    <span>·</span>
-                    <span className="inline-flex items-center gap-0.5">
-                      <Star className="h-3 w-3 fill-amber-400 text-amber-500" />
-                      {((r.organization_score + r.hospitality_score + r.program_score + r.overall_score) / 4).toFixed(1)}
-                    </span>
+                  <div className="flex items-center justify-between gap-2 mb-1">
+                    <div className="flex items-center gap-2 flex-wrap text-[11px] text-muted-foreground">
+                      {r.respondent_role && <Badge variant="outline" className="text-[10px]">{r.respondent_role}</Badge>}
+                      <span>{new Date(r.created_at).toLocaleDateString("ar-SA")}</span>
+                      <span>·</span>
+                      <span className="inline-flex items-center gap-0.5">
+                        <Star className="h-3 w-3 fill-amber-400 text-amber-500" />
+                        {((r.organization_score + r.hospitality_score + r.program_score + r.overall_score) / 4).toFixed(1)}
+                      </span>
+                    </div>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="h-7 w-7 text-rose-600 hover:bg-rose-50"
+                      disabled={deletingId === r.id}
+                      onClick={() => deleteOne(r.id)}
+                      aria-label="حذف"
+                    >
+                      {deletingId === r.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
+                    </Button>
                   </div>
                   <p className="text-sm leading-relaxed whitespace-pre-line">{r.suggestions}</p>
                 </div>
@@ -358,6 +430,42 @@ export function WeddingFeedbackPanel() {
             </div>
           )}
         </div>
+
+        {rows.length > 0 && (
+          <div>
+            <h3 className="font-bold text-sm mb-2 flex items-center gap-2">
+              <MessageSquareHeart className="h-4 w-4 text-rose-600" /> كل التقييمات ({rows.length})
+            </h3>
+            <div className="space-y-1.5 max-h-[300px] overflow-y-auto rounded-xl border divide-y">
+              {rows.map((r, i) => {
+                const m = (r.organization_score + r.hospitality_score + r.program_score + r.overall_score) / 4;
+                return (
+                  <div key={r.id} className="flex items-center justify-between gap-3 px-3 py-2 text-xs">
+                    <div className="flex items-center gap-2 flex-wrap min-w-0">
+                      <Badge variant="outline" className="text-[10px]">#{i + 1}</Badge>
+                      <span className="text-muted-foreground">{new Date(r.created_at).toLocaleString("ar-SA")}</span>
+                      {r.respondent_role && <span className="text-muted-foreground">· {r.respondent_role}</span>}
+                      <span className="inline-flex items-center gap-0.5">
+                        <Star className="h-3 w-3 fill-amber-400 text-amber-500" />
+                        {m.toFixed(1)}
+                      </span>
+                    </div>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="h-7 w-7 text-rose-600 hover:bg-rose-50 shrink-0"
+                      disabled={deletingId === r.id}
+                      onClick={() => deleteOne(r.id)}
+                      aria-label="حذف"
+                    >
+                      {deletingId === r.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
+                    </Button>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
