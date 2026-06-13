@@ -345,6 +345,8 @@ export function WeddingFeedbackPanel() {
         </div>
       </div>
 
+      <QrCard link={link} />
+
       <div className="p-6 space-y-6">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {LABELS.map((l) => {
