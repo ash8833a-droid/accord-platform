@@ -73,7 +73,11 @@ export function WeddingFeedbackPanel() {
   const [analyzing, setAnalyzing] = useState(false);
   const [analysis, setAnalysis] = useState<FeedbackAnalysis | null>(null);
   const runAnalyze = useServerFn(analyzeWeddingFeedback);
-  const link = typeof window !== "undefined" ? `${window.location.origin}/wedding-feedback` : "/wedding-feedback";
+  // Always share the public published URL so social platforms (WhatsApp/Twitter/…)
+  // can fetch OG metadata. The internal *.lovableproject.com preview is auth-gated
+  // and would show a generic "Internal Lovable project" card.
+  const PUBLIC_ORIGIN = "https://www.lajnat-zawaj.org";
+  const link = `${PUBLIC_ORIGIN}/wedding-feedback`;
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
