@@ -236,7 +236,7 @@ function ContributeSharesPage() {
                 لجنة الزواج الجماعي · الإدارة المالية
               </p>
               <h1 className="text-lg md:text-xl font-extrabold leading-tight mt-0.5">
-                مساهمات الأسرة للزواج الـ12
+                مساهمات الأسرة للزواج 12 سنة
                 <span className="inline-block mx-2 text-[#F0DDA4]">·</span>
                 {hijriYear}هـ
               </h1>
