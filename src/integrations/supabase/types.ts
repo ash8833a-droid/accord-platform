@@ -1977,6 +1977,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_task_evidence_reminders: {
+        Args: { _task_id: string }
+        Returns: undefined
+      }
       current_actor_name: { Args: never; Returns: string }
       get_page_access: {
         Args: { _page_key: string; _user_id: string }
