@@ -183,24 +183,10 @@ function TaskCenterInner({ canEdit }: { canEdit: boolean }) {
     const { error } = await supabase.from("committee_tasks").update({ status: to }).eq("id", id);
     if (error) { setTasks(prev); toast.error("تعذّر نقل المهمة: " + error.message); }
     else if (to === "completed") {
-      const task = prev.find((t) => t.id === id);
-      const { data: auth } = await supabase.auth.getUser();
-      const recipients = new Set<string>();
-      if (auth?.user?.id) recipients.add(auth.user.id);
-      if (task?.assigned_to) recipients.add(task.assigned_to);
-      if (recipients.size > 0) {
-        const cName = task ? (cmMap.get(task.committee_id)?.name ?? "") : "";
-        const body = `تذكير لجميع اللجان وجميع المهام: لا يُعتبر إغلاق المهمة «${task?.title ?? ""}»${cName ? ` في لجنة ${cName}` : ""} نهائياً إلا بوجود شواهد على الإنجاز (مرفقات أو ملاحظات تنفيذية). يرجى إرفاق الشواهد لاعتمادها رسمياً.`;
-        await supabase.from("notifications").insert(
-          Array.from(recipients).map((uid) => ({
-            user_id: uid,
-            type: "task_evidence_required",
-            title: "تذكير بإرفاق شواهد إكمال المهمة",
-            body,
-            link: "/admin/tasks",
-            related_id: id,
-          })),
-        );
+      // Reminders are created server-side via SECURITY DEFINER RPC so that
+      // authenticated users cannot directly write arbitrary notifications.
+      const { error: rpcErr } = await supabase.rpc("create_task_evidence_reminders", { _task_id: id });
+      if (!rpcErr) {
         toast.info("تم نقل المهمة إلى مكتملة — تذكير بإرفاق شواهد الإنجاز.");
       }
     }
