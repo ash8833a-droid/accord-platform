@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -20,19 +20,21 @@ export const Route = createFileRoute("/launch")({
 function LaunchPage() {
   const { user, hasRole, loading } = useAuth();
   const status = useLaunchStatus();
-  const nav = useNavigate();
   const [submitting, setSubmitting] = useState(false);
   const [phase, setPhase] = useState<"ready" | "launching" | "launched">("ready");
 
   const isAdmin = hasRole("admin");
   const alreadyLaunched = !!status?.is_launched;
 
-  // After successful launch, redirect to the main homepage after 3 seconds.
+  // After the admin clicks the launch button and the success message appears,
+  // redirect automatically to the official platform domain after 3 seconds.
   useEffect(() => {
     if (phase !== "launched") return;
-    const t = setTimeout(() => nav({ to: "/" }), 3000);
+    const t = setTimeout(() => {
+      window.location.href = "https://www.lajnat-zawaj.org";
+    }, 3000);
     return () => clearTimeout(t);
-  }, [phase, nav]);
+  }, [phase]);
 
   const handleLaunch = async () => {
     if (submitting || phase !== "ready") return;
@@ -126,13 +128,6 @@ function LaunchPage() {
 }
 
 function LaunchedSuccess() {
-  const nav = useNavigate();
-
-  useEffect(() => {
-    const t = setTimeout(() => nav({ to: "/" }), 3000);
-    return () => clearTimeout(t);
-  }, [nav]);
-
   return (
     <CeremonialContainer>
       <div className="mb-10 flex justify-center">
