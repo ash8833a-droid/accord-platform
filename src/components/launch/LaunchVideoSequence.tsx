@@ -94,7 +94,7 @@ export function LaunchVideoSequence({
     Promise.all(
       scenes.map(async (scene) => {
         try {
-          const res = await fetch("/api/launch-narration", {
+          const res = await fetch("/api/public/launch-narration", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ text: scene.narration }),
