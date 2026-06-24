@@ -20,7 +20,6 @@ export const Route = createFileRoute("/launch")({
 function LaunchPage() {
   const { user, hasRole, loading } = useAuth();
   const status = useLaunchStatus();
-  const nav = useNavigate();
   const [submitting, setSubmitting] = useState(false);
   const [phase, setPhase] = useState<"ready" | "launching" | "launched">("ready");
 
