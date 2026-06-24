@@ -3,7 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 // Server route that proxies a text-to-speech request to the Lovable AI Gateway.
 // Returns a single MP3 file (audio/mpeg). Called by the launch video sequence
 // to pre-generate the ceremonial Arabic narration for each scene.
-export const Route = createFileRoute("/api/launch-narration")({
+export const Route = createFileRoute("/api/public/launch-narration")({
   server: {
     handlers: {
       POST: async ({ request }) => {

@@ -24,7 +24,6 @@ import { Route as SurveyWomenTalentsRouteImport } from './routes/survey.women-ta
 import { Route as GroomEditTokenRouteImport } from './routes/groom-edit.$token'
 import { Route as ContributeSharesYearRouteImport } from './routes/contribute-shares.$year'
 import { Route as BudgetEntryCommitteeIdRouteImport } from './routes/budget-entry.$committeeId'
-import { Route as ApiLaunchNarrationRouteImport } from './routes/api.launch-narration'
 import { Route as AppReportsRouteImport } from './routes/_app.reports'
 import { Route as AppProcurementRequestsRouteImport } from './routes/_app.procurement-requests'
 import { Route as AppPaymentRequestsRouteImport } from './routes/_app.payment-requests'
@@ -37,6 +36,7 @@ import { Route as AppCommunicationsRouteImport } from './routes/_app.communicati
 import { Route as AppBrandRouteImport } from './routes/_app.brand'
 import { Route as AppArchiveRouteImport } from './routes/_app.archive'
 import { Route as AppAdminRouteImport } from './routes/_app.admin'
+import { Route as ApiPublicLaunchNarrationRouteImport } from './routes/api.public.launch-narration'
 import { Route as AppCommitteeTypeRouteImport } from './routes/_app.committee.$type'
 import { Route as AppAdminWeeklyRouteImport } from './routes/_app.admin.weekly'
 import { Route as AppAdminUsersRouteImport } from './routes/_app.admin.users'
@@ -118,11 +118,6 @@ const BudgetEntryCommitteeIdRoute = BudgetEntryCommitteeIdRouteImport.update({
   path: '/$committeeId',
   getParentRoute: () => BudgetEntryRoute,
 } as any)
-const ApiLaunchNarrationRoute = ApiLaunchNarrationRouteImport.update({
-  id: '/api/launch-narration',
-  path: '/api/launch-narration',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AppReportsRoute = AppReportsRouteImport.update({
   id: '/reports',
   path: '/reports',
@@ -183,6 +178,12 @@ const AppAdminRoute = AppAdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => AppRoute,
 } as any)
+const ApiPublicLaunchNarrationRoute =
+  ApiPublicLaunchNarrationRouteImport.update({
+    id: '/api/public/launch-narration',
+    path: '/api/public/launch-narration',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AppCommitteeTypeRoute = AppCommitteeTypeRouteImport.update({
   id: '/committee/$type',
   path: '/committee/$type',
@@ -238,7 +239,6 @@ export interface FileRoutesByFullPath {
   '/payment-requests': typeof AppPaymentRequestsRoute
   '/procurement-requests': typeof AppProcurementRequestsRoute
   '/reports': typeof AppReportsRoute
-  '/api/launch-narration': typeof ApiLaunchNarrationRoute
   '/budget-entry/$committeeId': typeof BudgetEntryCommitteeIdRoute
   '/contribute-shares/$year': typeof ContributeSharesYearRoute
   '/groom-edit/$token': typeof GroomEditTokenRoute
@@ -248,6 +248,7 @@ export interface FileRoutesByFullPath {
   '/admin/users': typeof AppAdminUsersRoute
   '/admin/weekly': typeof AppAdminWeeklyRoute
   '/committee/$type': typeof AppCommitteeTypeRoute
+  '/api/public/launch-narration': typeof ApiPublicLaunchNarrationRoute
   '/api/public/hooks/task-deadline-check': typeof ApiPublicHooksTaskDeadlineCheckRoute
 }
 export interface FileRoutesByTo {
@@ -273,7 +274,6 @@ export interface FileRoutesByTo {
   '/payment-requests': typeof AppPaymentRequestsRoute
   '/procurement-requests': typeof AppProcurementRequestsRoute
   '/reports': typeof AppReportsRoute
-  '/api/launch-narration': typeof ApiLaunchNarrationRoute
   '/budget-entry/$committeeId': typeof BudgetEntryCommitteeIdRoute
   '/contribute-shares/$year': typeof ContributeSharesYearRoute
   '/groom-edit/$token': typeof GroomEditTokenRoute
@@ -283,6 +283,7 @@ export interface FileRoutesByTo {
   '/admin/users': typeof AppAdminUsersRoute
   '/admin/weekly': typeof AppAdminWeeklyRoute
   '/committee/$type': typeof AppCommitteeTypeRoute
+  '/api/public/launch-narration': typeof ApiPublicLaunchNarrationRoute
   '/api/public/hooks/task-deadline-check': typeof ApiPublicHooksTaskDeadlineCheckRoute
 }
 export interface FileRoutesById {
@@ -310,7 +311,6 @@ export interface FileRoutesById {
   '/_app/payment-requests': typeof AppPaymentRequestsRoute
   '/_app/procurement-requests': typeof AppProcurementRequestsRoute
   '/_app/reports': typeof AppReportsRoute
-  '/api/launch-narration': typeof ApiLaunchNarrationRoute
   '/budget-entry/$committeeId': typeof BudgetEntryCommitteeIdRoute
   '/contribute-shares/$year': typeof ContributeSharesYearRoute
   '/groom-edit/$token': typeof GroomEditTokenRoute
@@ -320,6 +320,7 @@ export interface FileRoutesById {
   '/_app/admin/users': typeof AppAdminUsersRoute
   '/_app/admin/weekly': typeof AppAdminWeeklyRoute
   '/_app/committee/$type': typeof AppCommitteeTypeRoute
+  '/api/public/launch-narration': typeof ApiPublicLaunchNarrationRoute
   '/api/public/hooks/task-deadline-check': typeof ApiPublicHooksTaskDeadlineCheckRoute
 }
 export interface FileRouteTypes {
@@ -347,7 +348,6 @@ export interface FileRouteTypes {
     | '/payment-requests'
     | '/procurement-requests'
     | '/reports'
-    | '/api/launch-narration'
     | '/budget-entry/$committeeId'
     | '/contribute-shares/$year'
     | '/groom-edit/$token'
@@ -357,6 +357,7 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/admin/weekly'
     | '/committee/$type'
+    | '/api/public/launch-narration'
     | '/api/public/hooks/task-deadline-check'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -382,7 +383,6 @@ export interface FileRouteTypes {
     | '/payment-requests'
     | '/procurement-requests'
     | '/reports'
-    | '/api/launch-narration'
     | '/budget-entry/$committeeId'
     | '/contribute-shares/$year'
     | '/groom-edit/$token'
@@ -392,6 +392,7 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/admin/weekly'
     | '/committee/$type'
+    | '/api/public/launch-narration'
     | '/api/public/hooks/task-deadline-check'
   id:
     | '__root__'
@@ -418,7 +419,6 @@ export interface FileRouteTypes {
     | '/_app/payment-requests'
     | '/_app/procurement-requests'
     | '/_app/reports'
-    | '/api/launch-narration'
     | '/budget-entry/$committeeId'
     | '/contribute-shares/$year'
     | '/groom-edit/$token'
@@ -428,6 +428,7 @@ export interface FileRouteTypes {
     | '/_app/admin/users'
     | '/_app/admin/weekly'
     | '/_app/committee/$type'
+    | '/api/public/launch-narration'
     | '/api/public/hooks/task-deadline-check'
   fileRoutesById: FileRoutesById
 }
@@ -443,9 +444,9 @@ export interface RootRouteChildren {
   PendingRoute: typeof PendingRoute
   RegisterGroomRoute: typeof RegisterGroomRoute
   WeddingFeedbackRoute: typeof WeddingFeedbackRoute
-  ApiLaunchNarrationRoute: typeof ApiLaunchNarrationRoute
   ContributeSharesYearRoute: typeof ContributeSharesYearRoute
   SurveyWomenTalentsRoute: typeof SurveyWomenTalentsRoute
+  ApiPublicLaunchNarrationRoute: typeof ApiPublicLaunchNarrationRoute
   ApiPublicHooksTaskDeadlineCheckRoute: typeof ApiPublicHooksTaskDeadlineCheckRoute
 }
 
@@ -556,13 +557,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BudgetEntryCommitteeIdRouteImport
       parentRoute: typeof BudgetEntryRoute
     }
-    '/api/launch-narration': {
-      id: '/api/launch-narration'
-      path: '/api/launch-narration'
-      fullPath: '/api/launch-narration'
-      preLoaderRoute: typeof ApiLaunchNarrationRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/_app/reports': {
       id: '/_app/reports'
       path: '/reports'
@@ -646,6 +640,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin'
       preLoaderRoute: typeof AppAdminRouteImport
       parentRoute: typeof AppRoute
+    }
+    '/api/public/launch-narration': {
+      id: '/api/public/launch-narration'
+      path: '/api/public/launch-narration'
+      fullPath: '/api/public/launch-narration'
+      preLoaderRoute: typeof ApiPublicLaunchNarrationRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_app/committee/$type': {
       id: '/_app/committee/$type'
@@ -780,9 +781,9 @@ const rootRouteChildren: RootRouteChildren = {
   PendingRoute: PendingRoute,
   RegisterGroomRoute: RegisterGroomRoute,
   WeddingFeedbackRoute: WeddingFeedbackRoute,
-  ApiLaunchNarrationRoute: ApiLaunchNarrationRoute,
   ContributeSharesYearRoute: ContributeSharesYearRoute,
   SurveyWomenTalentsRoute: SurveyWomenTalentsRoute,
+  ApiPublicLaunchNarrationRoute: ApiPublicLaunchNarrationRoute,
   ApiPublicHooksTaskDeadlineCheckRoute: ApiPublicHooksTaskDeadlineCheckRoute,
 }
 export const routeTree = rootRouteImport
