@@ -17,6 +17,12 @@ export const Route = createFileRoute("/launch")({
   }),
 });
 
+type LaunchStatus = {
+  is_launched: boolean;
+  launched_at: string | null;
+  launched_by_name: string | null;
+};
+
 function LaunchPage() {
   const { user, hasRole, loading } = useAuth();
   const status = useLaunchStatus();
@@ -59,9 +65,12 @@ function LaunchPage() {
     );
   }
 
-  // If the platform has already been launched, show the celebratory success state immediately.
-  if (alreadyLaunched || phase === "launched") {
-    return <LaunchedSuccess />;
+  if (phase === "launched") {
+    return <JustLaunchedSuccess />;
+  }
+
+  if (alreadyLaunched) {
+    return <AlreadyLaunchedSuccess status={status} />;
   }
 
   return (
@@ -127,7 +136,7 @@ function LaunchPage() {
   );
 }
 
-function LaunchedSuccess() {
+function JustLaunchedSuccess() {
   return (
     <CeremonialContainer>
       <div className="mb-10 flex justify-center">
@@ -135,32 +144,63 @@ function LaunchedSuccess() {
           <Logo size={80} withText={false} />
         </div>
       </div>
-      <LaunchedContent />
+      <div className="animate-enter space-y-8">
+        <div className="mx-auto w-28 h-28 sm:w-36 sm:h-36 rounded-full bg-gold/20 flex items-center justify-center ring-4 ring-gold/40 shadow-elegant">
+          <Sparkles className="h-14 w-14 sm:h-18 sm:w-18 text-gold" />
+        </div>
+        <h2 className="text-4xl sm:text-5xl lg:text-7xl font-bold text-primary-foreground tracking-tight">
+          تم تدشين المنصة رسميًا بحمد الله
+        </h2>
+        <div className="space-y-4 text-xl sm:text-2xl lg:text-3xl text-gold/95 font-medium">
+          <p className="animate-fade-in" style={{ animationDelay: "0.2s" }}>
+            من الإنجاز إلى التوثيق الرقمي
+          </p>
+          <p className="animate-fade-in" style={{ animationDelay: "0.5s" }}>
+            ذاكرة رقمية تحفظ الأثر وتوثق العطاء
+          </p>
+        </div>
+        <p className="text-sm sm:text-base text-primary-foreground/60">
+          سيتم تحويلك إلى الصفحة الرئيسية خلال لحظات...
+        </p>
+      </div>
     </CeremonialContainer>
   );
 }
 
-function LaunchedContent() {
+function AlreadyLaunchedSuccess({ status }: { status: LaunchStatus }) {
+  const date = status?.launched_at
+    ? new Intl.DateTimeFormat("ar-SA", {
+        dateStyle: "long",
+        timeStyle: "short",
+      }).format(new Date(status.launched_at))
+    : "";
+
   return (
-    <div className="animate-enter space-y-8">
-      <div className="mx-auto w-28 h-28 sm:w-36 sm:h-36 rounded-full bg-gold/20 flex items-center justify-center ring-4 ring-gold/40 shadow-elegant">
-        <Sparkles className="h-14 w-14 sm:h-18 sm:w-18 text-gold" />
+    <CeremonialContainer>
+      <div className="mb-10 flex justify-center">
+        <div className="rounded-full bg-primary-foreground/10 p-5 ring-1 ring-gold/30 shadow-elegant">
+          <Logo size={80} withText={false} />
+        </div>
       </div>
-      <h2 className="text-4xl sm:text-5xl lg:text-7xl font-bold text-primary-foreground tracking-tight">
-        تم التدشين بحمد الله
-      </h2>
-      <div className="space-y-4 text-xl sm:text-2xl lg:text-3xl text-gold/95 font-medium">
-        <p className="animate-fade-in" style={{ animationDelay: "0.2s" }}>
-          من الإنجاز إلى التوثيق الرقمي
-        </p>
-        <p className="animate-fade-in" style={{ animationDelay: "0.5s" }}>
-          ذاكرة رقمية تحفظ الأثر وتوثق العطاء
-        </p>
+      <div className="animate-enter space-y-8">
+        <div className="mx-auto w-28 h-28 sm:w-36 sm:h-36 rounded-full bg-gold/20 flex items-center justify-center ring-4 ring-gold/40 shadow-elegant">
+          <Sparkles className="h-14 w-14 sm:h-18 sm:w-18 text-gold" />
+        </div>
+        <h2 className="text-4xl sm:text-5xl lg:text-7xl font-bold text-primary-foreground tracking-tight">
+          تم تدشين المنصة رسميًا
+        </h2>
+        {date && (
+          <p className="text-xl sm:text-2xl lg:text-3xl text-gold/95 font-medium">
+            {date}
+          </p>
+        )}
+        {status?.launched_by_name && (
+          <p className="text-lg sm:text-xl text-primary-foreground/80">
+            تم التدشين بواسطة: {status.launched_by_name}
+          </p>
+        )}
       </div>
-      <p className="text-sm sm:text-base text-primary-foreground/60">
-        سيتم تحويلك إلى الصفحة الرئيسية خلال لحظات...
-      </p>
-    </div>
+    </CeremonialContainer>
   );
 }
 
