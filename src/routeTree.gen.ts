@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as WeddingFeedbackRouteImport } from './routes/wedding-feedback'
 import { Route as RegisterGroomRouteImport } from './routes/register-groom'
 import { Route as PendingRouteImport } from './routes/pending'
+import { Route as LaunchRouteImport } from './routes/launch'
 import { Route as GroomEditRouteImport } from './routes/groom-edit'
 import { Route as FeedbackQrRouteImport } from './routes/feedback-qr'
 import { Route as CommitteesRouteImport } from './routes/committees'
@@ -26,7 +27,6 @@ import { Route as BudgetEntryCommitteeIdRouteImport } from './routes/budget-entr
 import { Route as AppReportsRouteImport } from './routes/_app.reports'
 import { Route as AppProcurementRequestsRouteImport } from './routes/_app.procurement-requests'
 import { Route as AppPaymentRequestsRouteImport } from './routes/_app.payment-requests'
-import { Route as AppLaunchRouteImport } from './routes/_app.launch'
 import { Route as AppIdeasRouteImport } from './routes/_app.ideas'
 import { Route as AppGroomsRouteImport } from './routes/_app.grooms'
 import { Route as AppFinanceManagementRouteImport } from './routes/_app.finance-management'
@@ -56,6 +56,11 @@ const RegisterGroomRoute = RegisterGroomRouteImport.update({
 const PendingRoute = PendingRouteImport.update({
   id: '/pending',
   path: '/pending',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LaunchRoute = LaunchRouteImport.update({
+  id: '/launch',
+  path: '/launch',
   getParentRoute: () => rootRouteImport,
 } as any)
 const GroomEditRoute = GroomEditRouteImport.update({
@@ -125,11 +130,6 @@ const AppProcurementRequestsRoute = AppProcurementRequestsRouteImport.update({
 const AppPaymentRequestsRoute = AppPaymentRequestsRouteImport.update({
   id: '/payment-requests',
   path: '/payment-requests',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppLaunchRoute = AppLaunchRouteImport.update({
-  id: '/launch',
-  path: '/launch',
   getParentRoute: () => AppRoute,
 } as any)
 const AppIdeasRoute = AppIdeasRouteImport.update({
@@ -216,6 +216,7 @@ export interface FileRoutesByFullPath {
   '/committees': typeof CommitteesRoute
   '/feedback-qr': typeof FeedbackQrRoute
   '/groom-edit': typeof GroomEditRouteWithChildren
+  '/launch': typeof LaunchRoute
   '/pending': typeof PendingRoute
   '/register-groom': typeof RegisterGroomRoute
   '/wedding-feedback': typeof WeddingFeedbackRoute
@@ -228,7 +229,6 @@ export interface FileRoutesByFullPath {
   '/finance-management': typeof AppFinanceManagementRoute
   '/grooms': typeof AppGroomsRoute
   '/ideas': typeof AppIdeasRoute
-  '/launch': typeof AppLaunchRoute
   '/payment-requests': typeof AppPaymentRequestsRoute
   '/procurement-requests': typeof AppProcurementRequestsRoute
   '/reports': typeof AppReportsRoute
@@ -250,6 +250,7 @@ export interface FileRoutesByTo {
   '/committees': typeof CommitteesRoute
   '/feedback-qr': typeof FeedbackQrRoute
   '/groom-edit': typeof GroomEditRouteWithChildren
+  '/launch': typeof LaunchRoute
   '/pending': typeof PendingRoute
   '/register-groom': typeof RegisterGroomRoute
   '/wedding-feedback': typeof WeddingFeedbackRoute
@@ -262,7 +263,6 @@ export interface FileRoutesByTo {
   '/finance-management': typeof AppFinanceManagementRoute
   '/grooms': typeof AppGroomsRoute
   '/ideas': typeof AppIdeasRoute
-  '/launch': typeof AppLaunchRoute
   '/payment-requests': typeof AppPaymentRequestsRoute
   '/procurement-requests': typeof AppProcurementRequestsRoute
   '/reports': typeof AppReportsRoute
@@ -286,6 +286,7 @@ export interface FileRoutesById {
   '/committees': typeof CommitteesRoute
   '/feedback-qr': typeof FeedbackQrRoute
   '/groom-edit': typeof GroomEditRouteWithChildren
+  '/launch': typeof LaunchRoute
   '/pending': typeof PendingRoute
   '/register-groom': typeof RegisterGroomRoute
   '/wedding-feedback': typeof WeddingFeedbackRoute
@@ -298,7 +299,6 @@ export interface FileRoutesById {
   '/_app/finance-management': typeof AppFinanceManagementRoute
   '/_app/grooms': typeof AppGroomsRoute
   '/_app/ideas': typeof AppIdeasRoute
-  '/_app/launch': typeof AppLaunchRoute
   '/_app/payment-requests': typeof AppPaymentRequestsRoute
   '/_app/procurement-requests': typeof AppProcurementRequestsRoute
   '/_app/reports': typeof AppReportsRoute
@@ -322,6 +322,7 @@ export interface FileRouteTypes {
     | '/committees'
     | '/feedback-qr'
     | '/groom-edit'
+    | '/launch'
     | '/pending'
     | '/register-groom'
     | '/wedding-feedback'
@@ -334,7 +335,6 @@ export interface FileRouteTypes {
     | '/finance-management'
     | '/grooms'
     | '/ideas'
-    | '/launch'
     | '/payment-requests'
     | '/procurement-requests'
     | '/reports'
@@ -356,6 +356,7 @@ export interface FileRouteTypes {
     | '/committees'
     | '/feedback-qr'
     | '/groom-edit'
+    | '/launch'
     | '/pending'
     | '/register-groom'
     | '/wedding-feedback'
@@ -368,7 +369,6 @@ export interface FileRouteTypes {
     | '/finance-management'
     | '/grooms'
     | '/ideas'
-    | '/launch'
     | '/payment-requests'
     | '/procurement-requests'
     | '/reports'
@@ -391,6 +391,7 @@ export interface FileRouteTypes {
     | '/committees'
     | '/feedback-qr'
     | '/groom-edit'
+    | '/launch'
     | '/pending'
     | '/register-groom'
     | '/wedding-feedback'
@@ -403,7 +404,6 @@ export interface FileRouteTypes {
     | '/_app/finance-management'
     | '/_app/grooms'
     | '/_app/ideas'
-    | '/_app/launch'
     | '/_app/payment-requests'
     | '/_app/procurement-requests'
     | '/_app/reports'
@@ -427,6 +427,7 @@ export interface RootRouteChildren {
   CommitteesRoute: typeof CommitteesRoute
   FeedbackQrRoute: typeof FeedbackQrRoute
   GroomEditRoute: typeof GroomEditRouteWithChildren
+  LaunchRoute: typeof LaunchRoute
   PendingRoute: typeof PendingRoute
   RegisterGroomRoute: typeof RegisterGroomRoute
   WeddingFeedbackRoute: typeof WeddingFeedbackRoute
@@ -456,6 +457,13 @@ declare module '@tanstack/react-router' {
       path: '/pending'
       fullPath: '/pending'
       preLoaderRoute: typeof PendingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/launch': {
+      id: '/launch'
+      path: '/launch'
+      fullPath: '/launch'
+      preLoaderRoute: typeof LaunchRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/groom-edit': {
@@ -554,13 +562,6 @@ declare module '@tanstack/react-router' {
       path: '/payment-requests'
       fullPath: '/payment-requests'
       preLoaderRoute: typeof AppPaymentRequestsRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/launch': {
-      id: '/_app/launch'
-      path: '/launch'
-      fullPath: '/launch'
-      preLoaderRoute: typeof AppLaunchRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/ideas': {
@@ -699,7 +700,6 @@ interface AppRouteChildren {
   AppFinanceManagementRoute: typeof AppFinanceManagementRoute
   AppGroomsRoute: typeof AppGroomsRoute
   AppIdeasRoute: typeof AppIdeasRoute
-  AppLaunchRoute: typeof AppLaunchRoute
   AppPaymentRequestsRoute: typeof AppPaymentRequestsRoute
   AppProcurementRequestsRoute: typeof AppProcurementRequestsRoute
   AppReportsRoute: typeof AppReportsRoute
@@ -716,7 +716,6 @@ const AppRouteChildren: AppRouteChildren = {
   AppFinanceManagementRoute: AppFinanceManagementRoute,
   AppGroomsRoute: AppGroomsRoute,
   AppIdeasRoute: AppIdeasRoute,
-  AppLaunchRoute: AppLaunchRoute,
   AppPaymentRequestsRoute: AppPaymentRequestsRoute,
   AppProcurementRequestsRoute: AppProcurementRequestsRoute,
   AppReportsRoute: AppReportsRoute,
@@ -757,6 +756,7 @@ const rootRouteChildren: RootRouteChildren = {
   CommitteesRoute: CommitteesRoute,
   FeedbackQrRoute: FeedbackQrRoute,
   GroomEditRoute: GroomEditRouteWithChildren,
+  LaunchRoute: LaunchRoute,
   PendingRoute: PendingRoute,
   RegisterGroomRoute: RegisterGroomRoute,
   WeddingFeedbackRoute: WeddingFeedbackRoute,
