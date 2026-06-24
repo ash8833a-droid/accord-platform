@@ -2101,6 +2101,24 @@ export type Database = {
         }
         Returns: undefined
       }
+      reset_launch_status: {
+        Args: never
+        Returns: {
+          created_at: string
+          id: number
+          is_launched: boolean
+          launched_at: string | null
+          launched_by: string | null
+          launched_by_name: string | null
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "platform_launch"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       shares_committee_with: {
         Args: { _target: string; _viewer: string }
         Returns: boolean
