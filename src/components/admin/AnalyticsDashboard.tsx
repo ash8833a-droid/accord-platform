@@ -376,6 +376,15 @@ function Inner() {
         <div className="flex items-center gap-2 flex-wrap">
           <AdminAlertsPanel enabled={isAdmin} />
           <Link
+            to="/launch"
+            title="تدشين المنصة"
+            aria-label="تدشين المنصة"
+            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-l from-teal-700 to-teal-600 px-3 py-2 shadow-sm text-white hover:from-teal-800 hover:to-teal-700 transition"
+          >
+            <Rocket className="h-4 w-4" />
+            <span className="text-sm font-semibold hidden sm:inline">تدشين المنصة</span>
+          </Link>
+          <Link
             to="/admin/supreme-minutes"
             title="محاضر اللجنة العليا"
             aria-label="محاضر اللجنة العليا"
