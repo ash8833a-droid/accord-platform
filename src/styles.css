@@ -246,11 +246,32 @@
 @keyframes scale-in { from{opacity:0;transform:scale(.96);} to{opacity:1;transform:scale(1);} }
 @keyframes heroFill { from { width: 0%; } to { width: 100%; } }
 
+/* Ceremonial launch: refined radial bloom and soft sweep */
+@keyframes ceremonial-bloom {
+  0% { transform: scale(0.5); opacity: 0; }
+  15% { opacity: 0.45; }
+  100% { transform: scale(2.2); opacity: 0; }
+}
+@keyframes ceremonial-sweep {
+  0% { transform: translateX(-120%); opacity: 0; }
+  40% { opacity: 0.25; }
+  100% { transform: translateX(120%); opacity: 0; }
+}
+@keyframes count-pop {
+  0% { transform: scale(0.85); opacity: 0; }
+  20% { transform: scale(1.05); opacity: 1; }
+  90% { transform: scale(1); opacity: 1; }
+  100% { transform: scale(0.95); opacity: 0; }
+}
+
 .animate-ring-slow { animation: ring-spin-slow 24s linear infinite; }
 .animate-ring-rev { animation: ring-spin-rev 18s linear infinite; }
 .animate-float { animation: float-soft 4s ease-in-out infinite; }
 .animate-fade-up { animation: fade-up .5s ease-out both; }
 .animate-scale-in { animation: scale-in .35s ease-out both; }
+.animate-ceremonial-bloom { animation: ceremonial-bloom 2.8s ease-out both; }
+.animate-ceremonial-sweep { animation: ceremonial-sweep 2.4s ease-in-out both; }
+.animate-count-pop { animation: count-pop 0.9s ease-in-out both; }
 @keyframes route-fade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 .animate-route-fade { animation: route-fade .3s ease-out both; will-change: opacity, transform; }
 
