@@ -124,6 +124,7 @@
   --gradient-app: linear-gradient(180deg, oklch(0.984 0.003 247) 0%, oklch(0.968 0.004 247) 100%);
   --shadow-elegant: 0 20px 50px -20px oklch(0.32 0.06 175 / 0.22);
   --shadow-gold: 0 10px 30px -10px oklch(0.82 0.1 90 / 0.4);
+  --shadow-glow-gold: 0 0 50px -10px oklch(0.82 0.1 90 / 0.35);
   --shadow-soft: 0 2px 12px -2px oklch(0.32 0.06 175 / 0.08);
 }
 
