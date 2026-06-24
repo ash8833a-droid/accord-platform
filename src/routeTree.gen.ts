@@ -26,6 +26,7 @@ import { Route as BudgetEntryCommitteeIdRouteImport } from './routes/budget-entr
 import { Route as AppReportsRouteImport } from './routes/_app.reports'
 import { Route as AppProcurementRequestsRouteImport } from './routes/_app.procurement-requests'
 import { Route as AppPaymentRequestsRouteImport } from './routes/_app.payment-requests'
+import { Route as AppLaunchRouteImport } from './routes/_app.launch'
 import { Route as AppIdeasRouteImport } from './routes/_app.ideas'
 import { Route as AppGroomsRouteImport } from './routes/_app.grooms'
 import { Route as AppFinanceManagementRouteImport } from './routes/_app.finance-management'
@@ -126,6 +127,11 @@ const AppPaymentRequestsRoute = AppPaymentRequestsRouteImport.update({
   path: '/payment-requests',
   getParentRoute: () => AppRoute,
 } as any)
+const AppLaunchRoute = AppLaunchRouteImport.update({
+  id: '/launch',
+  path: '/launch',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppIdeasRoute = AppIdeasRouteImport.update({
   id: '/ideas',
   path: '/ideas',
@@ -222,6 +228,7 @@ export interface FileRoutesByFullPath {
   '/finance-management': typeof AppFinanceManagementRoute
   '/grooms': typeof AppGroomsRoute
   '/ideas': typeof AppIdeasRoute
+  '/launch': typeof AppLaunchRoute
   '/payment-requests': typeof AppPaymentRequestsRoute
   '/procurement-requests': typeof AppProcurementRequestsRoute
   '/reports': typeof AppReportsRoute
@@ -255,6 +262,7 @@ export interface FileRoutesByTo {
   '/finance-management': typeof AppFinanceManagementRoute
   '/grooms': typeof AppGroomsRoute
   '/ideas': typeof AppIdeasRoute
+  '/launch': typeof AppLaunchRoute
   '/payment-requests': typeof AppPaymentRequestsRoute
   '/procurement-requests': typeof AppProcurementRequestsRoute
   '/reports': typeof AppReportsRoute
@@ -290,6 +298,7 @@ export interface FileRoutesById {
   '/_app/finance-management': typeof AppFinanceManagementRoute
   '/_app/grooms': typeof AppGroomsRoute
   '/_app/ideas': typeof AppIdeasRoute
+  '/_app/launch': typeof AppLaunchRoute
   '/_app/payment-requests': typeof AppPaymentRequestsRoute
   '/_app/procurement-requests': typeof AppProcurementRequestsRoute
   '/_app/reports': typeof AppReportsRoute
@@ -325,6 +334,7 @@ export interface FileRouteTypes {
     | '/finance-management'
     | '/grooms'
     | '/ideas'
+    | '/launch'
     | '/payment-requests'
     | '/procurement-requests'
     | '/reports'
@@ -358,6 +368,7 @@ export interface FileRouteTypes {
     | '/finance-management'
     | '/grooms'
     | '/ideas'
+    | '/launch'
     | '/payment-requests'
     | '/procurement-requests'
     | '/reports'
@@ -392,6 +403,7 @@ export interface FileRouteTypes {
     | '/_app/finance-management'
     | '/_app/grooms'
     | '/_app/ideas'
+    | '/_app/launch'
     | '/_app/payment-requests'
     | '/_app/procurement-requests'
     | '/_app/reports'
@@ -544,6 +556,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppPaymentRequestsRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/launch': {
+      id: '/_app/launch'
+      path: '/launch'
+      fullPath: '/launch'
+      preLoaderRoute: typeof AppLaunchRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/ideas': {
       id: '/_app/ideas'
       path: '/ideas'
@@ -680,6 +699,7 @@ interface AppRouteChildren {
   AppFinanceManagementRoute: typeof AppFinanceManagementRoute
   AppGroomsRoute: typeof AppGroomsRoute
   AppIdeasRoute: typeof AppIdeasRoute
+  AppLaunchRoute: typeof AppLaunchRoute
   AppPaymentRequestsRoute: typeof AppPaymentRequestsRoute
   AppProcurementRequestsRoute: typeof AppProcurementRequestsRoute
   AppReportsRoute: typeof AppReportsRoute
@@ -696,6 +716,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppFinanceManagementRoute: AppFinanceManagementRoute,
   AppGroomsRoute: AppGroomsRoute,
   AppIdeasRoute: AppIdeasRoute,
+  AppLaunchRoute: AppLaunchRoute,
   AppPaymentRequestsRoute: AppPaymentRequestsRoute,
   AppProcurementRequestsRoute: AppProcurementRequestsRoute,
   AppReportsRoute: AppReportsRoute,
