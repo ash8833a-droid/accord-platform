@@ -100,14 +100,14 @@ function LaunchPage() {
           <button
             onClick={handleLaunch}
             disabled={submitting}
-            className="group relative inline-flex items-center justify-center gap-3 rounded-full bg-gold text-primary px-14 py-6 text-2xl sm:text-3xl font-bold shadow-elegant ring-4 ring-gold/30 hover:ring-gold/60 hover:scale-105 active:scale-95 transition-all duration-300 disabled:opacity-60 disabled:scale-100"
+            className="group relative inline-flex items-center justify-center gap-3 rounded-full bg-primary border-2 border-gold text-primary-foreground px-14 py-6 text-2xl sm:text-3xl font-bold shadow-glow-gold hover:shadow-gold hover:scale-105 hover:-translate-y-0.5 active:scale-95 active:translate-y-0 transition-all duration-300 disabled:opacity-60 disabled:scale-100 disabled:shadow-none"
           >
             {submitting ? (
               <Loader2 className="h-8 w-8 animate-spin" />
             ) : (
-              <Sparkles className="h-8 w-8 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+              <Sparkles className="h-8 w-8 text-gold transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
             )}
-            دشّن المنصة
+            <span className="drop-shadow-sm">دشّن المنصة</span>
           </button>
         ) : user ? (
           <div className="space-y-3">
