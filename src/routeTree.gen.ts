@@ -24,6 +24,7 @@ import { Route as SurveyWomenTalentsRouteImport } from './routes/survey.women-ta
 import { Route as GroomEditTokenRouteImport } from './routes/groom-edit.$token'
 import { Route as ContributeSharesYearRouteImport } from './routes/contribute-shares.$year'
 import { Route as BudgetEntryCommitteeIdRouteImport } from './routes/budget-entry.$committeeId'
+import { Route as ApiLaunchNarrationRouteImport } from './routes/api.launch-narration'
 import { Route as AppReportsRouteImport } from './routes/_app.reports'
 import { Route as AppProcurementRequestsRouteImport } from './routes/_app.procurement-requests'
 import { Route as AppPaymentRequestsRouteImport } from './routes/_app.payment-requests'
@@ -116,6 +117,11 @@ const BudgetEntryCommitteeIdRoute = BudgetEntryCommitteeIdRouteImport.update({
   id: '/$committeeId',
   path: '/$committeeId',
   getParentRoute: () => BudgetEntryRoute,
+} as any)
+const ApiLaunchNarrationRoute = ApiLaunchNarrationRouteImport.update({
+  id: '/api/launch-narration',
+  path: '/api/launch-narration',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AppReportsRoute = AppReportsRouteImport.update({
   id: '/reports',
@@ -232,6 +238,7 @@ export interface FileRoutesByFullPath {
   '/payment-requests': typeof AppPaymentRequestsRoute
   '/procurement-requests': typeof AppProcurementRequestsRoute
   '/reports': typeof AppReportsRoute
+  '/api/launch-narration': typeof ApiLaunchNarrationRoute
   '/budget-entry/$committeeId': typeof BudgetEntryCommitteeIdRoute
   '/contribute-shares/$year': typeof ContributeSharesYearRoute
   '/groom-edit/$token': typeof GroomEditTokenRoute
@@ -266,6 +273,7 @@ export interface FileRoutesByTo {
   '/payment-requests': typeof AppPaymentRequestsRoute
   '/procurement-requests': typeof AppProcurementRequestsRoute
   '/reports': typeof AppReportsRoute
+  '/api/launch-narration': typeof ApiLaunchNarrationRoute
   '/budget-entry/$committeeId': typeof BudgetEntryCommitteeIdRoute
   '/contribute-shares/$year': typeof ContributeSharesYearRoute
   '/groom-edit/$token': typeof GroomEditTokenRoute
@@ -302,6 +310,7 @@ export interface FileRoutesById {
   '/_app/payment-requests': typeof AppPaymentRequestsRoute
   '/_app/procurement-requests': typeof AppProcurementRequestsRoute
   '/_app/reports': typeof AppReportsRoute
+  '/api/launch-narration': typeof ApiLaunchNarrationRoute
   '/budget-entry/$committeeId': typeof BudgetEntryCommitteeIdRoute
   '/contribute-shares/$year': typeof ContributeSharesYearRoute
   '/groom-edit/$token': typeof GroomEditTokenRoute
@@ -338,6 +347,7 @@ export interface FileRouteTypes {
     | '/payment-requests'
     | '/procurement-requests'
     | '/reports'
+    | '/api/launch-narration'
     | '/budget-entry/$committeeId'
     | '/contribute-shares/$year'
     | '/groom-edit/$token'
@@ -372,6 +382,7 @@ export interface FileRouteTypes {
     | '/payment-requests'
     | '/procurement-requests'
     | '/reports'
+    | '/api/launch-narration'
     | '/budget-entry/$committeeId'
     | '/contribute-shares/$year'
     | '/groom-edit/$token'
@@ -407,6 +418,7 @@ export interface FileRouteTypes {
     | '/_app/payment-requests'
     | '/_app/procurement-requests'
     | '/_app/reports'
+    | '/api/launch-narration'
     | '/budget-entry/$committeeId'
     | '/contribute-shares/$year'
     | '/groom-edit/$token'
@@ -431,6 +443,7 @@ export interface RootRouteChildren {
   PendingRoute: typeof PendingRoute
   RegisterGroomRoute: typeof RegisterGroomRoute
   WeddingFeedbackRoute: typeof WeddingFeedbackRoute
+  ApiLaunchNarrationRoute: typeof ApiLaunchNarrationRoute
   ContributeSharesYearRoute: typeof ContributeSharesYearRoute
   SurveyWomenTalentsRoute: typeof SurveyWomenTalentsRoute
   ApiPublicHooksTaskDeadlineCheckRoute: typeof ApiPublicHooksTaskDeadlineCheckRoute
@@ -542,6 +555,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/budget-entry/$committeeId'
       preLoaderRoute: typeof BudgetEntryCommitteeIdRouteImport
       parentRoute: typeof BudgetEntryRoute
+    }
+    '/api/launch-narration': {
+      id: '/api/launch-narration'
+      path: '/api/launch-narration'
+      fullPath: '/api/launch-narration'
+      preLoaderRoute: typeof ApiLaunchNarrationRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_app/reports': {
       id: '/_app/reports'
@@ -760,6 +780,7 @@ const rootRouteChildren: RootRouteChildren = {
   PendingRoute: PendingRoute,
   RegisterGroomRoute: RegisterGroomRoute,
   WeddingFeedbackRoute: WeddingFeedbackRoute,
+  ApiLaunchNarrationRoute: ApiLaunchNarrationRoute,
   ContributeSharesYearRoute: ContributeSharesYearRoute,
   SurveyWomenTalentsRoute: SurveyWomenTalentsRoute,
   ApiPublicHooksTaskDeadlineCheckRoute: ApiPublicHooksTaskDeadlineCheckRoute,
