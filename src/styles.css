@@ -286,6 +286,7 @@
 .bg-gradient-card { background: var(--gradient-card); }
 .shadow-elegant { box-shadow: var(--shadow-elegant); }
 .shadow-gold { box-shadow: var(--shadow-gold); }
+.shadow-glow-gold { box-shadow: var(--shadow-glow-gold); }
 .shadow-soft { box-shadow: var(--shadow-soft); }
 
 /* Hide scrollbars while keeping scroll functionality */
