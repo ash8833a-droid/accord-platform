@@ -171,7 +171,7 @@ function CountdownPhase({ count }: { count: number }) {
     <div className="absolute inset-0 flex flex-col items-center justify-center p-6 pointer-events-none">
       <CeremonialLight />
       <div className="relative z-10 flex flex-col items-center gap-6 sm:gap-8">
-        <div className="text-sm sm:text-base text-gold/90 font-medium tracking-widest uppercase animate-fade-in">
+        <div className="text-sm sm:text-base text-gold/90 font-medium tracking-wider animate-fade-in">
           جاري التدشين
         </div>
         <div
