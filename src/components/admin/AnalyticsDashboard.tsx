@@ -10,6 +10,7 @@ import {
   CalendarRange, CheckCircle2, ClipboardList, HeartHandshake, Loader2,
   Wallet, TrendingUp, BarChart3, Scale, Target, RefreshCw, FileDown,
   Banknote, HandCoins, FileSpreadsheet, ScrollText, PiggyBank, TrendingDown,
+  Rocket,
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { exportDashboardPdf } from "@/lib/dashboard-pdf";
