@@ -129,13 +129,6 @@ function LaunchPage() {
 }
 
 function LaunchedSuccess() {
-  const nav = useNavigate();
-
-  useEffect(() => {
-    const t = setTimeout(() => nav({ to: "/" }), 3000);
-    return () => clearTimeout(t);
-  }, [nav]);
-
   return (
     <CeremonialContainer>
       <div className="mb-10 flex justify-center">
