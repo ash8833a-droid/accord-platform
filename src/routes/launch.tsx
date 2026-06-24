@@ -27,12 +27,15 @@ function LaunchPage() {
   const isAdmin = hasRole("admin");
   const alreadyLaunched = !!status?.is_launched;
 
-  // After successful launch, redirect to the main homepage after 3 seconds.
+  // After the admin clicks the launch button and the success message appears,
+  // redirect automatically to the official platform domain after 3 seconds.
   useEffect(() => {
     if (phase !== "launched") return;
-    const t = setTimeout(() => nav({ to: "/" }), 3000);
+    const t = setTimeout(() => {
+      window.location.href = "https://www.lajnat-zawaj.org";
+    }, 3000);
     return () => clearTimeout(t);
-  }, [phase, nav]);
+  }, [phase]);
 
   const handleLaunch = async () => {
     if (submitting || phase !== "ready") return;
