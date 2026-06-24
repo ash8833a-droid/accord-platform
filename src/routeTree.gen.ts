@@ -36,6 +36,7 @@ import { Route as AppCommunicationsRouteImport } from './routes/_app.communicati
 import { Route as AppBrandRouteImport } from './routes/_app.brand'
 import { Route as AppArchiveRouteImport } from './routes/_app.archive'
 import { Route as AppAdminRouteImport } from './routes/_app.admin'
+import { Route as ApiPublicLaunchNarrationRouteImport } from './routes/api.public.launch-narration'
 import { Route as AppCommitteeTypeRouteImport } from './routes/_app.committee.$type'
 import { Route as AppAdminWeeklyRouteImport } from './routes/_app.admin.weekly'
 import { Route as AppAdminUsersRouteImport } from './routes/_app.admin.users'
@@ -177,6 +178,12 @@ const AppAdminRoute = AppAdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => AppRoute,
 } as any)
+const ApiPublicLaunchNarrationRoute =
+  ApiPublicLaunchNarrationRouteImport.update({
+    id: '/api/public/launch-narration',
+    path: '/api/public/launch-narration',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AppCommitteeTypeRoute = AppCommitteeTypeRouteImport.update({
   id: '/committee/$type',
   path: '/committee/$type',
@@ -241,6 +248,7 @@ export interface FileRoutesByFullPath {
   '/admin/users': typeof AppAdminUsersRoute
   '/admin/weekly': typeof AppAdminWeeklyRoute
   '/committee/$type': typeof AppCommitteeTypeRoute
+  '/api/public/launch-narration': typeof ApiPublicLaunchNarrationRoute
   '/api/public/hooks/task-deadline-check': typeof ApiPublicHooksTaskDeadlineCheckRoute
 }
 export interface FileRoutesByTo {
@@ -275,6 +283,7 @@ export interface FileRoutesByTo {
   '/admin/users': typeof AppAdminUsersRoute
   '/admin/weekly': typeof AppAdminWeeklyRoute
   '/committee/$type': typeof AppCommitteeTypeRoute
+  '/api/public/launch-narration': typeof ApiPublicLaunchNarrationRoute
   '/api/public/hooks/task-deadline-check': typeof ApiPublicHooksTaskDeadlineCheckRoute
 }
 export interface FileRoutesById {
@@ -311,6 +320,7 @@ export interface FileRoutesById {
   '/_app/admin/users': typeof AppAdminUsersRoute
   '/_app/admin/weekly': typeof AppAdminWeeklyRoute
   '/_app/committee/$type': typeof AppCommitteeTypeRoute
+  '/api/public/launch-narration': typeof ApiPublicLaunchNarrationRoute
   '/api/public/hooks/task-deadline-check': typeof ApiPublicHooksTaskDeadlineCheckRoute
 }
 export interface FileRouteTypes {
@@ -347,6 +357,7 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/admin/weekly'
     | '/committee/$type'
+    | '/api/public/launch-narration'
     | '/api/public/hooks/task-deadline-check'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -381,6 +392,7 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/admin/weekly'
     | '/committee/$type'
+    | '/api/public/launch-narration'
     | '/api/public/hooks/task-deadline-check'
   id:
     | '__root__'
@@ -416,6 +428,7 @@ export interface FileRouteTypes {
     | '/_app/admin/users'
     | '/_app/admin/weekly'
     | '/_app/committee/$type'
+    | '/api/public/launch-narration'
     | '/api/public/hooks/task-deadline-check'
   fileRoutesById: FileRoutesById
 }
@@ -433,6 +446,7 @@ export interface RootRouteChildren {
   WeddingFeedbackRoute: typeof WeddingFeedbackRoute
   ContributeSharesYearRoute: typeof ContributeSharesYearRoute
   SurveyWomenTalentsRoute: typeof SurveyWomenTalentsRoute
+  ApiPublicLaunchNarrationRoute: typeof ApiPublicLaunchNarrationRoute
   ApiPublicHooksTaskDeadlineCheckRoute: typeof ApiPublicHooksTaskDeadlineCheckRoute
 }
 
@@ -627,6 +641,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAdminRouteImport
       parentRoute: typeof AppRoute
     }
+    '/api/public/launch-narration': {
+      id: '/api/public/launch-narration'
+      path: '/api/public/launch-narration'
+      fullPath: '/api/public/launch-narration'
+      preLoaderRoute: typeof ApiPublicLaunchNarrationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_app/committee/$type': {
       id: '/_app/committee/$type'
       path: '/committee/$type'
@@ -762,6 +783,7 @@ const rootRouteChildren: RootRouteChildren = {
   WeddingFeedbackRoute: WeddingFeedbackRoute,
   ContributeSharesYearRoute: ContributeSharesYearRoute,
   SurveyWomenTalentsRoute: SurveyWomenTalentsRoute,
+  ApiPublicLaunchNarrationRoute: ApiPublicLaunchNarrationRoute,
   ApiPublicHooksTaskDeadlineCheckRoute: ApiPublicHooksTaskDeadlineCheckRoute,
 }
 export const routeTree = rootRouteImport
