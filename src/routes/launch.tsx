@@ -220,9 +220,20 @@ function CeremonialLight() {
   );
 }
 
-function JustLaunchedSuccess() {
+function TestModeBanner() {
+  return (
+    <div className="absolute top-0 inset-x-0 z-30 flex justify-center pt-3 pointer-events-none">
+      <div className="pointer-events-auto rounded-full bg-gold/20 border border-gold/60 text-gold px-5 py-2 text-sm sm:text-base font-semibold shadow-elegant backdrop-blur-sm">
+        وضع التجربة — لن يتم حفظ التدشين الرسمي
+      </div>
+    </div>
+  );
+}
+
+function JustLaunchedSuccess({ testMode = false, onReplay }: { testMode?: boolean; onReplay?: () => void }) {
   return (
     <CeremonialContainer>
+      {testMode && <TestModeBanner />}
       <div className="relative z-10 w-full max-w-5xl mx-auto text-center">
         <div className="mb-10 flex justify-center">
           <div className="rounded-full bg-primary-foreground/10 p-5 ring-1 ring-gold/30 shadow-elegant">
@@ -244,9 +255,25 @@ function JustLaunchedSuccess() {
               ذاكرة رقمية تحفظ الأثر وتوثق العطاء
             </p>
           </div>
-          <p className="text-sm sm:text-base text-primary-foreground/60">
-            سيتم تحويلك إلى الصفحة الرئيسية خلال لحظات...
-          </p>
+          {testMode ? (
+            <div className="space-y-3">
+              <p className="text-sm sm:text-base text-gold/80">
+                هذه تجربة فقط — لم يتم تسجيل التدشين ولن يتم التحويل.
+              </p>
+              {onReplay && (
+                <button
+                  onClick={onReplay}
+                  className="inline-flex items-center justify-center rounded-full bg-primary-foreground/10 text-primary-foreground px-6 py-2 text-base font-medium ring-1 ring-gold/40 hover:bg-primary-foreground/20 transition"
+                >
+                  إعادة التجربة
+                </button>
+              )}
+            </div>
+          ) : (
+            <p className="text-sm sm:text-base text-primary-foreground/60">
+              سيتم تحويلك إلى الصفحة الرئيسية خلال لحظات...
+            </p>
+          )}
         </div>
       </div>
       <div className="absolute inset-0 z-0 pointer-events-none">
