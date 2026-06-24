@@ -29,19 +29,28 @@ function LaunchPage() {
   const [submitting, setSubmitting] = useState(false);
   const [phase, setPhase] = useState<"ready" | "countdown" | "launching" | "launched">("ready");
   const [countdown, setCountdown] = useState(3);
+  const [testMode, setTestMode] = useState(false);
+
+  // Read ?test=1 from the URL to enable rehearsal mode (no DB write, no redirect).
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    setTestMode(params.get("test") === "1");
+  }, []);
 
   const isAdmin = hasRole("admin");
-  const alreadyLaunched = !!status?.is_launched;
+  const alreadyLaunched = !!status?.is_launched && !testMode;
 
   // After the admin clicks the launch button and the success message appears,
   // redirect automatically to the official platform domain after 3 seconds.
   useEffect(() => {
     if (phase !== "launched") return;
+    if (testMode) return; // Rehearsal: stay on the page so the admin can review.
     const t = setTimeout(() => {
       window.location.href = "https://www.lajnat-zawaj.org";
     }, 3000);
     return () => clearTimeout(t);
-  }, [phase]);
+  }, [phase, testMode]);
 
   // Countdown effect: 3 → 2 → 1, then perform the actual launch.
   useEffect(() => {
@@ -57,6 +66,14 @@ function LaunchPage() {
   const performLaunch = async () => {
     setPhase("launching");
     setSubmitting(true);
+    // Rehearsal mode: simulate success without touching the database.
+    if (testMode) {
+      await new Promise((r) => setTimeout(r, 400));
+      setSubmitting(false);
+      setPhase("launched");
+      toast.success("تجربة ناجحة — لم يتم تغيير الحالة الرسمية");
+      return;
+    }
     const { error } = await supabase.rpc("launch_platform");
     setSubmitting(false);
     if (error) {
@@ -75,6 +92,12 @@ function LaunchPage() {
     setCountdown(3);
   };
 
+  const resetRehearsal = () => {
+    setPhase("ready");
+    setCountdown(3);
+    setSubmitting(false);
+  };
+
   if (loading || status === null) {
     return (
       <CeremonialContainer>
@@ -86,7 +109,7 @@ function LaunchPage() {
   }
 
   if (phase === "launched") {
-    return <JustLaunchedSuccess />;
+    return <JustLaunchedSuccess testMode={testMode} onReplay={resetRehearsal} />;
   }
 
   if (alreadyLaunched) {
@@ -95,6 +118,7 @@ function LaunchPage() {
 
   return (
     <CeremonialContainer>
+      {testMode && <TestModeBanner />}
       <div className="relative z-10 w-full max-w-5xl mx-auto text-center">
         <div className={`mb-10 flex justify-center transition-opacity duration-700 ${phase === "countdown" ? "opacity-30" : "opacity-100"}`}>
           <div className="rounded-full bg-primary-foreground/10 p-5 ring-1 ring-gold/30 shadow-elegant">
@@ -196,9 +220,20 @@ function CeremonialLight() {
   );
 }
 
-function JustLaunchedSuccess() {
+function TestModeBanner() {
+  return (
+    <div className="absolute top-0 inset-x-0 z-30 flex justify-center pt-3 pointer-events-none">
+      <div className="pointer-events-auto rounded-full bg-gold/20 border border-gold/60 text-gold px-5 py-2 text-sm sm:text-base font-semibold shadow-elegant backdrop-blur-sm">
+        وضع التجربة — لن يتم حفظ التدشين الرسمي
+      </div>
+    </div>
+  );
+}
+
+function JustLaunchedSuccess({ testMode = false, onReplay }: { testMode?: boolean; onReplay?: () => void }) {
   return (
     <CeremonialContainer>
+      {testMode && <TestModeBanner />}
       <div className="relative z-10 w-full max-w-5xl mx-auto text-center">
         <div className="mb-10 flex justify-center">
           <div className="rounded-full bg-primary-foreground/10 p-5 ring-1 ring-gold/30 shadow-elegant">
@@ -220,9 +255,25 @@ function JustLaunchedSuccess() {
               ذاكرة رقمية تحفظ الأثر وتوثق العطاء
             </p>
           </div>
-          <p className="text-sm sm:text-base text-primary-foreground/60">
-            سيتم تحويلك إلى الصفحة الرئيسية خلال لحظات...
-          </p>
+          {testMode ? (
+            <div className="space-y-3">
+              <p className="text-sm sm:text-base text-gold/80">
+                هذه تجربة فقط — لم يتم تسجيل التدشين ولن يتم التحويل.
+              </p>
+              {onReplay && (
+                <button
+                  onClick={onReplay}
+                  className="inline-flex items-center justify-center rounded-full bg-primary-foreground/10 text-primary-foreground px-6 py-2 text-base font-medium ring-1 ring-gold/40 hover:bg-primary-foreground/20 transition"
+                >
+                  إعادة التجربة
+                </button>
+              )}
+            </div>
+          ) : (
+            <p className="text-sm sm:text-base text-primary-foreground/60">
+              سيتم تحويلك إلى الصفحة الرئيسية خلال لحظات...
+            </p>
+          )}
         </div>
       </div>
       <div className="absolute inset-0 z-0 pointer-events-none">
