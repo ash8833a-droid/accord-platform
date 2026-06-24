@@ -1124,6 +1124,36 @@ export type Database = {
           },
         ]
       }
+      platform_launch: {
+        Row: {
+          created_at: string
+          id: number
+          is_launched: boolean
+          launched_at: string | null
+          launched_by: string | null
+          launched_by_name: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+          is_launched?: boolean
+          launched_at?: string | null
+          launched_by?: string | null
+          launched_by_name?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: number
+          is_launched?: boolean
+          launched_at?: string | null
+          launched_by?: string | null
+          launched_by_name?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       procurement_requests: {
         Row: {
           created_at: string
@@ -1982,6 +2012,7 @@ export type Database = {
         Returns: undefined
       }
       current_actor_name: { Args: never; Returns: string }
+      get_launch_status: { Args: never; Returns: Json }
       get_page_access: {
         Args: { _page_key: string; _user_id: string }
         Returns: Database["public"]["Enums"]["page_access_level"]
@@ -2022,6 +2053,24 @@ export type Database = {
       is_women_committee_member: {
         Args: { _user_id: string }
         Returns: boolean
+      }
+      launch_platform: {
+        Args: never
+        Returns: {
+          created_at: string
+          id: number
+          is_launched: boolean
+          launched_at: string | null
+          launched_by: string | null
+          launched_by_name: string | null
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "platform_launch"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       public_add_budget_item: {
         Args: {
