@@ -272,6 +272,8 @@
 .animate-ceremonial-bloom { animation: ceremonial-bloom 2.8s ease-out both; }
 .animate-ceremonial-sweep { animation: ceremonial-sweep 2.4s ease-in-out both; }
 .animate-count-pop { animation: count-pop 0.9s ease-in-out both; }
+@keyframes scene-in { from { opacity: 0; transform: translateY(20px) scale(.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+.animate-scene-in { animation: scene-in 1s ease-out both; }
 @keyframes route-fade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 .animate-route-fade { animation: route-fade .3s ease-out both; will-change: opacity, transform; }
 
