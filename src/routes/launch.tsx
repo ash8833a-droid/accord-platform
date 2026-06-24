@@ -6,6 +6,7 @@ import { useLaunchStatus } from "@/components/LaunchBanner";
 import { Logo } from "@/components/Logo";
 import { Loader2, Sparkles } from "lucide-react";
 import { toast } from "sonner";
+import { LaunchVideoSequence } from "@/components/launch/LaunchVideoSequence";
 
 export const Route = createFileRoute("/launch")({
   component: LaunchPage,
@@ -27,7 +28,9 @@ function LaunchPage() {
   const { user, hasRole, loading } = useAuth();
   const status = useLaunchStatus();
   const [submitting, setSubmitting] = useState(false);
-  const [phase, setPhase] = useState<"ready" | "countdown" | "launching" | "launched">("ready");
+  const [phase, setPhase] = useState<
+    "ready" | "countdown" | "launching" | "video" | "launched"
+  >("ready");
   const [countdown, setCountdown] = useState(3);
   const [testMode, setTestMode] = useState(false);
 
@@ -41,14 +44,15 @@ function LaunchPage() {
   const isAdmin = hasRole("admin");
   const alreadyLaunched = !!status?.is_launched && !testMode;
 
-  // After the admin clicks the launch button and the success message appears,
-  // redirect automatically to the official platform domain after 3 seconds.
+  // After the full launched success card has been shown, redirect to the
+  // official platform homepage. (The video sequence itself handles its own
+  // completion and transitions into the "launched" phase first.)
   useEffect(() => {
     if (phase !== "launched") return;
     if (testMode) return; // Rehearsal: stay on the page so the admin can review.
     const t = setTimeout(() => {
       window.location.href = "https://www.lajnat-zawaj.org";
-    }, 3000);
+    }, 4000);
     return () => clearTimeout(t);
   }, [phase, testMode]);
 
@@ -70,7 +74,7 @@ function LaunchPage() {
     if (testMode) {
       await new Promise((r) => setTimeout(r, 400));
       setSubmitting(false);
-      setPhase("launched");
+      setPhase("video");
       toast.success("تجربة ناجحة — لم يتم تغيير الحالة الرسمية");
       return;
     }
@@ -82,7 +86,7 @@ function LaunchPage() {
       toast.error("تعذّر تنفيذ التدشين", { description: error.message });
       return;
     }
-    setPhase("launched");
+    setPhase("video");
     toast.success("تم تدشين المنصة بنجاح");
   };
 
@@ -105,6 +109,15 @@ function LaunchPage() {
           <Loader2 className="h-10 w-10 animate-spin text-gold" />
         </div>
       </CeremonialContainer>
+    );
+  }
+
+  if (phase === "video") {
+    return (
+      <LaunchVideoSequence
+        testMode={testMode}
+        onFinished={() => setPhase("launched")}
+      />
     );
   }
 
