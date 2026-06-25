@@ -30,7 +30,7 @@ await renderMedia({
   codec: "h264",
   outputLocation: "/mnt/documents/committees.mp4",
   puppeteerInstance: browser,
-  muted: true,
+  muted: false,
   concurrency: 2,
   onProgress: ({ progress }) => {
     const p = Math.floor(progress * 100);
