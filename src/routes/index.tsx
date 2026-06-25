@@ -41,13 +41,6 @@ export const Route = createFileRoute("/")({
 
 function PublicHome() {
   const [s, setS] = useState({
-    grooms: 0,
-    historicalShareholders: 0,
-    historicalAmount: 0,
-    historicalYears: 0,
-    firstYear: 0,
-    confirmedSubs: 0,
-    confirmedAmount: 0,
     committees: 0,
     branches: 0,
   });
@@ -59,16 +52,6 @@ function PublicHome() {
       const { data } = await supabase.rpc("get_public_stats");
       const d = (data ?? {}) as Record<string, number>;
       setS({
-        grooms: Number(d.grooms ?? 0),
-        historicalShareholders: Number(d.historical_shareholders ?? 0),
-        historicalAmount: Number(d.historical_amount ?? 0),
-        historicalYears: Math.max(
-          Number(d.historical_years ?? 0),
-          new Date().getFullYear() - 622 + 1 - 1434 + 1,
-        ),
-        firstYear: Math.min(1434, Number(d.first_year ?? 1434) || 1434),
-        confirmedSubs: Number(d.confirmed_subs ?? 0),
-        confirmedAmount: Number(d.confirmed_amount ?? 0),
         committees: Number(d.committees ?? 0),
         branches: Number(d.historical_branches ?? 0),
       });
@@ -86,11 +69,12 @@ function PublicHome() {
   const fmt = (n: number) => new Intl.NumberFormat("ar-SA").format(n);
   // Format currency with bidi isolation so digits + "ر.س" render correctly in RTL
   const fmtSAR = (n: number) => `\u2066${fmt(n)}\u2069\u00A0ر.س`;
-  const totalContributors = s.historicalShareholders + s.confirmedSubs;
-  const totalAmount = s.historicalAmount + s.confirmedAmount;
-  const avgContribution = totalContributors
-    ? Math.round(totalAmount / totalContributors)
-    : 0;
+
+  const staticStats = {
+    grooms: 57,
+    avgContribution: 300,
+    weddings: 12,
+  };
 
   return (
     <div className="min-h-screen bg-background" dir="rtl">
