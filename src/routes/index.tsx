@@ -17,7 +17,6 @@ import {
   Handshake,
 } from "lucide-react";
 import { DotsPattern } from "@/components/decor/DotsPattern";
-import { LaunchBanner } from "@/components/LaunchBanner";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -78,7 +77,6 @@ function PublicHome() {
 
   return (
     <div className="min-h-screen bg-background" dir="rtl">
-      <LaunchBanner />
       {/* Sticky header — single source of CTAs */}
       <header
         className={`sticky top-0 z-30 backdrop-blur transition-all duration-300 ${
