@@ -159,8 +159,8 @@ function PublicHome() {
           <h2 className="font-extrabold leading-[1.35] tracking-tight text-2xl sm:text-3xl lg:text-[2.4rem] text-foreground mb-6">
             قبيلةُ <span className="text-primary">الهَملة</span> من
             <span className="text-gold"> قُريش</span>
-            <span className="block text-base sm:text-lg lg:text-xl font-semibold text-muted-foreground mt-3">
-              عائلةٌ يجمعُها النَّسَبُ، ويُوحِّدُها التكاتفُ، ويُترجِمُها العملُ المؤسَّسي
+            <span className="block text-base sm:text-lg lg:text-xl font-semibold text-muted-foreground mt-3 leading-[1.9] pb-1">
+              عائلةٌ يجمعُها <span className="text-primary font-bold">النَّسَبُ</span>، ويُوحِّدُها التكاتفُ، ويُترجِمُها العملُ المؤسَّسي
             </span>
           </h2>
 
