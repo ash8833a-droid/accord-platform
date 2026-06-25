@@ -1,7 +1,9 @@
 import { Composition } from "remotion";
 import { MainVideo, TOTAL_FRAMES } from "./MainVideo";
+import { CommitteesVideo, COMMITTEES_TOTAL_FRAMES } from "./CommitteesVideo";
 
 export const RemotionRoot = () => (
+  <>
   <Composition
     id="main"
     component={MainVideo}
@@ -10,4 +12,13 @@ export const RemotionRoot = () => (
     width={1920}
     height={1080}
   />
+  <Composition
+    id="committees"
+    component={CommitteesVideo}
+    durationInFrames={COMMITTEES_TOTAL_FRAMES}
+    fps={30}
+    width={1920}
+    height={1080}
+  />
+  </>
 );
