@@ -248,7 +248,7 @@ function PublicHome() {
         </div>
       </section>
 
-      {/* Unified KPIs section — single heading, all live platform metrics */}
+      {/* Unified KPIs section — single heading, live + static platform metrics */}
       <section className="relative overflow-hidden max-w-7xl mx-auto px-4 lg:px-8 mt-10 lg:mt-14 pb-10">
         <div className="absolute -top-10 right-1/4 w-[360px] h-[360px] rounded-full bg-gold/8 blur-3xl pointer-events-none" />
         <div className="absolute -bottom-10 left-1/4 w-[360px] h-[360px] rounded-full bg-primary/8 blur-3xl pointer-events-none" />
@@ -273,24 +273,15 @@ function PublicHome() {
           <TrendingUp className="hidden md:block h-8 w-8 text-gold" />
         </div>
 
-        <div className="relative grid grid-cols-1 sm:grid-cols-3 gap-4 lg:gap-5 mb-4">
+        <div className="relative grid grid-cols-1 sm:grid-cols-2 gap-4 lg:gap-5 mb-4">
           <HeroKpi
             label="إجمالي العرسان"
-            value={fmt(s.grooms)}
+            value={fmt(staticStats.grooms)}
             hint="منذ انطلاق البرنامج"
             icon={HeartHandshake}
             tone="gold"
             loading={!loaded}
             delay="0s"
-          />
-          <HeroKpi
-            label="المساهمون عبر السنين"
-            value={fmt(totalContributors)}
-            hint={s.firstYear ? `منذ عام ${s.firstYear}هـ` : "سجلّ تاريخي"}
-            icon={Users}
-            tone="teal"
-            loading={!loaded}
-            delay="0.1s"
           />
           <Link to="/committees" className="block">
             <HeroKpi
@@ -300,17 +291,17 @@ function PublicHome() {
               icon={Building2}
               tone="teal"
               loading={!loaded}
-              delay="0.3s"
+              delay="0.1s"
             />
           </Link>
         </div>
 
-        <div className="relative grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="relative grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <DetailCard
             icon={CalendarRange}
-            label="سنوات هجرية موثّقة"
-            value={fmt(s.historicalYears)}
-            sub={s.firstYear ? `بدأت من عام ${s.firstYear}هـ` : "سجلٌّ ينمو"}
+            label="حفلات الزواج الجماعي"
+            value={fmt(staticStats.weddings)}
+            sub="وصلنا اليوم إلى 12 حفل زواجٍ جماعي"
           />
           <DetailCard
             icon={GitBranch}
@@ -321,14 +312,8 @@ function PublicHome() {
           <DetailCard
             icon={HandHeart}
             label="متوسط المساهمة"
-            value={fmtSAR(avgContribution)}
+            value={fmtSAR(staticStats.avgContribution)}
             sub="لكلِّ مساهمٍ عبر السنين"
-          />
-          <DetailCard
-            icon={Sparkles}
-            label="نبضُ هذا العام"
-            value={fmt(s.confirmedSubs)}
-            sub={`مساهمٌ جديدٌ بقيمة ${fmtSAR(s.confirmedAmount)}`}
           />
         </div>
       </section>
