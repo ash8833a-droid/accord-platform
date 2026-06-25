@@ -125,7 +125,7 @@ const CommitteeScene: React.FC<{ index: number; committee: Committee }> = ({ ind
         <Img src={staticFile("images/wedding-logo.png")} style={{ width: 70, height: "auto" }} />
         <div style={{ color: CREAM, fontSize: 22, opacity: 0.9 }}>لجنة الزواج الجماعي</div>
       </div>
-      <div style={{ position: "absolute", top: 78, left: 90, color: GOLD, fontSize: 20, letterSpacing: 6 }}>
+      <div style={{ position: "absolute", top: 78, left: 90, color: GOLD, fontSize: 20, letterSpacing: 6, direction: "ltr" }}>
         {idx} / 09
       </div>
 
