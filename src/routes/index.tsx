@@ -5,7 +5,6 @@ import { Logo } from "@/components/Logo";
 import heroLogo from "@/assets/logo.png";
 import {
   HeartHandshake,
-  Users,
   Wallet,
   CalendarRange,
   Sparkles,
