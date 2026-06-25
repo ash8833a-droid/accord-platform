@@ -4,8 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Logo } from "@/components/Logo";
 import { COMMITTEES, committeeByType, type CommitteeType } from "@/lib/committees";
 import {
-  ArrowRight, Compass, Crown, Eye, Flag, HeartHandshake, Lightbulb,
-  ListChecks, ShieldCheck, Sparkles, Target, Users,
+  ArrowRight, Compass, Eye, Flag, HeartHandshake, Lightbulb,
+  ListChecks, ShieldCheck, Sparkles, Target,
 } from "lucide-react";
 import { DotsPattern } from "@/components/decor/DotsPattern";
 
@@ -275,8 +275,6 @@ function CommitteeCard({
   const mission = COMMITTEE_MISSION[type] ?? meta!.description;
   const goals = meta!.goals ?? [];
   const targets = COMMITTEE_TARGETS[type] ?? [];
-  const head = members.find((m) => m.is_head);
-  const others = members.filter((m) => !m.is_head);
 
   return (
     <article
