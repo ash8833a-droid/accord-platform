@@ -1,17 +1,19 @@
 import React from "react";
-import { AbsoluteFill, Sequence, useCurrentFrame, useVideoConfig, interpolate, spring, Img, staticFile } from "remotion";
+import { AbsoluteFill, Sequence, useCurrentFrame, useVideoConfig, interpolate, spring, Img, Audio, staticFile } from "remotion";
 import { loadFont } from "@remotion/google-fonts/Tajawal";
 import { loadFont as loadAmiri } from "@remotion/google-fonts/Amiri";
 
 const { fontFamily: tajawal } = loadFont("normal", { weights: ["400", "500", "700", "800"], subsets: ["arabic"] });
 const { fontFamily: amiri } = loadAmiri("normal", { weights: ["400", "700"], subsets: ["arabic"] });
 
-// ===== Brand =====
+// ===== Brand (light theme) =====
 const GREEN = "#0F3D2E";
-const GREEN_DEEP = "#08231B";
-const GOLD = "#C9A84C";
-const GOLD_SOFT = "#E8C97A";
-const CREAM = "#F5EFE2";
+const GOLD = "#B8902F";
+const GOLD_SOFT = "#D4AF55";
+const INK = "#0E2A22";
+const INK_SOFT = "#3A5A4E";
+const PAPER = "#FBF7EE";
+const PAPER_DEEP = "#F1E9D4";
 
 // ===== Committees data =====
 export type Committee = {
@@ -34,21 +36,25 @@ export const COMMITTEES: Committee[] = [
 ];
 
 // Frames
-const INTRO = 120;        // 4s
-const PER_COMMITTEE = 165; // 5.5s
-const OUTRO = 120;        // 4s
+const INTRO = 120;         // 4s
+const PER_COMMITTEE = 215; // ~7.17s — matches narration pacing
+const OUTRO = 130;         // ~4.3s
 export const COMMITTEES_TOTAL_FRAMES = INTRO + PER_COMMITTEE * COMMITTEES.length + OUTRO;
 
-// ===== Persistent backdrop (dark green w/ subtle motion) =====
+// ===== Persistent backdrop (paper white w/ subtle arabesque pattern) =====
 const Backdrop: React.FC = () => {
   const frame = useCurrentFrame();
-  const shimmer = Math.sin(frame / 40) * 8;
+  const drift = Math.sin(frame / 60) * 6;
   return (
-    <AbsoluteFill style={{ background: `radial-gradient(ellipse at 50% ${50 + shimmer}%, ${GREEN} 0%, ${GREEN_DEEP} 70%, #050F0B 100%)` }}>
-      {/* gold dust */}
-      <AbsoluteFill style={{ opacity: 0.12, background: `radial-gradient(circle at 20% 30%, ${GOLD} 0%, transparent 25%), radial-gradient(circle at 80% 70%, ${GOLD} 0%, transparent 28%)` }} />
-      {/* subtle dot pattern */}
-      <AbsoluteFill style={{ opacity: 0.05, backgroundImage: `radial-gradient(${GOLD_SOFT} 1px, transparent 1px)`, backgroundSize: "32px 32px" }} />
+    <AbsoluteFill style={{ background: `radial-gradient(ellipse at 50% ${50 + drift}%, ${PAPER} 0%, ${PAPER_DEEP} 100%)` }}>
+      {/* soft gold vignettes */}
+      <AbsoluteFill style={{ opacity: 0.18, background: `radial-gradient(circle at 18% 24%, ${GOLD_SOFT} 0%, transparent 30%), radial-gradient(circle at 82% 78%, ${GOLD_SOFT} 0%, transparent 32%)` }} />
+      {/* fine dot grid */}
+      <AbsoluteFill style={{ opacity: 0.18, backgroundImage: `radial-gradient(${GOLD}55 1px, transparent 1px)`, backgroundSize: "28px 28px" }} />
+      {/* diagonal lattice */}
+      <AbsoluteFill style={{ opacity: 0.08, backgroundImage: `repeating-linear-gradient(45deg, ${GREEN}22 0 1px, transparent 1px 22px), repeating-linear-gradient(-45deg, ${GREEN}22 0 1px, transparent 1px 22px)` }} />
+      {/* edge frame */}
+      <AbsoluteFill style={{ boxShadow: `inset 0 0 200px ${PAPER_DEEP}` }} />
     </AbsoluteFill>
   );
 };
@@ -78,16 +84,16 @@ const Intro: React.FC = () => {
       {/* gold halo behind logo */}
       <div style={{ position: "absolute", width: 600, height: 600, borderRadius: "50%", background: `radial-gradient(circle, ${GOLD}55 0%, transparent 60%)`, transform: `scale(${haloPulse * logoScale})`, top: "18%" }} />
       <div style={{ transform: `translateY(${logoY}px) scale(${0.9 + logoScale * 0.1})`, opacity: logoScale, marginBottom: 40 }}>
-        <Img src={staticFile("images/wedding-logo.png")} style={{ width: 360, height: "auto", filter: `drop-shadow(0 12px 40px ${GOLD}55)` }} />
+        <Img src={staticFile("images/wedding-logo.png")} style={{ width: 380, height: "auto", filter: `drop-shadow(0 14px 36px ${GOLD}44)`, mixBlendMode: "multiply" }} />
       </div>
       <div style={{ opacity: titleOp, transform: `translateY(${titleY}px)`, textAlign: "center" }}>
-        <div style={{ fontFamily: amiri, fontWeight: 700, fontSize: 78, color: CREAM, letterSpacing: 1, lineHeight: 1.3 }}>
+        <div style={{ fontFamily: amiri, fontWeight: 700, fontSize: 82, color: GREEN, letterSpacing: 1, lineHeight: 1.3 }}>
           لِجانُ الزواجِ الجماعي
         </div>
         <div style={{ marginTop: 18, opacity: subOp }}>
           <Divider width={220} />
         </div>
-        <div style={{ marginTop: 18, fontSize: 28, color: GOLD_SOFT, opacity: subOp, letterSpacing: 2 }}>
+        <div style={{ marginTop: 18, fontSize: 28, color: GOLD, opacity: subOp, letterSpacing: 2 }}>
           تسعُ لجانٍ • منظومةٌ واحدةٌ تصنعُ الفرح
         </div>
       </div>
@@ -122,8 +128,8 @@ const CommitteeScene: React.FC<{ index: number; committee: Committee }> = ({ ind
     <AbsoluteFill style={{ fontFamily: tajawal, direction: "rtl", alignItems: "center", justifyContent: "center", opacity: exitOp }}>
       {/* small top brand */}
       <div style={{ position: "absolute", top: 60, right: 80, display: "flex", alignItems: "center", gap: 16, opacity: 0.85 }}>
-        <Img src={staticFile("images/wedding-logo.png")} style={{ width: 70, height: "auto" }} />
-        <div style={{ color: CREAM, fontSize: 22, opacity: 0.9 }}>لجنة الزواج الجماعي</div>
+        <Img src={staticFile("images/wedding-logo.png")} style={{ width: 76, height: "auto", mixBlendMode: "multiply" }} />
+        <div style={{ color: GREEN, fontSize: 22, opacity: 0.9 }}>لجنة الزواج الجماعي</div>
       </div>
       <div style={{ position: "absolute", top: 78, left: 90, color: GOLD, fontSize: 20, letterSpacing: 6, direction: "ltr" }}>
         {idx} / 09
@@ -134,11 +140,11 @@ const CommitteeScene: React.FC<{ index: number; committee: Committee }> = ({ ind
         style={{
           width: 1280,
           padding: "70px 80px",
-          background: `linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02))`,
-          border: `1.5px solid ${GOLD}55`,
+          background: `linear-gradient(180deg, #ffffffcc, #ffffff99)`,
+          border: `1.5px solid ${GOLD}66`,
           borderRadius: 28,
           backdropFilter: undefined,
-          boxShadow: `0 30px 80px rgba(0,0,0,0.45), inset 0 1px 0 ${GOLD}33`,
+          boxShadow: `0 24px 70px rgba(15,61,46,0.12), inset 0 1px 0 #ffffff`,
           opacity: cardOp,
           transform: `translateY(${cardY}px)`,
           textAlign: "center",
@@ -166,7 +172,7 @@ const CommitteeScene: React.FC<{ index: number; committee: Committee }> = ({ ind
         </div>
 
         <div style={{ opacity: titleOp, transform: `translateX(${titleX}px)` }}>
-          <div style={{ fontFamily: amiri, fontWeight: 700, fontSize: 78, color: CREAM, lineHeight: 1.2 }}>
+          <div style={{ fontFamily: amiri, fontWeight: 700, fontSize: 78, color: GREEN, lineHeight: 1.2 }}>
             {committee.name}
           </div>
           <div style={{ marginTop: 18 }}>
@@ -176,14 +182,14 @@ const CommitteeScene: React.FC<{ index: number; committee: Committee }> = ({ ind
 
         <div style={{ marginTop: 36, opacity: visionOp }}>
           <div style={{ fontSize: 20, color: GOLD, letterSpacing: 4, marginBottom: 12 }}>الرؤية</div>
-          <div style={{ fontSize: 34, color: CREAM, lineHeight: 1.7, maxWidth: 1000, margin: "0 auto" }}>
+          <div style={{ fontSize: 34, color: INK, lineHeight: 1.7, maxWidth: 1000, margin: "0 auto" }}>
             {committee.vision}
           </div>
         </div>
 
         <div style={{ marginTop: 32, opacity: missionOp }}>
           <div style={{ fontSize: 20, color: GOLD, letterSpacing: 4, marginBottom: 12 }}>أبرز الأعمال</div>
-          <div style={{ fontSize: 28, color: "#D9D2BE", lineHeight: 1.8, maxWidth: 1000, margin: "0 auto" }}>
+          <div style={{ fontSize: 28, color: INK_SOFT, lineHeight: 1.8, maxWidth: 1000, margin: "0 auto" }}>
             {committee.mission}
           </div>
         </div>
@@ -202,15 +208,15 @@ const Outro: React.FC = () => {
   return (
     <AbsoluteFill style={{ alignItems: "center", justifyContent: "center", fontFamily: tajawal, direction: "rtl", textAlign: "center" }}>
       <div style={{ opacity: s, transform: `scale(${0.9 + s * 0.1})` }}>
-        <Img src={staticFile("images/wedding-logo.png")} style={{ width: 280, height: "auto", filter: `drop-shadow(0 10px 30px ${GOLD}66)` }} />
+        <Img src={staticFile("images/wedding-logo.png")} style={{ width: 300, height: "auto", filter: `drop-shadow(0 10px 30px ${GOLD}55)`, mixBlendMode: "multiply" }} />
       </div>
       <div style={{ marginTop: 30, opacity: op2 }}>
         <Divider width={200} />
       </div>
-      <div style={{ marginTop: 26, fontFamily: amiri, fontWeight: 700, fontSize: 60, color: CREAM, opacity: op2, lineHeight: 1.3 }}>
+      <div style={{ marginTop: 26, fontFamily: amiri, fontWeight: 700, fontSize: 60, color: GREEN, opacity: op2, lineHeight: 1.3 }}>
         حيثُ تَلتقي الهِمَمُ ويَكتمِلُ الفَرَح
       </div>
-      <div style={{ marginTop: 22, fontSize: 26, color: GOLD_SOFT, opacity: op3, letterSpacing: 3 }}>
+      <div style={{ marginTop: 22, fontSize: 26, color: GOLD, opacity: op3, letterSpacing: 3 }}>
         lajnat-zawaj.org
       </div>
     </AbsoluteFill>
@@ -227,6 +233,7 @@ export const CommitteesVideo: React.FC = () => {
   return (
     <AbsoluteFill>
       <Backdrop />
+      <Audio src={staticFile("audio/narration.mp3")} />
       <Sequence from={introStart} durationInFrames={INTRO}>
         <Intro />
       </Sequence>
