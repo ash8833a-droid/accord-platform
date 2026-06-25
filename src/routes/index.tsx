@@ -16,6 +16,7 @@ import {
   BookOpen,
   Handshake,
 } from "lucide-react";
+import { LaunchBanner } from "@/components/LaunchBanner";
 import { DotsPattern } from "@/components/decor/DotsPattern";
 import { LaunchBanner } from "@/components/LaunchBanner";
 
