@@ -4,8 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Logo } from "@/components/Logo";
 import { COMMITTEES, committeeByType, type CommitteeType } from "@/lib/committees";
 import {
-  ArrowRight, Compass, Crown, Eye, Flag, HeartHandshake, Lightbulb,
-  ListChecks, ShieldCheck, Sparkles, Target, Users,
+  ArrowRight, Compass, Eye, Flag, HeartHandshake, Lightbulb,
+  ListChecks, ShieldCheck, Sparkles, Target,
 } from "lucide-react";
 import { DotsPattern } from "@/components/decor/DotsPattern";
 
@@ -275,8 +275,6 @@ function CommitteeCard({
   const mission = COMMITTEE_MISSION[type] ?? meta!.description;
   const goals = meta!.goals ?? [];
   const targets = COMMITTEE_TARGETS[type] ?? [];
-  const head = members.find((m) => m.is_head);
-  const others = members.filter((m) => !m.is_head);
 
   return (
     <article
@@ -346,67 +344,6 @@ function CommitteeCard({
           )}
         </div>
 
-        {/* Members */}
-        <div className="rounded-2xl border bg-background/70 p-4">
-          <div className="flex items-center gap-2 mb-3">
-            <span className="h-8 w-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
-              <Users className="h-4 w-4" />
-            </span>
-            <h3 className="text-sm font-bold">أعضاء اللجنة</h3>
-            {members.length > 0 && (
-              <span className="text-[11px] text-muted-foreground mr-auto">
-                {members.length} {members.length === 1 ? "عضو" : "أعضاء"}
-              </span>
-            )}
-          </div>
-
-          {members.length === 0 ? (
-            <p className="text-xs text-muted-foreground">لم يُسجَّل أعضاء بعد.</p>
-          ) : (
-            <div className="space-y-3">
-              {head && (
-                <div className="rounded-xl border border-gold/30 bg-gold/5 p-3 flex items-center gap-3">
-                  <span className="h-10 w-10 rounded-full bg-gradient-gold text-gold-foreground flex items-center justify-center shrink-0">
-                    <Crown className="h-4 w-4" />
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <p className="text-sm font-bold truncate">{head.full_name}</p>
-                      <span className="text-[10px] font-bold bg-gold/20 text-gold-foreground rounded-full px-2 py-0.5">
-                        رئيس اللجنة
-                      </span>
-                    </div>
-                    {(head.role_title || head.specialty) && (
-                      <p className="text-[11px] text-muted-foreground mt-0.5 truncate">
-                        {[head.role_title, head.specialty].filter(Boolean).join(" · ")}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              )}
-              {others.length > 0 && (
-                <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                  {others.map((m) => (
-                    <li key={m.id} className="rounded-lg border bg-card p-2.5 flex items-center gap-2.5">
-                      <span className="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold shrink-0">
-                        {initials(m.full_name)}
-                      </span>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-semibold truncate">{m.full_name}</p>
-                        {(m.role_title || m.specialty) && (
-                          <p className="text-[10px] text-muted-foreground truncate">
-                            {[m.role_title, m.specialty].filter(Boolean).join(" · ")}
-                          </p>
-                        )}
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          )}
-        </div>
-
         {/* Tasks placeholder note */}
         <div className="flex items-start gap-2 text-xs text-muted-foreground">
           <ListChecks className="h-4 w-4 mt-0.5 shrink-0" />
@@ -457,11 +394,4 @@ function InfoCard({
       {children}
     </div>
   );
-}
-
-function initials(name: string): string {
-  const parts = name.trim().split(/\s+/);
-  if (parts.length === 0) return "؟";
-  if (parts.length === 1) return parts[0].slice(0, 2);
-  return (parts[0][0] ?? "") + (parts[1][0] ?? "");
 }
