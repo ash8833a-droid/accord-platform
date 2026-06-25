@@ -70,7 +70,7 @@ function PublicHome() {
   const fmtSAR = (n: number) => `\u2066${fmt(n)}\u2069\u00A0ر.س`;
 
   const staticStats = {
-    grooms: 57,
+    grooms: 114,
     avgContribution: 300,
     weddings: 12,
   };
