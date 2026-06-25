@@ -5,7 +5,6 @@ import { Logo } from "@/components/Logo";
 import heroLogo from "@/assets/logo.png";
 import {
   HeartHandshake,
-  Users,
   Wallet,
   CalendarRange,
   Sparkles,
@@ -42,13 +41,6 @@ export const Route = createFileRoute("/")({
 
 function PublicHome() {
   const [s, setS] = useState({
-    grooms: 0,
-    historicalShareholders: 0,
-    historicalAmount: 0,
-    historicalYears: 0,
-    firstYear: 0,
-    confirmedSubs: 0,
-    confirmedAmount: 0,
     committees: 0,
     branches: 0,
   });
@@ -60,16 +52,6 @@ function PublicHome() {
       const { data } = await supabase.rpc("get_public_stats");
       const d = (data ?? {}) as Record<string, number>;
       setS({
-        grooms: Number(d.grooms ?? 0),
-        historicalShareholders: Number(d.historical_shareholders ?? 0),
-        historicalAmount: Number(d.historical_amount ?? 0),
-        historicalYears: Math.max(
-          Number(d.historical_years ?? 0),
-          new Date().getFullYear() - 622 + 1 - 1434 + 1,
-        ),
-        firstYear: Math.min(1434, Number(d.first_year ?? 1434) || 1434),
-        confirmedSubs: Number(d.confirmed_subs ?? 0),
-        confirmedAmount: Number(d.confirmed_amount ?? 0),
         committees: Number(d.committees ?? 0),
         branches: Number(d.historical_branches ?? 0),
       });
@@ -87,11 +69,12 @@ function PublicHome() {
   const fmt = (n: number) => new Intl.NumberFormat("ar-SA").format(n);
   // Format currency with bidi isolation so digits + "ر.س" render correctly in RTL
   const fmtSAR = (n: number) => `\u2066${fmt(n)}\u2069\u00A0ر.س`;
-  const totalContributors = s.historicalShareholders + s.confirmedSubs;
-  const totalAmount = s.historicalAmount + s.confirmedAmount;
-  const avgContribution = totalContributors
-    ? Math.round(totalAmount / totalContributors)
-    : 0;
+
+  const staticStats = {
+    grooms: 57,
+    avgContribution: 300,
+    weddings: 12,
+  };
 
   return (
     <div className="min-h-screen bg-background" dir="rtl">
@@ -265,7 +248,7 @@ function PublicHome() {
         </div>
       </section>
 
-      {/* Unified KPIs section — single heading, all live platform metrics */}
+      {/* Unified KPIs section — single heading, live + static platform metrics */}
       <section className="relative overflow-hidden max-w-7xl mx-auto px-4 lg:px-8 mt-10 lg:mt-14 pb-10">
         <div className="absolute -top-10 right-1/4 w-[360px] h-[360px] rounded-full bg-gold/8 blur-3xl pointer-events-none" />
         <div className="absolute -bottom-10 left-1/4 w-[360px] h-[360px] rounded-full bg-primary/8 blur-3xl pointer-events-none" />
@@ -290,24 +273,15 @@ function PublicHome() {
           <TrendingUp className="hidden md:block h-8 w-8 text-gold" />
         </div>
 
-        <div className="relative grid grid-cols-1 sm:grid-cols-3 gap-4 lg:gap-5 mb-4">
+        <div className="relative grid grid-cols-1 sm:grid-cols-2 gap-4 lg:gap-5 mb-4">
           <HeroKpi
             label="إجمالي العرسان"
-            value={fmt(s.grooms)}
+            value={fmt(staticStats.grooms)}
             hint="منذ انطلاق البرنامج"
             icon={HeartHandshake}
             tone="gold"
             loading={!loaded}
             delay="0s"
-          />
-          <HeroKpi
-            label="المساهمون عبر السنين"
-            value={fmt(totalContributors)}
-            hint={s.firstYear ? `منذ عام ${s.firstYear}هـ` : "سجلّ تاريخي"}
-            icon={Users}
-            tone="teal"
-            loading={!loaded}
-            delay="0.1s"
           />
           <Link to="/committees" className="block">
             <HeroKpi
@@ -317,17 +291,17 @@ function PublicHome() {
               icon={Building2}
               tone="teal"
               loading={!loaded}
-              delay="0.3s"
+              delay="0.1s"
             />
           </Link>
         </div>
 
-        <div className="relative grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="relative grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <DetailCard
             icon={CalendarRange}
-            label="سنوات هجرية موثّقة"
-            value={fmt(s.historicalYears)}
-            sub={s.firstYear ? `بدأت من عام ${s.firstYear}هـ` : "سجلٌّ ينمو"}
+            label="حفلات الزواج الجماعي"
+            value={fmt(staticStats.weddings)}
+            sub="وصلنا اليوم إلى 12 حفل زواجٍ جماعي"
           />
           <DetailCard
             icon={GitBranch}
@@ -338,14 +312,8 @@ function PublicHome() {
           <DetailCard
             icon={HandHeart}
             label="متوسط المساهمة"
-            value={fmtSAR(avgContribution)}
+            value={fmtSAR(staticStats.avgContribution)}
             sub="لكلِّ مساهمٍ عبر السنين"
-          />
-          <DetailCard
-            icon={Sparkles}
-            label="نبضُ هذا العام"
-            value={fmt(s.confirmedSubs)}
-            sub={`مساهمٌ جديدٌ بقيمة ${fmtSAR(s.confirmedAmount)}`}
           />
         </div>
       </section>
