@@ -219,7 +219,7 @@ function PublicHome() {
             </div>
 
             <h1 className="font-extrabold leading-[1.35] tracking-tight text-2xl sm:text-3xl lg:text-[2.4rem] text-foreground mb-6">
-              حيثُ تَلتقي <span className="text-primary">الهِمَمُ</span>
+              حيثُ تَلتقي <span className="text-primary">الهِمَمُ</span>{" "}
               <br className="hidden sm:block" />
               ويَكتمِلُ <span className="text-gold">الفَرَح</span>
             </h1>
