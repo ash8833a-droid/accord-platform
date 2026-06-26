@@ -347,6 +347,13 @@ function UsersPage() {
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/30">
+                  <TableHead className="text-center w-10">
+                    <Checkbox
+                      checked={allVisibleSelected}
+                      onCheckedChange={toggleSelectAll}
+                      aria-label="اختيار الكل المعروض"
+                    />
+                  </TableHead>
                   <TableHead className="text-right">الاسم</TableHead>
                   <TableHead className="text-right">الجوال</TableHead>
                   <TableHead className="text-right">المنصب</TableHead>
