@@ -8,6 +8,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Input } from "@/components/ui/input";
 import { Check, ChevronsUpDown, Crown, Loader2, Pencil, Plus, Printer, Save, Trash2, UserPlus, UserX, Users, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { exportCommitteeMembersPDF } from "@/lib/users-export";
 import { toast } from "sonner";
 
 interface Committee {
