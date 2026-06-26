@@ -132,6 +132,26 @@ function UsersPage() {
     return true;
   });
 
+  const selectedCount = selectedIds.size;
+  const allVisibleSelected = filtered.length > 0 && filtered.every((u) => selectedIds.has(u.user_id));
+  const toggleSelectAll = () => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (allVisibleSelected) filtered.forEach((u) => next.delete(u.user_id));
+      else filtered.forEach((u) => next.add(u.user_id));
+      return next;
+    });
+  };
+  const toggleOne = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+  const clearSelection = () => setSelectedIds(new Set());
+
   const buildExportRows = (): ExportUserRow[] => {
     const source = selectedCount > 0 ? filtered.filter((u) => selectedIds.has(u.user_id)) : filtered;
     return source.map((u) => {
