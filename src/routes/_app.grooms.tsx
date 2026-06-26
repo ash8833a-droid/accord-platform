@@ -13,6 +13,7 @@ import {
   StickyNote, IdCard, Camera, ClipboardList, Globe2, Crown, Upload, X, ImageIcon, FileImage,
   Pencil, Trash2, Share2, Copy, MessageCircle, Database, Search, Download,
   FileSpreadsheet, FileText, FileJson, Printer, Combine, Sparkles, ShieldCheck, CalendarPlus,
+  Columns3,
 } from "lucide-react";
 import * as XLSX from "xlsx";
 import JSZip from "jszip";
@@ -21,6 +22,8 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
   DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { GroomDetailsDialog } from "@/components/grooms/GroomDetailsDialog";
 import { useBrand, brandLogoSrc, urlToDataUri } from "@/lib/brand";
