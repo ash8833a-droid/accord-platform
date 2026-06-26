@@ -1637,38 +1637,45 @@ function GroomsDatabaseDialog({ grooms }: { grooms: Groom[] }) {
           <table className="w-full text-sm">
             <thead className="sticky top-0 bg-primary text-primary-foreground z-10">
               <tr>
-                <th className="px-3 py-2.5 text-center text-xs font-bold w-12">م</th>
-                <th className="px-3 py-2.5 text-center text-xs font-bold w-28">السنة الهجرية</th>
-                <th className="px-3 py-2.5 text-center text-xs font-bold w-28">السنة الميلادية</th>
-                <th className="px-3 py-2.5 text-right text-xs font-bold">الاسم الرباعي</th>
-                <th className="px-3 py-2.5 text-right text-xs font-bold">رقم الجوال</th>
-                <th className="px-3 py-2.5 text-right text-xs font-bold">الأسرة</th>
-                <th className="px-3 py-2.5 text-center text-xs font-bold">الحالة</th>
+                {activeCols.map((c) => (
+                  <th
+                    key={c.key}
+                    className={`px-3 py-2.5 text-xs font-bold ${c.align === "center" ? "text-center" : "text-right"} ${c.width}`}
+                  >
+                    {c.label}
+                  </th>
+                ))}
               </tr>
             </thead>
             <tbody>
               {sorted.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="text-center py-12 text-muted-foreground text-sm">
+                  <td colSpan={activeCols.length || 1} className="text-center py-12 text-muted-foreground text-sm">
                     لا توجد سجلات مطابقة
                   </td>
                 </tr>
               ) : (
                 sorted.map((r, i) => (
                   <tr key={i} className={`border-t hover:bg-primary/5 transition-colors ${i % 2 === 1 ? "bg-muted/30" : ""}`}>
-                    <td className="px-3 py-2 text-center text-muted-foreground tabular-nums">{r.seq}</td>
-                    <td className="px-3 py-2 text-center">
-                      <Badge variant="outline" className="tabular-nums border-primary/30">{r.yearH}</Badge>
-                    </td>
-                    <td className="px-3 py-2 text-center">
-                      <Badge variant="outline" className="tabular-nums">{r.yearG}</Badge>
-                    </td>
-                    <td className="px-3 py-2 font-semibold">{r.full_name}</td>
-                    <td className="px-3 py-2 tabular-nums text-muted-foreground" dir="ltr">{r.phone}</td>
-                    <td className="px-3 py-2 text-muted-foreground">{r.family_branch}</td>
-                    <td className="px-3 py-2 text-center text-xs">
-                      <span className="inline-block px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium">{r.status}</span>
-                    </td>
+                    {activeCols.map((c) => {
+                      if (c.key === "seq")
+                        return <td key={c.key} className="px-3 py-2 text-center text-muted-foreground tabular-nums">{r.seq}</td>;
+                      if (c.key === "yearH")
+                        return <td key={c.key} className="px-3 py-2 text-center"><Badge variant="outline" className="tabular-nums border-primary/30">{r.yearH}</Badge></td>;
+                      if (c.key === "yearG")
+                        return <td key={c.key} className="px-3 py-2 text-center"><Badge variant="outline" className="tabular-nums">{r.yearG}</Badge></td>;
+                      if (c.key === "full_name")
+                        return <td key={c.key} className="px-3 py-2 font-semibold">{r.full_name}</td>;
+                      if (c.key === "phone")
+                        return <td key={c.key} className="px-3 py-2 tabular-nums text-muted-foreground" dir="ltr">{r.phone}</td>;
+                      if (c.key === "family_branch")
+                        return <td key={c.key} className="px-3 py-2 text-muted-foreground">{r.family_branch}</td>;
+                      return (
+                        <td key={c.key} className="px-3 py-2 text-center text-xs">
+                          <span className="inline-block px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium">{r.status}</span>
+                        </td>
+                      );
+                    })}
                   </tr>
                 ))
               )}
