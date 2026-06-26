@@ -13,6 +13,7 @@ import {
   StickyNote, IdCard, Camera, ClipboardList, Globe2, Crown, Upload, X, ImageIcon, FileImage,
   Pencil, Trash2, Share2, Copy, MessageCircle, Database, Search, Download,
   FileSpreadsheet, FileText, FileJson, Printer, Combine, Sparkles, ShieldCheck, CalendarPlus,
+  Columns3,
 } from "lucide-react";
 import * as XLSX from "xlsx";
 import JSZip from "jszip";
@@ -21,6 +22,8 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
   DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { GroomDetailsDialog } from "@/components/grooms/GroomDetailsDialog";
 import { useBrand, brandLogoSrc, urlToDataUri } from "@/lib/brand";
@@ -1097,6 +1100,22 @@ function GroomsDatabaseDialog({ grooms }: { grooms: Groom[] }) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [yearFilter, setYearFilter] = useState<string>("all");
+  type ColKey = "seq" | "yearH" | "yearG" | "full_name" | "phone" | "family_branch" | "status";
+  const COLUMN_DEFS: { key: ColKey; label: string; width: string; pdfWidth: string; xlsxW: number; align: "center" | "right" }[] = [
+    { key: "seq",           label: "م",               width: "w-12", pdfWidth: "6%",  xlsxW: 5,  align: "center" },
+    { key: "yearH",         label: "السنة الهجرية",   width: "w-28", pdfWidth: "13%", xlsxW: 16, align: "center" },
+    { key: "yearG",         label: "السنة الميلادية", width: "w-28", pdfWidth: "13%", xlsxW: 14, align: "center" },
+    { key: "full_name",     label: "الاسم الرباعي",   width: "",     pdfWidth: "32%", xlsxW: 32, align: "right" },
+    { key: "phone",         label: "رقم الجوال",      width: "",     pdfWidth: "14%", xlsxW: 16, align: "right" },
+    { key: "family_branch", label: "الأسرة",          width: "",     pdfWidth: "14%", xlsxW: 22, align: "right" },
+    { key: "status",        label: "الحالة",          width: "",     pdfWidth: "8%",  xlsxW: 14, align: "center" },
+  ];
+  const [visibleCols, setVisibleCols] = useState<Record<ColKey, boolean>>({
+    seq: true, yearH: true, yearG: true, full_name: true, phone: true, family_branch: true, status: true,
+  });
+  const activeCols = COLUMN_DEFS.filter((c) => visibleCols[c.key]);
+  const toggleCol = (k: ColKey) => setVisibleCols((v) => ({ ...v, [k]: !v[k] }));
+  const resetCols  = () => setVisibleCols({ seq: true, yearH: true, yearG: true, full_name: true, phone: true, family_branch: true, status: true });
   const { brand } = useBrand();
   const [logoDataUri, setLogoDataUri] = useState<string>("");
   useEffect(() => {
@@ -1174,10 +1193,9 @@ function GroomsDatabaseDialog({ grooms }: { grooms: Groom[] }) {
   const hijriToday = formatHijri(now);
   const gregToday = formatGregorian(now);
 
-  const headers = ["م", "السنة الهجرية", "السنة الميلادية", "الاسم الرباعي", "رقم الجوال", "الأسرة", "الحالة"];
-
+  const headers = activeCols.map((c) => c.label);
   const dataRows = () =>
-    sorted.map((r) => [r.seq, r.yearH, r.yearG, r.full_name, r.phone, r.family_branch, r.status]);
+    sorted.map((r) => activeCols.map((c) => (r as any)[c.key]));
 
   const guard = () => {
     if (sorted.length === 0) {
@@ -1203,20 +1221,13 @@ function GroomsDatabaseDialog({ grooms }: { grooms: Groom[] }) {
 
     const ws = XLSX.utils.aoa_to_sheet(aoa);
     ws["!views"] = [{ RTL: true }];
-    ws["!cols"] = [
-      { wch: 5 },   // م
-      { wch: 16 },  // هجري
-      { wch: 14 },  // ميلادي
-      { wch: 32 },  // الاسم
-      { wch: 16 },  // الجوال
-      { wch: 22 },  // الأسرة
-      { wch: 14 },  // الحالة
-    ];
+    const lastCol = Math.max(activeCols.length - 1, 0);
+    ws["!cols"] = activeCols.map((c) => ({ wch: c.xlsxW }));
     ws["!merges"] = [
-      { s: { r: 0, c: 0 }, e: { r: 0, c: 6 } },
-      { s: { r: 1, c: 0 }, e: { r: 1, c: 6 } },
-      { s: { r: 2, c: 0 }, e: { r: 2, c: 6 } },
-      { s: { r: 3, c: 0 }, e: { r: 3, c: 6 } },
+      { s: { r: 0, c: 0 }, e: { r: 0, c: lastCol } },
+      { s: { r: 1, c: 0 }, e: { r: 1, c: lastCol } },
+      { s: { r: 2, c: 0 }, e: { r: 2, c: lastCol } },
+      { s: { r: 3, c: 0 }, e: { r: 3, c: lastCol } },
     ];
 
     // تنسيقات (cell-by-cell — مدعومة من xlsx CE في الكتابة)
@@ -1281,16 +1292,16 @@ function GroomsDatabaseDialog({ grooms }: { grooms: Groom[] }) {
     sorted.forEach((_, rIdx) => {
       const r = 6 + rIdx;
       const isAlt = rIdx % 2 === 1;
-      headers.forEach((_, cIdx) => {
+      activeCols.forEach((col, cIdx) => {
         const addr = XLSX.utils.encode_cell({ r, c: cIdx });
-        if (cIdx === 3) setStyle(addr, isAlt ? nameCellAlt : nameCell);
+        if (col.key === "full_name") setStyle(addr, isAlt ? nameCellAlt : nameCell);
         else setStyle(addr, isAlt ? cellAlt : cellBase);
       });
     });
 
     // Freeze pane تحت الترويسة
     (ws as any)["!freeze"] = { xSplit: 0, ySplit: 6 };
-    ws["!autofilter"] = { ref: XLSX.utils.encode_range({ s: { r: 5, c: 0 }, e: { r: 5 + sorted.length, c: 6 } }) };
+    ws["!autofilter"] = { ref: XLSX.utils.encode_range({ s: { r: 5, c: 0 }, e: { r: 5 + sorted.length, c: lastCol } }) };
 
     const wb = XLSX.utils.book_new();
     (wb as any).Props = {
@@ -1467,13 +1478,7 @@ function GroomsDatabaseDialog({ grooms }: { grooms: Groom[] }) {
   <table>
     <thead>
       <tr>
-        <th style="width:6%">م</th>
-        <th style="width:13%">السنة الهجرية</th>
-        <th style="width:13%">السنة الميلادية</th>
-        <th style="width:32%">الاسم الرباعي</th>
-        <th style="width:14%">رقم الجوال</th>
-        <th style="width:14%">الأسرة</th>
-        <th style="width:8%">الحالة</th>
+        ${activeCols.map((c) => `<th style="width:${c.pdfWidth}">${escapeHtml(c.label)}</th>`).join("")}
       </tr>
     </thead>
     <tbody>
@@ -1481,13 +1486,13 @@ function GroomsDatabaseDialog({ grooms }: { grooms: Groom[] }) {
         .map(
           (r) => `
         <tr>
-          <td class="seq">${r.seq}</td>
-          <td>${escapeHtml(r.yearH)}</td>
-          <td>${escapeHtml(r.yearG)}</td>
-          <td class="name">${escapeHtml(r.full_name)}</td>
-          <td class="phone">${escapeHtml(r.phone)}</td>
-          <td>${escapeHtml(r.family_branch)}</td>
-          <td><span class="status-pill">${escapeHtml(r.status)}</span></td>
+          ${activeCols.map((c) => {
+            if (c.key === "seq") return `<td class="seq">${r.seq}</td>`;
+            if (c.key === "full_name") return `<td class="name">${escapeHtml(r.full_name)}</td>`;
+            if (c.key === "phone") return `<td class="phone">${escapeHtml(r.phone)}</td>`;
+            if (c.key === "status") return `<td><span class="status-pill">${escapeHtml(r.status)}</span></td>`;
+            return `<td>${escapeHtml(String((r as any)[c.key] ?? ""))}</td>`;
+          }).join("")}
         </tr>`,
         )
         .join("")}
@@ -1582,6 +1587,42 @@ function GroomsDatabaseDialog({ grooms }: { grooms: Groom[] }) {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="gap-2 border-primary/30">
+                  <Columns3 className="h-4 w-4" /> الأعمدة
+                  <Badge variant="secondary" className="ms-1 px-1.5 py-0 text-[10px]">
+                    {activeCols.length}/{COLUMN_DEFS.length}
+                  </Badge>
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent align="end" className="w-64 p-3" dir="rtl">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="text-sm font-bold text-primary">إخفاء/إظهار الأعمدة</div>
+                  <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={resetCols}>
+                    إعادة تعيين
+                  </Button>
+                </div>
+                <div className="space-y-1.5">
+                  {COLUMN_DEFS.map((c) => (
+                    <label
+                      key={c.key}
+                      className="flex items-center gap-2 rounded-md px-2 py-1.5 cursor-pointer hover:bg-muted/50"
+                    >
+                      <Checkbox
+                        checked={visibleCols[c.key]}
+                        onCheckedChange={() => toggleCol(c.key)}
+                      />
+                      <span className="text-sm">{c.label}</span>
+                    </label>
+                  ))}
+                </div>
+                <p className="mt-2 text-[11px] text-muted-foreground leading-relaxed">
+                  يسري الاختيار على العرض والطباعة وكل صيغ التصدير.
+                </p>
+              </PopoverContent>
+            </Popover>
           </div>
 
           <div className="flex flex-wrap gap-2 text-xs">
@@ -1596,38 +1637,45 @@ function GroomsDatabaseDialog({ grooms }: { grooms: Groom[] }) {
           <table className="w-full text-sm">
             <thead className="sticky top-0 bg-primary text-primary-foreground z-10">
               <tr>
-                <th className="px-3 py-2.5 text-center text-xs font-bold w-12">م</th>
-                <th className="px-3 py-2.5 text-center text-xs font-bold w-28">السنة الهجرية</th>
-                <th className="px-3 py-2.5 text-center text-xs font-bold w-28">السنة الميلادية</th>
-                <th className="px-3 py-2.5 text-right text-xs font-bold">الاسم الرباعي</th>
-                <th className="px-3 py-2.5 text-right text-xs font-bold">رقم الجوال</th>
-                <th className="px-3 py-2.5 text-right text-xs font-bold">الأسرة</th>
-                <th className="px-3 py-2.5 text-center text-xs font-bold">الحالة</th>
+                {activeCols.map((c) => (
+                  <th
+                    key={c.key}
+                    className={`px-3 py-2.5 text-xs font-bold ${c.align === "center" ? "text-center" : "text-right"} ${c.width}`}
+                  >
+                    {c.label}
+                  </th>
+                ))}
               </tr>
             </thead>
             <tbody>
               {sorted.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="text-center py-12 text-muted-foreground text-sm">
+                  <td colSpan={activeCols.length || 1} className="text-center py-12 text-muted-foreground text-sm">
                     لا توجد سجلات مطابقة
                   </td>
                 </tr>
               ) : (
                 sorted.map((r, i) => (
                   <tr key={i} className={`border-t hover:bg-primary/5 transition-colors ${i % 2 === 1 ? "bg-muted/30" : ""}`}>
-                    <td className="px-3 py-2 text-center text-muted-foreground tabular-nums">{r.seq}</td>
-                    <td className="px-3 py-2 text-center">
-                      <Badge variant="outline" className="tabular-nums border-primary/30">{r.yearH}</Badge>
-                    </td>
-                    <td className="px-3 py-2 text-center">
-                      <Badge variant="outline" className="tabular-nums">{r.yearG}</Badge>
-                    </td>
-                    <td className="px-3 py-2 font-semibold">{r.full_name}</td>
-                    <td className="px-3 py-2 tabular-nums text-muted-foreground" dir="ltr">{r.phone}</td>
-                    <td className="px-3 py-2 text-muted-foreground">{r.family_branch}</td>
-                    <td className="px-3 py-2 text-center text-xs">
-                      <span className="inline-block px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium">{r.status}</span>
-                    </td>
+                    {activeCols.map((c) => {
+                      if (c.key === "seq")
+                        return <td key={c.key} className="px-3 py-2 text-center text-muted-foreground tabular-nums">{r.seq}</td>;
+                      if (c.key === "yearH")
+                        return <td key={c.key} className="px-3 py-2 text-center"><Badge variant="outline" className="tabular-nums border-primary/30">{r.yearH}</Badge></td>;
+                      if (c.key === "yearG")
+                        return <td key={c.key} className="px-3 py-2 text-center"><Badge variant="outline" className="tabular-nums">{r.yearG}</Badge></td>;
+                      if (c.key === "full_name")
+                        return <td key={c.key} className="px-3 py-2 font-semibold">{r.full_name}</td>;
+                      if (c.key === "phone")
+                        return <td key={c.key} className="px-3 py-2 tabular-nums text-muted-foreground" dir="ltr">{r.phone}</td>;
+                      if (c.key === "family_branch")
+                        return <td key={c.key} className="px-3 py-2 text-muted-foreground">{r.family_branch}</td>;
+                      return (
+                        <td key={c.key} className="px-3 py-2 text-center text-xs">
+                          <span className="inline-block px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium">{r.status}</span>
+                        </td>
+                      );
+                    })}
                   </tr>
                 ))
               )}
