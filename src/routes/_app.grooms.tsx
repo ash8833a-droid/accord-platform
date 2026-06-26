@@ -1193,10 +1193,9 @@ function GroomsDatabaseDialog({ grooms }: { grooms: Groom[] }) {
   const hijriToday = formatHijri(now);
   const gregToday = formatGregorian(now);
 
-  const headers = ["م", "السنة الهجرية", "السنة الميلادية", "الاسم الرباعي", "رقم الجوال", "الأسرة", "الحالة"];
-
+  const headers = activeCols.map((c) => c.label);
   const dataRows = () =>
-    sorted.map((r) => [r.seq, r.yearH, r.yearG, r.full_name, r.phone, r.family_branch, r.status]);
+    sorted.map((r) => activeCols.map((c) => (r as any)[c.key]));
 
   const guard = () => {
     if (sorted.length === 0) {
