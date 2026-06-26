@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuLabel, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
@@ -88,6 +89,7 @@ function UsersPage() {
   const [newRole, setNewRole] = useState<string>("committee");
   const [newCommittee, setNewCommittee] = useState<string>("");
   const [busy, setBusy] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   const reload = async () => {
     setLoading(true);
@@ -96,6 +98,7 @@ function UsersPage() {
       setUsers(data as UserRow[]);
     } catch (e: any) { toast.error(e.message); }
     setLoading(false);
+    setSelectedIds(new Set());
   };
 
   useEffect(() => {
@@ -129,8 +132,9 @@ function UsersPage() {
     return true;
   });
 
-  const buildExportRows = (): ExportUserRow[] =>
-    filtered.map((u) => {
+  const buildExportRows = (): ExportUserRow[] => {
+    const source = selectedCount > 0 ? filtered.filter((u) => selectedIds.has(u.user_id)) : filtered;
+    return source.map((u) => {
       const role = u.roles[0];
       const roleKey = role?.role ?? "";
       const committee = committees.find((c) => c.id === role?.committee_id);
@@ -144,6 +148,7 @@ function UsersPage() {
         created_at: u.created_at ? new Date(u.created_at).toLocaleDateString("ar-SA") : "—",
       };
     });
+  };
 
   const fileBase = `users-${new Date().toISOString().slice(0, 10)}`;
   const handleExport = (fmt: "csv" | "xlsx" | "json" | "pdf") => {
