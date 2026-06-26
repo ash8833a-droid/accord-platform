@@ -1,4 +1,5 @@
 import * as XLSX from "xlsx";
+import { supabase } from "@/integrations/supabase/client";
 
 export interface ExportUserRow {
   full_name: string;
