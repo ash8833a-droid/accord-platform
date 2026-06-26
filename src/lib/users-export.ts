@@ -111,8 +111,8 @@ td.name { text-align:right; font-weight:600; color:#1B4F58; }
 @media print { .toolbar{ display:none; } tr{ page-break-inside:avoid; } thead{ display:table-header-group; } }
 </style></head><body>
 <div class="toolbar"><button onclick="window.print()">🖨️ طباعة / حفظ PDF</button><button class="gold" onclick="window.close()">إغلاق</button></div>
-<div class="header">
-  <div><h1>قائمة المستخدمين</h1><p>إجمالي السجلات: ${rows.length}</p></div>
+  <div class="header">
+  <div><h1>بيان بأعضاء لجنة الزواج الجماعي</h1><p>إجمالي السجلات: ${rows.length}</p></div>
   <div class="meta">${todayAr()}</div>
 </div>
 <table>
