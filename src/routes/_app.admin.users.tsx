@@ -252,7 +252,9 @@ function UsersPage() {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="min-w-48">
               <DropdownMenuLabel className="text-xs text-muted-foreground">
-                تصدير القائمة المعروضة ({filtered.length})
+                {selectedCount > 0
+                  ? `تصدير المختارين (${selectedCount})`
+                  : `تصدير القائمة المعروضة (${filtered.length})`}
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => handleExport("xlsx")} className="gap-2">
@@ -269,6 +271,11 @@ function UsersPage() {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+          {selectedCount > 0 && (
+            <Button variant="ghost" size="sm" onClick={clearSelection} className="text-muted-foreground gap-1">
+              <CheckSquare className="h-4 w-4" /> إلغاء الاختيار ({selectedCount})
+            </Button>
+          )}
           <CreateMemberDialog />
         </div>
       </div>
