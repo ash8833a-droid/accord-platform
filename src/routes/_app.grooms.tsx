@@ -1100,6 +1100,22 @@ function GroomsDatabaseDialog({ grooms }: { grooms: Groom[] }) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [yearFilter, setYearFilter] = useState<string>("all");
+  type ColKey = "seq" | "yearH" | "yearG" | "full_name" | "phone" | "family_branch" | "status";
+  const COLUMN_DEFS: { key: ColKey; label: string; width: string; pdfWidth: string; xlsxW: number; align: "center" | "right" }[] = [
+    { key: "seq",           label: "م",               width: "w-12", pdfWidth: "6%",  xlsxW: 5,  align: "center" },
+    { key: "yearH",         label: "السنة الهجرية",   width: "w-28", pdfWidth: "13%", xlsxW: 16, align: "center" },
+    { key: "yearG",         label: "السنة الميلادية", width: "w-28", pdfWidth: "13%", xlsxW: 14, align: "center" },
+    { key: "full_name",     label: "الاسم الرباعي",   width: "",     pdfWidth: "32%", xlsxW: 32, align: "right" },
+    { key: "phone",         label: "رقم الجوال",      width: "",     pdfWidth: "14%", xlsxW: 16, align: "right" },
+    { key: "family_branch", label: "الأسرة",          width: "",     pdfWidth: "14%", xlsxW: 22, align: "right" },
+    { key: "status",        label: "الحالة",          width: "",     pdfWidth: "8%",  xlsxW: 14, align: "center" },
+  ];
+  const [visibleCols, setVisibleCols] = useState<Record<ColKey, boolean>>({
+    seq: true, yearH: true, yearG: true, full_name: true, phone: true, family_branch: true, status: true,
+  });
+  const activeCols = COLUMN_DEFS.filter((c) => visibleCols[c.key]);
+  const toggleCol = (k: ColKey) => setVisibleCols((v) => ({ ...v, [k]: !v[k] }));
+  const resetCols  = () => setVisibleCols({ seq: true, yearH: true, yearG: true, full_name: true, phone: true, family_branch: true, status: true });
   const { brand } = useBrand();
   const [logoDataUri, setLogoDataUri] = useState<string>("");
   useEffect(() => {
