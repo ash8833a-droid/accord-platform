@@ -37,26 +37,14 @@ export function CommitteeHeads({ isAdmin }: { isAdmin: boolean }) {
     setLoading(true);
     const [cRes, rRes] = await Promise.all([
       supabase.from("committees").select("id,name,type,head_user_id").order("name"),
-      supabase.from("user_roles").select("user_id, committee_id, role"),
+      supabase.from("profiles").select("user_id, full_name").order("full_name"),
     ]);
     const cs = (cRes.data ?? []) as Committee[];
-    const userIds = Array.from(new Set((rRes.data ?? []).map((r) => r.user_id)));
-    let profiles: { user_id: string; full_name: string }[] = [];
-    if (userIds.length) {
-      const { data: pData } = await supabase
-        .from("profiles")
-        .select("user_id, full_name")
-        .in("user_id", userIds);
-      profiles = pData ?? [];
-    }
-    const profMap = new Map(profiles.map((p) => [p.user_id, p.full_name]));
-    const ms: Member[] = (rRes.data ?? [])
-      .filter((r) => r.role === "admin" || r.role === "committee")
-      .map((r) => ({
-        user_id: r.user_id,
-        full_name: profMap.get(r.user_id) ?? "—",
-        committee_id: r.committee_id,
-      }));
+    const ms: Member[] = (rRes.data ?? []).map((p: any) => ({
+      user_id: p.user_id,
+      full_name: p.full_name ?? "—",
+      committee_id: null,
+    }));
     setCommittees(cs);
     setMembers(ms);
     setDrafts(Object.fromEntries(cs.map((c) => [c.id, c.head_user_id ?? ""])));
@@ -67,16 +55,7 @@ export function CommitteeHeads({ isAdmin }: { isAdmin: boolean }) {
     load();
   }, []);
 
-  const candidatesFor = (committeeId: string) => {
-    // Eligible: members assigned to this committee, OR admins (no committee filter)
-    const map = new Map<string, Member>();
-    members.forEach((m) => {
-      if (m.committee_id === committeeId || m.committee_id === null) {
-        if (!map.has(m.user_id)) map.set(m.user_id, m);
-      }
-    });
-    return Array.from(map.values());
-  };
+  const candidatesFor = (_committeeId: string) => members;
 
   const save = async (c: Committee) => {
     if (!isAdmin) return;
