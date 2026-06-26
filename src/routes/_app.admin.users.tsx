@@ -9,10 +9,11 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuLabel, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
-import { Users as UsersIcon, ShieldCheck, KeyRound, Ban, CheckCircle2, Trash2, Search, Settings2, History, Crown, Mail, Pencil, Download, FileText, FileSpreadsheet, FileJson, Printer } from "lucide-react";
+import { Users as UsersIcon, ShieldCheck, KeyRound, Ban, CheckCircle2, Trash2, Search, Settings2, History, Crown, Mail, Pencil, Download, FileText, FileSpreadsheet, FileJson, Printer, CheckSquare } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
@@ -88,6 +89,7 @@ function UsersPage() {
   const [newRole, setNewRole] = useState<string>("committee");
   const [newCommittee, setNewCommittee] = useState<string>("");
   const [busy, setBusy] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   const reload = async () => {
     setLoading(true);
@@ -96,6 +98,7 @@ function UsersPage() {
       setUsers(data as UserRow[]);
     } catch (e: any) { toast.error(e.message); }
     setLoading(false);
+    setSelectedIds(new Set());
   };
 
   useEffect(() => {
@@ -129,8 +132,29 @@ function UsersPage() {
     return true;
   });
 
-  const buildExportRows = (): ExportUserRow[] =>
-    filtered.map((u) => {
+  const selectedCount = selectedIds.size;
+  const allVisibleSelected = filtered.length > 0 && filtered.every((u) => selectedIds.has(u.user_id));
+  const toggleSelectAll = () => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (allVisibleSelected) filtered.forEach((u) => next.delete(u.user_id));
+      else filtered.forEach((u) => next.add(u.user_id));
+      return next;
+    });
+  };
+  const toggleOne = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+  const clearSelection = () => setSelectedIds(new Set());
+
+  const buildExportRows = (): ExportUserRow[] => {
+    const source = selectedCount > 0 ? filtered.filter((u) => selectedIds.has(u.user_id)) : filtered;
+    return source.map((u) => {
       const role = u.roles[0];
       const roleKey = role?.role ?? "";
       const committee = committees.find((c) => c.id === role?.committee_id);
@@ -144,6 +168,7 @@ function UsersPage() {
         created_at: u.created_at ? new Date(u.created_at).toLocaleDateString("ar-SA") : "—",
       };
     });
+  };
 
   const fileBase = `users-${new Date().toISOString().slice(0, 10)}`;
   const handleExport = (fmt: "csv" | "xlsx" | "json" | "pdf") => {
@@ -227,7 +252,9 @@ function UsersPage() {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="min-w-48">
               <DropdownMenuLabel className="text-xs text-muted-foreground">
-                تصدير القائمة المعروضة ({filtered.length})
+                {selectedCount > 0
+                  ? `تصدير المختارين (${selectedCount})`
+                  : `تصدير القائمة المعروضة (${filtered.length})`}
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => handleExport("xlsx")} className="gap-2">
@@ -244,6 +271,11 @@ function UsersPage() {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+          {selectedCount > 0 && (
+            <Button variant="ghost" size="sm" onClick={clearSelection} className="text-muted-foreground gap-1">
+              <CheckSquare className="h-4 w-4" /> إلغاء الاختيار ({selectedCount})
+            </Button>
+          )}
           <CreateMemberDialog />
         </div>
       </div>
@@ -315,6 +347,13 @@ function UsersPage() {
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/30">
+                  <TableHead className="text-center w-10">
+                    <Checkbox
+                      checked={allVisibleSelected}
+                      onCheckedChange={toggleSelectAll}
+                      aria-label="اختيار الكل المعروض"
+                    />
+                  </TableHead>
                   <TableHead className="text-right">الاسم</TableHead>
                   <TableHead className="text-right">الجوال</TableHead>
                   <TableHead className="text-right">المنصب</TableHead>
@@ -333,6 +372,13 @@ function UsersPage() {
                   const committee = committees.find((c) => c.id === role?.committee_id);
                   return (
                     <TableRow key={u.user_id} className={u.status.is_disabled ? "bg-destructive/5" : ""}>
+                      <TableCell className="text-center">
+                        <Checkbox
+                          checked={selectedIds.has(u.user_id)}
+                          onCheckedChange={() => toggleOne(u.user_id)}
+                          aria-label={`اختيار ${u.full_name}`}
+                        />
+                      </TableCell>
                       <TableCell className="font-semibold whitespace-nowrap">{u.full_name}</TableCell>
                       <TableCell className="text-muted-foreground" dir="ltr">{u.phone}</TableCell>
                       <TableCell className="text-muted-foreground whitespace-nowrap">{ROLE_LABELS[roleKey] ?? "—"}</TableCell>
