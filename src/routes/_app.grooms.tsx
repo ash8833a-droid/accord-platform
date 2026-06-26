@@ -1478,13 +1478,7 @@ function GroomsDatabaseDialog({ grooms }: { grooms: Groom[] }) {
   <table>
     <thead>
       <tr>
-        <th style="width:6%">م</th>
-        <th style="width:13%">السنة الهجرية</th>
-        <th style="width:13%">السنة الميلادية</th>
-        <th style="width:32%">الاسم الرباعي</th>
-        <th style="width:14%">رقم الجوال</th>
-        <th style="width:14%">الأسرة</th>
-        <th style="width:8%">الحالة</th>
+        ${activeCols.map((c) => `<th style="width:${c.pdfWidth}">${escapeHtml(c.label)}</th>`).join("")}
       </tr>
     </thead>
     <tbody>
@@ -1492,13 +1486,13 @@ function GroomsDatabaseDialog({ grooms }: { grooms: Groom[] }) {
         .map(
           (r) => `
         <tr>
-          <td class="seq">${r.seq}</td>
-          <td>${escapeHtml(r.yearH)}</td>
-          <td>${escapeHtml(r.yearG)}</td>
-          <td class="name">${escapeHtml(r.full_name)}</td>
-          <td class="phone">${escapeHtml(r.phone)}</td>
-          <td>${escapeHtml(r.family_branch)}</td>
-          <td><span class="status-pill">${escapeHtml(r.status)}</span></td>
+          ${activeCols.map((c) => {
+            if (c.key === "seq") return `<td class="seq">${r.seq}</td>`;
+            if (c.key === "full_name") return `<td class="name">${escapeHtml(r.full_name)}</td>`;
+            if (c.key === "phone") return `<td class="phone">${escapeHtml(r.phone)}</td>`;
+            if (c.key === "status") return `<td><span class="status-pill">${escapeHtml(r.status)}</span></td>`;
+            return `<td>${escapeHtml(String((r as any)[c.key] ?? ""))}</td>`;
+          }).join("")}
         </tr>`,
         )
         .join("")}
