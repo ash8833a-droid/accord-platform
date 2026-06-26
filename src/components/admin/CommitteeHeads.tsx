@@ -370,5 +370,6 @@ export function CommitteeHeads({ isAdmin }: { isAdmin: boolean }) {
         );
       })}
     </div>
+    </div>
   );
 }
