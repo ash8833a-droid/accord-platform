@@ -170,7 +170,25 @@ export function CommitteeHeads({ isAdmin }: { isAdmin: boolean }) {
     uid ? members.find((m) => m.user_id === uid)?.full_name ?? "—" : "بدون رئيس";
 
   return (
-    <div className="grid gap-4 md:grid-cols-2">
+    <div className="space-y-4">
+      <div className="flex items-center justify-end">
+        <Button
+          variant="outline"
+          size="sm"
+          className="gap-2"
+          onClick={async () => {
+            try {
+              await exportCommitteeMembersPDF();
+            } catch (e: any) {
+              toast.error("تعذّر فتح نافذة الطباعة", { description: e.message });
+            }
+          }}
+        >
+          <Printer className="h-4 w-4" />
+          طباعة بيان الأعضاء
+        </Button>
+      </div>
+      <div className="grid gap-4 md:grid-cols-2">
       {committees.map((c) => {
         const meta = COMMITTEES.find((m) => m.type === c.type);
         const Icon = meta?.icon ?? Crown;
