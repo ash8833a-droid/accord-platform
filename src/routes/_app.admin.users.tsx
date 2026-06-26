@@ -13,7 +13,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuLabel, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
-import { Users as UsersIcon, ShieldCheck, KeyRound, Ban, CheckCircle2, Trash2, Search, Settings2, History, Crown, Mail, Pencil, Download, FileText, FileSpreadsheet, FileJson, Printer } from "lucide-react";
+import { Users as UsersIcon, ShieldCheck, KeyRound, Ban, CheckCircle2, Trash2, Search, Settings2, History, Crown, Mail, Pencil, Download, FileText, FileSpreadsheet, FileJson, Printer, CheckSquare } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
