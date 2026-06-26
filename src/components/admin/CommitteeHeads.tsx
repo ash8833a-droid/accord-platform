@@ -3,14 +3,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { COMMITTEES, type CommitteeType } from "@/lib/committees";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Crown, Loader2, Save, UserX } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Check, ChevronsUpDown, Crown, Loader2, Save, UserX } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
 interface Committee {
@@ -32,6 +28,7 @@ export function CommitteeHeads({ isAdmin }: { isAdmin: boolean }) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState<string | null>(null);
   const [drafts, setDrafts] = useState<Record<string, string>>({});
+  const [openId, setOpenId] = useState<string | null>(null);
 
   const load = async () => {
     setLoading(true);
@@ -133,26 +130,48 @@ export function CommitteeHeads({ isAdmin }: { isAdmin: boolean }) {
             </div>
 
             <div className="space-y-2">
-              <Select
-                value={draft}
-                onValueChange={(v) => setDrafts((d) => ({ ...d, [c.id]: v }))}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="اختر رئيس اللجنة" />
-                </SelectTrigger>
-                <SelectContent>
-                  {candidates.length === 0 && (
-                    <div className="px-3 py-2 text-xs text-muted-foreground">
-                      لا يوجد أعضاء معينون لهذه اللجنة بعد
-                    </div>
-                  )}
-                  {candidates.map((m) => (
-                    <SelectItem key={m.user_id} value={m.user_id}>
-                      {m.full_name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Popover open={openId === c.id} onOpenChange={(o) => setOpenId(o ? c.id : null)}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    className="w-full justify-between font-normal"
+                  >
+                    <span className="truncate">
+                      {draft ? memberName(draft) : "اختر رئيس اللجنة"}
+                    </span>
+                    <ChevronsUpDown className="h-4 w-4 opacity-50 shrink-0" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="p-0 w-[--radix-popover-trigger-width]" align="start">
+                  <Command dir="rtl" filter={(value, search) => (value.includes(search) ? 1 : 0)}>
+                    <CommandInput placeholder="ابحث بالاسم..." />
+                    <CommandList>
+                      <CommandEmpty>لا توجد نتائج</CommandEmpty>
+                      <CommandGroup>
+                        {candidates.map((m) => (
+                          <CommandItem
+                            key={m.user_id}
+                            value={m.full_name}
+                            onSelect={() => {
+                              setDrafts((d) => ({ ...d, [c.id]: m.user_id }));
+                              setOpenId(null);
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "h-4 w-4 ms-1",
+                                draft === m.user_id ? "opacity-100" : "opacity-0",
+                              )}
+                            />
+                            {m.full_name}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
 
               <div className="flex gap-2">
                 <Button
