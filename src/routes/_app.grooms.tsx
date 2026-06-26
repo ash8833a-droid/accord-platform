@@ -1587,6 +1587,42 @@ function GroomsDatabaseDialog({ grooms }: { grooms: Groom[] }) {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="gap-2 border-primary/30">
+                  <Columns3 className="h-4 w-4" /> الأعمدة
+                  <Badge variant="secondary" className="ms-1 px-1.5 py-0 text-[10px]">
+                    {activeCols.length}/{COLUMN_DEFS.length}
+                  </Badge>
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent align="end" className="w-64 p-3" dir="rtl">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="text-sm font-bold text-primary">إخفاء/إظهار الأعمدة</div>
+                  <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={resetCols}>
+                    إعادة تعيين
+                  </Button>
+                </div>
+                <div className="space-y-1.5">
+                  {COLUMN_DEFS.map((c) => (
+                    <label
+                      key={c.key}
+                      className="flex items-center gap-2 rounded-md px-2 py-1.5 cursor-pointer hover:bg-muted/50"
+                    >
+                      <Checkbox
+                        checked={visibleCols[c.key]}
+                        onCheckedChange={() => toggleCol(c.key)}
+                      />
+                      <span className="text-sm">{c.label}</span>
+                    </label>
+                  ))}
+                </div>
+                <p className="mt-2 text-[11px] text-muted-foreground leading-relaxed">
+                  يسري الاختيار على العرض والطباعة وكل صيغ التصدير.
+                </p>
+              </PopoverContent>
+            </Popover>
           </div>
 
           <div className="flex flex-wrap gap-2 text-xs">
