@@ -6,8 +6,9 @@ import { Card } from "@/components/ui/card";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Input } from "@/components/ui/input";
-import { Check, ChevronsUpDown, Crown, Loader2, Pencil, Plus, Save, Trash2, UserPlus, UserX, Users, X } from "lucide-react";
+import { Check, ChevronsUpDown, Crown, Loader2, Pencil, Plus, Printer, Save, Trash2, UserPlus, UserX, Users, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { exportCommitteeMembersPDF } from "@/lib/users-export";
 import { toast } from "sonner";
 
 interface Committee {
@@ -169,7 +170,25 @@ export function CommitteeHeads({ isAdmin }: { isAdmin: boolean }) {
     uid ? members.find((m) => m.user_id === uid)?.full_name ?? "—" : "بدون رئيس";
 
   return (
-    <div className="grid gap-4 md:grid-cols-2">
+    <div className="space-y-4">
+      <div className="flex items-center justify-end">
+        <Button
+          variant="outline"
+          size="sm"
+          className="gap-2"
+          onClick={async () => {
+            try {
+              await exportCommitteeMembersPDF();
+            } catch (e: any) {
+              toast.error("تعذّر فتح نافذة الطباعة", { description: e.message });
+            }
+          }}
+        >
+          <Printer className="h-4 w-4" />
+          طباعة بيان الأعضاء
+        </Button>
+      </div>
+      <div className="grid gap-4 md:grid-cols-2">
       {committees.map((c) => {
         const meta = COMMITTEES.find((m) => m.type === c.type);
         const Icon = meta?.icon ?? Crown;
@@ -350,6 +369,7 @@ export function CommitteeHeads({ isAdmin }: { isAdmin: boolean }) {
           </Card>
         );
       })}
+    </div>
     </div>
   );
 }

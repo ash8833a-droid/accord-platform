@@ -1,4 +1,5 @@
 import * as XLSX from "xlsx";
+import { supabase } from "@/integrations/supabase/client";
 
 export interface ExportUserRow {
   full_name: string;
@@ -111,13 +112,71 @@ td.name { text-align:right; font-weight:600; color:#1B4F58; }
 @media print { .toolbar{ display:none; } tr{ page-break-inside:avoid; } thead{ display:table-header-group; } }
 </style></head><body>
 <div class="toolbar"><button onclick="window.print()">🖨️ طباعة / حفظ PDF</button><button class="gold" onclick="window.close()">إغلاق</button></div>
-<div class="header">
-  <div><h1>قائمة المستخدمين</h1><p>إجمالي السجلات: ${rows.length}</p></div>
+  <div class="header">
+  <div><h1>بيان بأعضاء لجنة الزواج الجماعي</h1><p>إجمالي السجلات: ${rows.length}</p></div>
   <div class="meta">${todayAr()}</div>
 </div>
 <table>
   <thead><tr><th>#</th><th>الاسم</th><th>الجوال</th><th>الفرع</th><th>الصلاحية</th><th>القسم</th><th>الحالة</th></tr></thead>
   <tbody>${body || `<tr><td colspan="7" style="padding:30px;color:#9CA3AF;">لا توجد سجلات</td></tr>`}</tbody>
+</table>
+<script>window.addEventListener('load',function(){setTimeout(function(){window.print();},300);});</script>
+</body></html>`;
+
+  const win = window.open("", "_blank", "width=1100,height=800");
+  if (!win) { alert("يرجى السماح بالنوافذ المنبثقة"); return; }
+  win.document.open(); win.document.write(html); win.document.close();
+}
+
+export async function exportCommitteeMembersPDF(filename = "committee-members") {
+  const { data: committees } = await supabase.from("committees").select("id,name,type").order("name");
+  const { data: members } = await supabase
+    .from("team_members")
+    .select("committee_id,full_name,role_title,phone")
+    .order("display_order", { ascending: true })
+    .order("full_name");
+
+  const rows = (members ?? []).map((m, i) => {
+    const committee = (committees ?? []).find((c) => c.id === m.committee_id);
+    return `
+      <tr>
+        <td>${i + 1}</td>
+        <td class="name">${escapeHtml(m.full_name)}</td>
+        <td>${escapeHtml(m.role_title ?? "—")}</td>
+        <td dir="ltr">${escapeHtml(m.phone ?? "—")}</td>
+        <td>${escapeHtml(committee?.name ?? "—")}</td>
+      </tr>`;
+  }).join("");
+
+  const html = `<!doctype html>
+<html lang="ar" dir="rtl"><head><meta charset="utf-8"/><title>${escapeHtml(filename)}</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+@page { size: A4; margin: 14mm 12mm; }
+body { font-family: 'Tajawal', Arial, sans-serif; color:#1f2937; margin:0; }
+.header { background: linear-gradient(135deg,#1B4F58,#0f3338); color:#fff; padding:18px 22px; border-radius:14px; margin-bottom:16px; display:flex; justify-content:space-between; align-items:center; }
+.header h1 { margin:0; font-size:18pt; font-weight:800; }
+.header p { margin:4px 0 0; font-size:10pt; opacity:.85; }
+.meta { font-size:9pt; color:#C4A25C; text-align:left; }
+table { width:100%; border-collapse: separate; border-spacing:0; font-size:10pt; }
+thead th { background:#1B4F58; color:#fff; padding:9px 6px; text-align:center; font-weight:700; }
+thead th:first-child{ border-radius:0 8px 8px 0;} thead th:last-child{ border-radius:8px 0 0 8px;}
+tbody td { padding:7px 6px; text-align:center; border-bottom:1px solid #F1E9D6; }
+tbody tr:nth-child(even) td { background:#FBF7EE; }
+td.name { text-align:right; font-weight:600; color:#1B4F58; }
+.toolbar{ position:fixed; top:12px; left:12px; display:flex; gap:8px; }
+.toolbar button{ background:#1B4F58; color:#fff; border:0; padding:9px 16px; border-radius:8px; font-family:inherit; font-weight:700; cursor:pointer; }
+.toolbar button.gold{ background:#C4A25C; color:#1B4F58; }
+@media print { .toolbar{ display:none; } tr{ page-break-inside:avoid; } thead{ display:table-header-group; } }
+</style></head><body>
+<div class="toolbar"><button onclick="window.print()">🖨️ طباعة / حفظ PDF</button><button class="gold" onclick="window.close()">إغلاق</button></div>
+<div class="header">
+  <div><h1>بيان بأعضاء لجنة الزواج الجماعي</h1><p>إجمالي الأعضاء: ${members?.length ?? 0}</p></div>
+  <div class="meta">${todayAr()}</div>
+</div>
+<table>
+  <thead><tr><th>#</th><th>الاسم</th><th>المنصب</th><th>الجوال</th><th>اللجنة</th></tr></thead>
+  <tbody>${rows || `<tr><td colspan="5" style="padding:30px;color:#9CA3AF;">لا توجد سجلات</td></tr>`}</tbody>
 </table>
 <script>window.addEventListener('load',function(){setTimeout(function(){window.print();},300);});</script>
 </body></html>`;
