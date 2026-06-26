@@ -372,6 +372,13 @@ function UsersPage() {
                   const committee = committees.find((c) => c.id === role?.committee_id);
                   return (
                     <TableRow key={u.user_id} className={u.status.is_disabled ? "bg-destructive/5" : ""}>
+                      <TableCell className="text-center">
+                        <Checkbox
+                          checked={selectedIds.has(u.user_id)}
+                          onCheckedChange={() => toggleOne(u.user_id)}
+                          aria-label={`اختيار ${u.full_name}`}
+                        />
+                      </TableCell>
                       <TableCell className="font-semibold whitespace-nowrap">{u.full_name}</TableCell>
                       <TableCell className="text-muted-foreground" dir="ltr">{u.phone}</TableCell>
                       <TableCell className="text-muted-foreground whitespace-nowrap">{ROLE_LABELS[roleKey] ?? "—"}</TableCell>
