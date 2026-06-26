@@ -1221,20 +1221,13 @@ function GroomsDatabaseDialog({ grooms }: { grooms: Groom[] }) {
 
     const ws = XLSX.utils.aoa_to_sheet(aoa);
     ws["!views"] = [{ RTL: true }];
-    ws["!cols"] = [
-      { wch: 5 },   // م
-      { wch: 16 },  // هجري
-      { wch: 14 },  // ميلادي
-      { wch: 32 },  // الاسم
-      { wch: 16 },  // الجوال
-      { wch: 22 },  // الأسرة
-      { wch: 14 },  // الحالة
-    ];
+    const lastCol = Math.max(activeCols.length - 1, 0);
+    ws["!cols"] = activeCols.map((c) => ({ wch: c.xlsxW }));
     ws["!merges"] = [
-      { s: { r: 0, c: 0 }, e: { r: 0, c: 6 } },
-      { s: { r: 1, c: 0 }, e: { r: 1, c: 6 } },
-      { s: { r: 2, c: 0 }, e: { r: 2, c: 6 } },
-      { s: { r: 3, c: 0 }, e: { r: 3, c: 6 } },
+      { s: { r: 0, c: 0 }, e: { r: 0, c: lastCol } },
+      { s: { r: 1, c: 0 }, e: { r: 1, c: lastCol } },
+      { s: { r: 2, c: 0 }, e: { r: 2, c: lastCol } },
+      { s: { r: 3, c: 0 }, e: { r: 3, c: lastCol } },
     ];
 
     // تنسيقات (cell-by-cell — مدعومة من xlsx CE في الكتابة)
@@ -1299,16 +1292,16 @@ function GroomsDatabaseDialog({ grooms }: { grooms: Groom[] }) {
     sorted.forEach((_, rIdx) => {
       const r = 6 + rIdx;
       const isAlt = rIdx % 2 === 1;
-      headers.forEach((_, cIdx) => {
+      activeCols.forEach((col, cIdx) => {
         const addr = XLSX.utils.encode_cell({ r, c: cIdx });
-        if (cIdx === 3) setStyle(addr, isAlt ? nameCellAlt : nameCell);
+        if (col.key === "full_name") setStyle(addr, isAlt ? nameCellAlt : nameCell);
         else setStyle(addr, isAlt ? cellAlt : cellBase);
       });
     });
 
     // Freeze pane تحت الترويسة
     (ws as any)["!freeze"] = { xSplit: 0, ySplit: 6 };
-    ws["!autofilter"] = { ref: XLSX.utils.encode_range({ s: { r: 5, c: 0 }, e: { r: 5 + sorted.length, c: 6 } }) };
+    ws["!autofilter"] = { ref: XLSX.utils.encode_range({ s: { r: 5, c: 0 }, e: { r: 5 + sorted.length, c: lastCol } }) };
 
     const wb = XLSX.utils.book_new();
     (wb as any).Props = {
