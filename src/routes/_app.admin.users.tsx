@@ -11,7 +11,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Users as UsersIcon, ShieldCheck, KeyRound, Ban, CheckCircle2, Trash2, Search, Settings2, History, Crown, Mail, Pencil } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuLabel, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
+import { Users as UsersIcon, ShieldCheck, KeyRound, Ban, CheckCircle2, Trash2, Search, Settings2, History, Crown, Mail, Pencil, Download, FileText, FileSpreadsheet, FileJson, Printer } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
@@ -19,6 +20,7 @@ import { useAuth } from "@/lib/auth";
 import { CreateMemberDialog } from "@/components/admin/CreateMemberDialog";
 import { UserPermissionsPanel } from "@/components/admin/UserPermissionsPanel";
 import { CommitteeHeads } from "@/components/admin/CommitteeHeads";
+import { exportUsersCSV, exportUsersXLSX, exportUsersJSON, exportUsersPDF, type ExportUserRow } from "@/lib/users-export";
 
 function StatBox({ icon, label, value, tone }: { icon: React.ReactNode; label: string; value: number; tone: "primary" | "gold" | "muted" }) {
   const toneClass =
@@ -127,6 +129,35 @@ function UsersPage() {
     return true;
   });
 
+  const buildExportRows = (): ExportUserRow[] =>
+    filtered.map((u) => {
+      const role = u.roles[0];
+      const roleKey = role?.role ?? "";
+      const committee = committees.find((c) => c.id === role?.committee_id);
+      return {
+        full_name: u.full_name,
+        phone: u.phone,
+        family_branch: u.family_branch,
+        role_label: ROLE_LABELS[roleKey] ?? "—",
+        committee_name: committee?.name ?? "—",
+        status: u.status.is_disabled ? "معطّل" : "مفعّل",
+        created_at: u.created_at ? new Date(u.created_at).toLocaleDateString("ar-SA") : "—",
+      };
+    });
+
+  const fileBase = `users-${new Date().toISOString().slice(0, 10)}`;
+  const handleExport = (fmt: "csv" | "xlsx" | "json" | "pdf") => {
+    const rows = buildExportRows();
+    if (rows.length === 0) return toast.error("لا توجد سجلات للتصدير");
+    try {
+      if (fmt === "csv") exportUsersCSV(rows, fileBase);
+      else if (fmt === "xlsx") exportUsersXLSX(rows, fileBase);
+      else if (fmt === "json") exportUsersJSON(rows, fileBase);
+      else exportUsersPDF(rows, fileBase);
+      toast.success(`تم تصدير ${rows.length} سجل`);
+    } catch (e: any) { toast.error(e.message); }
+  };
+
   const handleToggle = async (u: UserRow) => {
     setBusy(true);
     try {
@@ -188,6 +219,31 @@ function UsersPage() {
           <Button asChild variant="outline" className="gap-2">
             <Link to="/communications"><Mail className="h-4 w-4" /> سجل المراسلات</Link>
           </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="gap-2">
+                <Download className="h-4 w-4" /> تصدير
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="min-w-48">
+              <DropdownMenuLabel className="text-xs text-muted-foreground">
+                تصدير القائمة المعروضة ({filtered.length})
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => handleExport("xlsx")} className="gap-2">
+                <FileSpreadsheet className="h-4 w-4 text-emerald-600" /> Excel (.xlsx)
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleExport("csv")} className="gap-2">
+                <FileText className="h-4 w-4 text-sky-600" /> CSV (.csv)
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleExport("pdf")} className="gap-2">
+                <Printer className="h-4 w-4 text-rose-600" /> PDF / طباعة
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleExport("json")} className="gap-2">
+                <FileJson className="h-4 w-4 text-amber-600" /> JSON (.json)
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <CreateMemberDialog />
         </div>
       </div>
