@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Input } from "@/components/ui/input";
-import { Check, ChevronsUpDown, Crown, Loader2, Pencil, Plus, Save, Trash2, UserPlus, UserX, Users, X } from "lucide-react";
+import { Check, ChevronsUpDown, Crown, Loader2, Pencil, Plus, Printer, Save, Trash2, UserPlus, UserX, Users, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
