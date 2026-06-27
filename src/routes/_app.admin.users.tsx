@@ -20,7 +20,6 @@ import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
 import { CreateMemberDialog } from "@/components/admin/CreateMemberDialog";
 import { UserPermissionsPanel } from "@/components/admin/UserPermissionsPanel";
-import { CommitteeHeads } from "@/components/admin/CommitteeHeads";
 import { exportUsersCSV, exportUsersXLSX, exportUsersJSON, exportUsersPDF, type ExportUserRow } from "@/lib/users-export";
 
 function StatBox({ icon, label, value, tone }: { icon: React.ReactNode; label: string; value: number; tone: "primary" | "gold" | "muted" }) {
@@ -287,18 +286,6 @@ function UsersPage() {
         <StatBox icon={<ShieldCheck className="h-5 w-5" />} label="مدراء" value={users.filter((u) => u.roles.some((r) => r.role === "admin" || r.role === "committee_head")).length} tone="muted" />
       </div>
 
-      {/* Committee Heads */}
-      <Card>
-        <CardHeader className="border-b">
-          <CardTitle className="text-lg flex items-center gap-2">
-            <Crown className="h-5 w-5 text-amber-500" />
-            رؤساء اللجان
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-4 sm:p-6">
-          <CommitteeHeads isAdmin={hasRole("admin")} />
-        </CardContent>
-      </Card>
 
       {/* Table */}
       <Card className="overflow-hidden">
