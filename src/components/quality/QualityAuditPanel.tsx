@@ -456,7 +456,7 @@ function buildReportHTML(c: CommitteeRow, tasks: RawTask[]): string {
     content: ""; position: absolute; inset: 0;
     background: radial-gradient(circle at 90% 10%, rgba(233,203,126,.25), transparent 50%);
   }
-  .topbar img { height: 64px; width: 64px; background: #fff; border-radius: 12px; padding: 4px; position: relative; z-index: 1; }
+  .topbar img { height: 82px; width: 82px; background: transparent; border: 0; border-radius: 0; padding: 0; object-fit: contain; position: relative; z-index: 1; filter: drop-shadow(0 7px 12px rgba(0,0,0,.18)); }
   .topbar .ti { position: relative; z-index: 1; flex: 1; }
   .topbar h1 { font-size: 20px; margin: 0 0 4px 0; font-weight: 900; letter-spacing: 0.2px; }
   .topbar .sub { font-size: 12px; opacity: .9; margin: 0; }
