@@ -552,15 +552,19 @@ function QrCard({ link }: { link: string }) {
       if (document.fonts?.load) {
         await Promise.all([
           // @ts-ignore
-          document.fonts.load("800 64px Tajawal"),
+          document.fonts.load("800 52px Tajawal"),
           // @ts-ignore
-          document.fonts.load("700 44px Tajawal"),
+          document.fonts.load("500 30px Tajawal"),
           // @ts-ignore
-          document.fonts.load("500 28px Tajawal"),
+          document.fonts.load("500 26px Tajawal"),
           // @ts-ignore
           document.fonts.load("700 72px Amiri"),
         ]);
+        // @ts-ignore
+        await document.fonts.ready;
       }
+      // small settle frame so glyphs metrics are stable
+      await new Promise((r) => requestAnimationFrame(() => r(null)));
     } catch {
       /* ignore */
     }
@@ -700,20 +704,21 @@ function QrCard({ link }: { link: string }) {
 
     // Caption
     ctx.fillStyle = BRAND_TEAL_DARK;
-    ctx.font = "700 72px 'Amiri', 'Tajawal', 'Segoe UI', serif";
-    ctx.fillText("رأيك يهمّنا", W / 2, qrY + qrSize + 130);
+    ctx.font = "700 76px 'Amiri', 'Tajawal', 'Segoe UI', serif";
+    ctx.textBaseline = "alphabetic";
+    ctx.fillText("رأيك يهمّنا", W / 2, qrY + qrSize + 140);
     ctx.fillStyle = "#5f6a73";
     ctx.font = "500 26px 'Tajawal', 'Segoe UI', Tahoma, sans-serif";
     ctx.fillText(
       "امسح الباركود للمشاركة في استبيان تقييم الزواج الجماعي",
       W / 2,
-      qrY + qrSize + 178
+      qrY + qrSize + 210
     );
 
     // Footer brand strip
     ctx.fillStyle = BRAND_GOLD;
     ctx.font = "600 18px 'Tajawal', 'Segoe UI', Tahoma, sans-serif";
-    ctx.fillText("lajnat-zawaj.org", W / 2, H - 90);
+    ctx.fillText("lajnat-zawaj.org", W / 2, H - 70);
 
     URL.revokeObjectURL(svgUrl);
     return canvas;

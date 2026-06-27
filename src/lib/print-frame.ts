@@ -8,10 +8,10 @@ function waitForFrameAssets(doc: Document): Promise<void> {
       }),
   );
 
-  const fontsReady = "fonts" in doc ? doc.fonts.ready.catch(() => undefined) : Promise.resolve();
+  const fontsReady = "fonts" in doc ? (doc as any).fonts.ready.catch(() => undefined) : Promise.resolve();
   return Promise.race([
     Promise.all([...imagePromises, fontsReady]).then(() => undefined),
-    new Promise<void>((resolve) => window.setTimeout(resolve, 1200)),
+    new Promise<void>((resolve) => window.setTimeout(resolve, 2500)),
   ]);
 }
 
@@ -46,14 +46,37 @@ export async function printHtmlDocument(html: string, title: string): Promise<vo
   doc.write(
     `<!doctype html><html dir="rtl" lang="ar"><head><meta charset="utf-8">` +
     `<title>${asciiTitle}</title>` +
+    `<meta name="viewport" content="width=device-width,initial-scale=1">` +
+    `<link rel="preconnect" href="https://fonts.googleapis.com">` +
+    `<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>` +
+    `<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Tajawal:wght@300;400;500;700;800&display=swap">` +
     `<style>
-      @page { margin: 0; }
-      html, body { margin: 0; background: #fff; }
-      body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-      .lovable-print-safe-area { padding: 12mm 10mm 14mm; box-sizing: border-box; }
+      /* Unified print setup: A4 portrait, RTL, Arabic fonts, fixed margins */
+      @page { size: A4 portrait; margin: 0; }
+      html, body {
+        margin: 0;
+        background: #fff;
+        direction: rtl;
+        font-family: 'Tajawal', 'Noto Naskh Arabic', 'Segoe UI', Tahoma, Arial, sans-serif;
+        font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
+        -webkit-font-smoothing: antialiased;
+        text-rendering: optimizeLegibility;
+        color: #1f2937;
+      }
+      body {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+        color-adjust: exact;
+      }
+      img { max-width: 100%; }
+      .lovable-print-safe-area {
+        padding: 14mm 12mm 16mm;
+        box-sizing: border-box;
+        direction: rtl;
+      }
       @media print {
         html, body { margin: 0 !important; background: #fff !important; }
-        .lovable-print-safe-area { padding: 12mm 10mm 14mm; }
+        .lovable-print-safe-area { padding: 14mm 12mm 16mm !important; }
       }
     </style>` +
     `</head><body data-doc-title="${escapeAttr(title)}"><main class="lovable-print-safe-area">${html}</main></body></html>`,
@@ -63,10 +86,10 @@ export async function printHtmlDocument(html: string, title: string): Promise<vo
 
   const finalPrintOverride = doc.createElement("style");
   finalPrintOverride.textContent = `
-    @page { margin: 0; }
+    @page { size: A4 portrait; margin: 0; }
     @media print {
       html, body { margin: 0 !important; background: #fff !important; }
-      .lovable-print-safe-area { padding: 12mm 10mm 14mm !important; }
+      .lovable-print-safe-area { padding: 14mm 12mm 16mm !important; }
     }
   `;
   doc.head.appendChild(finalPrintOverride);
