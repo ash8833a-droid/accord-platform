@@ -92,31 +92,47 @@ export function computeQrCardLayout(
     h: 12,
   };
 
-  // لوحة الباركود
-  const qrSize = 760;
+  // التعليقات أسفل الباركود
+  const captionFs = 76 * scale;
+  const subcapFs = 26 * scale;
+  const footerFs = 18 * scale;
+  const captionGap = 70;
+  const subcapGap = 24;
+  const footerBottomMargin = 50;
+
+  // ارتفاع المحتوى أسفل لوحة الباركود
+  const belowPlateH =
+    captionGap +
+    captionFs * LINE_H_RATIO +
+    subcapGap +
+    subcapFs * LINE_H_RATIO +
+    30 +
+    footerFs * LINE_H_RATIO +
+    footerBottomMargin;
+
+  // المساحة المتاحة للوحة الباركود (مع هامش 30 من الأطراف)
   const pad = 36;
-  const qrPlateY = divider.y + divider.h + 30;
+  const plateTop = divider.y + divider.h + 30;
+  const availableForPlate = H - plateTop - belowPlateH - 30;
+  const qrSize = Math.max(
+    360,
+    Math.min(760, Math.floor(availableForPlate - pad * 2)),
+  );
   const qrPlate: Rect = {
     id: "qrPlate",
     x: cx - qrSize / 2 - pad,
-    y: qrPlateY,
+    y: plateTop,
     w: qrSize + pad * 2,
     h: qrSize + pad * 2,
   };
 
-  // التعليق والسطر التحتي — مع هامش رأسي وقائي
-  const captionFs = 76 * scale;
-  const subcapFs = 26 * scale;
-  const captionGap = 70; // مسافة من حافة لوحة الباركود السفلية
-  const captionTop = qrPlate.y + qrPlate.h + captionGap;
   const caption = centeredRect(
     "caption",
     cx,
-    captionTop,
+    qrPlate.y + qrPlate.h + captionGap,
     texts.caption,
     captionFs,
   );
-  const subcapGap = 24; // مسافة وقائية بين كلمتي "رأيك يهمّنا" والسطر التحتي
   const subcaption = centeredRect(
     "subcaption",
     cx,
@@ -124,13 +140,10 @@ export function computeQrCardLayout(
     texts.subcaption,
     subcapFs,
   );
-
-  // التذييل
-  const footerFs = 18 * scale;
   const footer = centeredRect(
     "footer",
     cx,
-    H - 70 - footerFs * LINE_H_RATIO,
+    subcaption.y + subcaption.h + 30,
     texts.footer,
     footerFs,
   );
@@ -141,6 +154,7 @@ export function computeQrCardLayout(
     qrY: qrPlate.y + pad,
     qrSize,
     plate: qrPlate,
+    pad,
     rects: [logo, title, subtitle, divider, qrPlate, caption, subcaption, footer],
     fonts: {
       title: titleFs,
