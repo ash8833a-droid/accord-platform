@@ -72,9 +72,10 @@ interface Data {
   historical: { hijri_year: number; amount: number; contributor_name?: string | null }[];
   hijriYear: number;
   totalRevenue: number;
-  revenueDirect: number;
-  revenueHistoricalCurrent: number;
-  revenueHistoricalOther: number;
+  revenueGroomSubs: number;       // اشتراكات العرسان عبر المندوبين (subscriptions.confirmed)
+  revenueGroomDirect: number;     // مساهمات العرسان المباشرة (grooms.groom_contribution)
+  revenueFamilyCurrent: number;   // مساهمات الأفراد للسنة الحالية
+  revenueHistoricalCurrent: number; // مساهمات المساهمين للسنة الحالية
   totalAllocated: number;
   totalSpentPaid: number;
   totalApproved: number;
@@ -82,13 +83,33 @@ interface Data {
 }
 
 async function gather(): Promise<Data> {
-  const [{ data: coms }, { data: tasks }, { data: items }, { data: prs }, { data: contribs }, { data: hist }] = await Promise.all([
+  // Current Hijri year window for family contributions — مطابق لـ FinanceModule
+  const CURRENT_HIJRI = 1448;
+  const YEAR_START = "2026-06-16";
+  const YEAR_END = "2027-06-05";
+  const [
+    { data: coms },
+    { data: tasks },
+    { data: items },
+    { data: prs },
+    { data: contribs },
+    { data: hist },
+    { data: subs },
+    { data: grooms },
+  ] = await Promise.all([
     supabase.from("committees").select("id, name, type, description, budget_allocated, budget_spent"),
     supabase.from("committee_tasks").select("id, committee_id, title, status, due_date").order("sort_order"),
     supabase.from("budget_items").select("id, committee_id, item_name, quantity, unit_cost, total_cost").order("created_at"),
     supabase.from("payment_requests").select("id, committee_id, title, amount, status, created_at").order("created_at", { ascending: false }),
-    supabase.from("family_contributions").select("id, amount, created_at, family_branch, contributor_name").order("created_at", { ascending: false }),
+    supabase
+      .from("family_contributions")
+      .select("id, amount, created_at, family_branch, contributor_name, contribution_date")
+      .gte("contribution_date", YEAR_START)
+      .lte("contribution_date", YEAR_END)
+      .order("created_at", { ascending: false }),
     supabase.from("historical_shareholders").select("hijri_year, amount, contributor_name"),
+    supabase.from("subscriptions").select("amount, status").eq("status", "confirmed"),
+    supabase.from("grooms").select("groom_contribution"),
   ]);
 
   const tasksByCom = new Map<string, TaskRow[]>();
@@ -114,6 +135,8 @@ async function gather(): Promise<Data> {
     const meta = COMMITTEES.find((m) => m.type === c.type);
     const items = itemsByCom.get(c.id) ?? [];
     const itemsSum = items.reduce((a, x) => a + x.total_cost, 0);
+    const prsList = prsByCom.get(c.id) ?? [];
+    const paidSum = prsList.filter((p) => p.status === "paid").reduce((a, p) => a + Number(p.amount || 0), 0);
     return {
       id: c.id,
       name: c.name,
@@ -121,18 +144,22 @@ async function gather(): Promise<Data> {
       description: c.description || meta?.description,
       goals: meta?.goals ?? [],
       allocated: Math.max(Number(c.budget_allocated ?? 0), itemsSum),
-      spent: Number(c.budget_spent ?? 0),
+      // المنصرف الفعلي = أكبر من (budget_spent المخزن، إجمالي طلبات الصرف المصروفة، أو إجمالي بنود الموازنة)
+      spent: Math.max(Number(c.budget_spent ?? 0), paidSum, itemsSum),
       tasks: tasksByCom.get(c.id) ?? [],
       items,
-      paymentRequests: prsByCom.get(c.id) ?? [],
+      paymentRequests: prsList,
     };
   });
 
-  const revenueDirect = (contribs ?? []).reduce((a, c: any) => a + Number(c.amount ?? 0), 0);
-  const hijriYear = (hist ?? []).reduce<number>((m, r: any) => Math.max(m, Number(r.hijri_year ?? 0)), 1448) || 1448;
-  const revenueHistoricalCurrent = (hist ?? []).filter((r: any) => Number(r.hijri_year) === hijriYear).reduce((a, r: any) => a + Number(r.amount ?? 0), 0);
-  const revenueHistoricalOther = (hist ?? []).reduce((a, r: any) => a + Number(r.amount ?? 0), 0) - revenueHistoricalCurrent;
-  const totalRevenue = revenueDirect + revenueHistoricalCurrent + revenueHistoricalOther;
+  const hijriYear = CURRENT_HIJRI;
+  const revenueGroomSubs = (subs ?? []).reduce((a, s: any) => a + Number(s.amount ?? 0), 0);
+  const revenueGroomDirect = (grooms ?? []).reduce((a, g: any) => a + Number(g.groom_contribution ?? 0), 0);
+  const revenueFamilyCurrent = (contribs ?? []).reduce((a, c: any) => a + Number(c.amount ?? 0), 0);
+  const revenueHistoricalCurrent = (hist ?? [])
+    .filter((r: any) => Number(r.hijri_year) === hijriYear)
+    .reduce((a, r: any) => a + Number(r.amount ?? 0), 0);
+  const totalRevenue = revenueGroomSubs + revenueGroomDirect + revenueFamilyCurrent + revenueHistoricalCurrent;
 
   const totalAllocated = committees.reduce((a, c) => a + c.allocated, 0);
   const totalSpentPaid = (prs ?? []).filter((p: any) => p.status === "paid").reduce((a, p: any) => a + Number(p.amount ?? 0), 0);
@@ -145,9 +172,10 @@ async function gather(): Promise<Data> {
     historical: (hist ?? []) as any[],
     hijriYear,
     totalRevenue,
-    revenueDirect,
+    revenueGroomSubs,
+    revenueGroomDirect,
+    revenueFamilyCurrent,
     revenueHistoricalCurrent,
-    revenueHistoricalOther,
     totalAllocated,
     totalSpentPaid,
     totalApproved,
@@ -194,9 +222,10 @@ function buildCoverPage(d: Data, today: string, ref: string): string {
   const surplus = net >= 0;
   const revDonut = donutSvg(
     [
-      { value: d.revenueDirect, color: "#0D7C66" },
-      { value: d.revenueHistoricalCurrent, color: "#D4A95E" },
-      { value: d.revenueHistoricalOther, color: "#94A3B8" },
+      { value: d.revenueGroomSubs, color: "#0D7C66" },
+      { value: d.revenueGroomDirect, color: "#0B6A47" },
+      { value: d.revenueFamilyCurrent, color: "#D4A95E" },
+      { value: d.revenueHistoricalCurrent, color: "#94A3B8" },
     ],
     160, 24,
     fmt(d.totalRevenue), "إجمالي الإيرادات (ر.س)", "#0D7C66",
@@ -235,9 +264,10 @@ function buildCoverPage(d: Data, today: string, ref: string): string {
           <div class="card-body">
             ${revDonut}
             ${legend([
-              { label: "مساهمات الأفراد (مباشرة)", value: d.revenueDirect, color: "#0D7C66" },
-              { label: `مساهمات تاريخية ${d.hijriYear}هـ`, value: d.revenueHistoricalCurrent, color: "#D4A95E" },
-              { label: "مساهمات سنوات سابقة", value: d.revenueHistoricalOther, color: "#94A3B8" },
+              { label: "اشتراكات العرسان (عبر المندوبين)", value: d.revenueGroomSubs, color: "#0D7C66" },
+              { label: "مساهمات العرسان المباشرة", value: d.revenueGroomDirect, color: "#0B6A47" },
+              { label: `مساهمات الأفراد ${d.hijriYear}هـ`, value: d.revenueFamilyCurrent, color: "#D4A95E" },
+              { label: `مساهمات المساهمين ${d.hijriYear}هـ`, value: d.revenueHistoricalCurrent, color: "#94A3B8" },
             ], d.totalRevenue)}
           </div>
         </div>
@@ -429,7 +459,7 @@ function buildFinancialsPage(d: Data): string {
               <td>${esc((c.created_at ?? "").slice(0, 10))}</td>
             </tr>`).join("")}
           </tbody>
-          <tfoot><tr><th colspan="3">إجمالي المساهمات المباشرة</th><th colspan="2">${fmt(d.revenueDirect)} ر.س</th></tr></tfoot>
+          <tfoot><tr><th colspan="3">إجمالي مساهمات الأفراد ${d.hijriYear}هـ</th><th colspan="2">${fmt(d.revenueFamilyCurrent)} ر.س</th></tr></tfoot>
         </table>`}
       </div>
 
