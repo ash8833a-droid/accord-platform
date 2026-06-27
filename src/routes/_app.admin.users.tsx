@@ -20,7 +20,6 @@ import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
 import { CreateMemberDialog } from "@/components/admin/CreateMemberDialog";
 import { UserPermissionsPanel } from "@/components/admin/UserPermissionsPanel";
-import { CommitteeHeads } from "@/components/admin/CommitteeHeads";
 import { exportUsersCSV, exportUsersXLSX, exportUsersJSON, exportUsersPDF, type ExportUserRow } from "@/lib/users-export";
 
 function StatBox({ icon, label, value, tone }: { icon: React.ReactNode; label: string; value: number; tone: "primary" | "gold" | "muted" }) {
