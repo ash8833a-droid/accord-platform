@@ -222,9 +222,10 @@ function buildCoverPage(d: Data, today: string, ref: string): string {
   const surplus = net >= 0;
   const revDonut = donutSvg(
     [
-      { value: d.revenueDirect, color: "#0D7C66" },
-      { value: d.revenueHistoricalCurrent, color: "#D4A95E" },
-      { value: d.revenueHistoricalOther, color: "#94A3B8" },
+      { value: d.revenueGroomSubs, color: "#0D7C66" },
+      { value: d.revenueGroomDirect, color: "#0B6A47" },
+      { value: d.revenueFamilyCurrent, color: "#D4A95E" },
+      { value: d.revenueHistoricalCurrent, color: "#94A3B8" },
     ],
     160, 24,
     fmt(d.totalRevenue), "إجمالي الإيرادات (ر.س)", "#0D7C66",
@@ -263,9 +264,10 @@ function buildCoverPage(d: Data, today: string, ref: string): string {
           <div class="card-body">
             ${revDonut}
             ${legend([
-              { label: "مساهمات الأفراد (مباشرة)", value: d.revenueDirect, color: "#0D7C66" },
-              { label: `مساهمات تاريخية ${d.hijriYear}هـ`, value: d.revenueHistoricalCurrent, color: "#D4A95E" },
-              { label: "مساهمات سنوات سابقة", value: d.revenueHistoricalOther, color: "#94A3B8" },
+              { label: "اشتراكات العرسان (عبر المندوبين)", value: d.revenueGroomSubs, color: "#0D7C66" },
+              { label: "مساهمات العرسان المباشرة", value: d.revenueGroomDirect, color: "#0B6A47" },
+              { label: `مساهمات الأفراد ${d.hijriYear}هـ`, value: d.revenueFamilyCurrent, color: "#D4A95E" },
+              { label: `مساهمات المساهمين ${d.hijriYear}هـ`, value: d.revenueHistoricalCurrent, color: "#94A3B8" },
             ], d.totalRevenue)}
           </div>
         </div>
@@ -457,7 +459,7 @@ function buildFinancialsPage(d: Data): string {
               <td>${esc((c.created_at ?? "").slice(0, 10))}</td>
             </tr>`).join("")}
           </tbody>
-          <tfoot><tr><th colspan="3">إجمالي المساهمات المباشرة</th><th colspan="2">${fmt(d.revenueDirect)} ر.س</th></tr></tfoot>
+          <tfoot><tr><th colspan="3">إجمالي مساهمات الأفراد ${d.hijriYear}هـ</th><th colspan="2">${fmt(d.revenueFamilyCurrent)} ر.س</th></tr></tfoot>
         </table>`}
       </div>
 
