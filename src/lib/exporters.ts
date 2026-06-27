@@ -294,7 +294,6 @@ export function exportRequestsPDF(
   </div>
 
   <div class="header">
-    <div class="header-pattern"></div>
     <div class="h-row">
       <div class="brand">
         <div class="logo-img"><img id="brand-logo" src="${exportLogoSrc}" alt="${escapeHtml(exportBrand.name)}"/></div>
