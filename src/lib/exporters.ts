@@ -184,44 +184,26 @@ export function exportRequestsPDF(
     color: #1f2937; margin: 0; padding: 0;
     -webkit-print-color-adjust: exact; print-color-adjust: exact;
   }
-  /* Decorative pattern background */
-  body::before {
-    content: ""; position: fixed; inset: 0; z-index: -1; opacity: 0.08;
-    background-image:
-      radial-gradient(circle at 20% 20%, #C4A25C 1.5px, transparent 2px),
-      radial-gradient(circle at 80% 60%, #1B4F58 1.5px, transparent 2px),
-      radial-gradient(circle at 50% 90%, #C4A25C 1px, transparent 2px);
-    background-size: 40px 40px, 60px 60px, 35px 35px;
-  }
+  body { background: #ffffff; }
   .header {
-    position: relative; overflow: hidden; border-radius: 18px;
-    background: linear-gradient(135deg, ${exportBrand.primary_color} 0%, ${shade(exportBrand.primary_color, 0.15)} 50%, ${exportBrand.primary_color} 100%);
-    color: #fff; padding: 22px 26px; margin-bottom: 18px;
-    box-shadow: 0 10px 30px -10px ${hexToRgba(exportBrand.primary_color, 0.4)};
+    position: relative; padding: 6px 0 18px; margin-bottom: 18px;
+    border-bottom: 2px solid ${exportBrand.primary_color};
   }
   .header::after {
-    content: ""; position: absolute; left: -40px; top: -40px; width: 200px; height: 200px;
-    background: radial-gradient(circle, ${hexToRgba(exportBrand.gold_color, 0.35)}, transparent 70%);
-    border-radius: 50%;
+    content: ""; position: absolute; left: 0; right: 0; bottom: -5px; height: 2px;
+    background: ${exportBrand.gold_color};
   }
-  .header-pattern {
-    position: absolute; inset: 0; opacity: 0.12;
-    background-image:
-      repeating-linear-gradient(45deg, ${exportBrand.gold_color} 0 1px, transparent 1px 14px),
-      repeating-linear-gradient(-45deg, ${exportBrand.gold_color} 0 1px, transparent 1px 14px);
+  .h-row { display: flex; justify-content: space-between; align-items: center; gap: 20px; }
+  .brand { display: flex; align-items: center; gap: 18px; }
+  .logo-img { width: 96px; height: 96px; background: transparent; }
+  .logo-img img { width: 100%; height: 100%; display: block; object-fit: contain; background: transparent; }
+  .brand h1 { margin: 0; font-size: 20pt; font-weight: 900; color: ${exportBrand.primary_color}; letter-spacing: 0.2px; }
+  .brand p  { margin: 4px 0 0; font-size: 10.5pt; color: #475569; font-weight: 500; }
+  .h-meta {
+    text-align: left; font-size: 9pt; color: #475569; line-height: 1.7;
+    border-right: 3px solid ${exportBrand.gold_color}; padding-right: 12px;
   }
-  .h-row { display: flex; justify-content: space-between; align-items: center; position: relative; }
-  .brand { display: flex; align-items: center; gap: 14px; }
-  .logo-img {
-    width: 82px; height: 82px;
-    background: transparent;
-    padding: 0; border: 0; box-shadow: none;
-  }
-  .logo-img img { width: 100%; height: 100%; display: block; object-fit: contain; background: transparent; filter: drop-shadow(0 7px 12px rgba(0,0,0,0.18)); }
-  .brand h1 { margin: 0; font-size: 18pt; font-weight: 900; letter-spacing: 0.3px; }
-  .brand p  { margin: 2px 0 0; font-size: 10pt; opacity: 0.85; }
-  .h-meta { text-align: left; font-size: 9pt; opacity: 0.9; line-height: 1.6; }
-  .h-meta b { display: block; font-size: 11pt; color: ${exportBrand.gold_color}; margin-bottom: 2px; }
+  .h-meta b { display: block; font-size: 10.5pt; color: ${exportBrand.primary_color}; margin-bottom: 4px; font-weight: 800; }
 
   .title-bar {
     display: flex; align-items: center; gap: 10px; margin: 14px 0 10px;
@@ -229,36 +211,30 @@ export function exportRequestsPDF(
   .title-bar .bar { width: 5px; height: 28px; background: linear-gradient(180deg, ${exportBrand.gold_color}, ${exportBrand.primary_color}); border-radius: 3px; }
   .title-bar h2 { margin: 0; font-size: 14pt; font-weight: 800; color: ${exportBrand.primary_color}; }
 
-  .cards { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 16px; }
+  .cards { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 18px; }
   .card {
-    border-radius: 12px; padding: 12px 10px; position: relative; overflow: hidden;
-    border: 1px solid #E5E7EB; background: #fff;
+    border-radius: 10px; padding: 14px 12px; background: #fff;
+    border: 1px solid #E5E7EB; border-top: 3px solid ${exportBrand.primary_color};
+    text-align: center;
   }
-  .card.teal { background: linear-gradient(135deg, ${exportBrand.primary_color} 0%, ${shade(exportBrand.primary_color, 0.15)} 100%); color: #fff; }
-  .card.gold { background: linear-gradient(135deg, ${exportBrand.gold_color} 0%, ${shade(exportBrand.gold_color, 0.18)} 100%); color: #2A1F0A; }
-  .card .label { font-size: 9pt; opacity: 0.85; margin-bottom: 6px; font-weight: 500; }
-  .card .value { font-size: 14pt; font-weight: 900; }
-  .card::after {
-    content: ""; position: absolute; left: -10px; bottom: -10px; width: 50px; height: 50px;
-    border-radius: 50%; background: rgba(255,255,255,0.12);
-  }
+  .card.gold { border-top-color: ${exportBrand.gold_color}; }
+  .card .label { font-size: 9pt; color: #64748B; margin-bottom: 6px; font-weight: 600; }
+  .card .value { font-size: 14pt; font-weight: 900; color: ${exportBrand.primary_color}; }
+  .card.gold .value { color: #8C6E2E; }
 
-  table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 9.5pt; margin-top: 6px; }
+  table { width: 100%; border-collapse: collapse; font-size: 9.5pt; margin-top: 6px; background: #fff; }
   thead th {
-    background: linear-gradient(135deg, ${exportBrand.primary_color}, ${shade(exportBrand.primary_color, 0.15)}); color: #fff;
+    background: ${exportBrand.primary_color}; color: #fff;
     padding: 10px 8px; text-align: center; font-weight: 700; font-size: 10pt;
-    border: none;
+    border: 1px solid ${exportBrand.primary_color};
   }
-  thead th:first-child { border-radius: 0 10px 10px 0; }
-  thead th:last-child  { border-radius: 10px 0 0 10px; }
   tbody td {
-    padding: 9px 8px; text-align: center; border-bottom: 1px solid #F1E9D6;
-    vertical-align: middle;
+    padding: 9px 8px; text-align: center; border: 1px solid #E5E7EB;
+    vertical-align: middle; background: #fff;
   }
-  tbody tr:nth-child(even) td { background: #FBF7EE; }
-  tbody tr:hover td { background: #F4ECD9; }
-  td.ttl { text-align: right; font-weight: 600; color: ${exportBrand.primary_color}; }
-  td.amt { font-weight: 700; color: ${exportBrand.primary_color}; font-variant-numeric: tabular-nums; }
+  tbody tr:nth-child(even) td { background: #FAFAF7; }
+  td.ttl { text-align: right; font-weight: 600; color: #1f2937; }
+  td.amt { font-weight: 800; color: ${exportBrand.primary_color}; font-variant-numeric: tabular-nums; }
 
   .footer {
     margin-top: 20px; padding-top: 12px; border-top: 2px dashed #C4A25C;
@@ -270,9 +246,8 @@ export function exportRequestsPDF(
     margin-top: 18px;
   }
   .sig-box {
-    border: 1px solid ${hexToRgba(exportBrand.gold_color, 0.45)}; border-radius: 12px; padding: 14px 16px;
-    background: linear-gradient(135deg, ${hexToRgba(exportBrand.gold_color, 0.06)}, ${hexToRgba(exportBrand.primary_color, 0.04)});
-    position: relative;
+    border: 1px solid ${hexToRgba(exportBrand.gold_color, 0.55)}; border-radius: 10px; padding: 14px 16px;
+    background: #fff; position: relative;
   }
   .sig-box .sig-label { font-size: 9pt; color: #6B7280; margin-bottom: 4px; }
   .sig-box .sig-name { font-size: 12pt; font-weight: 800; color: ${exportBrand.primary_color}; margin-bottom: 2px; }
@@ -319,7 +294,6 @@ export function exportRequestsPDF(
   </div>
 
   <div class="header">
-    <div class="header-pattern"></div>
     <div class="h-row">
       <div class="brand">
         <div class="logo-img"><img id="brand-logo" src="${exportLogoSrc}" alt="${escapeHtml(exportBrand.name)}"/></div>
