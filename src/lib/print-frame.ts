@@ -30,8 +30,17 @@ export async function printHtmlDocument(html: string, title: string): Promise<vo
     throw new Error("تعذر تجهيز نافذة الطباعة");
   }
 
+  // Keep the document title ASCII-only so browser print headers don't show
+  // URL-encoded Arabic (%D8%...). The on-page header still displays the full
+  // Arabic title visually.
+  const asciiTitle = "Report";
   doc.open();
-  doc.write(`<!doctype html><html dir="rtl" lang="ar"><head><meta charset="utf-8"><title>${title}</title></head><body>${html}</body></html>`);
+  doc.write(
+    `<!doctype html><html dir="rtl" lang="ar"><head><meta charset="utf-8">` +
+    `<title>${asciiTitle}</title>` +
+    `<style>@page { margin: 12mm 10mm; } @media print { html, body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }</style>` +
+    `</head><body data-doc-title="${title}">${html}</body></html>`,
+  );
   doc.close();
 
   await waitForFrameAssets(doc);
