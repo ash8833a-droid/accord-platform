@@ -1385,14 +1385,14 @@ function GroomsDatabaseDialog({ grooms }: { grooms: Groom[] }) {
   }
   .brand-left { display: flex; align-items: center; gap: 14px; }
   .seal {
-    width: 64px; height: 64px; border-radius: 14px;
-    background: #fff;
-    padding: 4px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.18), inset 0 0 0 2px rgba(196,162,92,0.55);
+    width: 82px; height: 82px;
+    background: transparent;
+    padding: 0;
+    box-shadow: none;
     display: flex; align-items: center; justify-content: center;
-    overflow: hidden; flex-shrink: 0;
+    overflow: visible; flex-shrink: 0;
   }
-  .seal img { width: 100%; height: 100%; object-fit: contain; display: block; }
+  .seal img { width: 100%; height: 100%; object-fit: contain; display: block; background: transparent; filter: drop-shadow(0 7px 12px rgba(0,0,0,0.18)); }
   .brand-title h1 { margin: 0; font-size: 16pt; font-weight: 800; letter-spacing: 0.2px; }
   .brand-title p { margin: 3px 0 0; font-size: 9pt; opacity: 0.92; }
   .brand-right { text-align: left; font-size: 9pt; line-height: 1.7; }
