@@ -100,7 +100,7 @@ body { font-family: 'Tajawal', Arial, sans-serif; color:#1f2937; margin:0; }
 .header { background: linear-gradient(135deg,#1B4F58,#0f3338); color:#fff; padding:18px 22px; border-radius:14px; margin-bottom:16px; display:flex; justify-content:space-between; align-items:center; }
 .header h1 { margin:0; font-size:18pt; font-weight:800; }
 .header .brand { display:flex; align-items:center; gap:14px; }
-.header .logo { width:72px; height:72px; object-fit:contain; background:transparent; border:0; padding:0; box-shadow:none; }
+.header .logo { width:82px; height:82px; object-fit:contain; background:transparent; border:0; padding:0; box-shadow:none; filter:drop-shadow(0 7px 12px rgba(0,0,0,.18)); }
 .header p { margin:4px 0 0; font-size:10pt; opacity:.85; }
 .meta { font-size:9pt; color:#C4A25C; text-align:left; }
 table { width:100%; border-collapse: separate; border-spacing:0; font-size:10pt; }
@@ -160,7 +160,7 @@ body { font-family: 'Tajawal', Arial, sans-serif; color:#1f2937; margin:0; }
 .header { background: linear-gradient(135deg,#1B4F58,#0f3338); color:#fff; padding:18px 22px; border-radius:14px; margin-bottom:16px; display:flex; justify-content:space-between; align-items:center; }
 .header h1 { margin:0; font-size:18pt; font-weight:800; }
 .header .brand { display:flex; align-items:center; gap:14px; }
-.header .logo { width:72px; height:72px; object-fit:contain; background:transparent; border:0; padding:0; box-shadow:none; }
+.header .logo { width:82px; height:82px; object-fit:contain; background:transparent; border:0; padding:0; box-shadow:none; filter:drop-shadow(0 7px 12px rgba(0,0,0,.18)); }
 .header p { margin:4px 0 0; font-size:10pt; opacity:.85; }
 .meta { font-size:9pt; color:#C4A25C; text-align:left; }
 table { width:100%; border-collapse: separate; border-spacing:0; font-size:10pt; }
