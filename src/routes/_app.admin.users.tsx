@@ -286,18 +286,6 @@ function UsersPage() {
         <StatBox icon={<ShieldCheck className="h-5 w-5" />} label="مدراء" value={users.filter((u) => u.roles.some((r) => r.role === "admin" || r.role === "committee_head")).length} tone="muted" />
       </div>
 
-      {/* Committee Heads */}
-      <Card>
-        <CardHeader className="border-b">
-          <CardTitle className="text-lg flex items-center gap-2">
-            <Crown className="h-5 w-5 text-amber-500" />
-            رؤساء اللجان
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-4 sm:p-6">
-          <CommitteeHeads isAdmin={hasRole("admin")} />
-        </CardContent>
-      </Card>
 
       {/* Table */}
       <Card className="overflow-hidden">
