@@ -636,12 +636,8 @@ function QrCard({ link }: { link: string }) {
     try {
       const canvas = await renderCanvas();
       const dataUrl = canvas.toDataURL("image/png");
-      printHtmlDocument({
-        title: "باركود استبيان الزواج الجماعي",
-        bodyHtml: `<div style="display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;">
-          <img src="${dataUrl}" style="max-width:100%;height:auto;" alt="QR" />
-        </div>`,
-      });
+      const html = `<!doctype html><html dir="rtl"><head><meta charset="utf-8"><title>باركود استبيان الزواج الجماعي</title></head><body style="margin:0;display:flex;align-items:center;justify-content:center;min-height:100vh;background:#fff;"><img src="${dataUrl}" style="max-width:100%;height:auto;" alt="QR" /></body></html>`;
+      await printHtmlDocument(html, "باركود استبيان الزواج الجماعي");
     } catch (e: any) {
       toast.error(e?.message || "تعذر الطباعة");
     }
