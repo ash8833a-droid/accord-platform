@@ -51,12 +51,13 @@ export const SHARED_PRINT_CSS = `
   @page { size: A4 portrait; margin: 14mm 12mm 16mm; }
   @media print { html, body { margin:0; background:#fff; } }
   .doc {
-    font-family: 'Noto Naskh Arabic','Segoe UI','Tahoma',sans-serif;
+    font-family: 'Tajawal','Noto Naskh Arabic','Segoe UI','Tahoma',sans-serif;
     color:${REPORT_TOKENS.SLATE_900};
     background:#fff;
     direction: rtl;
     position: relative;
     padding: 8px 4px;
+    line-height: 1.6;
   }
   .doc * { box-sizing: border-box; }
   .wm {
@@ -69,32 +70,38 @@ export const SHARED_PRINT_CSS = `
   .doc > * { position: relative; z-index: 1; }
 
   .hdr {
-    display:flex; align-items:center; gap:14px;
+    display:flex; align-items:center; gap:16px;
+    background: linear-gradient(135deg, ${REPORT_TOKENS.PRIMARY}08, transparent 70%);
     border-bottom: 2px solid ${REPORT_TOKENS.PRIMARY};
-    padding-bottom: 12px; margin-bottom: 18px;
+    border-radius: 10px 10px 0 0;
+    padding: 14px 14px 14px; margin-bottom: 18px;
   }
-  .hdr .logo { width: 58px; height: 58px; object-fit: contain; }
+  .hdr .logo { width: 64px; height: 64px; object-fit: contain;
+    background:#fff; border-radius:12px; padding:6px;
+    box-shadow: 0 2px 6px rgba(13,124,102,0.12); }
   .hdr .titles { flex:1; }
   .hdr .kicker {
-    margin:0; font-size:10px; font-weight:700; letter-spacing:1.2px;
-    color:${REPORT_TOKENS.PRIMARY}; text-transform: uppercase;
+    margin:0; font-size:10px; font-weight:700; letter-spacing:1px;
+    color:${REPORT_TOKENS.PRIMARY};
   }
-  .hdr h1 { margin:4px 0 2px; font-size:20px; font-weight:800; color:${REPORT_TOKENS.SLATE_900}; }
+  .hdr h1 { margin:6px 0 4px; font-size:21px; font-weight:800; color:${REPORT_TOKENS.PRIMARY_DARK}; letter-spacing:-0.2px; }
   .hdr .meta { margin:0; font-size:11px; color:${REPORT_TOKENS.SLATE_500}; }
   .hdr .ref {
-    text-align:left; font-size:10px; color:${REPORT_TOKENS.SLATE_700};
-    border:1px solid ${REPORT_TOKENS.SLATE_200}; border-radius:8px; padding:8px 10px;
-    background:#fff; min-width:150px;
+    text-align:center; font-size:10px; color:${REPORT_TOKENS.SLATE_700};
+    border:1px solid ${REPORT_TOKENS.PRIMARY}33; border-radius:10px; padding:9px 12px;
+    background:#fff; min-width:160px;
+    box-shadow: 0 1px 3px rgba(15,23,42,0.04);
   }
   .hdr .ref b { color:${REPORT_TOKENS.PRIMARY}; display:block; font-size:11px; margin-top:2px; }
 
   .pillar {
     background:#fff;
-    border:1px solid ${REPORT_TOKENS.SLATE_100};
+    border:1px solid ${REPORT_TOKENS.SLATE_200};
     border-right: 4px solid ${REPORT_TOKENS.PRIMARY};
     border-radius: 10px;
-    padding: 14px 16px;
-    margin: 0 0 12px;
+    padding: 16px 18px;
+    margin: 0 0 14px;
+    box-shadow: 0 1px 2px rgba(15,23,42,0.03);
     page-break-inside: avoid;
     break-inside: avoid;
   }
@@ -117,12 +124,13 @@ export const SHARED_PRINT_CSS = `
     border-radius:999px; overflow:hidden; }
   .progress > span { display:block; height:100%; background:${REPORT_TOKENS.PRIMARY}; border-radius:999px; }
 
-  table { width:100%; border-collapse: collapse; font-size:11px; }
-  thead th { background:${REPORT_TOKENS.PRIMARY}; color:#fff; padding:7px 9px;
-    border:1px solid ${REPORT_TOKENS.PRIMARY}; font-weight:700; text-align:right; }
-  tbody td { padding:6px 9px; border:1px solid ${REPORT_TOKENS.SLATE_200}; text-align:right;
+  table { width:100%; border-collapse: collapse; font-size:11px; border-radius:8px; overflow:hidden; }
+  thead th { background:${REPORT_TOKENS.PRIMARY}; color:#fff; padding:9px 10px;
+    border:1px solid ${REPORT_TOKENS.PRIMARY}; font-weight:700; text-align:right; font-size:11.5px; }
+  tbody td { padding:8px 10px; border:1px solid ${REPORT_TOKENS.SLATE_200}; text-align:right;
     color:${REPORT_TOKENS.SLATE_700}; }
-  tbody tr:nth-child(even) td { background:${REPORT_TOKENS.SLATE_100}; }
+  tbody tr:nth-child(even) td { background:#F8FAFB; }
+  tbody tr:hover td { background:${REPORT_TOKENS.PRIMARY}08; }
   tbody tr { page-break-inside: avoid; }
 
   .item-list { list-style:none; padding:0; margin:0; }
