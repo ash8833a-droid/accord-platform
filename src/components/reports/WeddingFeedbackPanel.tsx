@@ -162,8 +162,9 @@ export function WeddingFeedbackPanel() {
     }));
 
   const exportCSV = () => {
-    if (rows.length === 0) return toast.error("لا توجد بيانات للتصدير");
-    const data = buildRows();
+    const data = rows.length === 0
+      ? [{ "#": "", "التاريخ": "", "الصفة": "", "التنظيم والاستقبال": "", "الضيافة والعشاء": "", "البرامج والفقرات": "", "الانطباع العام": "", "المتوسط": "", "المقترحات": "لا توجد تقييمات بعد" }]
+      : buildRows();
     const ws = XLSX.utils.json_to_sheet(data);
     const csv = XLSX.utils.sheet_to_csv(ws);
     // BOM for Excel Arabic compatibility
@@ -173,9 +174,11 @@ export function WeddingFeedbackPanel() {
   };
 
   const exportExcel = () => {
-    if (rows.length === 0) return toast.error("لا توجد بيانات للتصدير");
     const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.json_to_sheet(buildRows());
+    const data = rows.length === 0
+      ? [{ "#": "", "التاريخ": "", "الصفة": "", "التنظيم والاستقبال": "", "الضيافة والعشاء": "", "البرامج والفقرات": "", "الانطباع العام": "", "المتوسط": "", "المقترحات": "لا توجد تقييمات بعد" }]
+      : buildRows();
+    const ws = XLSX.utils.json_to_sheet(data);
     ws["!cols"] = [
       { wch: 5 }, { wch: 14 }, { wch: 16 }, { wch: 16 },
       { wch: 16 }, { wch: 16 }, { wch: 14 }, { wch: 10 }, { wch: 60 },
@@ -200,7 +203,6 @@ export function WeddingFeedbackPanel() {
   };
 
   const exportPDF = async () => {
-    if (rows.length === 0) return toast.error("لا توجد بيانات للتصدير");
     const esc = (s: string) =>
       String(s ?? "").replace(/[&<>"']/g, (c) =>
         ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c] as string),
