@@ -76,8 +76,9 @@ export const SHARED_PRINT_CSS = `
     border-radius: 10px 10px 0 0;
     padding: 14px 14px 14px; margin-bottom: 18px;
   }
-  .hdr .logo { width: 72px; height: 72px; object-fit: contain;
-    background: transparent; border: 0; padding: 0; box-shadow: none; }
+  .hdr .logo { width: 82px; height: 82px; object-fit: contain;
+    background: transparent; border: 0; padding: 0; box-shadow: none;
+    filter: drop-shadow(0 6px 10px rgba(13,124,102,0.16)); }
   .hdr .titles { flex:1; }
   .hdr .kicker {
     margin:0; font-size:10px; font-weight:700; letter-spacing:1px;
