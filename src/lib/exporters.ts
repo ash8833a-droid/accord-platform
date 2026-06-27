@@ -213,11 +213,11 @@ export function exportRequestsPDF(
   .h-row { display: flex; justify-content: space-between; align-items: center; position: relative; }
   .brand { display: flex; align-items: center; gap: 14px; }
   .logo-img {
-    width: 72px; height: 72px;
+    width: 82px; height: 82px;
     background: transparent;
     padding: 0; border: 0; box-shadow: none;
   }
-  .logo-img img { width: 100%; height: 100%; display: block; }
+  .logo-img img { width: 100%; height: 100%; display: block; object-fit: contain; background: transparent; filter: drop-shadow(0 7px 12px rgba(0,0,0,0.18)); }
   .brand h1 { margin: 0; font-size: 18pt; font-weight: 900; letter-spacing: 0.3px; }
   .brand p  { margin: 2px 0 0; font-size: 10pt; opacity: 0.85; }
   .h-meta { text-align: left; font-size: 9pt; opacity: 0.9; line-height: 1.6; }

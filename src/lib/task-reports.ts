@@ -199,8 +199,8 @@ export function exportTasksPDF(
     background: radial-gradient(circle, ${GOLD}55, transparent 70%); border-radius: 50%; }
   .h-row { display: flex; justify-content: space-between; align-items: center; position: relative; }
   .brand { display: flex; align-items: center; gap: 14px; }
-  .logo { width: 72px; height: 72px; background: transparent; padding: 0; border: 0; box-shadow: none; }
-  .logo img { width: 100%; height: 100%; }
+  .logo { width: 82px; height: 82px; background: transparent; padding: 0; border: 0; box-shadow: none; }
+  .logo img { width: 100%; height: 100%; object-fit: contain; background: transparent; filter: drop-shadow(0 7px 12px rgba(0,0,0,0.18)); }
   .brand h1 { margin: 0; font-size: 18pt; font-weight: 900; }
   .brand p { margin: 2px 0 0; font-size: 10pt; opacity: 0.85; }
   .h-meta { text-align: left; font-size: 9pt; line-height: 1.6; }
@@ -410,8 +410,8 @@ export function exportFirstTasksPDF(
   .letterhead { display:grid; grid-template-columns: 1fr auto 1fr; align-items:center;
     gap: 18px; padding-bottom: 14px; border-bottom: 2px solid ${PRIMARY}; }
   .lh-right { display:flex; align-items:center; gap:12px; }
-  .lh-logo { width: 72px; height: 72px; flex-shrink:0; }
-  .lh-logo img { width:100%; height:100%; object-fit: contain; }
+  .lh-logo { width: 82px; height: 82px; flex-shrink:0; }
+  .lh-logo img { width:100%; height:100%; object-fit: contain; background: transparent; filter: drop-shadow(0 7px 12px rgba(0,0,0,0.18)); }
   .lh-org h1 { margin:0; font-family:'Amiri',serif; font-size: 17pt; font-weight:700; color:${PRIMARY}; letter-spacing:-0.2px; }
   .lh-org p { margin: 2px 0 0; font-size: 9pt; color:${MUTED}; }
   .lh-center { text-align:center; }

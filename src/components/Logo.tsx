@@ -3,19 +3,17 @@ import { useBrand, brandLogoSrc } from "@/lib/brand";
 export function Logo({ size = 40, withText = true }: { size?: number; withText?: boolean }) {
   const { brand } = useBrand();
   const logo = brandLogoSrc(brand);
-  // Logo is displayed cleanly without an outer ring frame (the new logo already
-  // contains the wedding rings as its core mark, so an extra ring would be redundant).
-  const displaySize = Math.round(size * 1.35);
+  const displaySize = Math.round(size * 1.55);
   return (
     <div className="flex items-center gap-3">
       <div
-        className="relative flex items-center justify-center drop-shadow-[0_2px_8px_rgba(196,162,92,0.35)]"
+        className="relative flex items-center justify-center bg-transparent drop-shadow-[0_5px_10px_rgba(0,0,0,0.16)]"
         style={{ width: displaySize, height: displaySize }}
       >
         <img
           src={logo}
           alt={brand.name}
-          className="w-full h-full object-contain"
+          className="w-full h-full object-contain bg-transparent"
         />
       </div>
       {withText && (

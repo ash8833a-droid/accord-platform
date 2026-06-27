@@ -170,10 +170,10 @@ export function exportBudgetPDF(opts: {
     border-bottom: 3px solid #1B4F58; padding-bottom: 12px; margin-bottom: 18px;
   }
   .header .logo {
-    width: 72px; height: 72px;
+    width: 82px; height: 82px;
     background: transparent; padding: 0; box-shadow: none; border: 0;
   }
-  .header .logo img { width: 100%; height: 100%; display: block; }
+  .header .logo img { width: 100%; height: 100%; display: block; object-fit: contain; background: transparent; filter: drop-shadow(0 6px 10px rgba(27,79,88,0.16)); }
   .header .titles { flex: 1; }
   .header .kicker { margin: 0; font-size: 9pt; font-weight: 700; letter-spacing: 1px; color: #C4A25C; }
   .header h1 { margin: 4px 0 2px; font-size: 18pt; font-weight: 900; color: #1B4F58; }

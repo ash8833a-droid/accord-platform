@@ -175,7 +175,7 @@ function pageCss(patternUrl: string): string {
 
     .hdr { display:flex; align-items:center; gap:14px; padding: 6px 4px 14px;
       border-bottom: 2px solid ${TEAL}; margin-bottom: 18px; }
-    .hdr .logo { width: 56px; height: 56px; object-fit: contain; }
+    .hdr .logo { width: 72px; height: 72px; object-fit: contain; background: transparent; filter: drop-shadow(0 5px 9px rgba(13,124,102,0.14)); }
     .hdr h1 { margin:0; font-size:20px; font-weight:800; color:${SLATE_900}; line-height:1.4; }
     .hdr .sub { margin:4px 0 0; font-size:11px; color:${SLATE_500}; }
     .hdr .accent { width:6px; height:46px; background:${TEAL}; border-radius:3px; }
