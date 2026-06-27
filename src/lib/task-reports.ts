@@ -199,7 +199,7 @@ export function exportTasksPDF(
     background: radial-gradient(circle, ${GOLD}55, transparent 70%); border-radius: 50%; }
   .h-row { display: flex; justify-content: space-between; align-items: center; position: relative; }
   .brand { display: flex; align-items: center; gap: 14px; }
-  .logo { width: 64px; height: 64px; border-radius: 14px; background: rgba(255,255,255,0.95); padding: 4px; }
+  .logo { width: 72px; height: 72px; background: transparent; padding: 0; border: 0; box-shadow: none; }
   .logo img { width: 100%; height: 100%; }
   .brand h1 { margin: 0; font-size: 18pt; font-weight: 900; }
   .brand p { margin: 2px 0 0; font-size: 10pt; opacity: 0.85; }
