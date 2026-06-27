@@ -461,7 +461,7 @@ export function CommitteeMinutes({ committeeId, committeeName, canManage }: Prop
     margin-bottom: 14px;
     page-break-inside: avoid;
   }
-  .brand-bar img { width: 56px; height: 56px; object-fit: contain; }
+  .brand-bar img { width: 72px; height: 72px; object-fit: contain; background: transparent; filter: drop-shadow(0 5px 9px rgba(27,79,88,0.14)); }
   .brand-bar .org-name { font-size: 13pt; color: ${TEAL}; font-weight: 800; line-height: 1.3; }
   .brand-bar .org-sub { font-size: 9.5pt; color: ${INK_500}; margin-top: 3px; font-weight: 600; }
   .brand-bar .doc-title {
