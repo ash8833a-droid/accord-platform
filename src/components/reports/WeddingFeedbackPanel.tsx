@@ -525,7 +525,9 @@ function AnalysisList({
 function QrCard({ link }: { link: string }) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const BRAND_GOLD = "#C9A24C";
+  const BRAND_GOLD_DARK = "#A6822E";
   const BRAND_TEAL = "#0E7C6B";
+  const BRAND_TEAL_DARK = "#0A5C50";
 
   const loadImage = (src: string) =>
     new Promise<HTMLImageElement>((resolve, reject) => {
@@ -536,7 +538,36 @@ function QrCard({ link }: { link: string }) {
       img.src = src;
     });
 
+  const ensureFonts = async () => {
+    try {
+      if (!document.getElementById("qr-card-font")) {
+        const link = document.createElement("link");
+        link.id = "qr-card-font";
+        link.rel = "stylesheet";
+        link.href =
+          "https://fonts.googleapis.com/css2?family=Amiri:wght@700&family=Tajawal:wght@400;500;700;800&display=swap";
+        document.head.appendChild(link);
+      }
+      // @ts-ignore
+      if (document.fonts?.load) {
+        await Promise.all([
+          // @ts-ignore
+          document.fonts.load("800 64px Tajawal"),
+          // @ts-ignore
+          document.fonts.load("700 44px Tajawal"),
+          // @ts-ignore
+          document.fonts.load("500 28px Tajawal"),
+          // @ts-ignore
+          document.fonts.load("700 72px Amiri"),
+        ]);
+      }
+    } catch {
+      /* ignore */
+    }
+  };
+
   const renderCanvas = async (): Promise<HTMLCanvasElement> => {
+    await ensureFonts();
     const svg = wrapRef.current?.querySelector("svg");
     if (!svg) throw new Error("لم يتم العثور على الباركود");
     const clone = svg.cloneNode(true) as SVGSVGElement;
@@ -557,68 +588,132 @@ function QrCard({ link }: { link: string }) {
     canvas.height = H;
     const ctx = canvas.getContext("2d")!;
 
-    // Background
-    const bg = ctx.createLinearGradient(0, 0, 0, H);
+    // Soft ivory background with subtle radial vignette
+    const bg = ctx.createRadialGradient(W / 2, H / 2, 200, W / 2, H / 2, H);
     bg.addColorStop(0, "#ffffff");
-    bg.addColorStop(1, "#f6fbf8");
+    bg.addColorStop(1, "#f4efe3");
     ctx.fillStyle = bg;
     ctx.fillRect(0, 0, W, H);
 
-    // Gold frame
+    // Decorative double frame — outer gold, inner hairline teal
+    const drawRoundRect = (x: number, y: number, w: number, h: number, r: number) => {
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.arcTo(x + w, y, x + w, y + h, r);
+      ctx.arcTo(x + w, y + h, x, y + h, r);
+      ctx.arcTo(x, y + h, x, y, r);
+      ctx.arcTo(x, y, x + w, y, r);
+      ctx.closePath();
+    };
     ctx.strokeStyle = BRAND_GOLD;
-    ctx.lineWidth = 6;
-    ctx.strokeRect(28, 28, W - 56, H - 56);
-    ctx.strokeStyle = BRAND_TEAL;
-    ctx.lineWidth = 1.5;
-    ctx.strokeRect(44, 44, W - 88, H - 88);
+    ctx.lineWidth = 5;
+    drawRoundRect(40, 40, W - 80, H - 80, 28);
+    ctx.stroke();
+    ctx.strokeStyle = BRAND_GOLD_DARK;
+    ctx.lineWidth = 1.2;
+    drawRoundRect(58, 58, W - 116, H - 116, 22);
+    ctx.stroke();
 
-    // Brand logo (transparent)
+    // Ornamental corner flourishes
+    const corner = (cx: number, cy: number, sx: number, sy: number) => {
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.scale(sx, sy);
+      ctx.strokeStyle = BRAND_GOLD;
+      ctx.lineWidth = 2.4;
+      ctx.beginPath();
+      ctx.moveTo(0, 60);
+      ctx.lineTo(0, 18);
+      ctx.quadraticCurveTo(0, 0, 18, 0);
+      ctx.lineTo(60, 0);
+      ctx.stroke();
+      ctx.fillStyle = BRAND_GOLD;
+      ctx.beginPath();
+      ctx.arc(0, 0, 4.5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    };
+    corner(96, 96, 1, 1);
+    corner(W - 96, 96, -1, 1);
+    corner(96, H - 96, 1, -1);
+    corner(W - 96, H - 96, -1, -1);
+
+    // Brand logo (transparent, with soft drop shadow)
     if (brandImg) {
-      const lw = 220;
+      const lw = 260;
       const lh = (brandImg.height / brandImg.width) * lw;
-      ctx.drawImage(brandImg, (W - lw) / 2, 90, lw, lh);
+      ctx.save();
+      ctx.shadowColor = "rgba(166, 130, 46, 0.18)";
+      ctx.shadowBlur = 18;
+      ctx.shadowOffsetY = 6;
+      ctx.drawImage(brandImg, (W - lw) / 2, 120, lw, lh);
+      ctx.restore();
     }
 
     // Identity text
     ctx.textAlign = "center";
     ctx.direction = "rtl";
-    ctx.fillStyle = BRAND_TEAL;
-    ctx.font = "bold 44px 'Segoe UI', Tahoma, sans-serif";
-    ctx.fillText("لجنة الزواج الجماعي", W / 2, 360);
-    ctx.fillStyle = BRAND_GOLD;
-    ctx.font = "600 28px 'Segoe UI', Tahoma, sans-serif";
-    ctx.fillText("الزواج الجماعي الثاني عشر — 1448هـ", W / 2, 405);
+    ctx.fillStyle = BRAND_TEAL_DARK;
+    ctx.font = "800 52px 'Tajawal', 'Segoe UI', Tahoma, sans-serif";
+    ctx.fillText("لجنة الزواج الجماعي", W / 2, 430);
+    ctx.fillStyle = BRAND_GOLD_DARK;
+    ctx.font = "500 30px 'Tajawal', 'Segoe UI', Tahoma, sans-serif";
+    ctx.fillText("الزواج الجماعي الثاني عشر — 1448هـ", W / 2, 478);
 
-    // Divider
+    // Ornate divider: line — diamond — line
+    const dy = 520;
     ctx.strokeStyle = BRAND_GOLD;
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 1.6;
     ctx.beginPath();
-    ctx.moveTo(W / 2 - 180, 440);
-    ctx.lineTo(W / 2 + 180, 440);
+    ctx.moveTo(W / 2 - 220, dy);
+    ctx.lineTo(W / 2 - 22, dy);
+    ctx.moveTo(W / 2 + 22, dy);
+    ctx.lineTo(W / 2 + 220, dy);
     ctx.stroke();
+    ctx.fillStyle = BRAND_GOLD;
+    ctx.beginPath();
+    ctx.moveTo(W / 2, dy - 8);
+    ctx.lineTo(W / 2 + 8, dy);
+    ctx.lineTo(W / 2, dy + 8);
+    ctx.lineTo(W / 2 - 8, dy);
+    ctx.closePath();
+    ctx.fill();
 
-    // QR with white plate and gold border
+    // QR plate — rounded white card with gold hairline + soft shadow
     const qrSize = 760;
     const qrX = (W - qrSize) / 2;
-    const qrY = 480;
+    const qrY = 580;
+    const pad = 36;
+    ctx.save();
+    ctx.shadowColor = "rgba(14, 124, 107, 0.18)";
+    ctx.shadowBlur = 30;
+    ctx.shadowOffsetY = 10;
     ctx.fillStyle = "#ffffff";
-    ctx.fillRect(qrX - 20, qrY - 20, qrSize + 40, qrSize + 40);
+    drawRoundRect(qrX - pad, qrY - pad, qrSize + pad * 2, qrSize + pad * 2, 22);
+    ctx.fill();
+    ctx.restore();
     ctx.strokeStyle = BRAND_GOLD;
-    ctx.lineWidth = 4;
-    ctx.strokeRect(qrX - 20, qrY - 20, qrSize + 40, qrSize + 40);
+    ctx.lineWidth = 2;
+    drawRoundRect(qrX - pad, qrY - pad, qrSize + pad * 2, qrSize + pad * 2, 22);
+    ctx.stroke();
     ctx.drawImage(qrImg, qrX, qrY, qrSize, qrSize);
 
     // Caption
-    ctx.fillStyle = BRAND_TEAL;
-    ctx.font = "bold 64px 'Segoe UI', Tahoma, sans-serif";
-    ctx.fillText("رأيك يهمّنا", W / 2, qrY + qrSize + 110);
-    ctx.fillStyle = "#475569";
-    ctx.font = "26px 'Segoe UI', Tahoma, sans-serif";
+    ctx.fillStyle = BRAND_TEAL_DARK;
+    ctx.font = "700 72px 'Amiri', 'Tajawal', 'Segoe UI', serif";
+    ctx.fillText("رأيك يهمّنا", W / 2, qrY + qrSize + 130);
+    ctx.fillStyle = "#5f6a73";
+    ctx.font = "500 26px 'Tajawal', 'Segoe UI', Tahoma, sans-serif";
     ctx.fillText(
       "امسح الباركود للمشاركة في استبيان تقييم الزواج الجماعي",
       W / 2,
-      qrY + qrSize + 155
+      qrY + qrSize + 178
     );
+
+    // Footer brand strip
+    ctx.fillStyle = BRAND_GOLD;
+    ctx.font = "600 18px 'Tajawal', 'Segoe UI', Tahoma, sans-serif";
+    ctx.fillText("lajnat-zawaj.org", W / 2, H - 90);
 
     URL.revokeObjectURL(svgUrl);
     return canvas;
