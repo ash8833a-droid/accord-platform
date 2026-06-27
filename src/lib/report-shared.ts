@@ -124,7 +124,6 @@ export const SHARED_PRINT_CSS = `
     border-radius:999px; overflow:hidden; }
   .progress > span { display:block; height:100%; background:${REPORT_TOKENS.PRIMARY}; border-radius:999px; }
 
-  table { width:100%; border-collapse: collapse; font-size:11px; }
   table { width:100%; border-collapse: collapse; font-size:11px; border-radius:8px; overflow:hidden; }
   thead th { background:${REPORT_TOKENS.PRIMARY}; color:#fff; padding:9px 10px;
     border:1px solid ${REPORT_TOKENS.PRIMARY}; font-weight:700; text-align:right; font-size:11.5px; }
