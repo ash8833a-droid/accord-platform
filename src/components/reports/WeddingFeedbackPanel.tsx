@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useRef } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import weddingLogo from "@/assets/wedding-logo.png.asset.json";
+import { BRAND_LOGO_DATA_URI } from "@/assets/brand-logo";
 import { supabase } from "@/integrations/supabase/client";
 import { useServerFn } from "@tanstack/react-start";
 import { Button } from "@/components/ui/button";
@@ -517,39 +518,129 @@ function QrCard({ link }: { link: string }) {
   const BRAND_GOLD = "#C9A24C";
   const BRAND_TEAL = "#0E7C6B";
 
-  const downloadPng = async () => {
+  const loadImage = (src: string) =>
+    new Promise<HTMLImageElement>((resolve, reject) => {
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      img.onload = () => resolve(img);
+      img.onerror = reject;
+      img.src = src;
+    });
+
+  const renderCanvas = async (): Promise<HTMLCanvasElement> => {
     const svg = wrapRef.current?.querySelector("svg");
-    if (!svg) return;
+    if (!svg) throw new Error("لم يتم العثور على الباركود");
     const clone = svg.cloneNode(true) as SVGSVGElement;
-    // Ensure xmlns so the SVG renders standalone
     clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
     const xml = new XMLSerializer().serializeToString(clone);
-    const svgBlob = new Blob([xml], { type: "image/svg+xml;charset=utf-8" });
-    const url = URL.createObjectURL(svgBlob);
-    const img = new Image();
-    img.crossOrigin = "anonymous";
-    await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = url; });
-    const size = 1024;
+    const svgUrl = URL.createObjectURL(
+      new Blob([xml], { type: "image/svg+xml;charset=utf-8" })
+    );
+    const [qrImg, brandImg] = await Promise.all([
+      loadImage(svgUrl),
+      loadImage(BRAND_LOGO_DATA_URI).catch(() => null),
+    ]);
+
+    const W = 1200;
+    const H = 1600;
     const canvas = document.createElement("canvas");
-    canvas.width = size; canvas.height = size + 140;
+    canvas.width = W;
+    canvas.height = H;
     const ctx = canvas.getContext("2d")!;
-    // transparent background, draw QR centered
-    ctx.drawImage(img, 0, 0, size, size);
-    // caption
-    ctx.fillStyle = BRAND_TEAL;
-    ctx.font = "bold 64px system-ui, 'Segoe UI', Tahoma, sans-serif";
+
+    // Background
+    const bg = ctx.createLinearGradient(0, 0, 0, H);
+    bg.addColorStop(0, "#ffffff");
+    bg.addColorStop(1, "#f6fbf8");
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, W, H);
+
+    // Gold frame
+    ctx.strokeStyle = BRAND_GOLD;
+    ctx.lineWidth = 6;
+    ctx.strokeRect(28, 28, W - 56, H - 56);
+    ctx.strokeStyle = BRAND_TEAL;
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(44, 44, W - 88, H - 88);
+
+    // Brand logo (transparent)
+    if (brandImg) {
+      const lw = 220;
+      const lh = (brandImg.height / brandImg.width) * lw;
+      ctx.drawImage(brandImg, (W - lw) / 2, 90, lw, lh);
+    }
+
+    // Identity text
     ctx.textAlign = "center";
     ctx.direction = "rtl";
-    ctx.fillText("رأيك يهمّنا", size / 2, size + 80);
-    URL.revokeObjectURL(url);
-    canvas.toBlob((blob) => {
-      if (!blob) return;
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
-      a.download = "wedding-feedback-qr.png";
-      a.click();
-      URL.revokeObjectURL(a.href);
-    }, "image/png");
+    ctx.fillStyle = BRAND_TEAL;
+    ctx.font = "bold 44px 'Segoe UI', Tahoma, sans-serif";
+    ctx.fillText("لجنة الزواج الجماعي", W / 2, 360);
+    ctx.fillStyle = BRAND_GOLD;
+    ctx.font = "600 28px 'Segoe UI', Tahoma, sans-serif";
+    ctx.fillText("الزواج الجماعي الثاني عشر — 1448هـ", W / 2, 405);
+
+    // Divider
+    ctx.strokeStyle = BRAND_GOLD;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(W / 2 - 180, 440);
+    ctx.lineTo(W / 2 + 180, 440);
+    ctx.stroke();
+
+    // QR with white plate and gold border
+    const qrSize = 760;
+    const qrX = (W - qrSize) / 2;
+    const qrY = 480;
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(qrX - 20, qrY - 20, qrSize + 40, qrSize + 40);
+    ctx.strokeStyle = BRAND_GOLD;
+    ctx.lineWidth = 4;
+    ctx.strokeRect(qrX - 20, qrY - 20, qrSize + 40, qrSize + 40);
+    ctx.drawImage(qrImg, qrX, qrY, qrSize, qrSize);
+
+    // Caption
+    ctx.fillStyle = BRAND_TEAL;
+    ctx.font = "bold 64px 'Segoe UI', Tahoma, sans-serif";
+    ctx.fillText("رأيك يهمّنا", W / 2, qrY + qrSize + 110);
+    ctx.fillStyle = "#475569";
+    ctx.font = "26px 'Segoe UI', Tahoma, sans-serif";
+    ctx.fillText(
+      "امسح الباركود للمشاركة في استبيان تقييم الزواج الجماعي",
+      W / 2,
+      qrY + qrSize + 155
+    );
+
+    URL.revokeObjectURL(svgUrl);
+    return canvas;
+  };
+
+  const downloadPng = async () => {
+    try {
+      const canvas = await renderCanvas();
+      canvas.toBlob((blob) => {
+        if (!blob) return toast.error("تعذر إنشاء الصورة");
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "باركود-استبيان-الزواج-الجماعي.png";
+        a.click();
+        URL.revokeObjectURL(a.href);
+        toast.success("تم تحميل الباركود");
+      }, "image/png");
+    } catch (e: any) {
+      toast.error(e?.message || "تعذر تصدير الباركود");
+    }
+  };
+
+  const printQr = async () => {
+    try {
+      const canvas = await renderCanvas();
+      const dataUrl = canvas.toDataURL("image/png");
+      const html = `<!doctype html><html dir="rtl"><head><meta charset="utf-8"><title>باركود استبيان الزواج الجماعي</title></head><body style="margin:0;display:flex;align-items:center;justify-content:center;min-height:100vh;background:#fff;"><img src="${dataUrl}" style="max-width:100%;height:auto;" alt="QR" /></body></html>`;
+      await printHtmlDocument(html, "باركود استبيان الزواج الجماعي");
+    } catch (e: any) {
+      toast.error(e?.message || "تعذر الطباعة");
+    }
   };
 
   return (
@@ -594,9 +685,14 @@ function QrCard({ link }: { link: string }) {
           امسح الباركود للمشاركة في استبيان تقييم الزواج الجماعي
         </p>
 
-        <Button size="sm" variant="outline" onClick={downloadPng} className="gap-1.5 text-xs">
-          <Download className="h-3.5 w-3.5" /> تحميل كصورة PNG
-        </Button>
+        <div className="flex items-center gap-2 flex-wrap justify-center">
+          <Button size="sm" onClick={downloadPng} className="gap-1.5 text-xs bg-gradient-to-l from-emerald-700 to-emerald-600 text-white">
+            <Download className="h-3.5 w-3.5" /> تحميل الباركود (PNG)
+          </Button>
+          <Button size="sm" variant="outline" onClick={printQr} className="gap-1.5 text-xs" style={{ borderColor: BRAND_GOLD, color: BRAND_TEAL }}>
+            <FileText className="h-3.5 w-3.5" /> طباعة / PDF
+          </Button>
+        </div>
       </div>
     </div>
   );
