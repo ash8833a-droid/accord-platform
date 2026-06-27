@@ -309,7 +309,7 @@ export function HistoricalShares() {
         .replace(/"/g, "&quot;");
     const today = new Date().toLocaleDateString("ar-SA");
     const totalAmount = filtered.reduce((s, r) => s + Number(r.amount), 0);
-    const logoUrl = `${window.location.origin}/brand/zawaj-logo.png`;
+    const logoUrl = `${window.location.origin}/brand/zawaj-logo.png?v=transparent-official`;
     // Interlocking rings motif — derived from the brand logo, ultra-light, generous spacing
     const patternSvg = encodeURIComponent(
       `<svg xmlns='http://www.w3.org/2000/svg' width='260' height='260' viewBox='0 0 260 260'>
@@ -369,15 +369,13 @@ body{
   content:"";position:absolute;left:-40px;bottom:-40px;width:180px;height:180px;border-radius:50%;
   background:radial-gradient(circle,#C4A25C 0%,transparent 65%);opacity:.35;
 }
-.brand{display:flex;align-items:center;gap:16px;position:relative;z-index:1}
+.brand{display:flex;align-items:center;gap:18px;position:relative;z-index:1}
 .brand .logo-medal{
-  width:78px;height:78px;border-radius:50%;
-  background:radial-gradient(circle at 35% 30%,#FFFDF6 0%,#F5EBD0 75%,#E8D7A8 100%);
-  border:2px solid #C4A25C;
-  box-shadow:0 4px 12px rgba(0,0,0,.25), inset 0 0 0 4px rgba(255,255,255,.6);
+  width:92px;height:92px;
+  background:transparent;border:0;box-shadow:none;padding:0;
   display:flex;align-items:center;justify-content:center;flex-shrink:0;
 }
-.brand .logo-medal img{width:62px;height:62px;object-fit:contain;display:block}
+.brand .logo-medal img{width:100%;height:100%;object-fit:contain;display:block;background:transparent;filter:drop-shadow(0 8px 14px rgba(0,0,0,.18))}
 .brand .titles h1{margin:0;font-size:18pt;font-weight:800;letter-spacing:-0.2px}
 .brand .titles p{margin:4px 0 0;font-size:10pt;opacity:.92}
 .meta{font-size:9.5pt;text-align:left;line-height:1.7;position:relative;z-index:1;
