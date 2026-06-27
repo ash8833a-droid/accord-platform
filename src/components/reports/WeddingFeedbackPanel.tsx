@@ -662,7 +662,7 @@ function QrCard({ link }: { link: string }) {
     ctx.fillText("لجنة الزواج الجماعي", W / 2, 430);
     ctx.fillStyle = BRAND_GOLD_DARK;
     ctx.font = "500 30px 'Tajawal', 'Segoe UI', Tahoma, sans-serif";
-    ctx.fillText("الزواج الجماعي الثاني عشر — 1448هـ", W / 2, 478);
+    ctx.fillText("الحفل الثاني عشر — 1448هـ", W / 2, 478);
 
     // Ornate divider: line — diamond — line
     const dy = 520;
@@ -710,7 +710,7 @@ function QrCard({ link }: { link: string }) {
     ctx.fillStyle = "#5f6a73";
     ctx.font = "500 26px 'Tajawal', 'Segoe UI', Tahoma, sans-serif";
     ctx.fillText(
-      "امسح الباركود للمشاركة في استبيان تقييم الزواج الجماعي",
+      "امسح الباركود للمشاركة في الاستبيان",
       W / 2,
       qrY + qrSize + 210
     );
