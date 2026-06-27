@@ -493,7 +493,7 @@ function buildHtml(d: Data): string {
       .page:last-of-type { page-break-after: auto; }
 
       .hdr { display:flex; align-items:center; gap:12px; background:linear-gradient(90deg,#0D7C66,#064F40); color:#fff; border-radius:10px; padding:10px 14px; margin-bottom:10px; }
-      .hdr-logo { width:46px; height:46px; background:#fff; border-radius:8px; padding:4px; object-fit:contain; }
+      .hdr-logo { width:54px; height:54px; background:transparent; border:0; padding:0; object-fit:contain; }
       .hdr-titles { flex:1; }
       .hdr-titles h1 { margin:0; font-size:18px; font-weight:800; }
       .hdr-titles p { margin:3px 0 0; font-size:11px; color:#FFEDD5; }
