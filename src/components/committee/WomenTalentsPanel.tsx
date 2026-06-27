@@ -252,7 +252,7 @@ export function WomenTalentsPanel() {
   .page{padding:28px 32px}
   header{display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid #C4A25C;padding-bottom:14px;margin-bottom:18px;gap:16px}
   .brand{display:flex;align-items:center;gap:14px}
-  .brand img{width:64px;height:64px;filter:drop-shadow(0 2px 6px rgba(196,162,92,.35))}
+  .brand img{width:82px;height:82px;object-fit:contain;background:transparent;filter:drop-shadow(0 6px 10px rgba(14,58,66,.16))}
   .brand h1{margin:0;color:#0E3A42;font-size:20px;font-weight:900;letter-spacing:.2px}
   .brand .sub{font-size:11px;color:#6b6b6b;margin-top:2px}
   .meta{text-align:left;font-size:11px;color:#555;line-height:1.7}
