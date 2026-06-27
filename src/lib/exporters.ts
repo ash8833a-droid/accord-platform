@@ -213,10 +213,9 @@ export function exportRequestsPDF(
   .h-row { display: flex; justify-content: space-between; align-items: center; position: relative; }
   .brand { display: flex; align-items: center; gap: 14px; }
   .logo-img {
-    width: 64px; height: 64px; border-radius: 14px;
-    background: rgba(255,255,255,0.95);
-    padding: 4px;
-    box-shadow: 0 4px 14px rgba(0,0,0,0.18);
+    width: 72px; height: 72px;
+    background: transparent;
+    padding: 0; border: 0; box-shadow: none;
   }
   .logo-img img { width: 100%; height: 100%; display: block; }
   .brand h1 { margin: 0; font-size: 18pt; font-weight: 900; letter-spacing: 0.3px; }
