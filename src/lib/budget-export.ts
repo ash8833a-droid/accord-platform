@@ -170,9 +170,8 @@ export function exportBudgetPDF(opts: {
     border-bottom: 3px solid #1B4F58; padding-bottom: 12px; margin-bottom: 18px;
   }
   .header .logo {
-    width: 64px; height: 64px; border-radius: 14px;
-    background: #fff; padding: 4px; box-shadow: 0 4px 14px rgba(0,0,0,0.08);
-    border: 1px solid #E5E7EB;
+    width: 72px; height: 72px;
+    background: transparent; padding: 0; box-shadow: none; border: 0;
   }
   .header .logo img { width: 100%; height: 100%; display: block; }
   .header .titles { flex: 1; }
