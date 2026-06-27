@@ -223,9 +223,9 @@ function ContributeSharesPage() {
         <div className="absolute inset-x-0 bottom-0 h-[3px] bg-gradient-to-l from-transparent via-[#D4A24C] to-transparent" />
         <div className="max-w-3xl mx-auto px-5 py-7">
           <div className="flex items-center gap-3.5">
-            <div className="h-14 w-14 rounded-2xl bg-white p-1.5 shadow-md ring-1 ring-white/20 shrink-0">
+            <div className="h-16 w-16 shrink-0 drop-shadow-[0_6px_12px_rgba(0,0,0,0.18)]">
               <img
-                src="/brand/zawaj-logo.png"
+                src="/brand/zawaj-logo.png?v=transparent-official"
                 alt="لجنة الزواج الجماعي"
                 className="h-full w-full object-contain"
                 loading="eager"
