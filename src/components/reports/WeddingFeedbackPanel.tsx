@@ -162,8 +162,9 @@ export function WeddingFeedbackPanel() {
     }));
 
   const exportCSV = () => {
-    if (rows.length === 0) return toast.error("لا توجد بيانات للتصدير");
-    const data = buildRows();
+    const data = rows.length === 0
+      ? [{ "#": "", "التاريخ": "", "الصفة": "", "التنظيم والاستقبال": "", "الضيافة والعشاء": "", "البرامج والفقرات": "", "الانطباع العام": "", "المتوسط": "", "المقترحات": "لا توجد تقييمات بعد" }]
+      : buildRows();
     const ws = XLSX.utils.json_to_sheet(data);
     const csv = XLSX.utils.sheet_to_csv(ws);
     // BOM for Excel Arabic compatibility
@@ -173,9 +174,11 @@ export function WeddingFeedbackPanel() {
   };
 
   const exportExcel = () => {
-    if (rows.length === 0) return toast.error("لا توجد بيانات للتصدير");
     const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.json_to_sheet(buildRows());
+    const data = rows.length === 0
+      ? [{ "#": "", "التاريخ": "", "الصفة": "", "التنظيم والاستقبال": "", "الضيافة والعشاء": "", "البرامج والفقرات": "", "الانطباع العام": "", "المتوسط": "", "المقترحات": "لا توجد تقييمات بعد" }]
+      : buildRows();
+    const ws = XLSX.utils.json_to_sheet(data);
     ws["!cols"] = [
       { wch: 5 }, { wch: 14 }, { wch: 16 }, { wch: 16 },
       { wch: 16 }, { wch: 16 }, { wch: 14 }, { wch: 10 }, { wch: 60 },
@@ -200,7 +203,6 @@ export function WeddingFeedbackPanel() {
   };
 
   const exportPDF = async () => {
-    if (rows.length === 0) return toast.error("لا توجد بيانات للتصدير");
     const esc = (s: string) =>
       String(s ?? "").replace(/[&<>"']/g, (c) =>
         ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c] as string),
@@ -214,7 +216,9 @@ export function WeddingFeedbackPanel() {
         <div style="font-size:11px;color:#555;">${label}</div>
         <div style="font-size:22px;font-weight:800;color:${color};margin-top:4px;">${v.toFixed(2)} <span style="font-size:11px;color:#999;">/ 5</span></div>
       </div>`;
-    const tableRows = rows
+    const tableRows = rows.length === 0
+      ? `<tr><td colspan="8" style="padding:20px;color:#888;">لا توجد تقييمات بعد — هذا التقرير يعرض الهوية والرابط والباركود الخاص بالاستبيان.</td></tr>`
+      : rows
       .map(
         (r, i) => `<tr>
           <td>${i + 1}</td>
@@ -252,9 +256,14 @@ export function WeddingFeedbackPanel() {
         th { background:#f3f4f6; }
         tr:nth-child(even) td { background:#fafafa; }
       </style>
-      <div style="text-align:center;margin-bottom:14px;">
-        <h1>تقرير استبيان رضا ضيوف الزواج الجماعي</h1>
-        <p style="color:#666;font-size:12px;margin:4px 0;">${rows.length} تقييم · ${new Date().toLocaleDateString("ar-SA")}</p>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;border-bottom:2px solid #C9A14A;padding-bottom:10px;margin-bottom:14px;">
+        <img src="${BRAND_LOGO_DATA_URI}" alt="شعار اللجنة" style="height:64px;width:auto;filter:drop-shadow(0 2px 4px rgba(0,0,0,.08));" />
+        <div style="text-align:center;flex:1;">
+          <h1 style="color:#0D7C66;">تقرير استبيان رضا ضيوف الزواج الجماعي</h1>
+          <p style="color:#666;font-size:12px;margin:4px 0;">لجنة الزواج الجماعي — الثاني عشر 1448هـ</p>
+          <p style="color:#888;font-size:11px;margin:0;">${rows.length} تقييم · ${new Date().toLocaleDateString("ar-SA")}</p>
+        </div>
+        <div style="width:64px;"></div>
       </div>
       <div style="display:flex;gap:10px;flex-wrap:wrap;">
         ${avgCard("التنظيم والاستقبال", avg("organization_score"), "#059669")}
