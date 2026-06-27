@@ -662,7 +662,7 @@ function QrCard({ link }: { link: string }) {
     ctx.fillText("لجنة الزواج الجماعي", W / 2, 430);
     ctx.fillStyle = BRAND_GOLD_DARK;
     ctx.font = "500 30px 'Tajawal', 'Segoe UI', Tahoma, sans-serif";
-    ctx.fillText("الزواج الجماعي الثاني عشر — 1448هـ", W / 2, 478);
+    ctx.fillText("الحفل الثاني عشر — 1448هـ", W / 2, 478);
 
     // Ornate divider: line — diamond — line
     const dy = 520;
@@ -710,7 +710,7 @@ function QrCard({ link }: { link: string }) {
     ctx.fillStyle = "#5f6a73";
     ctx.font = "500 26px 'Tajawal', 'Segoe UI', Tahoma, sans-serif";
     ctx.fillText(
-      "امسح الباركود للمشاركة في استبيان تقييم الزواج الجماعي",
+      "امسح الباركود للمشاركة في الاستبيان",
       W / 2,
       qrY + qrSize + 210
     );
@@ -757,7 +757,7 @@ function QrCard({ link }: { link: string }) {
       <div className="rounded-2xl border bg-gradient-to-br from-emerald-50/60 via-white to-amber-50/60 p-6 flex flex-col items-center gap-4">
         <div className="flex items-center gap-2 text-sm font-bold" style={{ color: BRAND_TEAL }}>
           <QrCode className="h-4 w-4" />
-          باركود الاستبيان
+          باركود المشاركة
         </div>
 
         <div
@@ -791,7 +791,7 @@ function QrCard({ link }: { link: string }) {
           رأيك يهمّنا
         </p>
         <p className="text-[11px] text-muted-foreground -mt-2 text-center">
-          امسح الباركود للمشاركة في استبيان تقييم الزواج الجماعي
+          امسح الباركود للمشاركة في الاستبيان
         </p>
 
         <div className="flex items-center gap-2 flex-wrap justify-center">
