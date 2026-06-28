@@ -1489,11 +1489,16 @@ function CommitteePage() {
         </section>
       </QualitySection>
 
-      {/* Archive of past reports / files / images for this committee */}
-      <QualitySection storageKey={`committee:${type}:archive`} title="الأرشيف والتقارير" icon={Archive}>
+      {/* Operational plan + archive */}
+      <QualitySection
+        storageKey={`committee:${type}:archive`}
+        title="الخطة التشغيلية والأرشيف"
+        icon={Archive}
+        defaultOpen
+      >
         <div className="flex flex-wrap items-center gap-3">
-          <CommitteeArchive committeeId={committee.id} committeeName={committee.name} />
           <CommitteePlanPanel committeeId={committee.id} committeeName={committee.name} />
+          <CommitteeArchive committeeId={committee.id} committeeName={committee.name} />
         </div>
       </QualitySection>
 
