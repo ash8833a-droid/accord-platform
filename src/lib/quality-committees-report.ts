@@ -608,18 +608,6 @@ export async function exportQualityCommitteesReport(opts: { authorName?: string 
       </section>
 
 
-      <section class="section">
-        <div class="section-head"><span class="bar"></span><h2>اللجان الحرجة التي لم تستكمل مهامها قبل الحفل</h2><span class="desc">قراءة مؤسسية لمواطن الضعف التي تستوجب تدخّلاً عاجلاً</span></div>
-        <div class="ranking">
-          <table>
-            <thead><tr><th>اللجنة</th><th>الإنجاز</th><th>المتبقّية</th><th>الإجراء المطلوب</th></tr></thead>
-            <tbody>${weakRows}</tbody>
-          </table>
-        </div>
-        <p style="margin:8px 2px 0;font-size:10.5px;color:${SLATE_700};line-height:1.85">
-          بأسلوبٍ مؤسسيٍّ ودون استهداف للأشخاص، تُسجّل لجنة الجودة أن لجان <b>الإعلام</b> و<b>المالية</b> و<b>المشتريات</b> هي الأكثر حساسيةً قبل يوم التنفيذ، وأن أي تأخّر فيها ينعكس مباشرةً على جاهزية بقية اللجان؛ لذا نوصي بانعقاد اجتماعٍ تنسيقيٍّ عاجل ورفع تقريرٍ يوميٍّ موجزٍ حتى ساعة الصفر.
-        </p>
-      </section>
 
       <section class="section">
         <div class="section-head"><span class="bar"></span><h2>مصفوفة المهام لجميع اللجان</h2><span class="desc">عرضٌ تفصيليٌّ لكل مهمة مع حالة الإنجاز (مكتملة / غير مكتملة)</span></div>
