@@ -685,6 +685,16 @@ export async function exportQualityCommitteesReport(opts: { authorName?: string 
       </section>
 
       <section class="section">
+        <div class="section-head"><span class="bar"></span><h2>مصفوفة المهام لجميع اللجان</h2><span class="desc">عرضٌ تفصيليٌّ لكل مهمة مع حالة الإنجاز (مكتملة / غير مكتملة)</span></div>
+        <div class="ranking">
+          <table>
+            <thead><tr><th style="width:62%">المهمة</th><th style="width:19%;text-align:center">المكتملة</th><th style="width:19%;text-align:center">المتأخرة</th></tr></thead>
+            <tbody>${allTasksRows}</tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="section">
         <div class="section-head"><span class="bar"></span><h2>إدارة التوثيق والمحتوى المرئي</h2><span class="desc">حفظ الإرث الإعلامي للحفل في المنصة</span></div>
         <div class="exec">
           <p>تُعدّ مسألة <b>التوثيق</b> ركيزةً مؤسسيةً لا يجوز التهاون فيها، وتستوجب تعيين <b>مسؤول مباشر لإدارة فريق التوثيق</b> ضمن لجنة الإعلام، تُسند إليه المهام التالية بصلاحيةٍ واضحة:</p>
