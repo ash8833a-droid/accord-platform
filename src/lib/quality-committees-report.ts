@@ -436,7 +436,7 @@ export async function exportQualityCommitteesReport(opts: { authorName?: string 
     : weakCommittees.map((c) => `<tr>
         <td><b>${c.name}</b></td>
         <td>${c.done}/${c.total} (${c.rate}%)</td>
-        <td style="color:#B91C1C;font-weight:700">${c.overdue}</td>
+        <td style="color:#B91C1C;font-weight:700">${Math.max(c.total - c.done, 0)}${c.overdue > 0 ? ` <span style="color:${SLATE_500};font-weight:500">(منها ${c.overdue} متأخّرة)</span>` : ""}</td>
         <td style="color:${SLATE_700};font-size:10.5px;line-height:1.7">${
           c.type === "media"
             ? "يتوجّب استكمال خطة التغطية الإعلامية وتسليم قوائم التصوير وتعيين مسؤول إدارة فريق التوثيق قبل يوم التنفيذ."
