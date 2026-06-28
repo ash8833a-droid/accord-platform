@@ -285,6 +285,10 @@ function css(): string {
     .closing .lbl { font-size:10px; opacity:.85; letter-spacing:.5px; font-weight:700; }
     .closing .msg { margin-top:4px; font-size:12.5px; line-height:1.85; }
 
+    .legacy { margin-top:14px; background: linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%); border:1.5px solid ${GOLD}; border-right:5px solid ${GOLD}; border-radius:12px; padding:14px 18px; page-break-inside: avoid; }
+    .legacy .lbl { font-size:10.5px; font-weight:800; color:#7A5A00; letter-spacing:.5px; }
+    .legacy .msg { margin-top:6px; font-size:12.5px; line-height:2; color:${SLATE_900}; font-weight:500; }
+
     .sign { margin-top: 22px; display:flex; justify-content: space-between; gap:20px; font-size:11px; color:${SLATE_700}; }
     .sign .box { flex:1; border-top:1.5px solid ${SLATE_200}; padding-top:6px; text-align:center; }
     .sign .box b { color:${SLATE_900}; }
