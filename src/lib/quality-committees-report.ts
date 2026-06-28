@@ -642,6 +642,66 @@ export async function exportQualityCommitteesReport(opts: { authorName?: string 
       </section>
 
       <section class="section">
+        <div class="section-head"><span class="bar"></span><h2>اللجان الحرجة التي لم تستكمل مهامها قبل الحفل</h2><span class="desc">قراءة مؤسسية لمواطن الضعف التي تستوجب تدخّلاً عاجلاً</span></div>
+        <div class="ranking">
+          <table>
+            <thead><tr><th>اللجنة</th><th>الإنجاز</th><th>المتأخرة</th><th>الإجراء المطلوب</th></tr></thead>
+            <tbody>${weakRows}</tbody>
+          </table>
+        </div>
+        <p style="margin:8px 2px 0;font-size:10.5px;color:${SLATE_700};line-height:1.85">
+          بأسلوبٍ مؤسسيٍّ ودون استهداف للأشخاص، تُسجّل لجنة الجودة أن لجان <b>الإعلام</b> و<b>المالية</b> و<b>المشتريات</b> هي الأكثر حساسيةً قبل يوم التنفيذ، وأن أي تأخّر فيها ينعكس مباشرةً على جاهزية بقية اللجان؛ لذا نوصي بانعقاد اجتماعٍ تنسيقيٍّ عاجل ورفع تقريرٍ يوميٍّ موجزٍ حتى ساعة الصفر.
+        </p>
+      </section>
+
+      <section class="section">
+        <div class="section-head"><span class="bar"></span><h2>إدارة التوثيق والمحتوى المرئي</h2><span class="desc">حفظ الإرث الإعلامي للحفل في المنصة</span></div>
+        <div class="exec">
+          <p>تُعدّ مسألة <b>التوثيق</b> ركيزةً مؤسسيةً لا يجوز التهاون فيها، وتستوجب تعيين <b>مسؤول مباشر لإدارة فريق التوثيق</b> ضمن لجنة الإعلام، تُسند إليه المهام التالية بصلاحيةٍ واضحة:</p>
+          <ul style="margin:4px 0 0;padding-inline-start:20px;font-size:11.5px;color:${SLATE_700};line-height:1.95">
+            <li>قيادة فريق التصوير والمونتاج خلال الحفل وما قبله وما بعده.</li>
+            <li>الاحتفاظ بالمواد الخام (Raw Footage) وحفظها بنسخٍ احتياطيةٍ متعددة.</li>
+            <li>إدارة دورة المونتاج والإخراج النهائي وفق هويةٍ بصريةٍ موحّدة.</li>
+            <li>رفع جميع المخرجات النهائية والمواد الخام إلى المنصة وأرشفتها ضمن أرشيف الحفل الثاني عشر.</li>
+            <li>تسليم نسخةٍ من الأرشيف للجنة الجودة لاعتمادها مرجعاً للأجيال القادمة.</li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="section-head"><span class="bar"></span><h2>حصر الإيرادات والمصروفات</h2><span class="desc">قراءة مالية مؤسسية للدورة الحالية</span></div>
+        <div class="summary">
+          <div class="sum"><span class="l">إجمالي الإيرادات (ر.س)</span><span class="v" style="color:#047857">${arNum(totalRevenue)}</span></div>
+          <div class="sum"><span class="l">إجمالي المصروفات (ر.س)</span><span class="v" style="color:#B45309">${arNum(Math.max(totalBudgetSpent, paidExpenses))}</span></div>
+          <div class="sum"><span class="l">المتبقّي (ر.س)</span><span class="v" style="color:${balance >= 0 ? TEAL_DARK : "#B91C1C"}">${arNum(balance)}</span></div>
+          <div class="sum"><span class="l">طلبات بانتظار الصرف</span><span class="v">${arNum(pendingExpenses)}</span></div>
+        </div>
+        <div class="ranking" style="margin-top:10px">
+          <table>
+            <thead><tr><th>البند</th><th>المصدر</th><th>القيمة (ر.س)</th></tr></thead>
+            <tbody>
+              <tr><td><b>اشتراكات الأعضاء</b></td><td>سجل الاشتراكات المعتمدة</td><td>${arNum(revSubs)}</td></tr>
+              <tr><td><b>مساهمات الأسرة</b></td><td>تبرعات أبناء العائلة</td><td>${arNum(revFam)}</td></tr>
+              <tr><td><b>مساهمات العرسان</b></td><td>المسدّد فعلياً من العرسان</td><td>${arNum(revGrooms)}</td></tr>
+              <tr><td colspan="2" style="text-align:end"><b>إجمالي الإيرادات</b></td><td style="color:#047857;font-weight:800">${arNum(totalRevenue)}</td></tr>
+              <tr><td><b>الميزانيات المعتمدة للجان</b></td><td>إجمالي ما رُصد</td><td>${arNum(totalBudgetAlloc)}</td></tr>
+              <tr><td><b>المنصرف الفعلي</b></td><td>طلبات الصرف المعتمدة</td><td>${arNum(Math.max(totalBudgetSpent, paidExpenses))}</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="section-head"><span class="bar"></span><h2>اللجان التي لم ترفع خطتها التشغيلية حتى الآن</h2><span class="desc">شرطٌ مؤسسيٌّ للقياس والمساءلة</span></div>
+        <div class="ranking">
+          <table>
+            <thead><tr><th>اللجنة</th><th>الوضع الحالي</th><th>الإجراء المطلوب</th></tr></thead>
+            <tbody>${noPlanRows}</tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="section">
         <div class="section-head"><span class="bar"></span><h2>المهام المشتركة بين أكثر من لجنة</h2><span class="desc">تنسيق متكامل لضمان نجاح الحفل</span></div>
         <div class="ranking">
           <table>
@@ -691,19 +751,16 @@ export async function exportQualityCommitteesReport(opts: { authorName?: string 
       </section>
 
       <section class="section">
-        <div class="section-head"><span class="bar"></span><h2>الأعضاء الأكثر تفاعلاً مع المنصة</h2><span class="desc">قائمة شرفية تُحتسب من مرات الدخول والتفاعلات</span></div>
-        <div class="ranking">
-          <table>
-            <thead><tr><th>#</th><th>العضو</th><th>اللجنة</th><th>مرات الدخول</th><th>التفاعلات</th><th>آخر دخول</th></tr></thead>
-            <tbody>${topEngagedRows}</tbody>
-          </table>
-        </div>
-      </section>
-
-      <section class="section">
         <div class="section-head"><span class="bar"></span><h2>التشخيص التفصيلي لكل لجنة</h2><span class="desc">القوة · الضعف · التوصيات</span></div>
         <div class="cards">${sorted.map(cardHtml).join("")}</div>
       </section>
+
+      <div class="legacy">
+        <div class="lbl">رسالة للأجيال القادمة</div>
+        <div class="msg">
+          إنّ ما يُسجَّل اليوم في هذه المنصة من خططٍ وأعمالٍ وقراراتٍ ووثائق، إنما هو حفظٌ لجهودكم المباركة، ومسارٌ مضيءٌ يسير عليه من يخلفكم من أبناء العائلة الكرام؛ فلكم سَبْقُ الأجر وثوابُ التأسيس، ولمن بعدكم البناءُ على ما أرسيتم، ﴿وَقُلِ اعْمَلُوا فَسَيَرَى اللَّهُ عَمَلَكُمْ وَرَسُولُهُ وَالْمُؤْمِنُونَ﴾.
+        </div>
+      </div>
 
       <div class="closing">
         <div class="lbl">خاتمة لجنة الجودة</div>
