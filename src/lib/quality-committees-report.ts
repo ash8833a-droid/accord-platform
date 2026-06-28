@@ -531,6 +531,7 @@ export async function exportQualityCommitteesReport(opts: { authorName?: string 
   const CHECK = `<span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:#D1FAE5;color:#047857;font-weight:900;font-size:13px">✓</span>`;
   const CROSS = `<span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:#FEE2E2;color:#B91C1C;font-weight:900;font-size:13px">✗</span>`;
   const DASH = `<span style="color:${SLATE_500}">—</span>`;
+  const READY = `<span style="display:inline-flex;align-items:center;padding:2px 8px;border-radius:999px;background:#FEF3C7;color:#92400E;font-weight:700;font-size:10px;border:1px solid #FDE68A;white-space:nowrap">على أتمّ الاستعداد</span>`;
   const allTasksRows = all.map((c) => {
     const items = allTasks.filter((t) => t.committee_id === c.id);
     if (items.length === 0) {
@@ -540,10 +541,14 @@ export async function exportQualityCommitteesReport(opts: { authorName?: string 
     const header = `<tr><td colspan="3" style="background:#F8FAFC;color:${SLATE_700};font-weight:700">${c.name} <span style="color:${SLATE_500};font-weight:500;font-size:10.5px">(${items.filter(i => i.status === "completed").length}/${items.length})</span></td></tr>`;
     const rows = items.map((t) => {
       const isDone = t.status === "completed";
+      const dueDate = t.due_date ? new Date(t.due_date) : null;
+      const isTrulyOverdue = !isDone && !!dueDate && dueDate < now;
+      // مهام يوم الحفل أو المهام التي لم يحن موعدها بعد → تُعتبر جاهزة وليست متأخرة
+      const isReady = !isDone && !isTrulyOverdue;
       return `<tr>
         <td>${t.title}</td>
         <td style="text-align:center">${isDone ? CHECK : DASH}</td>
-        <td style="text-align:center">${isDone ? DASH : CROSS}</td>
+        <td style="text-align:center">${isDone ? DASH : isTrulyOverdue ? CROSS : READY}</td>
       </tr>`;
     }).join("");
     return header + rows;
