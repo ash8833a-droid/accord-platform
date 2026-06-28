@@ -436,7 +436,7 @@ export async function exportQualityCommitteesReport(opts: { authorName?: string 
     : weakCommittees.map((c) => `<tr>
         <td><b>${c.name}</b></td>
         <td>${c.done}/${c.total} (${c.rate}%)</td>
-        <td style="color:#B91C1C;font-weight:700">${c.overdue}</td>
+        <td style="color:#B91C1C;font-weight:700">${Math.max(c.total - c.done, 0)}${c.overdue > 0 ? ` <span style="color:${SLATE_500};font-weight:500">(منها ${c.overdue} متأخّرة)</span>` : ""}</td>
         <td style="color:${SLATE_700};font-size:10.5px;line-height:1.7">${
           c.type === "media"
             ? "يتوجّب استكمال خطة التغطية الإعلامية وتسليم قوائم التصوير وتعيين مسؤول إدارة فريق التوثيق قبل يوم التنفيذ."
@@ -649,7 +649,7 @@ export async function exportQualityCommitteesReport(opts: { authorName?: string 
         <div class="section-head"><span class="bar"></span><h2>اللجان الحرجة التي لم تستكمل مهامها قبل الحفل</h2><span class="desc">قراءة مؤسسية لمواطن الضعف التي تستوجب تدخّلاً عاجلاً</span></div>
         <div class="ranking">
           <table>
-            <thead><tr><th>اللجنة</th><th>الإنجاز</th><th>المتأخرة</th><th>الإجراء المطلوب</th></tr></thead>
+            <thead><tr><th>اللجنة</th><th>الإنجاز</th><th>المتبقّية</th><th>الإجراء المطلوب</th></tr></thead>
             <tbody>${weakRows}</tbody>
           </table>
         </div>
