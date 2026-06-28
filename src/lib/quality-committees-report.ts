@@ -32,6 +32,18 @@ interface CommitteeMetrics {
   recommendations: string[];
 }
 
+interface EngagementMetrics {
+  committeeId: string;
+  members: number;
+  activeMembers: number; // logged in within last 30 days
+  totalLogins: number;
+  totalInteractions: number; // comments + responses
+  lastActivity: Date | null;
+  engagementRate: number; // 0-100
+  topMembers: Array<{ name: string; lastLogin: Date | null; logins: number; interactions: number }>;
+  inactiveMembers: string[];
+}
+
 const TEAL = "#0D7C66";
 const TEAL_DARK = "#0a5b4d";
 const GOLD = "#C4A25C";
@@ -67,6 +79,18 @@ function tierMeta(t: CommitteeMetrics["tier"]) {
     case "stable":  return { label: "أداء مستقر", bg: "#FEF3C7", fg: "#92400E", border: "#FDE68A", color: "#D97706" };
     case "needs":   return { label: "تحتاج تقوية", bg: "#FEE2E2", fg: "#B91C1C", border: "#FECACA", color: "#B91C1C" };
   }
+}
+
+function fmtRelative(d: Date | null): string {
+  if (!d) return "لم يسجّل دخولاً";
+  const diffMs = Date.now() - d.getTime();
+  const days = Math.floor(diffMs / (24 * 60 * 60 * 1000));
+  if (days <= 0) return "اليوم";
+  if (days === 1) return "أمس";
+  if (days < 7) return `قبل ${days} أيام`;
+  if (days < 30) return `قبل ${Math.floor(days / 7)} أسابيع`;
+  if (days < 60) return "قبل شهر";
+  return `قبل ${Math.floor(days / 30)} أشهر`;
 }
 
 function classify(m: Omit<CommitteeMetrics, "tier" | "strengths" | "weaknesses" | "recommendations">): CommitteeMetrics["tier"] {
@@ -278,6 +302,126 @@ export async function exportQualityCommitteesReport(opts: { authorName?: string 
   const sorted = [...all].sort((a, b) => (b.rate - b.overdue * 5) - (a.rate - a.overdue * 5));
   const today = fmtArDate(new Date());
 
+  // ---- تفاعل الأعضاء مع المنصة ----
+  const thirtyAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+  const [{ data: rolesRaw }, { data: logsRaw }, { data: respRaw }, { data: tcomRaw }, { data: pcomRaw }, { data: profsRaw }] = await Promise.all([
+    supabase.from("user_roles").select("user_id, committee_id").not("committee_id", "is", null),
+    supabase.from("user_activity_log").select("user_id, event_type, created_at").eq("event_type", "login"),
+    supabase.from("task_responses").select("user_id, created_at"),
+    supabase.from("task_comments").select("user_id, created_at"),
+    supabase.from("committee_post_comments").select("user_id, created_at"),
+    supabase.from("profiles").select("user_id, full_name"),
+  ]);
+  const roles = (rolesRaw ?? []) as Array<{ user_id: string; committee_id: string }>;
+  const logs = (logsRaw ?? []) as Array<{ user_id: string; created_at: string }>;
+  const responses = (respRaw ?? []) as Array<{ user_id: string | null; created_at: string }>;
+  const tcom = (tcomRaw ?? []) as Array<{ user_id: string; created_at: string }>;
+  const pcom = (pcomRaw ?? []) as Array<{ user_id: string; created_at: string }>;
+  const profMap = new Map<string, string>();
+  for (const p of (profsRaw ?? []) as Array<{ user_id: string; full_name: string }>) profMap.set(p.user_id, p.full_name);
+
+  type UserAgg = { logins: number; lastLogin: Date | null; interactions: number; lastInteraction: Date | null };
+  const userAgg = new Map<string, UserAgg>();
+  const touch = (id: string) => {
+    let a = userAgg.get(id);
+    if (!a) { a = { logins: 0, lastLogin: null, interactions: 0, lastInteraction: null }; userAgg.set(id, a); }
+    return a;
+  };
+  for (const l of logs) {
+    const a = touch(l.user_id); a.logins += 1;
+    const d = new Date(l.created_at);
+    if (!a.lastLogin || d > a.lastLogin) a.lastLogin = d;
+  }
+  const addInter = (uid: string | null, when: string) => {
+    if (!uid) return;
+    const a = touch(uid); a.interactions += 1;
+    const d = new Date(when);
+    if (!a.lastInteraction || d > a.lastInteraction) a.lastInteraction = d;
+  };
+  for (const r of responses) addInter(r.user_id, r.created_at);
+  for (const c of tcom) addInter(c.user_id, c.created_at);
+  for (const c of pcom) addInter(c.user_id, c.created_at);
+
+  const engByCommittee = new Map<string, EngagementMetrics>();
+  // group users by committee (excluding admin head row when only role-only entries)
+  const membersByCom = new Map<string, Set<string>>();
+  for (const r of roles) {
+    if (!membersByCom.has(r.committee_id)) membersByCom.set(r.committee_id, new Set());
+    membersByCom.get(r.committee_id)!.add(r.user_id);
+  }
+  for (const c of all) {
+    const memberIds = Array.from(membersByCom.get(c.id) ?? []);
+    const members = memberIds.length;
+    let activeMembers = 0;
+    let totalLogins = 0;
+    let totalInteractions = 0;
+    let lastActivity: Date | null = null;
+    const enriched = memberIds.map((uid) => {
+      const a = userAgg.get(uid);
+      const lastLogin = a?.lastLogin ?? null;
+      const logins = a?.logins ?? 0;
+      const interactions = a?.interactions ?? 0;
+      totalLogins += logins;
+      totalInteractions += interactions;
+      if (lastLogin && lastLogin >= thirtyAgo) activeMembers += 1;
+      const cand = [lastLogin, a?.lastInteraction ?? null].filter(Boolean) as Date[];
+      for (const d of cand) if (!lastActivity || d > lastActivity) lastActivity = d;
+      return { uid, name: profMap.get(uid) ?? "عضو", lastLogin, logins, interactions };
+    });
+    const engagementRate = members === 0 ? 0 : Math.round((activeMembers / members) * 100);
+    const topMembers = enriched
+      .slice()
+      .sort((a, b) => (b.logins + b.interactions * 2) - (a.logins + a.interactions * 2))
+      .slice(0, 5)
+      .map((m) => ({ name: m.name, lastLogin: m.lastLogin, logins: m.logins, interactions: m.interactions }));
+    const inactiveMembers = enriched
+      .filter((m) => !m.lastLogin || m.lastLogin < thirtyAgo)
+      .map((m) => m.name);
+    engByCommittee.set(c.id, {
+      committeeId: c.id, members, activeMembers, totalLogins, totalInteractions,
+      lastActivity, engagementRate, topMembers, inactiveMembers,
+    });
+  }
+
+  const engRows = sorted.map((c) => {
+    const e = engByCommittee.get(c.id);
+    if (!e) return "";
+    const color = e.engagementRate >= 70 ? "#047857" : e.engagementRate >= 40 ? "#B45309" : "#B91C1C";
+    return `<tr>
+      <td><b>${c.name}</b></td>
+      <td>${e.members}</td>
+      <td><span style="color:${color};font-weight:700">${e.activeMembers}</span> <span style="color:${SLATE_500};font-size:10px">(${e.engagementRate}%)</span></td>
+      <td>${e.totalLogins}</td>
+      <td>${e.totalInteractions}</td>
+      <td style="color:${SLATE_700};font-size:10.5px">${fmtRelative(e.lastActivity)}</td>
+    </tr>`;
+  }).join("");
+
+  // Top engaged & silent members across the whole platform
+  const allMemberRows: Array<{ name: string; committeeName: string; lastLogin: Date | null; logins: number; interactions: number }> = [];
+  for (const c of all) {
+    const e = engByCommittee.get(c.id);
+    if (!e) continue;
+    for (const m of e.topMembers) allMemberRows.push({ ...m, committeeName: c.name });
+  }
+  const topEngagedRows = allMemberRows
+    .slice()
+    .sort((a, b) => (b.logins + b.interactions * 2) - (a.logins + a.interactions * 2))
+    .slice(0, 8)
+    .map((m, i) => `<tr>
+      <td><span class="rank-num">${i + 1}</span></td>
+      <td><b>${m.name}</b></td>
+      <td>${m.committeeName}</td>
+      <td>${m.logins}</td>
+      <td>${m.interactions}</td>
+      <td style="color:${SLATE_700};font-size:10.5px">${fmtRelative(m.lastLogin)}</td>
+    </tr>`).join("") || `<tr><td colspan="6" style="text-align:center;color:${SLATE_500};padding:14px">لا تتوفر بيانات تفاعل بعد.</td></tr>`;
+
+  const totalMembers = Array.from(engByCommittee.values()).reduce((a, e) => a + e.members, 0);
+  const totalActive = Array.from(engByCommittee.values()).reduce((a, e) => a + e.activeMembers, 0);
+  const totalAllLogins = Array.from(engByCommittee.values()).reduce((a, e) => a + e.totalLogins, 0);
+  const overallEngagement = totalMembers === 0 ? 0 : Math.round((totalActive / totalMembers) * 100);
+
   // ---- المهام العاجلة خلال الأيام الأربعة قبل الحفل ----
   const now = new Date(); now.setHours(0,0,0,0);
   const horizon = new Date(now.getTime() + 4 * 24 * 60 * 60 * 1000);
@@ -384,6 +528,7 @@ export async function exportQualityCommitteesReport(opts: { authorName?: string 
     needs.length > 0
       ? `تستدعي <b>${pluralLajna(needs.length)}</b> دعماً مؤسسياً مركّزاً لإعادة المسار إلى مستويات الأداء المعتمدة، وقد أُدرجت توصيات محددة لكل لجنة في القسم التفصيلي.`
       : `لا توجد لجان تحت دائرة الخطر، وهو مؤشر إيجابي على تكامل المنظومة وانضباط التنفيذ.`,
+    `على صعيد التفاعل الرقمي مع المنصة، بلغ مجموع الأعضاء <b>${totalMembers}</b> عضواً، منهم <b>${totalActive}</b> نشطون خلال آخر 30 يوماً بنسبة تفاعل عامة <b>${overallEngagement}%</b> وعدد مرات دخول إجمالي <b>${totalAllLogins}</b>، وهو مؤشر مباشر على مدى انغماس اللجان في العمل المؤسسي اليومي.`,
   ];
 
   const rankingRows = sorted.map((c, i) => {
@@ -462,6 +607,35 @@ export async function exportQualityCommitteesReport(opts: { authorName?: string 
           <table>
             <thead><tr><th>#</th><th>اللجنة</th><th>الإنجاز</th><th>المنفّذ</th><th>المتأخّرة</th><th>تقييم الجودة</th><th>التصنيف</th></tr></thead>
             <tbody>${rankingRows}</tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="section-head"><span class="bar"></span><h2>تفاعل أعضاء اللجان مع المنصة</h2><span class="desc">مستوى الحضور الرقمي والمساهمة الفعلية لكل لجنة</span></div>
+        <div class="summary">
+          <div class="sum"><span class="l">إجمالي الأعضاء</span><span class="v">${totalMembers}</span></div>
+          <div class="sum"><span class="l">نشطون خلال 30 يوم</span><span class="v">${totalActive}</span></div>
+          <div class="sum"><span class="l">نسبة التفاعل العامة</span><span class="v" style="color:${overallEngagement >= 60 ? TEAL_DARK : "#B45309"}">${overallEngagement}%</span></div>
+          <div class="sum"><span class="l">إجمالي مرات الدخول</span><span class="v">${totalAllLogins}</span></div>
+        </div>
+        <div class="ranking" style="margin-top:10px">
+          <table>
+            <thead><tr><th>اللجنة</th><th>الأعضاء</th><th>النشطون (30 يوم)</th><th>مرات الدخول</th><th>التفاعلات</th><th>آخر نشاط</th></tr></thead>
+            <tbody>${engRows}</tbody>
+          </table>
+        </div>
+        <p style="margin:8px 2px 0;font-size:10.5px;color:${SLATE_500};line-height:1.8">
+          <b>منهجية القياس:</b> يُحتسب التفاعل من سجلات تسجيل الدخول إلى المنصة، إضافةً إلى ردود المهام والتعليقات على المنشورات. العضو "نشط" إذا سجّل دخولاً خلال آخر 30 يوماً.
+        </p>
+      </section>
+
+      <section class="section">
+        <div class="section-head"><span class="bar"></span><h2>الأعضاء الأكثر تفاعلاً مع المنصة</h2><span class="desc">قائمة شرفية تُحتسب من مرات الدخول والتفاعلات</span></div>
+        <div class="ranking">
+          <table>
+            <thead><tr><th>#</th><th>العضو</th><th>اللجنة</th><th>مرات الدخول</th><th>التفاعلات</th><th>آخر دخول</th></tr></thead>
+            <tbody>${topEngagedRows}</tbody>
           </table>
         </div>
       </section>
