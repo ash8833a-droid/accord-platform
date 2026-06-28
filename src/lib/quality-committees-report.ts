@@ -50,6 +50,16 @@ function fmtArDate(d: Date): string {
   } catch { return d.toLocaleDateString("ar-SA"); }
 }
 
+// Arabic plural for "لجنة": 0 → لا توجد لجان · 1 → لجنة واحدة · 2 → لجنتان
+// · 3-10 → N لجان · 11+ → N لجنة (تمييز مفرد منصوب)
+function pluralLajna(n: number): string {
+  if (n === 0) return "لا توجد لجان";
+  if (n === 1) return "لجنة واحدة";
+  if (n === 2) return "لجنتان";
+  if (n >= 3 && n <= 10) return `${n} لجان`;
+  return `${n} لجنة`;
+}
+
 function tierMeta(t: CommitteeMetrics["tier"]) {
   switch (t) {
     case "leader":  return { label: "لجنة قائدة", bg: "#ECFDF5", fg: "#047857", border: "#A7F3D0", color: "#10B981" };
@@ -254,6 +264,12 @@ function css(): string {
     .sign { margin-top: 22px; display:flex; justify-content: space-between; gap:20px; font-size:11px; color:${SLATE_700}; }
     .sign .box { flex:1; border-top:1.5px solid ${SLATE_200}; padding-top:6px; text-align:center; }
     .sign .box b { color:${SLATE_900}; }
+
+    .countdown { display:flex; align-items:center; gap:12px; background: linear-gradient(135deg, #FFF8E6 0%, #FDE9B0 100%); border:1px solid ${GOLD}; border-right:5px solid ${GOLD}; border-radius:12px; padding:10px 14px; margin: 0 0 16px; }
+    .countdown .cd-lbl { font-size:10.5px; font-weight:700; color:#7A5A00; letter-spacing:.3px; }
+    .countdown .cd-val { font-size:16px; font-weight:800; color:${TEAL_DARK}; }
+    .countdown .cd-note { margin-inline-start:auto; font-size:10.5px; color:${SLATE_700}; }
+    .chip { display:inline-block; font-size:10px; padding:2px 8px; border-radius:999px; background:${SLATE_100}; color:${SLATE_700}; border:1px solid ${SLATE_200}; margin: 1px 0; }
   `;
 }
 
@@ -261,6 +277,92 @@ export async function exportQualityCommitteesReport(opts: { authorName?: string 
   const all = await gather();
   const sorted = [...all].sort((a, b) => (b.rate - b.overdue * 5) - (a.rate - a.overdue * 5));
   const today = fmtArDate(new Date());
+
+  // ---- المهام العاجلة خلال الأيام الأربعة قبل الحفل ----
+  const now = new Date(); now.setHours(0,0,0,0);
+  const horizon = new Date(now.getTime() + 4 * 24 * 60 * 60 * 1000);
+  const committeeNameById = new Map(all.map((c) => [c.id, c.name] as const));
+  const { data: upRaw } = await supabase
+    .from("committee_tasks")
+    .select("id, committee_id, title, status, due_date")
+    .neq("status", "completed");
+  const upcoming = ((upRaw ?? []) as Array<{ id: string; committee_id: string; title: string; status: string; due_date: string | null }>)
+    .filter((t) => {
+      if (!t.due_date) return false;
+      const d = new Date(t.due_date);
+      return d <= horizon; // includes already-overdue items
+    })
+    .sort((a, b) => new Date(a.due_date as string).getTime() - new Date(b.due_date as string).getTime());
+
+  const fmtDay = (s: string) => {
+    try {
+      return new Intl.DateTimeFormat("ar-SA-u-ca-islamic-umalqura", { day: "numeric", month: "long" }).format(new Date(s));
+    } catch { return s; }
+  };
+
+  const upcomingRows = upcoming.length === 0
+    ? `<tr><td colspan="4" style="text-align:center;color:${SLATE_500};padding:14px">لا توجد مهام مجدولة خلال الأيام الأربعة القادمة.</td></tr>`
+    : upcoming.map((t) => {
+        const dueDate = new Date(t.due_date as string);
+        const isOverdue = dueDate < now;
+        const label = isOverdue ? "متأخرة" : "عاجلة";
+        const color = isOverdue ? "#B91C1C" : "#B45309";
+        return `<tr>
+          <td><b>${t.title}</b></td>
+          <td>${committeeNameById.get(t.committee_id) ?? "—"}</td>
+          <td>${fmtDay(t.due_date as string)}</td>
+          <td><span class="badge" style="background:#FEF3C7;color:${color};border-color:#FDE68A">${label}</span></td>
+        </tr>`;
+      }).join("");
+
+  // ---- المهام المشتركة بين أكثر من لجنة ----
+  const sharedTasks: Array<{ title: string; lead: string; partners: string[]; note: string }> = [
+    {
+      title: "التغطية الإعلامية والتوثيق المرئي للحفل",
+      lead: "لجنة الإعلام",
+      partners: ["اللجنة العليا", "لجنة الاستقبال", "لجنة الجودة"],
+      note: "تتطلب تنسيقاً مسبقاً لخطة التصوير ومواقع الكاميرات وقائمة اللحظات الواجب توثيقها، وتسليم المادة الخام للجنة الجودة للأرشفة.",
+    },
+    {
+      title: "استقبال الضيوف وكبار الشخصيات",
+      lead: "لجنة الاستقبال",
+      partners: ["اللجنة العليا", "لجنة الإعلام", "لجنة التشريفات"],
+      note: "تكامل ضروري بين قائمة المدعوين الرسميين، وخطة الجلوس، وتغطية الوصول إعلامياً.",
+    },
+    {
+      title: "إدارة الوقت والبرنامج التفصيلي للحفل",
+      lead: "اللجنة العليا",
+      partners: ["لجنة الإعلام", "لجنة الإعاشة", "لجنة العرسان"],
+      note: "اعتماد جدول زمني موحّد (Run-of-Show) يلتزم به الجميع، وتوزيعه قبل 48 ساعة من موعد الحفل.",
+    },
+    {
+      title: "ترتيب دخول العرسان وتسلسل التكريم",
+      lead: "لجنة العرسان",
+      partners: ["اللجنة العليا", "لجنة الإعلام", "لجنة التشريفات"],
+      note: "بروفة ميدانية مشتركة لضمان انسيابية الدخول والتقاط اللحظات التذكارية بجودة عالية.",
+    },
+    {
+      title: "الإعاشة وتوزيع الوجبات",
+      lead: "لجنة الإعاشة",
+      partners: ["لجنة الاستقبال", "اللجنة المالية"],
+      note: "تأكيد الأعداد النهائية، واعتماد الصرف المالي، وتنسيق توقيت التقديم مع برنامج الحفل.",
+    },
+    {
+      title: "اعتماد الصرف العاجل للمتطلبات اللحظية",
+      lead: "اللجنة المالية",
+      partners: ["جميع اللجان"],
+      note: "تفعيل مسار صرف سريع خلال الأيام الأربعة الأخيرة بصلاحية رئيس اللجنة المالية لضمان عدم تعطّل أي لجنة.",
+    },
+  ];
+
+  const sharedRows = sharedTasks.map((s) => `
+    <tr>
+      <td><b>${s.title}</b></td>
+      <td><span class="badge" style="background:${tierMeta("leader").bg};color:${tierMeta("leader").fg};border-color:${tierMeta("leader").border}">${s.lead}</span></td>
+      <td>${s.partners.map((p) => `<span class="chip">${p}</span>`).join(" ")}</td>
+      <td style="color:${SLATE_700};font-size:10.5px;line-height:1.7">${s.note}</td>
+    </tr>
+  `).join("");
 
   const leaders = sorted.filter((c) => c.tier === "leader");
   const actives = sorted.filter((c) => c.tier === "active");
@@ -273,13 +375,14 @@ export async function exportQualityCommitteesReport(opts: { authorName?: string 
   const overallRate = totalTasks === 0 ? 0 : Math.round((totalDone / totalTasks) * 100);
 
   const execLines = [
-    `يرصد هذا التقرير قراءةً شاملةً لأداء (${all.length}) لجنةً تعمل ضمن منظومة الزواج الجماعي خلال الدورة الحالية، ويُقدّم تشخيصاً مهنياً يستند إلى مؤشرات فعلية مستخرجة من المنصة.`,
+    `يرصد هذا التقرير قراءةً شاملةً لأداء ${pluralLajna(all.length)} تعمل ضمن منظومة الزواج الجماعي خلال الدورة الحالية، ويُقدّم تشخيصاً مهنياً يستند إلى مؤشرات فعلية مستخرجة من المنصة.`,
+    `يأتي هذا التقرير قبل <b>أربعة أيام فقط</b> من موعد الحفل، مما يستوجب تركيزاً مضاعفاً على المهام العاجلة والمهام المشتركة بين أكثر من لجنة لضمان جاهزية تامة يوم التنفيذ.`,
     `بلغت نسبة الإنجاز الكلية <b>${overallRate}%</b> بإجمالي <b>${totalDone}</b> مهمة منجزة من أصل <b>${totalTasks}</b>، مع تسجيل <b>${totalOverdue}</b> مهمة خارج الجدول الزمني تستوجب المعالجة.`,
     leaders.length > 0
-      ? `تبرز <b>${leaders.length}</b> لجنة ضمن مستوى الريادة بأداءٍ يتجاوز المستهدفات المعتمدة، فيما تواصل <b>${actives.length}</b> لجنة عملها بفاعلية ضمن النطاق المقبول.`
+      ? `تبرز <b>${pluralLajna(leaders.length)}</b> ضمن مستوى الريادة بأداءٍ يتجاوز المستهدفات المعتمدة، فيما تواصل <b>${pluralLajna(actives.length)}</b> عملها بفاعلية ضمن النطاق المقبول.`
       : `لم تبلغ أي لجنة مستوى الريادة بعد، ما يستدعي توحيد الجهد ورفع وتيرة التنفيذ في الأسابيع القادمة.`,
     needs.length > 0
-      ? `تستدعي <b>${needs.length}</b> لجنة دعماً مؤسسياً مركّزاً لإعادة المسار إلى مستويات الأداء المعتمدة، وقد أُدرجت توصيات محددة لكل لجنة في القسم التفصيلي.`
+      ? `تستدعي <b>${pluralLajna(needs.length)}</b> دعماً مؤسسياً مركّزاً لإعادة المسار إلى مستويات الأداء المعتمدة، وقد أُدرجت توصيات محددة لكل لجنة في القسم التفصيلي.`
       : `لا توجد لجان تحت دائرة الخطر، وهو مؤشر إيجابي على تكامل المنظومة وانضباط التنفيذ.`,
   ];
 
@@ -310,10 +413,36 @@ export async function exportQualityCommitteesReport(opts: { authorName?: string 
         </div>
       </header>
 
+      <div class="countdown">
+        <span class="cd-lbl">العدّ التنازلي للحفل</span>
+        <span class="cd-val">٤ أيام فقط</span>
+        <span class="cd-note">جاهزية تامة · تنسيق متكامل بين اللجان · صفر تأخير</span>
+      </div>
+
       <section class="section">
         <div class="section-head"><span class="bar"></span><h2>الموجز التنفيذي</h2><span class="desc">قراءة مؤسسية لمسار الأداء العام</span></div>
         <div class="exec">
           ${execLines.map((p) => `<p>${p}</p>`).join("")}
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="section-head"><span class="bar"></span><h2>المهام العاجلة خلال الأيام الأربعة قبل الحفل</h2><span class="desc">ما يتوجب إنجازه قبل يوم التنفيذ</span></div>
+        <div class="ranking">
+          <table>
+            <thead><tr><th>المهمة</th><th>اللجنة</th><th>الاستحقاق</th><th>الحالة</th></tr></thead>
+            <tbody>${upcomingRows}</tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="section-head"><span class="bar"></span><h2>المهام المشتركة بين أكثر من لجنة</h2><span class="desc">تنسيق متكامل لضمان نجاح الحفل</span></div>
+        <div class="ranking">
+          <table>
+            <thead><tr><th>المهمة</th><th>اللجنة القائدة</th><th>اللجان الشريكة</th><th>ملاحظة تنسيقية</th></tr></thead>
+            <tbody>${sharedRows}</tbody>
+          </table>
         </div>
       </section>
 
