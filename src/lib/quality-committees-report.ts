@@ -304,7 +304,7 @@ export async function exportQualityCommitteesReport(opts: { authorName?: string 
 
   // ---- تفاعل الأعضاء مع المنصة ----
   const thirtyAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-  const [{ data: rolesRaw }, { data: logsRaw }, { data: respRaw }, { data: tcomRaw }, { data: pcomRaw }, { data: profsRaw }, { data: actLogRaw }, { data: postsRaw }, { data: payRaw }] = await Promise.all([
+  const [{ data: rolesRaw }, { data: logsRaw }, { data: respRaw }, { data: tcomRaw }, { data: pcomRaw }, { data: profsRaw }, { data: actLogRaw }, { data: postsRaw }, { data: payRaw }, { data: subsRaw }, { data: famRaw }, { data: groomsRaw }, { data: paidPayRaw }, { data: reportsRaw }] = await Promise.all([
     supabase.from("user_roles").select("user_id, committee_id").not("committee_id", "is", null),
     supabase.from("user_activity_log").select("user_id, event_type, created_at").eq("event_type", "login"),
     supabase.from("task_responses").select("user_id, created_at"),
@@ -314,6 +314,11 @@ export async function exportQualityCommitteesReport(opts: { authorName?: string 
     supabase.from("task_activity_log").select("actor_user_id, committee_id, created_at").not("actor_user_id", "is", null),
     supabase.from("committee_posts").select("author_id, created_at"),
     supabase.from("payment_requests").select("requested_by, created_at"),
+    supabase.from("subscriptions").select("amount, status"),
+    supabase.from("family_contributions").select("amount"),
+    supabase.from("grooms").select("groom_contribution, contribution_paid"),
+    supabase.from("payment_requests").select("amount, status, committee_id"),
+    supabase.from("reports").select("committee_id, title"),
   ]);
   const roles = (rolesRaw ?? []) as Array<{ user_id: string; committee_id: string }>;
   const logs = (logsRaw ?? []) as Array<{ user_id: string; created_at: string }>;
