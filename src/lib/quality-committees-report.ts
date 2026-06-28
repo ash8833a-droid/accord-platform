@@ -649,7 +649,7 @@ export async function exportQualityCommitteesReport(opts: { authorName?: string 
         <div class="section-head"><span class="bar"></span><h2>اللجان الحرجة التي لم تستكمل مهامها قبل الحفل</h2><span class="desc">قراءة مؤسسية لمواطن الضعف التي تستوجب تدخّلاً عاجلاً</span></div>
         <div class="ranking">
           <table>
-            <thead><tr><th>اللجنة</th><th>الإنجاز</th><th>المتأخرة</th><th>الإجراء المطلوب</th></tr></thead>
+            <thead><tr><th>اللجنة</th><th>الإنجاز</th><th>المتبقّية</th><th>الإجراء المطلوب</th></tr></thead>
             <tbody>${weakRows}</tbody>
           </table>
         </div>
