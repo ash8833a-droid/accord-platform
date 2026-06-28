@@ -322,7 +322,6 @@ export async function exportQualityCommitteesReport(opts: { authorName?: string 
     supabase.from("family_contributions").select("amount"),
     supabase.from("grooms").select("groom_contribution, contribution_paid"),
     supabase.from("payment_requests").select("amount, status, committee_id"),
-    supabase.from("reports").select("committee_id, title"),
   ]);
   const roles = (rolesRaw ?? []) as Array<{ user_id: string; committee_id: string }>;
   const logs = (logsRaw ?? []) as Array<{ user_id: string; created_at: string }>;
