@@ -142,6 +142,19 @@ async function gather(): Promise<CommitteeMetrics[]> {
 function cardHtml(m: CommitteeMetrics): string {
   const t = tierMeta(m.tier);
   const utilization = m.budgetAllocated > 0 ? Math.round((m.budgetSpent / m.budgetAllocated) * 100) : 0;
+  const isQuality = m.type === "quality";
+  const qualityNote = isQuality
+    ? `<section class="blk note">
+        <h4>ملاحظة منهجية حول طبيعة عمل لجنة الجودة</h4>
+        <p>يرتبط أثر لجنة الجودة ارتباطًا مباشرًا بتفاعل بقية اللجان ومستوى منجزاتها؛ فالمؤشرات أعلاه تعكس تراكم الأداء المؤسسي العام لا الجهد الذاتي للجنة فحسب. أما ما هو موكول للّجنة من مهام محورية فقد أُنجز وفق المستهدف، ويشمل:</p>
+        <ul>
+          <li>المتابعة المستمرة لأعمال اللجان ورصد مؤشرات الأداء أولًا بأول.</li>
+          <li>إصدار التقارير الدورية وتقديم القراءات التحليلية للجهات المعنية.</li>
+          <li>صياغة معايير التقييم المؤسسي واعتمادها مرجعًا موحّدًا للقياس.</li>
+          <li>تفعيل قناة تقييم الجمهور عبر رابط الاستبيان وضمان وصوله للمستفيدين.</li>
+        </ul>
+      </section>`
+    : "";
   return `
     <article class="card" style="border-right-color:${t.color}">
       <header class="card-head">
@@ -168,6 +181,7 @@ function cardHtml(m: CommitteeMetrics): string {
         <h4>توصيات لجنة الجودة</h4>
         <ul>${m.recommendations.map((x) => `<li>${x}</li>`).join("")}</ul>
       </section>
+      ${qualityNote}
     </article>`;
 }
 
@@ -228,6 +242,10 @@ function css(): string {
     .blk.r h4 { color:${GOLD}; }
     .blk ul { margin:0; padding-inline-start: 18px; }
     .blk li { font-size:10.8px; color:${SLATE_700}; line-height:1.75; margin-bottom:2px; }
+    .blk.note { margin-top:10px; background:#FFF8E6; border:1px solid #F1D98C; border-radius:10px; padding:10px 12px; }
+    .blk.note h4 { color:#7A5A00; margin-bottom:6px; font-size:11.5px; }
+    .blk.note p { margin:0 0 6px; font-size:10.8px; color:${SLATE_700}; line-height:1.85; }
+    .blk.note li { color:${SLATE_900}; }
 
     .closing { margin-top:14px; background: linear-gradient(135deg, ${TEAL} 0%, ${TEAL_DARK} 100%); color:#fff; border-radius:12px; padding:14px 16px; }
     .closing .lbl { font-size:10px; opacity:.85; letter-spacing:.5px; font-weight:700; }
