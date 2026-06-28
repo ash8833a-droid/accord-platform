@@ -264,6 +264,12 @@ function css(): string {
     .sign { margin-top: 22px; display:flex; justify-content: space-between; gap:20px; font-size:11px; color:${SLATE_700}; }
     .sign .box { flex:1; border-top:1.5px solid ${SLATE_200}; padding-top:6px; text-align:center; }
     .sign .box b { color:${SLATE_900}; }
+
+    .countdown { display:flex; align-items:center; gap:12px; background: linear-gradient(135deg, #FFF8E6 0%, #FDE9B0 100%); border:1px solid ${GOLD}; border-right:5px solid ${GOLD}; border-radius:12px; padding:10px 14px; margin: 0 0 16px; }
+    .countdown .cd-lbl { font-size:10.5px; font-weight:700; color:#7A5A00; letter-spacing:.3px; }
+    .countdown .cd-val { font-size:16px; font-weight:800; color:${TEAL_DARK}; }
+    .countdown .cd-note { margin-inline-start:auto; font-size:10.5px; color:${SLATE_700}; }
+    .chip { display:inline-block; font-size:10px; padding:2px 8px; border-radius:999px; background:${SLATE_100}; color:${SLATE_700}; border:1px solid ${SLATE_200}; margin: 1px 0; }
   `;
 }
 
