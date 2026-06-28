@@ -24,6 +24,7 @@ import { TaskAttachments } from "@/components/TaskAttachments";
 import { TaskComments } from "@/components/TaskComments";
 import { TaskEditorDialog, type EditorTask } from "@/components/TaskEditorDialog";
 import { CommitteeArchive } from "@/components/CommitteeArchive";
+import { CommitteePlanPanel } from "@/components/committee/CommitteePlanPanel";
 import { CommitteeMinutes } from "@/components/CommitteeMinutes";
 import { CommitteeMembersPanel } from "@/components/CommitteeMembersPanel";
 import { QuickResponseBar } from "@/components/QuickResponseBar";
@@ -1492,6 +1493,7 @@ function CommitteePage() {
       <QualitySection storageKey={`committee:${type}:archive`} title="الأرشيف والتقارير" icon={Archive}>
         <div className="flex flex-wrap items-center gap-3">
           <CommitteeArchive committeeId={committee.id} committeeName={committee.name} />
+          <CommitteePlanPanel committeeId={committee.id} committeeName={committee.name} />
         </div>
       </QualitySection>
 
