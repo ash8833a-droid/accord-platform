@@ -423,30 +423,6 @@ export async function exportQualityCommitteesReport(opts: { authorName?: string 
   const totalAllLogins = Array.from(engByCommittee.values()).reduce((a, e) => a + e.totalLogins, 0);
   const overallEngagement = totalMembers === 0 ? 0 : Math.round((totalActive / totalMembers) * 100);
 
-  // ---- اللجان الأقل تفاعلاً مع ضعف استكمال المهام قبل الحفل ----
-  // نركّز على اللجان التي يفترض أن تُغلق مهامها قبل يوم التنفيذ (الإعلام، المالية، المشتريات وغيرها)
-  const criticalPreEventTypes = new Set(["media", "finance", "procurement"]);
-  const weakCommittees = sorted.filter((c) => {
-    const hasOverdueOrPending = c.overdue > 0 || (c.total > 0 && c.rate < 80);
-    const isCritical = criticalPreEventTypes.has(c.type);
-    return isCritical && (hasOverdueOrPending || c.total === 0);
-  });
-  const weakRows = weakCommittees.length === 0
-    ? `<tr><td colspan="4" style="text-align:center;color:${SLATE_500};padding:14px">جميع اللجان الحرجة قبل الحفل أنجزت مهامها وفق المستهدف.</td></tr>`
-    : weakCommittees.map((c) => `<tr>
-        <td><b>${c.name}</b></td>
-        <td>${c.done}/${c.total} (${c.rate}%)</td>
-        <td style="color:#B91C1C;font-weight:700">${Math.max(c.total - c.done, 0)}${c.overdue > 0 ? ` <span style="color:${SLATE_500};font-weight:500">(منها ${c.overdue} متأخّرة)</span>` : ""}</td>
-        <td style="color:${SLATE_700};font-size:10.5px;line-height:1.7">${
-          c.type === "media"
-            ? "يتوجّب استكمال خطة التغطية الإعلامية وتسليم قوائم التصوير وتعيين مسؤول إدارة فريق التوثيق قبل يوم التنفيذ."
-            : c.type === "finance"
-            ? "يتوجّب إغلاق ملف الإيرادات والمصروفات واعتماد الصرف العاجل لمتطلبات اللجان الأخرى قبل يوم الحفل."
-            : c.type === "procurement"
-            ? "يتوجّب إنهاء طلبات الشراء المتأخرة وضمان تسليم المستلزمات قبل ٢٤ ساعة من بدء الحفل."
-            : "يتطلّب تركيزاً مؤسسياً لاستدراك ما تبقّى قبل موعد التنفيذ."
-        }</td>
-      </tr>`).join("");
 
   // ---- حصر الإيرادات والمصروفات ----
   const subs = (subsRaw ?? []) as Array<{ amount: number | null; status: string | null }>;
@@ -632,18 +608,6 @@ export async function exportQualityCommitteesReport(opts: { authorName?: string 
       </section>
 
 
-      <section class="section">
-        <div class="section-head"><span class="bar"></span><h2>اللجان الحرجة التي لم تستكمل مهامها قبل الحفل</h2><span class="desc">قراءة مؤسسية لمواطن الضعف التي تستوجب تدخّلاً عاجلاً</span></div>
-        <div class="ranking">
-          <table>
-            <thead><tr><th>اللجنة</th><th>الإنجاز</th><th>المتبقّية</th><th>الإجراء المطلوب</th></tr></thead>
-            <tbody>${weakRows}</tbody>
-          </table>
-        </div>
-        <p style="margin:8px 2px 0;font-size:10.5px;color:${SLATE_700};line-height:1.85">
-          بأسلوبٍ مؤسسيٍّ ودون استهداف للأشخاص، تُسجّل لجنة الجودة أن لجان <b>الإعلام</b> و<b>المالية</b> و<b>المشتريات</b> هي الأكثر حساسيةً قبل يوم التنفيذ، وأن أي تأخّر فيها ينعكس مباشرةً على جاهزية بقية اللجان؛ لذا نوصي بانعقاد اجتماعٍ تنسيقيٍّ عاجل ورفع تقريرٍ يوميٍّ موجزٍ حتى ساعة الصفر.
-        </p>
-      </section>
 
       <section class="section">
         <div class="section-head"><span class="bar"></span><h2>مصفوفة المهام لجميع اللجان</h2><span class="desc">عرضٌ تفصيليٌّ لكل مهمة مع حالة الإنجاز (مكتملة / غير مكتملة)</span></div>
