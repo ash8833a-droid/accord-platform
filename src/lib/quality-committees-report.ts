@@ -407,10 +407,36 @@ export async function exportQualityCommitteesReport(opts: { authorName?: string 
         </div>
       </header>
 
+      <div class="countdown">
+        <span class="cd-lbl">العدّ التنازلي للحفل</span>
+        <span class="cd-val">٤ أيام فقط</span>
+        <span class="cd-note">جاهزية تامة · تنسيق متكامل بين اللجان · صفر تأخير</span>
+      </div>
+
       <section class="section">
         <div class="section-head"><span class="bar"></span><h2>الموجز التنفيذي</h2><span class="desc">قراءة مؤسسية لمسار الأداء العام</span></div>
         <div class="exec">
           ${execLines.map((p) => `<p>${p}</p>`).join("")}
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="section-head"><span class="bar"></span><h2>المهام العاجلة خلال الأيام الأربعة قبل الحفل</h2><span class="desc">ما يتوجب إنجازه قبل يوم التنفيذ</span></div>
+        <div class="ranking">
+          <table>
+            <thead><tr><th>المهمة</th><th>اللجنة</th><th>الاستحقاق</th><th>الحالة</th></tr></thead>
+            <tbody>${upcomingRows}</tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="section-head"><span class="bar"></span><h2>المهام المشتركة بين أكثر من لجنة</h2><span class="desc">تنسيق متكامل لضمان نجاح الحفل</span></div>
+        <div class="ranking">
+          <table>
+            <thead><tr><th>المهمة</th><th>اللجنة القائدة</th><th>اللجان الشريكة</th><th>ملاحظة تنسيقية</th></tr></thead>
+            <tbody>${sharedRows}</tbody>
+          </table>
         </div>
       </section>
 
