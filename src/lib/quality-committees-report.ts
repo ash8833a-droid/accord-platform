@@ -522,6 +522,33 @@ export async function exportQualityCommitteesReport(opts: { authorName?: string 
         </tr>`;
       }).join("");
 
+  // ---- مصفوفة شاملة لجميع المهام (مكتمل / غير مكتمل) لكل اللجان ----
+  const { data: allTasksRaw } = await supabase
+    .from("committee_tasks")
+    .select("id, committee_id, title, status, due_date")
+    .order("committee_id", { ascending: true });
+  const allTasks = (allTasksRaw ?? []) as Array<{ id: string; committee_id: string; title: string; status: string; due_date: string | null }>;
+  const CHECK = `<span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:#D1FAE5;color:#047857;font-weight:900;font-size:13px">✓</span>`;
+  const CROSS = `<span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:#FEE2E2;color:#B91C1C;font-weight:900;font-size:13px">✗</span>`;
+  const DASH = `<span style="color:${SLATE_500}">—</span>`;
+  const allTasksRows = all.map((c) => {
+    const items = allTasks.filter((t) => t.committee_id === c.id);
+    if (items.length === 0) {
+      return `<tr><td colspan="3" style="background:#F8FAFC;color:${SLATE_700};font-weight:700">${c.name}</td></tr>
+              <tr><td colspan="3" style="text-align:center;color:${SLATE_500};padding:10px">لا توجد مهام مسجّلة لهذه اللجنة</td></tr>`;
+    }
+    const header = `<tr><td colspan="3" style="background:#F8FAFC;color:${SLATE_700};font-weight:700">${c.name} <span style="color:${SLATE_500};font-weight:500;font-size:10.5px">(${items.filter(i => i.status === "completed").length}/${items.length})</span></td></tr>`;
+    const rows = items.map((t) => {
+      const isDone = t.status === "completed";
+      return `<tr>
+        <td>${t.title}</td>
+        <td style="text-align:center">${isDone ? CHECK : DASH}</td>
+        <td style="text-align:center">${isDone ? DASH : CROSS}</td>
+      </tr>`;
+    }).join("");
+    return header + rows;
+  }).join("");
+
   // ---- المهام المشتركة بين أكثر من لجنة ----
   const sharedTasks: Array<{ title: string; lead: string; partners: string[]; note: string }> = [
     {
@@ -655,6 +682,16 @@ export async function exportQualityCommitteesReport(opts: { authorName?: string 
         <p style="margin:8px 2px 0;font-size:10.5px;color:${SLATE_700};line-height:1.85">
           بأسلوبٍ مؤسسيٍّ ودون استهداف للأشخاص، تُسجّل لجنة الجودة أن لجان <b>الإعلام</b> و<b>المالية</b> و<b>المشتريات</b> هي الأكثر حساسيةً قبل يوم التنفيذ، وأن أي تأخّر فيها ينعكس مباشرةً على جاهزية بقية اللجان؛ لذا نوصي بانعقاد اجتماعٍ تنسيقيٍّ عاجل ورفع تقريرٍ يوميٍّ موجزٍ حتى ساعة الصفر.
         </p>
+      </section>
+
+      <section class="section">
+        <div class="section-head"><span class="bar"></span><h2>مصفوفة المهام لجميع اللجان</h2><span class="desc">عرضٌ تفصيليٌّ لكل مهمة مع حالة الإنجاز (مكتملة / غير مكتملة)</span></div>
+        <div class="ranking">
+          <table>
+            <thead><tr><th style="width:62%">المهمة</th><th style="width:19%;text-align:center">المكتملة</th><th style="width:19%;text-align:center">المتأخرة</th></tr></thead>
+            <tbody>${allTasksRows}</tbody>
+          </table>
+        </div>
       </section>
 
       <section class="section">
