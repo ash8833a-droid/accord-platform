@@ -693,10 +693,13 @@ export async function exportQualityCommitteesReport(opts: { authorName?: string 
         <div class="section-head"><span class="bar"></span><h2>مصفوفة المهام لجميع اللجان</h2><span class="desc">عرضٌ تفصيليٌّ لكل مهمة مع حالة الإنجاز (مكتملة / غير مكتملة)</span></div>
         <div class="ranking">
           <table>
-            <thead><tr><th style="width:62%">المهمة</th><th style="width:19%;text-align:center">المكتملة</th><th style="width:19%;text-align:center">المتأخرة</th></tr></thead>
+            <thead><tr><th style="width:58%">المهمة</th><th style="width:17%;text-align:center">المكتملة</th><th style="width:25%;text-align:center">الحالة</th></tr></thead>
             <tbody>${allTasksRows}</tbody>
           </table>
         </div>
+        <p style="margin:8px 2px 0;font-size:10px;color:${SLATE_500};line-height:1.7">
+          ملاحظة: المهام المقرّر تنفيذها يوم الحفل أو التي لم يحن موعد استحقاقها بعد تُصنَّف <b>«على أتمّ الاستعداد»</b> ولا تُحتسب ضمن المتأخّرة، إذ تُحتسب المتأخّرة فقط للمهام التي تجاوز تاريخ استحقاقها ولم تكتمل.
+        </p>
       </section>
 
       <section class="section">
