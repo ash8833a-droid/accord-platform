@@ -611,6 +611,35 @@ export async function exportQualityCommitteesReport(opts: { authorName?: string 
       </section>
 
       <section class="section">
+        <div class="section-head"><span class="bar"></span><h2>تفاعل أعضاء اللجان مع المنصة</h2><span class="desc">مستوى الحضور الرقمي والمساهمة الفعلية لكل لجنة</span></div>
+        <div class="summary">
+          <div class="sum"><span class="l">إجمالي الأعضاء</span><span class="v">${totalMembers}</span></div>
+          <div class="sum"><span class="l">نشطون خلال 30 يوم</span><span class="v">${totalActive}</span></div>
+          <div class="sum"><span class="l">نسبة التفاعل العامة</span><span class="v" style="color:${overallEngagement >= 60 ? TEAL_DARK : "#B45309"}">${overallEngagement}%</span></div>
+          <div class="sum"><span class="l">إجمالي مرات الدخول</span><span class="v">${totalAllLogins}</span></div>
+        </div>
+        <div class="ranking" style="margin-top:10px">
+          <table>
+            <thead><tr><th>اللجنة</th><th>الأعضاء</th><th>النشطون (30 يوم)</th><th>مرات الدخول</th><th>التفاعلات</th><th>آخر نشاط</th></tr></thead>
+            <tbody>${engRows}</tbody>
+          </table>
+        </div>
+        <p style="margin:8px 2px 0;font-size:10.5px;color:${SLATE_500};line-height:1.8">
+          <b>منهجية القياس:</b> يُحتسب التفاعل من سجلات تسجيل الدخول إلى المنصة، إضافةً إلى ردود المهام والتعليقات على المنشورات. العضو "نشط" إذا سجّل دخولاً خلال آخر 30 يوماً.
+        </p>
+      </section>
+
+      <section class="section">
+        <div class="section-head"><span class="bar"></span><h2>الأعضاء الأكثر تفاعلاً مع المنصة</h2><span class="desc">قائمة شرفية تُحتسب من مرات الدخول والتفاعلات</span></div>
+        <div class="ranking">
+          <table>
+            <thead><tr><th>#</th><th>العضو</th><th>اللجنة</th><th>مرات الدخول</th><th>التفاعلات</th><th>آخر دخول</th></tr></thead>
+            <tbody>${topEngagedRows}</tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="section">
         <div class="section-head"><span class="bar"></span><h2>التشخيص التفصيلي لكل لجنة</h2><span class="desc">القوة · الضعف · التوصيات</span></div>
         <div class="cards">${sorted.map(cardHtml).join("")}</div>
       </section>
