@@ -304,19 +304,25 @@ export async function exportQualityCommitteesReport(opts: { authorName?: string 
 
   // ---- تفاعل الأعضاء مع المنصة ----
   const thirtyAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-  const [{ data: rolesRaw }, { data: logsRaw }, { data: respRaw }, { data: tcomRaw }, { data: pcomRaw }, { data: profsRaw }] = await Promise.all([
+  const [{ data: rolesRaw }, { data: logsRaw }, { data: respRaw }, { data: tcomRaw }, { data: pcomRaw }, { data: profsRaw }, { data: actLogRaw }, { data: postsRaw }, { data: payRaw }] = await Promise.all([
     supabase.from("user_roles").select("user_id, committee_id").not("committee_id", "is", null),
     supabase.from("user_activity_log").select("user_id, event_type, created_at").eq("event_type", "login"),
     supabase.from("task_responses").select("user_id, created_at"),
     supabase.from("task_comments").select("user_id, created_at"),
     supabase.from("committee_post_comments").select("user_id, created_at"),
     supabase.from("profiles").select("user_id, full_name"),
+    supabase.from("task_activity_log").select("actor_user_id, committee_id, created_at").not("actor_user_id", "is", null),
+    supabase.from("committee_posts").select("author_id, created_at"),
+    supabase.from("payment_requests").select("requested_by, created_at"),
   ]);
   const roles = (rolesRaw ?? []) as Array<{ user_id: string; committee_id: string }>;
   const logs = (logsRaw ?? []) as Array<{ user_id: string; created_at: string }>;
   const responses = (respRaw ?? []) as Array<{ user_id: string | null; created_at: string }>;
   const tcom = (tcomRaw ?? []) as Array<{ user_id: string; created_at: string }>;
   const pcom = (pcomRaw ?? []) as Array<{ user_id: string; created_at: string }>;
+  const actLog = (actLogRaw ?? []) as Array<{ actor_user_id: string; committee_id: string | null; created_at: string }>;
+  const posts = (postsRaw ?? []) as Array<{ author_id: string | null; created_at: string }>;
+  const pays = (payRaw ?? []) as Array<{ requested_by: string | null; created_at: string }>;
   const profMap = new Map<string, string>();
   for (const p of (profsRaw ?? []) as Array<{ user_id: string; full_name: string }>) profMap.set(p.user_id, p.full_name);
 
@@ -341,6 +347,9 @@ export async function exportQualityCommitteesReport(opts: { authorName?: string 
   for (const r of responses) addInter(r.user_id, r.created_at);
   for (const c of tcom) addInter(c.user_id, c.created_at);
   for (const c of pcom) addInter(c.user_id, c.created_at);
+  for (const a of actLog) addInter(a.actor_user_id, a.created_at);
+  for (const p of posts) addInter(p.author_id, p.created_at);
+  for (const p of pays) addInter(p.requested_by, p.created_at);
 
   const engByCommittee = new Map<string, EngagementMetrics>();
   // group users by committee (excluding admin head row when only role-only entries)
@@ -363,7 +372,10 @@ export async function exportQualityCommitteesReport(opts: { authorName?: string 
       const interactions = a?.interactions ?? 0;
       totalLogins += logins;
       totalInteractions += interactions;
-      if (lastLogin && lastLogin >= thirtyAgo) activeMembers += 1;
+      // العضو نشط إذا له أي نشاط (دخول أو تفاعل) خلال 30 يوم
+      const lastInter = a?.lastInteraction ?? null;
+      const lastAny = [lastLogin, lastInter].filter(Boolean).sort((x, y) => (y as Date).getTime() - (x as Date).getTime())[0] as Date | undefined;
+      if (lastAny && lastAny >= thirtyAgo) activeMembers += 1;
       const cand = [lastLogin, a?.lastInteraction ?? null].filter(Boolean) as Date[];
       for (const d of cand) if (!lastActivity || d > lastActivity) lastActivity = d;
       return { uid, name: profMap.get(uid) ?? "عضو", lastLogin, logins, interactions };
@@ -626,7 +638,7 @@ export async function exportQualityCommitteesReport(opts: { authorName?: string 
           </table>
         </div>
         <p style="margin:8px 2px 0;font-size:10.5px;color:${SLATE_500};line-height:1.8">
-          <b>منهجية القياس:</b> يُحتسب التفاعل من سجلات تسجيل الدخول إلى المنصة، إضافةً إلى ردود المهام والتعليقات على المنشورات. العضو "نشط" إذا سجّل دخولاً خلال آخر 30 يوماً.
+          <b>منهجية القياس:</b> يُحتسب التفاعل من مصادر متعددة في المنصة: تسجيل الدخول، إنشاء وتعديل ومتابعة المهام (سجل الأنشطة)، الردود والتعليقات، المنشورات، وطلبات الصرف. يُعتبر العضو "نشطاً" إذا سجّل أي نشاط (دخول أو تفاعل) خلال آخر 30 يوماً.
         </p>
       </section>
 
