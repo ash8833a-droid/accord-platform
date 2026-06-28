@@ -439,28 +439,9 @@ export async function exportQualityCommitteesReport(opts: { authorName?: string 
   const balance = totalRevenue - Math.max(totalBudgetSpent, paidExpenses);
   const arNum = (n: number) => new Intl.NumberFormat("ar-SA").format(Math.round(n));
 
-  // ---- اللجان التي لم ترفع خطتها ----
-  // الخطة تُكتشف فقط عبر وجود تقرير/وثيقة عنوانها يحوي "خطة" مرفوعة على المنصة
-  const reportsByCom = new Map<string, string[]>();
-  for (const r of (reportsRaw ?? []) as Array<{ committee_id: string | null; title: string }>) {
-    if (!r.committee_id) continue;
-    if (!reportsByCom.has(r.committee_id)) reportsByCom.set(r.committee_id, []);
-    reportsByCom.get(r.committee_id)!.push(r.title);
-  }
-  const noPlan = all.filter((c) => {
-    const titles = reportsByCom.get(c.id) ?? [];
-    const hasPlanReport = titles.some((t) => /خطة|خطه|plan/i.test(t));
-    return !hasPlanReport;
-  });
-  const noPlanRows = noPlan.length === 0
-    ? `<tr><td colspan="3" style="text-align:center;color:${"#047857"};padding:14px">جميع اللجان رفعت خططها التشغيلية على المنصة.</td></tr>`
-    : noPlan.map((c) => `<tr>
-        <td><b>${c.name}</b></td>
-        <td>لا توجد وثيقة خطة تشغيلية مرفوعة على المنصة</td>
-        <td style="color:#B91C1C">رفع الخطة عاجلاً</td>
-      </tr>`).join("");
-
+  // ---- مصفوفة شاملة لجميع المهام (مكتمل / غير مكتمل) لكل اللجان ----
   const now = new Date(); now.setHours(0,0,0,0);
+
 
   // ---- مصفوفة شاملة لجميع المهام (مكتمل / غير مكتمل) لكل اللجان ----
   const { data: allTasksRaw } = await supabase
