@@ -307,14 +307,14 @@ export async function exportQualityCommitteesReport(opts: { authorName?: string 
   const [{ data: rolesRaw }, { data: logsRaw }, { data: respRaw }, { data: tcomRaw }, { data: pcomRaw }, { data: profsRaw }] = await Promise.all([
     supabase.from("user_roles").select("user_id, committee_id").not("committee_id", "is", null),
     supabase.from("user_activity_log").select("user_id, event_type, created_at").eq("event_type", "login"),
-    supabase.from("task_responses").select("created_by, created_at"),
+    supabase.from("task_responses").select("user_id, created_at"),
     supabase.from("task_comments").select("user_id, created_at"),
     supabase.from("committee_post_comments").select("user_id, created_at"),
     supabase.from("profiles").select("user_id, full_name"),
   ]);
   const roles = (rolesRaw ?? []) as Array<{ user_id: string; committee_id: string }>;
   const logs = (logsRaw ?? []) as Array<{ user_id: string; created_at: string }>;
-  const responses = (respRaw ?? []) as Array<{ created_by: string | null; created_at: string }>;
+  const responses = (respRaw ?? []) as Array<{ user_id: string | null; created_at: string }>;
   const tcom = (tcomRaw ?? []) as Array<{ user_id: string; created_at: string }>;
   const pcom = (pcomRaw ?? []) as Array<{ user_id: string; created_at: string }>;
   const profMap = new Map<string, string>();
@@ -338,7 +338,7 @@ export async function exportQualityCommitteesReport(opts: { authorName?: string 
     const d = new Date(when);
     if (!a.lastInteraction || d > a.lastInteraction) a.lastInteraction = d;
   };
-  for (const r of responses) addInter(r.created_by, r.created_at);
+  for (const r of responses) addInter(r.user_id, r.created_at);
   for (const c of tcom) addInter(c.user_id, c.created_at);
   for (const c of pcom) addInter(c.user_id, c.created_at);
 
