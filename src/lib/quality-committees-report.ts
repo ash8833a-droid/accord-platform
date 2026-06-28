@@ -639,15 +639,6 @@ export async function exportQualityCommitteesReport(opts: { authorName?: string 
         </div>
       </section>
 
-      <section class="section">
-        <div class="section-head"><span class="bar"></span><h2>اللجان التي لم ترفع خطتها التشغيلية حتى الآن</h2><span class="desc">شرطٌ مؤسسيٌّ للقياس والمساءلة</span></div>
-        <div class="ranking">
-          <table>
-            <thead><tr><th>اللجنة</th><th>الوضع الحالي</th><th>الإجراء المطلوب</th></tr></thead>
-            <tbody>${noPlanRows}</tbody>
-          </table>
-        </div>
-      </section>
 
       <section class="section">
         <div class="section-head"><span class="bar"></span><h2>المهام المشتركة بين أكثر من لجنة</h2><span class="desc">تنسيق متكامل لضمان نجاح الحفل</span></div>
