@@ -98,12 +98,12 @@ async function gather(): Promise<CommitteeMetrics[]> {
   const [{ data: cs }, { data: ts }, { data: evs }, { data: prs }] = await Promise.all([
     supabase.from("committees").select("id, name, type, budget_allocated, budget_spent"),
     supabase.from("committee_tasks").select("id, committee_id, status, due_date"),
-    supabase.from("committee_evaluations").select("committee_id, overall_score"),
+    supabase.from("committee_evaluations").select("committee_type, final_score, percentage"),
     supabase.from("payment_requests").select("committee_id, status, amount"),
   ]);
   const committees = (cs ?? []) as CommitteeRow[];
   const tasks = (ts ?? []) as Array<{ committee_id: string; status: string; due_date: string | null }>;
-  const evals = (evs ?? []) as Array<{ committee_id: string; overall_score: number | null }>;
+  const evals = (evs ?? []) as Array<{ committee_type: string; final_score: number | null; percentage: number | null }>;
   const pays  = (prs ?? []) as Array<{ committee_id: string; status: string; amount: number | null }>;
 
   return committees.map((c) => {
@@ -115,8 +115,11 @@ async function gather(): Promise<CommitteeMetrics[]> {
     const total = ct.length;
     const rate = total === 0 ? 0 : Math.round((done / total) * 100);
 
-    const ce = evals.filter((e) => e.committee_id === c.id && typeof e.overall_score === "number");
-    const evalAvg = ce.length === 0 ? null : ce.reduce((a, x) => a + Number(x.overall_score), 0) / ce.length;
+    // Evaluations use committee_type. Normalize percentage (0-100) to a 0-5 scale for display.
+    const ce = evals.filter((e) => e.committee_type === c.type && (e.percentage !== null || e.final_score !== null));
+    const evalAvg = ce.length === 0
+      ? null
+      : ce.reduce((a, x) => a + (x.percentage !== null ? Number(x.percentage) / 20 : Number(x.final_score) / 20), 0) / ce.length;
 
     const cp = pays.filter((p) => p.committee_id === c.id);
     const paidCount = cp.filter((p) => p.status === "paid").length;
