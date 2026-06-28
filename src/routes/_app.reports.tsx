@@ -17,6 +17,7 @@ import { LatestEvaluationsPanel } from "@/components/quality/LatestEvaluationsPa
 import { isExcludedFromWomenSurvey } from "@/lib/women-committee-access";
 import { exportMindMapReport } from "@/lib/mindmap-report";
 import { PieChart } from "lucide-react";
+import { exportQualityCommitteesReport } from "@/lib/quality-committees-report";
 
 export const Route = createFileRoute("/_app/reports")({
   component: ReportsPage,
@@ -135,8 +136,21 @@ function ReportsPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold">التقارير والجودة</h1>
-        <p className="text-muted-foreground mt-1">مركز التقارير الدورية والأرشيف الموحد للجان والاستبانات</p>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h1 className="text-3xl font-bold">التقارير والجودة</h1>
+            <p className="text-muted-foreground mt-1">مركز التقارير الدورية والأرشيف الموحد للجان والاستبانات</p>
+          </div>
+          {(isAdmin || isQualityHead) && (
+            <Button
+              onClick={() => exportQualityCommitteesReport({ authorName: undefined }).catch((e) => toast.error("تعذّر إصدار التقرير", { description: String(e?.message ?? e) }))}
+              className="bg-gradient-hero text-primary-foreground hover:opacity-95 shadow-elegant"
+            >
+              <FileBarChart className="h-4 w-4 ms-1" />
+              إصدار التقرير التفصيلي للجان
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Tabs */}
