@@ -32,6 +32,18 @@ interface CommitteeMetrics {
   recommendations: string[];
 }
 
+interface EngagementMetrics {
+  committeeId: string;
+  members: number;
+  activeMembers: number; // logged in within last 30 days
+  totalLogins: number;
+  totalInteractions: number; // comments + responses
+  lastActivity: Date | null;
+  engagementRate: number; // 0-100
+  topMembers: Array<{ name: string; lastLogin: Date | null; logins: number; interactions: number }>;
+  inactiveMembers: string[];
+}
+
 const TEAL = "#0D7C66";
 const TEAL_DARK = "#0a5b4d";
 const GOLD = "#C4A25C";
@@ -67,6 +79,18 @@ function tierMeta(t: CommitteeMetrics["tier"]) {
     case "stable":  return { label: "أداء مستقر", bg: "#FEF3C7", fg: "#92400E", border: "#FDE68A", color: "#D97706" };
     case "needs":   return { label: "تحتاج تقوية", bg: "#FEE2E2", fg: "#B91C1C", border: "#FECACA", color: "#B91C1C" };
   }
+}
+
+function fmtRelative(d: Date | null): string {
+  if (!d) return "لم يسجّل دخولاً";
+  const diffMs = Date.now() - d.getTime();
+  const days = Math.floor(diffMs / (24 * 60 * 60 * 1000));
+  if (days <= 0) return "اليوم";
+  if (days === 1) return "أمس";
+  if (days < 7) return `قبل ${days} أيام`;
+  if (days < 30) return `قبل ${Math.floor(days / 7)} أسابيع`;
+  if (days < 60) return "قبل شهر";
+  return `قبل ${Math.floor(days / 30)} أشهر`;
 }
 
 function classify(m: Omit<CommitteeMetrics, "tier" | "strengths" | "weaknesses" | "recommendations">): CommitteeMetrics["tier"] {
