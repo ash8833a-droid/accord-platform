@@ -285,6 +285,10 @@ function css(): string {
     .closing .lbl { font-size:10px; opacity:.85; letter-spacing:.5px; font-weight:700; }
     .closing .msg { margin-top:4px; font-size:12.5px; line-height:1.85; }
 
+    .legacy { margin-top:14px; background: linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%); border:1.5px solid ${GOLD}; border-right:5px solid ${GOLD}; border-radius:12px; padding:14px 18px; page-break-inside: avoid; }
+    .legacy .lbl { font-size:10.5px; font-weight:800; color:#7A5A00; letter-spacing:.5px; }
+    .legacy .msg { margin-top:6px; font-size:12.5px; line-height:2; color:${SLATE_900}; font-weight:500; }
+
     .sign { margin-top: 22px; display:flex; justify-content: space-between; gap:20px; font-size:11px; color:${SLATE_700}; }
     .sign .box { flex:1; border-top:1.5px solid ${SLATE_200}; padding-top:6px; text-align:center; }
     .sign .box b { color:${SLATE_900}; }
@@ -304,7 +308,7 @@ export async function exportQualityCommitteesReport(opts: { authorName?: string 
 
   // ---- تفاعل الأعضاء مع المنصة ----
   const thirtyAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-  const [{ data: rolesRaw }, { data: logsRaw }, { data: respRaw }, { data: tcomRaw }, { data: pcomRaw }, { data: profsRaw }, { data: actLogRaw }, { data: postsRaw }, { data: payRaw }] = await Promise.all([
+  const [{ data: rolesRaw }, { data: logsRaw }, { data: respRaw }, { data: tcomRaw }, { data: pcomRaw }, { data: profsRaw }, { data: actLogRaw }, { data: postsRaw }, { data: payRaw }, { data: subsRaw }, { data: famRaw }, { data: groomsRaw }, { data: paidPayRaw }, { data: reportsRaw }] = await Promise.all([
     supabase.from("user_roles").select("user_id, committee_id").not("committee_id", "is", null),
     supabase.from("user_activity_log").select("user_id, event_type, created_at").eq("event_type", "login"),
     supabase.from("task_responses").select("user_id, created_at"),
@@ -314,6 +318,11 @@ export async function exportQualityCommitteesReport(opts: { authorName?: string 
     supabase.from("task_activity_log").select("actor_user_id, committee_id, created_at").not("actor_user_id", "is", null),
     supabase.from("committee_posts").select("author_id, created_at"),
     supabase.from("payment_requests").select("requested_by, created_at"),
+    supabase.from("subscriptions").select("amount, status"),
+    supabase.from("family_contributions").select("amount"),
+    supabase.from("grooms").select("groom_contribution, contribution_paid"),
+    supabase.from("payment_requests").select("amount, status, committee_id"),
+    supabase.from("reports").select("committee_id, title"),
   ]);
   const roles = (rolesRaw ?? []) as Array<{ user_id: string; committee_id: string }>;
   const logs = (logsRaw ?? []) as Array<{ user_id: string; created_at: string }>;
@@ -409,30 +418,73 @@ export async function exportQualityCommitteesReport(opts: { authorName?: string 
     </tr>`;
   }).join("");
 
-  // Top engaged & silent members across the whole platform
-  const allMemberRows: Array<{ name: string; committeeName: string; lastLogin: Date | null; logins: number; interactions: number }> = [];
-  for (const c of all) {
-    const e = engByCommittee.get(c.id);
-    if (!e) continue;
-    for (const m of e.topMembers) allMemberRows.push({ ...m, committeeName: c.name });
-  }
-  const topEngagedRows = allMemberRows
-    .slice()
-    .sort((a, b) => (b.logins + b.interactions * 2) - (a.logins + a.interactions * 2))
-    .slice(0, 8)
-    .map((m, i) => `<tr>
-      <td><span class="rank-num">${i + 1}</span></td>
-      <td><b>${m.name}</b></td>
-      <td>${m.committeeName}</td>
-      <td>${m.logins}</td>
-      <td>${m.interactions}</td>
-      <td style="color:${SLATE_700};font-size:10.5px">${fmtRelative(m.lastLogin)}</td>
-    </tr>`).join("") || `<tr><td colspan="6" style="text-align:center;color:${SLATE_500};padding:14px">لا تتوفر بيانات تفاعل بعد.</td></tr>`;
-
   const totalMembers = Array.from(engByCommittee.values()).reduce((a, e) => a + e.members, 0);
   const totalActive = Array.from(engByCommittee.values()).reduce((a, e) => a + e.activeMembers, 0);
   const totalAllLogins = Array.from(engByCommittee.values()).reduce((a, e) => a + e.totalLogins, 0);
   const overallEngagement = totalMembers === 0 ? 0 : Math.round((totalActive / totalMembers) * 100);
+
+  // ---- اللجان الأقل تفاعلاً مع ضعف استكمال المهام قبل الحفل ----
+  // نركّز على اللجان التي يفترض أن تُغلق مهامها قبل يوم التنفيذ (الإعلام، المالية، المشتريات وغيرها)
+  const criticalPreEventTypes = new Set(["media", "finance", "procurement"]);
+  const weakCommittees = sorted.filter((c) => {
+    const hasOverdueOrPending = c.overdue > 0 || (c.total > 0 && c.rate < 80);
+    const isCritical = criticalPreEventTypes.has(c.type);
+    return isCritical && (hasOverdueOrPending || c.total === 0);
+  });
+  const weakRows = weakCommittees.length === 0
+    ? `<tr><td colspan="4" style="text-align:center;color:${SLATE_500};padding:14px">جميع اللجان الحرجة قبل الحفل أنجزت مهامها وفق المستهدف.</td></tr>`
+    : weakCommittees.map((c) => `<tr>
+        <td><b>${c.name}</b></td>
+        <td>${c.done}/${c.total} (${c.rate}%)</td>
+        <td style="color:#B91C1C;font-weight:700">${c.overdue}</td>
+        <td style="color:${SLATE_700};font-size:10.5px;line-height:1.7">${
+          c.type === "media"
+            ? "يتوجّب استكمال خطة التغطية الإعلامية وتسليم قوائم التصوير وتعيين مسؤول إدارة فريق التوثيق قبل يوم التنفيذ."
+            : c.type === "finance"
+            ? "يتوجّب إغلاق ملف الإيرادات والمصروفات واعتماد الصرف العاجل لمتطلبات اللجان الأخرى قبل يوم الحفل."
+            : c.type === "procurement"
+            ? "يتوجّب إنهاء طلبات الشراء المتأخرة وضمان تسليم المستلزمات قبل ٢٤ ساعة من بدء الحفل."
+            : "يتطلّب تركيزاً مؤسسياً لاستدراك ما تبقّى قبل موعد التنفيذ."
+        }</td>
+      </tr>`).join("");
+
+  // ---- حصر الإيرادات والمصروفات ----
+  const subs = (subsRaw ?? []) as Array<{ amount: number | null; status: string | null }>;
+  const fams = (famRaw ?? []) as Array<{ amount: number | null }>;
+  const grooms = (groomsRaw ?? []) as Array<{ groom_contribution: number | null; contribution_paid: boolean | null }>;
+  const paidPays = (paidPayRaw ?? []) as Array<{ amount: number | null; status: string | null; committee_id: string }>;
+  const revSubs = subs.filter((s) => s.status === "paid" || s.status === "confirmed").reduce((a, s) => a + Number(s.amount ?? 0), 0);
+  const revFam = fams.reduce((a, f) => a + Number(f.amount ?? 0), 0);
+  const revGrooms = grooms.filter((g) => g.contribution_paid).reduce((a, g) => a + Number(g.groom_contribution ?? 0), 0);
+  const totalRevenue = revSubs + revFam + revGrooms;
+  const totalBudgetAlloc = all.reduce((a, c) => a + c.budgetAllocated, 0);
+  const totalBudgetSpent = all.reduce((a, c) => a + c.budgetSpent, 0);
+  const paidExpenses = paidPays.filter((p) => p.status === "paid").reduce((a, p) => a + Number(p.amount ?? 0), 0);
+  const pendingExpenses = paidPays.filter((p) => p.status === "pending").reduce((a, p) => a + Number(p.amount ?? 0), 0);
+  const balance = totalRevenue - Math.max(totalBudgetSpent, paidExpenses);
+  const arNum = (n: number) => new Intl.NumberFormat("ar-SA").format(Math.round(n));
+
+  // ---- اللجان التي لم ترفع خطتها ----
+  // الخطة تُكتشف عبر: وجود تقرير عنوانه يحوي "خطة" أو وجود ٣ مهام أو أكثر مسجّلة
+  const reportsByCom = new Map<string, string[]>();
+  for (const r of (reportsRaw ?? []) as Array<{ committee_id: string | null; title: string }>) {
+    if (!r.committee_id) continue;
+    if (!reportsByCom.has(r.committee_id)) reportsByCom.set(r.committee_id, []);
+    reportsByCom.get(r.committee_id)!.push(r.title);
+  }
+  const noPlan = all.filter((c) => {
+    const titles = reportsByCom.get(c.id) ?? [];
+    const hasPlanReport = titles.some((t) => /خطة|خطه|plan/i.test(t));
+    const hasTasksAsPlan = c.total >= 3;
+    return !hasPlanReport && !hasTasksAsPlan;
+  });
+  const noPlanRows = noPlan.length === 0
+    ? `<tr><td colspan="3" style="text-align:center;color:${"#047857"};padding:14px">جميع اللجان رفعت خططها التشغيلية على المنصة.</td></tr>`
+    : noPlan.map((c) => `<tr>
+        <td><b>${c.name}</b></td>
+        <td>${c.total === 0 ? "لا توجد مهام مسجّلة" : `${c.total} مهمة بدون وثيقة خطة`}</td>
+        <td style="color:#B91C1C">رفع الخطة عاجلاً</td>
+      </tr>`).join("");
 
   // ---- المهام العاجلة خلال الأيام الأربعة قبل الحفل ----
   const now = new Date(); now.setHours(0,0,0,0);
@@ -594,6 +646,66 @@ export async function exportQualityCommitteesReport(opts: { authorName?: string 
       </section>
 
       <section class="section">
+        <div class="section-head"><span class="bar"></span><h2>اللجان الحرجة التي لم تستكمل مهامها قبل الحفل</h2><span class="desc">قراءة مؤسسية لمواطن الضعف التي تستوجب تدخّلاً عاجلاً</span></div>
+        <div class="ranking">
+          <table>
+            <thead><tr><th>اللجنة</th><th>الإنجاز</th><th>المتأخرة</th><th>الإجراء المطلوب</th></tr></thead>
+            <tbody>${weakRows}</tbody>
+          </table>
+        </div>
+        <p style="margin:8px 2px 0;font-size:10.5px;color:${SLATE_700};line-height:1.85">
+          بأسلوبٍ مؤسسيٍّ ودون استهداف للأشخاص، تُسجّل لجنة الجودة أن لجان <b>الإعلام</b> و<b>المالية</b> و<b>المشتريات</b> هي الأكثر حساسيةً قبل يوم التنفيذ، وأن أي تأخّر فيها ينعكس مباشرةً على جاهزية بقية اللجان؛ لذا نوصي بانعقاد اجتماعٍ تنسيقيٍّ عاجل ورفع تقريرٍ يوميٍّ موجزٍ حتى ساعة الصفر.
+        </p>
+      </section>
+
+      <section class="section">
+        <div class="section-head"><span class="bar"></span><h2>إدارة التوثيق والمحتوى المرئي</h2><span class="desc">حفظ الإرث الإعلامي للحفل في المنصة</span></div>
+        <div class="exec">
+          <p>تُعدّ مسألة <b>التوثيق</b> ركيزةً مؤسسيةً لا يجوز التهاون فيها، وتستوجب تعيين <b>مسؤول مباشر لإدارة فريق التوثيق</b> ضمن لجنة الإعلام، تُسند إليه المهام التالية بصلاحيةٍ واضحة:</p>
+          <ul style="margin:4px 0 0;padding-inline-start:20px;font-size:11.5px;color:${SLATE_700};line-height:1.95">
+            <li>قيادة فريق التصوير والمونتاج خلال الحفل وما قبله وما بعده.</li>
+            <li>الاحتفاظ بالمواد الخام (Raw Footage) وحفظها بنسخٍ احتياطيةٍ متعددة.</li>
+            <li>إدارة دورة المونتاج والإخراج النهائي وفق هويةٍ بصريةٍ موحّدة.</li>
+            <li>رفع جميع المخرجات النهائية والمواد الخام إلى المنصة وأرشفتها ضمن أرشيف الحفل الثاني عشر.</li>
+            <li>تسليم نسخةٍ من الأرشيف للجنة الجودة لاعتمادها مرجعاً للأجيال القادمة.</li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="section-head"><span class="bar"></span><h2>حصر الإيرادات والمصروفات</h2><span class="desc">قراءة مالية مؤسسية للدورة الحالية</span></div>
+        <div class="summary">
+          <div class="sum"><span class="l">إجمالي الإيرادات (ر.س)</span><span class="v" style="color:#047857">${arNum(totalRevenue)}</span></div>
+          <div class="sum"><span class="l">إجمالي المصروفات (ر.س)</span><span class="v" style="color:#B45309">${arNum(Math.max(totalBudgetSpent, paidExpenses))}</span></div>
+          <div class="sum"><span class="l">المتبقّي (ر.س)</span><span class="v" style="color:${balance >= 0 ? TEAL_DARK : "#B91C1C"}">${arNum(balance)}</span></div>
+          <div class="sum"><span class="l">طلبات بانتظار الصرف</span><span class="v">${arNum(pendingExpenses)}</span></div>
+        </div>
+        <div class="ranking" style="margin-top:10px">
+          <table>
+            <thead><tr><th>البند</th><th>المصدر</th><th>القيمة (ر.س)</th></tr></thead>
+            <tbody>
+              <tr><td><b>اشتراكات الأعضاء</b></td><td>سجل الاشتراكات المعتمدة</td><td>${arNum(revSubs)}</td></tr>
+              <tr><td><b>مساهمات الأسرة</b></td><td>تبرعات أبناء العائلة</td><td>${arNum(revFam)}</td></tr>
+              <tr><td><b>مساهمات العرسان</b></td><td>المسدّد فعلياً من العرسان</td><td>${arNum(revGrooms)}</td></tr>
+              <tr><td colspan="2" style="text-align:end"><b>إجمالي الإيرادات</b></td><td style="color:#047857;font-weight:800">${arNum(totalRevenue)}</td></tr>
+              <tr><td><b>الميزانيات المعتمدة للجان</b></td><td>إجمالي ما رُصد</td><td>${arNum(totalBudgetAlloc)}</td></tr>
+              <tr><td><b>المنصرف الفعلي</b></td><td>طلبات الصرف المعتمدة</td><td>${arNum(Math.max(totalBudgetSpent, paidExpenses))}</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="section-head"><span class="bar"></span><h2>اللجان التي لم ترفع خطتها التشغيلية حتى الآن</h2><span class="desc">شرطٌ مؤسسيٌّ للقياس والمساءلة</span></div>
+        <div class="ranking">
+          <table>
+            <thead><tr><th>اللجنة</th><th>الوضع الحالي</th><th>الإجراء المطلوب</th></tr></thead>
+            <tbody>${noPlanRows}</tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="section">
         <div class="section-head"><span class="bar"></span><h2>المهام المشتركة بين أكثر من لجنة</h2><span class="desc">تنسيق متكامل لضمان نجاح الحفل</span></div>
         <div class="ranking">
           <table>
@@ -643,19 +755,16 @@ export async function exportQualityCommitteesReport(opts: { authorName?: string 
       </section>
 
       <section class="section">
-        <div class="section-head"><span class="bar"></span><h2>الأعضاء الأكثر تفاعلاً مع المنصة</h2><span class="desc">قائمة شرفية تُحتسب من مرات الدخول والتفاعلات</span></div>
-        <div class="ranking">
-          <table>
-            <thead><tr><th>#</th><th>العضو</th><th>اللجنة</th><th>مرات الدخول</th><th>التفاعلات</th><th>آخر دخول</th></tr></thead>
-            <tbody>${topEngagedRows}</tbody>
-          </table>
-        </div>
-      </section>
-
-      <section class="section">
         <div class="section-head"><span class="bar"></span><h2>التشخيص التفصيلي لكل لجنة</h2><span class="desc">القوة · الضعف · التوصيات</span></div>
         <div class="cards">${sorted.map(cardHtml).join("")}</div>
       </section>
+
+      <div class="legacy">
+        <div class="lbl">رسالة للأجيال القادمة</div>
+        <div class="msg">
+          إنّ ما يُسجَّل اليوم في هذه المنصة من خططٍ وأعمالٍ وقراراتٍ ووثائق، إنما هو حفظٌ لجهودكم المباركة، ومسارٌ مضيءٌ يسير عليه من يخلفكم من أبناء العائلة الكرام؛ فلكم سَبْقُ الأجر وثوابُ التأسيس، ولمن بعدكم البناءُ على ما أرسيتم، ﴿وَقُلِ اعْمَلُوا فَسَيَرَى اللَّهُ عَمَلَكُمْ وَرَسُولُهُ وَالْمُؤْمِنُونَ﴾.
+        </div>
+      </div>
 
       <div class="closing">
         <div class="lbl">خاتمة لجنة الجودة</div>
