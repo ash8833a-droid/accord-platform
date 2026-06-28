@@ -485,42 +485,7 @@ export async function exportQualityCommitteesReport(opts: { authorName?: string 
         <td style="color:#B91C1C">رفع الخطة عاجلاً</td>
       </tr>`).join("");
 
-  // ---- المهام العاجلة خلال الأيام الأربعة قبل الحفل ----
   const now = new Date(); now.setHours(0,0,0,0);
-  const horizon = new Date(now.getTime() + 4 * 24 * 60 * 60 * 1000);
-  const committeeNameById = new Map(all.map((c) => [c.id, c.name] as const));
-  const { data: upRaw } = await supabase
-    .from("committee_tasks")
-    .select("id, committee_id, title, status, due_date")
-    .neq("status", "completed");
-  const upcoming = ((upRaw ?? []) as Array<{ id: string; committee_id: string; title: string; status: string; due_date: string | null }>)
-    .filter((t) => {
-      if (!t.due_date) return false;
-      const d = new Date(t.due_date);
-      return d <= horizon; // includes already-overdue items
-    })
-    .sort((a, b) => new Date(a.due_date as string).getTime() - new Date(b.due_date as string).getTime());
-
-  const fmtDay = (s: string) => {
-    try {
-      return new Intl.DateTimeFormat("ar-SA-u-ca-islamic-umalqura", { day: "numeric", month: "long" }).format(new Date(s));
-    } catch { return s; }
-  };
-
-  const upcomingRows = upcoming.length === 0
-    ? `<tr><td colspan="4" style="text-align:center;color:${SLATE_500};padding:14px">لا توجد مهام مجدولة خلال الأيام الأربعة القادمة.</td></tr>`
-    : upcoming.map((t) => {
-        const dueDate = new Date(t.due_date as string);
-        const isOverdue = dueDate < now;
-        const label = isOverdue ? "متأخرة" : "عاجلة";
-        const color = isOverdue ? "#B91C1C" : "#B45309";
-        return `<tr>
-          <td><b>${t.title}</b></td>
-          <td>${committeeNameById.get(t.committee_id) ?? "—"}</td>
-          <td>${fmtDay(t.due_date as string)}</td>
-          <td><span class="badge" style="background:#FEF3C7;color:${color};border-color:#FDE68A">${label}</span></td>
-        </tr>`;
-      }).join("");
 
   // ---- مصفوفة شاملة لجميع المهام (مكتمل / غير مكتمل) لكل اللجان ----
   const { data: allTasksRaw } = await supabase
@@ -666,15 +631,6 @@ export async function exportQualityCommitteesReport(opts: { authorName?: string 
         </div>
       </section>
 
-      <section class="section">
-        <div class="section-head"><span class="bar"></span><h2>المهام العاجلة خلال الأيام الأربعة قبل الحفل</h2><span class="desc">ما يتوجب إنجازه قبل يوم التنفيذ</span></div>
-        <div class="ranking">
-          <table>
-            <thead><tr><th>المهمة</th><th>اللجنة</th><th>الاستحقاق</th><th>الحالة</th></tr></thead>
-            <tbody>${upcomingRows}</tbody>
-          </table>
-        </div>
-      </section>
 
       <section class="section">
         <div class="section-head"><span class="bar"></span><h2>اللجان الحرجة التي لم تستكمل مهامها قبل الحفل</h2><span class="desc">قراءة مؤسسية لمواطن الضعف التي تستوجب تدخّلاً عاجلاً</span></div>
