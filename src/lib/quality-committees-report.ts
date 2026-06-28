@@ -414,30 +414,73 @@ export async function exportQualityCommitteesReport(opts: { authorName?: string 
     </tr>`;
   }).join("");
 
-  // Top engaged & silent members across the whole platform
-  const allMemberRows: Array<{ name: string; committeeName: string; lastLogin: Date | null; logins: number; interactions: number }> = [];
-  for (const c of all) {
-    const e = engByCommittee.get(c.id);
-    if (!e) continue;
-    for (const m of e.topMembers) allMemberRows.push({ ...m, committeeName: c.name });
-  }
-  const topEngagedRows = allMemberRows
-    .slice()
-    .sort((a, b) => (b.logins + b.interactions * 2) - (a.logins + a.interactions * 2))
-    .slice(0, 8)
-    .map((m, i) => `<tr>
-      <td><span class="rank-num">${i + 1}</span></td>
-      <td><b>${m.name}</b></td>
-      <td>${m.committeeName}</td>
-      <td>${m.logins}</td>
-      <td>${m.interactions}</td>
-      <td style="color:${SLATE_700};font-size:10.5px">${fmtRelative(m.lastLogin)}</td>
-    </tr>`).join("") || `<tr><td colspan="6" style="text-align:center;color:${SLATE_500};padding:14px">لا تتوفر بيانات تفاعل بعد.</td></tr>`;
-
   const totalMembers = Array.from(engByCommittee.values()).reduce((a, e) => a + e.members, 0);
   const totalActive = Array.from(engByCommittee.values()).reduce((a, e) => a + e.activeMembers, 0);
   const totalAllLogins = Array.from(engByCommittee.values()).reduce((a, e) => a + e.totalLogins, 0);
   const overallEngagement = totalMembers === 0 ? 0 : Math.round((totalActive / totalMembers) * 100);
+
+  // ---- اللجان الأقل تفاعلاً مع ضعف استكمال المهام قبل الحفل ----
+  // نركّز على اللجان التي يفترض أن تُغلق مهامها قبل يوم التنفيذ (الإعلام، المالية، المشتريات وغيرها)
+  const criticalPreEventTypes = new Set(["media", "finance", "procurement"]);
+  const weakCommittees = sorted.filter((c) => {
+    const hasOverdueOrPending = c.overdue > 0 || (c.total > 0 && c.rate < 80);
+    const isCritical = criticalPreEventTypes.has(c.type);
+    return isCritical && (hasOverdueOrPending || c.total === 0);
+  });
+  const weakRows = weakCommittees.length === 0
+    ? `<tr><td colspan="4" style="text-align:center;color:${SLATE_500};padding:14px">جميع اللجان الحرجة قبل الحفل أنجزت مهامها وفق المستهدف.</td></tr>`
+    : weakCommittees.map((c) => `<tr>
+        <td><b>${c.name}</b></td>
+        <td>${c.done}/${c.total} (${c.rate}%)</td>
+        <td style="color:#B91C1C;font-weight:700">${c.overdue}</td>
+        <td style="color:${SLATE_700};font-size:10.5px;line-height:1.7">${
+          c.type === "media"
+            ? "يتوجّب استكمال خطة التغطية الإعلامية وتسليم قوائم التصوير وتعيين مسؤول إدارة فريق التوثيق قبل يوم التنفيذ."
+            : c.type === "finance"
+            ? "يتوجّب إغلاق ملف الإيرادات والمصروفات واعتماد الصرف العاجل لمتطلبات اللجان الأخرى قبل يوم الحفل."
+            : c.type === "procurement"
+            ? "يتوجّب إنهاء طلبات الشراء المتأخرة وضمان تسليم المستلزمات قبل ٢٤ ساعة من بدء الحفل."
+            : "يتطلّب تركيزاً مؤسسياً لاستدراك ما تبقّى قبل موعد التنفيذ."
+        }</td>
+      </tr>`).join("");
+
+  // ---- حصر الإيرادات والمصروفات ----
+  const subs = (subsRaw ?? []) as Array<{ amount: number | null; status: string | null }>;
+  const fams = (famRaw ?? []) as Array<{ amount: number | null }>;
+  const grooms = (groomsRaw ?? []) as Array<{ groom_contribution: number | null; contribution_paid: boolean | null }>;
+  const paidPays = (paidPayRaw ?? []) as Array<{ amount: number | null; status: string | null; committee_id: string }>;
+  const revSubs = subs.filter((s) => s.status === "paid" || s.status === "confirmed").reduce((a, s) => a + Number(s.amount ?? 0), 0);
+  const revFam = fams.reduce((a, f) => a + Number(f.amount ?? 0), 0);
+  const revGrooms = grooms.filter((g) => g.contribution_paid).reduce((a, g) => a + Number(g.groom_contribution ?? 0), 0);
+  const totalRevenue = revSubs + revFam + revGrooms;
+  const totalBudgetAlloc = all.reduce((a, c) => a + c.budgetAllocated, 0);
+  const totalBudgetSpent = all.reduce((a, c) => a + c.budgetSpent, 0);
+  const paidExpenses = paidPays.filter((p) => p.status === "paid").reduce((a, p) => a + Number(p.amount ?? 0), 0);
+  const pendingExpenses = paidPays.filter((p) => p.status === "pending").reduce((a, p) => a + Number(p.amount ?? 0), 0);
+  const balance = totalRevenue - Math.max(totalBudgetSpent, paidExpenses);
+  const arNum = (n: number) => new Intl.NumberFormat("ar-SA").format(Math.round(n));
+
+  // ---- اللجان التي لم ترفع خطتها ----
+  // الخطة تُكتشف عبر: وجود تقرير عنوانه يحوي "خطة" أو وجود ٣ مهام أو أكثر مسجّلة
+  const reportsByCom = new Map<string, string[]>();
+  for (const r of (reportsRaw ?? []) as Array<{ committee_id: string | null; title: string }>) {
+    if (!r.committee_id) continue;
+    if (!reportsByCom.has(r.committee_id)) reportsByCom.set(r.committee_id, []);
+    reportsByCom.get(r.committee_id)!.push(r.title);
+  }
+  const noPlan = all.filter((c) => {
+    const titles = reportsByCom.get(c.id) ?? [];
+    const hasPlanReport = titles.some((t) => /خطة|خطه|plan/i.test(t));
+    const hasTasksAsPlan = c.total >= 3;
+    return !hasPlanReport && !hasTasksAsPlan;
+  });
+  const noPlanRows = noPlan.length === 0
+    ? `<tr><td colspan="3" style="text-align:center;color:${"#047857"};padding:14px">جميع اللجان رفعت خططها التشغيلية على المنصة.</td></tr>`
+    : noPlan.map((c) => `<tr>
+        <td><b>${c.name}</b></td>
+        <td>${c.total === 0 ? "لا توجد مهام مسجّلة" : `${c.total} مهمة بدون وثيقة خطة`}</td>
+        <td style="color:#B91C1C">رفع الخطة عاجلاً</td>
+      </tr>`).join("");
 
   // ---- المهام العاجلة خلال الأيام الأربعة قبل الحفل ----
   const now = new Date(); now.setHours(0,0,0,0);
