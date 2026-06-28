@@ -528,6 +528,7 @@ export async function exportQualityCommitteesReport(opts: { authorName?: string 
     needs.length > 0
       ? `تستدعي <b>${pluralLajna(needs.length)}</b> دعماً مؤسسياً مركّزاً لإعادة المسار إلى مستويات الأداء المعتمدة، وقد أُدرجت توصيات محددة لكل لجنة في القسم التفصيلي.`
       : `لا توجد لجان تحت دائرة الخطر، وهو مؤشر إيجابي على تكامل المنظومة وانضباط التنفيذ.`,
+    `على صعيد التفاعل الرقمي مع المنصة، بلغ مجموع الأعضاء <b>${totalMembers}</b> عضواً، منهم <b>${totalActive}</b> نشطون خلال آخر 30 يوماً بنسبة تفاعل عامة <b>${overallEngagement}%</b> وعدد مرات دخول إجمالي <b>${totalAllLogins}</b>، وهو مؤشر مباشر على مدى انغماس اللجان في العمل المؤسسي اليومي.`,
   ];
 
   const rankingRows = sorted.map((c, i) => {
