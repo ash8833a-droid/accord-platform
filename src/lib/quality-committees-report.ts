@@ -50,6 +50,16 @@ function fmtArDate(d: Date): string {
   } catch { return d.toLocaleDateString("ar-SA"); }
 }
 
+// Arabic plural for "لجنة": 0 → لا توجد لجان · 1 → لجنة واحدة · 2 → لجنتان
+// · 3-10 → N لجان · 11+ → N لجنة (تمييز مفرد منصوب)
+function pluralLajna(n: number): string {
+  if (n === 0) return "لا توجد لجان";
+  if (n === 1) return "لجنة واحدة";
+  if (n === 2) return "لجنتان";
+  if (n >= 3 && n <= 10) return `${n} لجان`;
+  return `${n} لجنة`;
+}
+
 function tierMeta(t: CommitteeMetrics["tier"]) {
   switch (t) {
     case "leader":  return { label: "لجنة قائدة", bg: "#ECFDF5", fg: "#047857", border: "#A7F3D0", color: "#10B981" };
