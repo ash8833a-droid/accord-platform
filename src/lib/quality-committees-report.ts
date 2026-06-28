@@ -485,6 +485,8 @@ export async function exportQualityCommitteesReport(opts: { authorName?: string 
         <td style="color:#B91C1C">رفع الخطة عاجلاً</td>
       </tr>`).join("");
 
+  const now = new Date(); now.setHours(0,0,0,0);
+
   // ---- مصفوفة شاملة لجميع المهام (مكتمل / غير مكتمل) لكل اللجان ----
   const { data: allTasksRaw } = await supabase
     .from("committee_tasks")
@@ -629,15 +631,6 @@ export async function exportQualityCommitteesReport(opts: { authorName?: string 
         </div>
       </section>
 
-      <section class="section">
-        <div class="section-head"><span class="bar"></span><h2>المهام العاجلة خلال الأيام الأربعة قبل الحفل</h2><span class="desc">ما يتوجب إنجازه قبل يوم التنفيذ</span></div>
-        <div class="ranking">
-          <table>
-            <thead><tr><th>المهمة</th><th>اللجنة</th><th>الاستحقاق</th><th>الحالة</th></tr></thead>
-            <tbody>${upcomingRows}</tbody>
-          </table>
-        </div>
-      </section>
 
       <section class="section">
         <div class="section-head"><span class="bar"></span><h2>اللجان الحرجة التي لم تستكمل مهامها قبل الحفل</h2><span class="desc">قراءة مؤسسية لمواطن الضعف التي تستوجب تدخّلاً عاجلاً</span></div>
