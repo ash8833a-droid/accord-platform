@@ -308,7 +308,7 @@ export async function exportQualityCommitteesReport(opts: { authorName?: string 
 
   // ---- تفاعل الأعضاء مع المنصة ----
   const thirtyAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-  const [{ data: rolesRaw }, { data: logsRaw }, { data: respRaw }, { data: tcomRaw }, { data: pcomRaw }, { data: profsRaw }, { data: actLogRaw }, { data: postsRaw }, { data: payRaw }, { data: subsRaw }, { data: famRaw }, { data: groomsRaw }, { data: paidPayRaw }, { data: reportsRaw }] = await Promise.all([
+  const [{ data: rolesRaw }, { data: logsRaw }, { data: respRaw }, { data: tcomRaw }, { data: pcomRaw }, { data: profsRaw }, { data: actLogRaw }, { data: postsRaw }, { data: payRaw }, { data: subsRaw }, { data: famRaw }, { data: groomsRaw }, { data: paidPayRaw }] = await Promise.all([
     supabase.from("user_roles").select("user_id, committee_id").not("committee_id", "is", null),
     supabase.from("user_activity_log").select("user_id, event_type, created_at").eq("event_type", "login"),
     supabase.from("task_responses").select("user_id, created_at"),
