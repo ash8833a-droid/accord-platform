@@ -21,7 +21,7 @@ export const Route = createFileRoute("/auth")({
 const isValidSaPhone = (p: string) => /^05\d{8}$/.test(p.trim());
 
 function AuthPage() {
-  const { user, signIn, signUp, loading, hasRole } = useAuth();
+  const { user, signIn, signUp, loading, hasRole, accessLoaded } = useAuth();
   const nav = useNavigate();
   const [mode, setMode] = useState<"in" | "up">("in");
   const [phone, setPhone] = useState("");
@@ -34,12 +34,12 @@ function AuthPage() {
   const [agreed, setAgreed] = useState(true);
 
   useEffect(() => {
-    if (user && !loading) {
+    if (user && !loading && accessLoaded) {
       if (hasRole("admin")) nav({ to: "/admin" });
       else if (hasRole("quality")) nav({ to: "/reports" });
       else nav({ to: "/admin/tasks" });
     }
-  }, [user, loading, nav, hasRole]);
+  }, [user, loading, accessLoaded, nav, hasRole]);
 
   useEffect(() => {
     supabase
