@@ -350,16 +350,21 @@ export async function buildQualityCommitteesReportHtml(opts: { authorName?: stri
       const isDone = t.status === "completed";
       const dueDate = t.due_date ? new Date(t.due_date) : null;
       const isOverdue = !isDone && !!dueDate && dueDate < now;
-      const badge = isDone
-        ? `<span class="pill ok">منجزة</span>`
-        : isOverdue
-          ? `<span class="pill no">متأخّرة</span>`
-          : `<span class="pill no">لم تُنجَز</span>`;
+      const cleanedTitle = cleanTitle(t.title);
+      const isReady = /على\s*أتم\s*ال?ا?ستعداد/.test(cleanedTitle);
+      const displayTitle = cleanedTitle.replace(/\s*على\s*أتم\s*ال?ا?ستعداد\s*$/, "").trim();
+      const badge = isReady
+        ? `<span class="pill ready">على أتم الاستعداد</span>`
+        : isDone
+          ? `<span class="pill ok">منجزة</span>`
+          : isOverdue
+            ? `<span class="pill no">متأخّرة</span>`
+            : `<span class="pill no">لم تُنجَز</span>`;
       const dueText = dueDate ? dueDate.toLocaleDateString("ar-SA-u-ca-islamic-umalqura") : "—";
       allRows.push(
-        `<tr class="row ${isDone ? "is-ok" : "is-no"}">
+        `<tr class="row ${isReady ? "is-ready" : isDone ? "is-ok" : "is-no"}">
           <td class="idx">${i + 1}</td>
-          <td class="title">${cleanTitle(t.title)}</td>
+          <td class="title">${displayTitle}</td>
           <td class="due">${dueText}</td>
           <td class="st">${badge}</td>
         </tr>`
@@ -403,6 +408,7 @@ export async function buildQualityCommitteesReportHtml(opts: { authorName?: stri
 
       <p class="legend">
         <span class="pill ok">منجزة</span> أُنجزت في وقتها ·
+        <span class="pill ready">على أتم الاستعداد</span> جاهزة للتنفيذ يوم الحفل ·
         <span class="pill no">متأخّرة / لم تُنجَز</span> تستوجب المعالجة الفورية.
       </p>
 
@@ -436,11 +442,13 @@ export async function buildQualityCommitteesReportHtml(opts: { authorName?: stri
       .qtbl .st { text-align:center; }
       .qtbl .row.is-ok { background:#F6FFFB; }
       .qtbl .row.is-no { background:#FFF7F7; }
+      .qtbl .row.is-ready { background:#FFF7EC; }
       .qtbl .empty-row { text-align:center; color:${SLATE_500}; font-style:italic; padding:12px; }
 
       .pill { display:inline-block; font-size:10.5px; font-weight:800; padding:3px 10px; border-radius:999px; border:1px solid; white-space:nowrap; }
       .pill.ok { background:#D1FAE5; color:#047857; border-color:#A7F3D0; }
       .pill.no { background:#FEE2E2; color:#B91C1C; border-color:#FECACA; }
+      .pill.ready { background:#FFEDD5; color:#C2410C; border-color:#FED7AA; }
 
       .legend { margin:10px 2px 0; font-size:10.5px; color:${SLATE_700}; }
       .legend .pill { margin-inline-end:4px; }
