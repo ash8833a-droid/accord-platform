@@ -17,8 +17,9 @@ import { LatestEvaluationsPanel } from "@/components/quality/LatestEvaluationsPa
 import { isExcludedFromWomenSurvey } from "@/lib/women-committee-access";
 import { exportMindMapReport } from "@/lib/mindmap-report";
 import { PieChart } from "lucide-react";
-import { exportQualityCommitteesReport } from "@/lib/quality-committees-report";
+import { buildQualityCommitteesReportHtml } from "@/lib/quality-committees-report";
 import { CommitteePlanPanel } from "@/components/committee/CommitteePlanPanel";
+import { ReportEditorDialog } from "@/components/reports/ReportEditorDialog";
 
 export const Route = createFileRoute("/_app/reports")({
   component: ReportsPage,
