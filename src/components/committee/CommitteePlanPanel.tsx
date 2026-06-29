@@ -322,7 +322,7 @@ export function CommitteePlanPanel({ committeeId, committeeName }: Props) {
               </div>
 
               <Tabs defaultValue="upload" className="w-full">
-                <TabsList className="grid w-full grid-cols-3 bg-slate-100 p-1 rounded-xl h-auto gap-1">
+                <TabsList className="grid w-full grid-cols-4 bg-slate-100 p-1 rounded-xl h-auto gap-1">
                   <TabsTrigger value="upload" className="rounded-lg gap-1.5 text-xs font-semibold data-[state=active]:bg-white data-[state=active]:shadow-sm py-2">
                     <Upload className="h-3.5 w-3.5" /> ارفاق ملف
                   </TabsTrigger>
@@ -331,6 +331,9 @@ export function CommitteePlanPanel({ committeeId, committeeName }: Props) {
                   </TabsTrigger>
                   <TabsTrigger value="ai" className="rounded-lg gap-1.5 text-xs font-semibold data-[state=active]:bg-white data-[state=active]:shadow-sm py-2">
                     <Sparkles className="h-3.5 w-3.5" /> التحليل الذكي
+                  </TabsTrigger>
+                  <TabsTrigger value="preview" className="rounded-lg gap-1.5 text-xs font-semibold data-[state=active]:bg-white data-[state=active]:shadow-sm py-2">
+                    <Eye className="h-3.5 w-3.5" /> النموذج الموحّد
                   </TabsTrigger>
                 </TabsList>
 
@@ -383,6 +386,24 @@ export function CommitteePlanPanel({ committeeId, committeeName }: Props) {
                   </Button>
 
                   {analysis && <AnalysisView a={analysis} />}
+                </TabsContent>
+
+                <TabsContent value="preview" className="mt-4">
+                  {pasted.trim() ? (
+                    <UnifiedPlanView
+                      title={title.trim() || `خطة ${committeeName}`}
+                      committeeName={committeeName}
+                      content={pasted}
+                      analysisText={analysis ? analysisToText(analysis) : null}
+                      hidePrint
+                    />
+                  ) : (
+                    <div className="rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 p-8 text-center text-sm text-slate-500 leading-7">
+                      الصق محتوى الخطة في تبويب «لصق محتوى» ليظهر هنا في النموذج الموحّد بهوية اللجنة.
+                      <br />
+                      الملفات المرفقة (PDF / Word / صورة) تُحفظ كما هي وتُفتح عبر زر «فتح».
+                    </div>
+                  )}
                 </TabsContent>
               </Tabs>
             </div>
