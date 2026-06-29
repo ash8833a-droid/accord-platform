@@ -18,6 +18,7 @@ import { isExcludedFromWomenSurvey } from "@/lib/women-committee-access";
 import { exportMindMapReport } from "@/lib/mindmap-report";
 import { PieChart } from "lucide-react";
 import { exportQualityCommitteesReport } from "@/lib/quality-committees-report";
+import { CommitteePlanPanel } from "@/components/committee/CommitteePlanPanel";
 
 export const Route = createFileRoute("/_app/reports")({
   component: ReportsPage,
@@ -152,6 +153,27 @@ function ReportsPage() {
           )}
         </div>
       </div>
+
+      {/* Operational plans — always visible, no role/type restrictions */}
+      <section className="rounded-2xl border bg-card p-5 shadow-sm">
+        <div className="flex items-center gap-2 mb-4">
+          <ClipboardList className="h-5 w-5 text-primary" />
+          <h2 className="text-lg font-bold">الخطط التشغيلية للجان</h2>
+          <Badge variant="secondary" className="ms-2">{committees.length}</Badge>
+        </div>
+        {committees.length === 0 ? (
+          <p className="text-sm text-muted-foreground">لا توجد لجان لعرضها بعد.</p>
+        ) : (
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {committees.map((c) => (
+              <div key={c.id} className="flex items-center justify-between gap-3 rounded-xl border bg-background/60 p-3">
+                <span className="text-sm font-semibold truncate">{c.name}</span>
+                <CommitteePlanPanel committeeId={c.id} committeeName={c.name} />
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
 
       {/* Tabs */}
       <div className="flex flex-wrap gap-2 border-b">
