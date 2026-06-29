@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Star, Heart, Sparkles, CheckCircle2, UtensilsCrossed, CalendarRange, HandHeart } from "lucide-react";
+import { Printer } from "lucide-react";
 import { toast } from "sonner";
 import weddingLogo from "@/assets/wedding-logo.png.asset.json";
 
@@ -152,7 +153,27 @@ function WeddingFeedbackPage() {
 
   return (
     <div dir="rtl" className="min-h-screen bg-white py-8 px-4">
+      <style>{`
+        @media print {
+          @page { size: A4; margin: 14mm; }
+          .no-print { display: none !important; }
+          body { background: #fff !important; }
+          .print-card { box-shadow: none !important; break-inside: avoid; }
+        }
+      `}</style>
       <div className="max-w-2xl mx-auto space-y-6">
+        <div className="no-print flex justify-end">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => window.print()}
+            className="gap-2"
+            style={{ borderColor: `${BRAND_GOLD}66`, color: BRAND_TEAL }}
+          >
+            <Printer className="h-4 w-4" />
+            طباعة الاستبيان
+          </Button>
+        </div>
         <div className="text-center space-y-3 pt-2">
           <img src={weddingLogo.url} alt="شعار الزواج الجماعي" className="h-24 sm:h-28 w-auto mx-auto" />
           <div className="mx-auto h-px w-24" style={{ background: `linear-gradient(90deg, transparent, ${BRAND_GOLD}, transparent)` }} />
@@ -169,7 +190,7 @@ function WeddingFeedbackPage() {
             return (
               <div
                 key={q.key}
-                className="rounded-2xl border bg-white p-5 shadow-soft"
+                className="rounded-2xl border bg-white p-5 shadow-soft print-card"
                 style={{ borderColor: `${color}33` }}
               >
                 <div className="flex items-start gap-3 mb-3">
@@ -217,12 +238,12 @@ function WeddingFeedbackPage() {
         <Button
           onClick={submit}
           disabled={submitting}
-          className="w-full h-12 text-base text-white shadow-elegant border-0"
+          className="w-full h-12 text-base text-white shadow-elegant border-0 no-print"
           style={{ background: `linear-gradient(90deg, ${BRAND_TEAL}, ${BRAND_GOLD})` }}
         >
           {submitting ? "جاري الإرسال…" : "إرسال التقييم"}
         </Button>
-        <p className="text-center text-[11px] text-muted-foreground">جميع التقييمات سرية ولا تُعرض إلا للجنة الجودة والإدارة.</p>
+        <p className="text-center text-[11px] text-muted-foreground no-print">جميع التقييمات سرية ولا تُعرض إلا للجنة الجودة والإدارة.</p>
       </div>
     </div>
   );
