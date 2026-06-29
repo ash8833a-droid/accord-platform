@@ -112,11 +112,14 @@ function renderBlocks(blocks: Block[]) {
           {b.items.map((it, j) => <li key={j}>{it}</li>)}
         </ol>
       );
-    return (
-      <p key={idx} className="text-[13px] leading-7 text-slate-700 my-2">
-        {b.text}
-      </p>
-    );
+    if (b.kind === "p") {
+      return (
+        <p key={idx} className="text-[13px] leading-7 text-slate-700 my-2">
+          {b.text}
+        </p>
+      );
+    }
+    return null;
   });
 }
 
@@ -187,7 +190,7 @@ function blocksToHtml(blocks: Block[]): string {
       parts.push(`<ul>${b.items.map((i) => `<li>${escapeHtml(i)}</li>`).join("")}</ul>`);
     else if (b.kind === "ol")
       parts.push(`<ol>${b.items.map((i) => `<li>${escapeHtml(i)}</li>`).join("")}</ol>`);
-    else parts.push(`<p>${escapeHtml(b.text)}</p>`);
+    else if (b.kind === "p") parts.push(`<p>${escapeHtml(b.text)}</p>`);
   }
   return parts.join("\n");
 }
