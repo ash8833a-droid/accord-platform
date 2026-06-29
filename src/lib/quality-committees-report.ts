@@ -319,44 +319,56 @@ export async function buildQualityCommitteesReportHtml(opts: { authorName?: stri
 
   const sorted = [...all].sort((a, b) => a.name.localeCompare(b.name, "ar"));
 
+  // إزالة اللواحق بين قوسين مثل (التنفيذ)، (المراقبة)، (التخطيط)، (طلب عريس)
+  const cleanTitle = (t: string) =>
+    t.replace(/\s*[\(（][^()）]{1,40}[\)）]\s*/g, " ").replace(/\s+/g, " ").trim();
+
   let grandDone = 0, grandPending = 0;
-  const sections = sorted.map((c) => {
+  const allRows: string[] = [];
+
+  sorted.forEach((c) => {
     const items = allTasks.filter((t) => t.committee_id === c.id);
-    const done = items.filter((t) => t.status === "completed");
-    const pending = items.filter((t) => t.status !== "completed");
-    grandDone += done.length;
-    grandPending += pending.length;
+    const done = items.filter((t) => t.status === "completed").length;
+    const pending = items.length - done;
+    grandDone += done;
+    grandPending += pending;
 
-    const doneList = done.length
-      ? `<ul class="lst ok">${done.map((t) => `<li>${t.title}</li>`).join("")}</ul>`
-      : `<p class="empty">لا توجد مهام منجزة مسجّلة.</p>`;
+    // رأس اللجنة
+    allRows.push(
+      `<tr class="grp"><td colspan="4">
+        <span class="grp-name">${c.name}</span>
+        <span class="grp-stat"><span class="dot ok"></span>${done} منجزة · <span class="dot no"></span>${pending} غير منجزة</span>
+      </td></tr>`
+    );
 
-    const pendingList = pending.length
-      ? `<ul class="lst no">${pending.map((t) => {
-          const overdue = t.due_date && new Date(t.due_date) < now;
-          return `<li>${t.title}${overdue ? ` <span class="tag late">متأخّرة</span>` : ""}</li>`;
-        }).join("")}</ul>`
-      : `<p class="empty">لا توجد مهام معلّقة.</p>`;
+    if (items.length === 0) {
+      allRows.push(`<tr><td colspan="4" class="empty-row">لا توجد مهام مسجّلة لهذه اللجنة.</td></tr>`);
+      return;
+    }
 
-    return `
-      <section class="com">
-        <header class="com-head">
-          <h3>${c.name}</h3>
-          <span class="count">${done.length} منجزة · ${pending.length} غير منجزة</span>
-        </header>
-        <div class="cols">
-          <div class="col">
-            <h4 class="h-ok">المهام المنجزة</h4>
-            ${doneList}
-          </div>
-          <div class="col">
-            <h4 class="h-no">المهام غير المنجزة</h4>
-            ${pendingList}
-          </div>
-        </div>
-      </section>`;
-  }).join("");
+    items.forEach((t, i) => {
+      const isDone = t.status === "completed";
+      const dueDate = t.due_date ? new Date(t.due_date) : null;
+      const isOverdue = !isDone && !!dueDate && dueDate < now;
+      const badge = isDone
+        ? `<span class="pill ok">منجزة</span>`
+        : isOverdue
+          ? `<span class="pill no">متأخّرة</span>`
+          : `<span class="pill no">لم تُنجَز</span>`;
+      const dueText = dueDate ? dueDate.toLocaleDateString("ar-SA-u-ca-islamic-umalqura") : "—";
+      allRows.push(
+        `<tr class="row ${isDone ? "is-ok" : "is-no"}">
+          <td class="idx">${i + 1}</td>
+          <td class="title">${cleanTitle(t.title)}</td>
+          <td class="due">${dueText}</td>
+          <td class="st">${badge}</td>
+        </tr>`
+      );
+    });
+  });
 
+  const overallRate = (grandDone + grandPending) === 0
+    ? 0 : Math.round((grandDone / (grandDone + grandPending)) * 100);
   const author = opts.authorName ? opts.authorName : "رئيس لجنة الجودة";
 
   const html = `
@@ -365,12 +377,34 @@ export async function buildQualityCommitteesReportHtml(opts: { authorName?: stri
         <img src="${BRAND_LOGO_DATA_URI}" alt="" />
         <div class="accent"></div>
         <div style="flex:1">
-          <h1>تقرير الجودة المختصر · المهام المنجزة وغير المنجزة</h1>
-          <p class="meta">تاريخ الإصدار: <b>${today}</b> · عدد اللجان: <b>${all.length}</b> · منجزة: <b>${grandDone}</b> · غير منجزة: <b>${grandPending}</b></p>
+          <h1>تقرير الجودة · حالة مهام اللجان</h1>
+          <p class="meta">تاريخ الإصدار: <b>${today}</b> · اللجان: <b>${all.length}</b> · نسبة الإنجاز: <b>${overallRate}%</b></p>
         </div>
       </header>
 
-      <div class="cards">${sections}</div>
+      <div class="kpi-row">
+        <div class="kpi"><span class="kpi-l">المهام المنجزة</span><span class="kpi-v ok">${grandDone}</span></div>
+        <div class="kpi"><span class="kpi-l">المهام غير المنجزة</span><span class="kpi-v no">${grandPending}</span></div>
+        <div class="kpi"><span class="kpi-l">نسبة الإنجاز</span><span class="kpi-v">${overallRate}%</span></div>
+        <div class="kpi"><span class="kpi-l">عدد اللجان</span><span class="kpi-v">${all.length}</span></div>
+      </div>
+
+      <table class="qtbl">
+        <thead>
+          <tr>
+            <th style="width:6%">#</th>
+            <th style="width:60%">المهمة</th>
+            <th style="width:18%">تاريخ الاستحقاق</th>
+            <th style="width:16%">الحالة</th>
+          </tr>
+        </thead>
+        <tbody>${allRows.join("")}</tbody>
+      </table>
+
+      <p class="legend">
+        <span class="pill ok">منجزة</span> أُنجزت في وقتها ·
+        <span class="pill no">متأخّرة / لم تُنجَز</span> تستوجب المعالجة الفورية.
+      </p>
 
       <div class="sign">
         <div class="box"><b>${author}</b><br/>رئيس لجنة الجودة</div>
@@ -379,21 +413,37 @@ export async function buildQualityCommitteesReportHtml(opts: { authorName?: stri
       </div>
     </div>
     <style>${css()}
-      .com { background:#fff; border:1px solid ${SLATE_200}; border-right:4px solid ${TEAL}; border-radius:10px; padding:12px 14px; margin-bottom:10px; page-break-inside: avoid; }
-      .com-head { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:8px; border-bottom:1px dashed ${SLATE_200}; padding-bottom:6px; }
-      .com-head h3 { margin:0; font-size:13.5px; font-weight:800; color:${SLATE_900}; }
-      .com-head .count { font-size:10.5px; color:${SLATE_500}; }
-      .cols { display:grid; grid-template-columns: 1fr 1fr; gap:12px; }
-      .col h4 { margin:0 0 6px; font-size:11.5px; font-weight:800; }
-      .h-ok { color:#047857; }
-      .h-no { color:#B91C1C; }
-      .lst { margin:0; padding-inline-start:18px; }
-      .lst li { font-size:11px; line-height:1.85; color:${SLATE_900}; margin-bottom:2px; }
-      .lst.ok li::marker { color:#047857; }
-      .lst.no li::marker { color:#B91C1C; }
-      .empty { margin:0; font-size:10.5px; color:${SLATE_500}; font-style:italic; }
-      .tag { display:inline-block; font-size:9.5px; font-weight:700; padding:1px 6px; border-radius:999px; margin-inline-start:4px; }
-      .tag.late { background:#FEE2E2; color:#B91C1C; border:1px solid #FECACA; }
+      .kpi-row { display:grid; grid-template-columns: repeat(4, 1fr); gap:8px; margin: 0 0 14px; }
+      .kpi { background:#fff; border:1px solid ${SLATE_200}; border-radius:10px; padding:10px 12px; display:flex; flex-direction:column; gap:2px; }
+      .kpi-l { font-size:10.5px; color:${SLATE_500}; }
+      .kpi-v { font-size:18px; font-weight:800; color:${SLATE_900}; }
+      .kpi-v.ok { color:#047857; }
+      .kpi-v.no { color:#B91C1C; }
+
+      .qtbl { width:100%; border-collapse: separate; border-spacing:0; background:#fff; border:1px solid ${SLATE_200}; border-radius:12px; overflow:hidden; font-size:11.5px; }
+      .qtbl thead th { background: linear-gradient(180deg, ${TEAL} 0%, ${TEAL_DARK} 100%); color:#fff; font-weight:700; padding:9px 10px; text-align:start; font-size:11px; letter-spacing:.2px; }
+      .qtbl tbody td { padding:8px 10px; border-bottom:1px solid ${SLATE_100}; color:${SLATE_900}; vertical-align: middle; }
+      .qtbl tr:last-child td { border-bottom:0; }
+      .qtbl tr.grp td { background: linear-gradient(90deg, #FFF8E6 0%, #FFFDF5 100%); border-top:2px solid ${GOLD}; padding:8px 12px; }
+      .qtbl tr.grp .grp-name { font-weight:800; color:${TEAL_DARK}; font-size:12.5px; }
+      .qtbl tr.grp .grp-stat { margin-inline-start:14px; font-size:10.5px; color:${SLATE_700}; }
+      .qtbl .dot { display:inline-block; width:8px; height:8px; border-radius:50%; margin: 0 3px 0 6px; vertical-align: baseline; }
+      .qtbl .dot.ok { background:#10B981; }
+      .qtbl .dot.no { background:#EF4444; }
+      .qtbl .idx { color:${SLATE_500}; font-weight:700; text-align:center; width:6%; }
+      .qtbl .title { font-weight:600; line-height:1.7; }
+      .qtbl .due { color:${SLATE_700}; font-size:10.5px; white-space:nowrap; }
+      .qtbl .st { text-align:center; }
+      .qtbl .row.is-ok { background:#F6FFFB; }
+      .qtbl .row.is-no { background:#FFF7F7; }
+      .qtbl .empty-row { text-align:center; color:${SLATE_500}; font-style:italic; padding:12px; }
+
+      .pill { display:inline-block; font-size:10.5px; font-weight:800; padding:3px 10px; border-radius:999px; border:1px solid; white-space:nowrap; }
+      .pill.ok { background:#D1FAE5; color:#047857; border-color:#A7F3D0; }
+      .pill.no { background:#FEE2E2; color:#B91C1C; border-color:#FECACA; }
+
+      .legend { margin:10px 2px 0; font-size:10.5px; color:${SLATE_700}; }
+      .legend .pill { margin-inline-end:4px; }
     </style>
   `;
 
