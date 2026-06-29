@@ -302,6 +302,11 @@ function css(): string {
 }
 
 export async function exportQualityCommitteesReport(opts: { authorName?: string } = {}): Promise<void> {
+  const html = await buildQualityCommitteesReportHtml(opts);
+  await printHtmlDocument(html, "التقرير التفصيلي لأداء اللجان - لجنة الجودة");
+}
+
+export async function buildQualityCommitteesReportHtml(opts: { authorName?: string } = {}): Promise<string> {
   const all = await gather();
   const sorted = [...all].sort((a, b) => (b.rate - b.overdue * 5) - (a.rate - a.overdue * 5));
   const today = fmtArDate(new Date());
