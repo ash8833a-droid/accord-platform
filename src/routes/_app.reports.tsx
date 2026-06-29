@@ -245,6 +245,7 @@ function ReportsPage() {
             </div>
           </div>
           <WomenTalentsPanel />
+          <WeddingFeedbackPanel />
         </div>
       ) : tab === "criteria" && canSeeCriteria ? (
         <EvaluationCriteria />
@@ -339,9 +340,6 @@ function ReportsTabContent(props: {
 
       {/* Latest committee evaluations (linked to evaluation form) */}
       <LatestEvaluationsPanel />
-
-      {/* Wedding day guest feedback */}
-      <WeddingFeedbackPanel />
 
       {/* Tasks performance report */}
       <TasksReportPanel />
