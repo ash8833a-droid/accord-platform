@@ -352,9 +352,13 @@ export async function buildQualityCommitteesReportHtml(opts: { authorName?: stri
       const isOverdue = !isDone && !!dueDate && dueDate < now;
       const cleanedTitle = cleanTitle(t.title);
       const isReady = /على\s*أتم\s*ال?ا?ستعداد/.test(cleanedTitle);
-      const displayTitle = cleanedTitle.replace(/\s*على\s*أتم\s*ال?ا?ستعداد\s*$/, "").trim();
+      const isOngoing = !isReady && (t.status === "in_progress" || /\bمستمرة\b/.test(cleanedTitle));
+      let displayTitle = cleanedTitle.replace(/\s*على\s*أتم\s*ال?ا?ستعداد\s*$/, "").trim();
+      displayTitle = displayTitle.replace(/[\s—-]*مستمرة\s*$/, "").trim();
       const badge = isReady
         ? `<span class="pill ready">على أتم الاستعداد</span>`
+        : isOngoing
+          ? `<span class="pill ongoing">مستمرة</span>`
         : isDone
           ? `<span class="pill ok">منجزة</span>`
           : isOverdue
@@ -362,7 +366,7 @@ export async function buildQualityCommitteesReportHtml(opts: { authorName?: stri
             : `<span class="pill no">لم تُنجَز</span>`;
       const dueText = dueDate ? dueDate.toLocaleDateString("ar-SA-u-ca-islamic-umalqura") : "—";
       allRows.push(
-        `<tr class="row ${isReady ? "is-ready" : isDone ? "is-ok" : "is-no"}">
+        `<tr class="row ${isReady ? "is-ready" : isOngoing ? "is-ongoing" : isDone ? "is-ok" : "is-no"}">
           <td class="idx">${i + 1}</td>
           <td class="title">${displayTitle}</td>
           <td class="due">${dueText}</td>
@@ -409,6 +413,7 @@ export async function buildQualityCommitteesReportHtml(opts: { authorName?: stri
       <p class="legend">
         <span class="pill ok">منجزة</span> أُنجزت في وقتها ·
         <span class="pill ready">على أتم الاستعداد</span> جاهزة للتنفيذ يوم الحفل ·
+        <span class="pill ongoing">مستمرة</span> أعمال متواصلة طوال الموسم ·
         <span class="pill no">متأخّرة / لم تُنجَز</span> تستوجب المعالجة الفورية.
       </p>
 
@@ -443,12 +448,14 @@ export async function buildQualityCommitteesReportHtml(opts: { authorName?: stri
       .qtbl .row.is-ok { background:#F6FFFB; }
       .qtbl .row.is-no { background:#FFF7F7; }
       .qtbl .row.is-ready { background:#FFF7EC; }
+      .qtbl .row.is-ongoing { background:#F0F9FF; }
       .qtbl .empty-row { text-align:center; color:${SLATE_500}; font-style:italic; padding:12px; }
 
       .pill { display:inline-block; font-size:10.5px; font-weight:800; padding:3px 10px; border-radius:999px; border:1px solid; white-space:nowrap; }
       .pill.ok { background:#D1FAE5; color:#047857; border-color:#A7F3D0; }
       .pill.no { background:#FEE2E2; color:#B91C1C; border-color:#FECACA; }
       .pill.ready { background:#FFEDD5; color:#C2410C; border-color:#FED7AA; }
+      .pill.ongoing { background:#E0F2FE; color:#0369A1; border-color:#BAE6FD; }
 
       .legend { margin:10px 2px 0; font-size:10.5px; color:${SLATE_700}; }
       .legend .pill { margin-inline-end:4px; }
