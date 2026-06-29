@@ -96,6 +96,7 @@ function ReportsPage() {
 
   const fmt = (n: number) => new Intl.NumberFormat("ar-SA").format(n);
   const committeeName = (id: string | null) => committees.find((c) => c.id === id)?.name ?? "—";
+  const [editorOpen, setEditorOpen] = useState(false);
 
   const open = async (r: Report) => {
     if (!r.file_url) return;
@@ -145,7 +146,7 @@ function ReportsPage() {
           </div>
           {(isAdmin || isQualityHead) && (
             <Button
-              onClick={() => exportQualityCommitteesReport({ authorName: undefined }).catch((e) => toast.error("تعذّر إصدار التقرير", { description: String(e?.message ?? e) }))}
+              onClick={() => setEditorOpen(true)}
               className="bg-gradient-hero text-primary-foreground hover:opacity-95 shadow-elegant"
             >
               <FileBarChart className="h-4 w-4 ms-1" />
@@ -154,6 +155,14 @@ function ReportsPage() {
           )}
         </div>
       </div>
+
+      <ReportEditorDialog
+        open={editorOpen}
+        onOpenChange={setEditorOpen}
+        title="تحرير التقرير التفصيلي للجان قبل الطباعة"
+        printTitle="التقرير التفصيلي لأداء اللجان - لجنة الجودة"
+        loadHtml={() => buildQualityCommitteesReportHtml({ authorName: undefined })}
+      />
 
       {/* Operational plan — Quality Committee */}
       {(() => {
