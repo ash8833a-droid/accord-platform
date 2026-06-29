@@ -203,7 +203,25 @@ export function CommitteePlanPanel({ committeeId, committeeName }: Props) {
   };
 
   const downloadPlan = async (r: Plan) => {
-    if (!r.file_url) return;
+    const name = displayTitle(r.title) || "خطة";
+    if (!r.file_url) {
+      // No attached file → download textual content as .txt
+      const content = r.description?.trim();
+      if (!content) {
+        toast.error("لا يوجد محتوى قابل للتنزيل");
+        return;
+      }
+      const blob = new Blob(["\ufeff" + content], { type: "text/plain;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${name}.txt`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      return;
+    }
     const filename = r.file_url.split("/").pop() || displayTitle(r.title);
     const { data, error } = await supabase.storage
       .from("reports")
@@ -377,16 +395,16 @@ export function CommitteePlanPanel({ committeeId, committeeName }: Props) {
                           {new Date(r.created_at).toLocaleDateString("ar-SA")}
                         </p>
                       </div>
-                      {r.file_url && (
-                        <div className="flex items-center gap-1.5">
+                      <div className="flex items-center gap-1.5">
+                        {r.file_url && (
                           <Button size="sm" variant="outline" onClick={() => openPreview(r)}>
                             <Eye className="h-3.5 w-3.5 ms-1" /> فتح
                           </Button>
-                          <Button size="sm" variant="outline" onClick={() => downloadPlan(r)}>
-                            <Download className="h-3.5 w-3.5 ms-1" /> تنزيل
-                          </Button>
-                        </div>
-                      )}
+                        )}
+                        <Button size="sm" variant="outline" onClick={() => downloadPlan(r)}>
+                          <Download className="h-3.5 w-3.5 ms-1" /> تنزيل
+                        </Button>
+                      </div>
                     </div>
                   ))}
                 </div>
