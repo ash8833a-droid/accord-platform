@@ -446,6 +446,8 @@ export async function buildQualityCommitteesReportHtml(opts: { authorName?: stri
       .kpi-v { font-size:18px; font-weight:800; color:${SLATE_900}; }
       .kpi-v.ok { color:#047857; }
       .kpi-v.no { color:#B91C1C; }
+      .kpi-v.ongoing { color:#0369A1; }
+      .kpi-v.ready { color:#C2410C; }
 
       .qtbl { width:100%; border-collapse: separate; border-spacing:0; background:#fff; border:1px solid ${SLATE_200}; border-radius:12px; overflow:hidden; font-size:11.5px; }
       .qtbl thead th { background: linear-gradient(180deg, ${TEAL} 0%, ${TEAL_DARK} 100%); color:#fff; font-weight:700; padding:9px 10px; text-align:start; font-size:11px; letter-spacing:.2px; }
