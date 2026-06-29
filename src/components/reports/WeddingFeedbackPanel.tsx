@@ -9,8 +9,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
   Star, Copy, ExternalLink, MessageSquareHeart, Loader2,
-  Sparkles, FileSpreadsheet, FileText, Download,
+  Sparkles, FileSpreadsheet, FileText, FileOutput, Download,
   TrendingUp, AlertTriangle, Lightbulb, Target, Trash2, QrCode,
+
+
 } from "lucide-react";
 import { toast } from "sonner";
 import * as XLSX from "xlsx";
@@ -323,8 +325,9 @@ export function WeddingFeedbackPanel() {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button size="sm" variant="outline" className="gap-1.5 text-xs">
-                <Download className="h-3.5 w-3.5" /> تصدير
+                <FileOutput className="h-3.5 w-3.5" /> تصدير
               </Button>
+
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={exportExcel} className="gap-2">
