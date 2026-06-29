@@ -24,7 +24,7 @@ export const Route = createFileRoute("/_app/reports")({
   component: ReportsPage,
 });
 
-interface Committee { id: string; name: string }
+interface Committee { id: string; name: string; type?: string | null }
 interface Report {
   id: string;
   title: string;
@@ -56,7 +56,7 @@ function ReportsPage() {
   const load = async () => {
     const [{ data: r }, { data: c }] = await Promise.all([
       supabase.from("reports").select("*").order("created_at", { ascending: false }),
-      supabase.from("committees").select("id, name, budget_allocated, budget_spent"),
+      supabase.from("committees").select("id, name, type, budget_allocated, budget_spent"),
     ]);
     setReports((r ?? []) as Report[]);
     setCommittees((c ?? []) as Committee[]);
