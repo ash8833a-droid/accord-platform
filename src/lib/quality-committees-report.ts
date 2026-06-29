@@ -323,28 +323,33 @@ export async function buildQualityCommitteesReportHtml(opts: { authorName?: stri
   const cleanTitle = (t: string) =>
     t.replace(/\s*[\(（][^()）]{1,40}[\)）]\s*/g, " ").replace(/\s+/g, " ").trim();
 
-  let grandDone = 0, grandPending = 0;
+  let readyCount = 0, ongoingCount = 0, doneCount = 0, notDoneCount = 0;
   const allRows: string[] = [];
 
   sorted.forEach((c) => {
     const items = allTasks.filter((t) => t.committee_id === c.id);
-    const done = items.filter((t) => t.status === "completed").length;
-    const pending = items.length - done;
-    grandDone += done;
-    grandPending += pending;
+
+    if (items.length === 0) {
+      allRows.push(
+        `<tr class="grp"><td colspan="4">
+          <span class="grp-name">${c.name}</span>
+          <span class="grp-stat"><span class="dot ok"></span>0 منجزة · <span class="dot no"></span>0 غير منجزة</span>
+        </td></tr>`
+      );
+      allRows.push(`<tr><td colspan="4" class="empty-row">لا توجد مهام مسجّلة لهذه اللجنة.</td></tr>`);
+      return;
+    }
+
+    const cDone = items.filter((t) => t.status === "completed").length;
+    const cPending = items.length - cDone;
 
     // رأس اللجنة
     allRows.push(
       `<tr class="grp"><td colspan="4">
         <span class="grp-name">${c.name}</span>
-        <span class="grp-stat"><span class="dot ok"></span>${done} منجزة · <span class="dot no"></span>${pending} غير منجزة</span>
+        <span class="grp-stat"><span class="dot ok"></span>${cDone} منجزة · <span class="dot no"></span>${cPending} غير منجزة</span>
       </td></tr>`
     );
-
-    if (items.length === 0) {
-      allRows.push(`<tr><td colspan="4" class="empty-row">لا توجد مهام مسجّلة لهذه اللجنة.</td></tr>`);
-      return;
-    }
 
     items.forEach((t, i) => {
       const isDone = t.status === "completed";
@@ -365,6 +370,12 @@ export async function buildQualityCommitteesReportHtml(opts: { authorName?: stri
             ? `<span class="pill no">متأخّرة</span>`
             : `<span class="pill no">لم تُنجَز</span>`;
       const dueText = dueDate ? dueDate.toLocaleDateString("ar-SA-u-ca-islamic-umalqura") : "—";
+
+      if (isReady) readyCount++;
+      else if (isOngoing) ongoingCount++;
+      else if (isDone) doneCount++;
+      else notDoneCount++;
+
       allRows.push(
         `<tr class="row ${isReady ? "is-ready" : isOngoing ? "is-ongoing" : isDone ? "is-ok" : "is-no"}">
           <td class="idx">${i + 1}</td>
@@ -376,9 +387,13 @@ export async function buildQualityCommitteesReportHtml(opts: { authorName?: stri
     });
   });
 
-  const overallRate = (grandDone + grandPending) === 0
-    ? 0 : Math.round((grandDone / (grandDone + grandPending)) * 100);
+  const totalTasks = readyCount + ongoingCount + doneCount + notDoneCount;
+  const rateDone = totalTasks === 0 ? 0 : Math.round((doneCount / totalTasks) * 100);
+  const rateNotDone = totalTasks === 0 ? 0 : Math.round((notDoneCount / totalTasks) * 100);
+  const rateOngoing = totalTasks === 0 ? 0 : Math.round((ongoingCount / totalTasks) * 100);
+  const rateReady = totalTasks === 0 ? 0 : Math.round((readyCount / totalTasks) * 100);
   const author = opts.authorName ? opts.authorName : "رئيس لجنة الجودة";
+
 
   const html = `
     <div class="doc">
@@ -387,15 +402,15 @@ export async function buildQualityCommitteesReportHtml(opts: { authorName?: stri
         <div class="accent"></div>
         <div style="flex:1">
           <h1>تقرير الجودة · حالة مهام اللجان</h1>
-          <p class="meta">تاريخ الإصدار: <b>${today}</b> · اللجان: <b>${all.length}</b> · نسبة الإنجاز: <b>${overallRate}%</b></p>
+          <p class="meta">تاريخ الإصدار: <b>${today}</b> · اللجان: <b>${all.length}</b> · المهام: <b>${totalTasks}</b> · نسبة الإنجاز: <b>${rateDone}%</b></p>
         </div>
       </header>
 
       <div class="kpi-row">
-        <div class="kpi"><span class="kpi-l">المهام المنجزة</span><span class="kpi-v ok">${grandDone}</span></div>
-        <div class="kpi"><span class="kpi-l">المهام غير المنجزة</span><span class="kpi-v no">${grandPending}</span></div>
-        <div class="kpi"><span class="kpi-l">نسبة الإنجاز</span><span class="kpi-v">${overallRate}%</span></div>
-        <div class="kpi"><span class="kpi-l">عدد اللجان</span><span class="kpi-v">${all.length}</span></div>
+        <div class="kpi"><span class="kpi-l">نسبة الإنجاز</span><span class="kpi-v ok">${rateDone}%</span></div>
+        <div class="kpi"><span class="kpi-l">نسبة التي لم تُنجَز</span><span class="kpi-v no">${rateNotDone}%</span></div>
+        <div class="kpi"><span class="kpi-l">نسبة المستمرة</span><span class="kpi-v ongoing">${rateOngoing}%</span></div>
+        <div class="kpi"><span class="kpi-l">نسبة على أتم الاستعداد</span><span class="kpi-v ready">${rateReady}%</span></div>
       </div>
 
       <table class="qtbl">
@@ -417,6 +432,7 @@ export async function buildQualityCommitteesReportHtml(opts: { authorName?: stri
         <span class="pill no">متأخّرة / لم تُنجَز</span> تستوجب المعالجة الفورية.
       </p>
 
+
       <div class="sign">
         <div class="box"><b>${author}</b><br/>رئيس لجنة الجودة</div>
         <div class="box"><b>التوقيع</b><br/>……………………………</div>
@@ -430,6 +446,8 @@ export async function buildQualityCommitteesReportHtml(opts: { authorName?: stri
       .kpi-v { font-size:18px; font-weight:800; color:${SLATE_900}; }
       .kpi-v.ok { color:#047857; }
       .kpi-v.no { color:#B91C1C; }
+      .kpi-v.ongoing { color:#0369A1; }
+      .kpi-v.ready { color:#C2410C; }
 
       .qtbl { width:100%; border-collapse: separate; border-spacing:0; background:#fff; border:1px solid ${SLATE_200}; border-radius:12px; overflow:hidden; font-size:11.5px; }
       .qtbl thead th { background: linear-gradient(180deg, ${TEAL} 0%, ${TEAL_DARK} 100%); color:#fff; font-weight:700; padding:9px 10px; text-align:start; font-size:11px; letter-spacing:.2px; }
