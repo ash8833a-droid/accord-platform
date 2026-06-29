@@ -407,10 +407,10 @@ export async function buildQualityCommitteesReportHtml(opts: { authorName?: stri
       </header>
 
       <div class="kpi-row">
-        <div class="kpi"><span class="kpi-l">المهام المنجزة</span><span class="kpi-v ok">${grandDone}</span></div>
-        <div class="kpi"><span class="kpi-l">المهام غير المنجزة</span><span class="kpi-v no">${grandPending}</span></div>
-        <div class="kpi"><span class="kpi-l">نسبة الإنجاز</span><span class="kpi-v">${overallRate}%</span></div>
-        <div class="kpi"><span class="kpi-l">عدد اللجان</span><span class="kpi-v">${all.length}</span></div>
+        <div class="kpi"><span class="kpi-l">نسبة الإنجاز</span><span class="kpi-v ok">${rateDone}%</span></div>
+        <div class="kpi"><span class="kpi-l">نسبة التي لم تُنجَز</span><span class="kpi-v no">${rateNotDone}%</span></div>
+        <div class="kpi"><span class="kpi-l">نسبة المستمرة</span><span class="kpi-v ongoing">${rateOngoing}%</span></div>
+        <div class="kpi"><span class="kpi-l">نسبة على أتم الاستعداد</span><span class="kpi-v ready">${rateReady}%</span></div>
       </div>
 
       <table class="qtbl">
@@ -431,6 +431,7 @@ export async function buildQualityCommitteesReportHtml(opts: { authorName?: stri
         <span class="pill ongoing">مستمرة</span> أعمال متواصلة طوال الموسم ·
         <span class="pill no">متأخّرة / لم تُنجَز</span> تستوجب المعالجة الفورية.
       </p>
+
 
       <div class="sign">
         <div class="box"><b>${author}</b><br/>رئيس لجنة الجودة</div>
