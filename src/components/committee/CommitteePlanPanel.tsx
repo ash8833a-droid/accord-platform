@@ -24,6 +24,7 @@ import {
   ClipboardPaste,
   Save,
   Eye,
+  Download,
   Calendar,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -201,6 +202,24 @@ export function CommitteePlanPanel({ committeeId, committeeName }: Props) {
     setPreview({ url: data.signedUrl, name: r.title.replace(PLAN_PREFIX, "").trim(), type: r.file_type ?? "" });
   };
 
+  const downloadPlan = async (r: Plan) => {
+    if (!r.file_url) return;
+    const filename = r.file_url.split("/").pop() || displayTitle(r.title);
+    const { data, error } = await supabase.storage
+      .from("reports")
+      .createSignedUrl(r.file_url, 60 * 5, { download: filename });
+    if (error || !data?.signedUrl) {
+      toast.error("تعذر تنزيل الملف", { description: error?.message });
+      return;
+    }
+    const a = document.createElement("a");
+    a.href = data.signedUrl;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  };
+
   const displayTitle = (t: string) => t.replace(PLAN_PREFIX, "").trim();
 
   return (
@@ -359,9 +378,14 @@ export function CommitteePlanPanel({ committeeId, committeeName }: Props) {
                         </p>
                       </div>
                       {r.file_url && (
-                        <Button size="sm" variant="outline" onClick={() => openPreview(r)}>
-                          <Eye className="h-3.5 w-3.5 ms-1" /> فتح
-                        </Button>
+                        <div className="flex items-center gap-1.5">
+                          <Button size="sm" variant="outline" onClick={() => openPreview(r)}>
+                            <Eye className="h-3.5 w-3.5 ms-1" /> فتح
+                          </Button>
+                          <Button size="sm" variant="outline" onClick={() => downloadPlan(r)}>
+                            <Download className="h-3.5 w-3.5 ms-1" /> تنزيل
+                          </Button>
+                        </div>
                       )}
                     </div>
                   ))}
