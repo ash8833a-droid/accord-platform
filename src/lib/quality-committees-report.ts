@@ -402,7 +402,7 @@ export async function buildQualityCommitteesReportHtml(opts: { authorName?: stri
         <div class="accent"></div>
         <div style="flex:1">
           <h1>تقرير الجودة · حالة مهام اللجان</h1>
-          <p class="meta">تاريخ الإصدار: <b>${today}</b> · اللجان: <b>${all.length}</b> · نسبة الإنجاز: <b>${overallRate}%</b></p>
+          <p class="meta">تاريخ الإصدار: <b>${today}</b> · اللجان: <b>${all.length}</b> · المهام: <b>${totalTasks}</b> · نسبة الإنجاز: <b>${rateDone}%</b></p>
         </div>
       </header>
 
