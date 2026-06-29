@@ -33,6 +33,7 @@ import { DotsPattern } from "@/components/decor/DotsPattern";
 import { BRAND_LOGO_DATA_URI } from "@/assets/brand-logo";
 import { analyzePlan, type PlanAnalysis } from "@/lib/analyze-plan.functions";
 import { FilePreview } from "@/components/FilePreview";
+import { UnifiedPlanView, splitPlanDescription } from "./UnifiedPlanView";
 
 interface Plan {
   id: string;
@@ -64,6 +65,7 @@ export function CommitteePlanPanel({ committeeId, committeeName }: Props) {
   const [analyzing, setAnalyzing] = useState(false);
   const [analysis, setAnalysis] = useState<PlanAnalysis | null>(null);
   const [preview, setPreview] = useState<{ url: string; name: string; type: string } | null>(null);
+  const [textPreview, setTextPreview] = useState<{ title: string; content: string; analysis: string | null } | null>(null);
 
   const load = async () => {
     const { data } = await supabase
@@ -193,7 +195,15 @@ export function CommitteePlanPanel({ committeeId, committeeName }: Props) {
   };
 
   const openPreview = async (r: Plan) => {
-    if (!r.file_url) return;
+    if (!r.file_url) {
+      const { content, analysis } = splitPlanDescription(r.description);
+      if (!content) {
+        toast.error("لا يوجد محتوى لعرضه");
+        return;
+      }
+      setTextPreview({ title: displayTitle(r.title), content, analysis });
+      return;
+    }
     const { data, error } = await supabase.storage.from("reports").createSignedUrl(r.file_url, 60 * 30);
     if (error || !data?.signedUrl) {
       toast.error("تعذر فتح الملف", { description: error?.message });
@@ -312,7 +322,7 @@ export function CommitteePlanPanel({ committeeId, committeeName }: Props) {
               </div>
 
               <Tabs defaultValue="upload" className="w-full">
-                <TabsList className="grid w-full grid-cols-3 bg-slate-100 p-1 rounded-xl h-auto gap-1">
+                <TabsList className="grid w-full grid-cols-4 bg-slate-100 p-1 rounded-xl h-auto gap-1">
                   <TabsTrigger value="upload" className="rounded-lg gap-1.5 text-xs font-semibold data-[state=active]:bg-white data-[state=active]:shadow-sm py-2">
                     <Upload className="h-3.5 w-3.5" /> ارفاق ملف
                   </TabsTrigger>
@@ -321,6 +331,9 @@ export function CommitteePlanPanel({ committeeId, committeeName }: Props) {
                   </TabsTrigger>
                   <TabsTrigger value="ai" className="rounded-lg gap-1.5 text-xs font-semibold data-[state=active]:bg-white data-[state=active]:shadow-sm py-2">
                     <Sparkles className="h-3.5 w-3.5" /> التحليل الذكي
+                  </TabsTrigger>
+                  <TabsTrigger value="preview" className="rounded-lg gap-1.5 text-xs font-semibold data-[state=active]:bg-white data-[state=active]:shadow-sm py-2">
+                    <Eye className="h-3.5 w-3.5" /> النموذج الموحّد
                   </TabsTrigger>
                 </TabsList>
 
@@ -374,6 +387,24 @@ export function CommitteePlanPanel({ committeeId, committeeName }: Props) {
 
                   {analysis && <AnalysisView a={analysis} />}
                 </TabsContent>
+
+                <TabsContent value="preview" className="mt-4">
+                  {pasted.trim() ? (
+                    <UnifiedPlanView
+                      title={title.trim() || `خطة ${committeeName}`}
+                      committeeName={committeeName}
+                      content={pasted}
+                      analysisText={analysis ? analysisToText(analysis) : null}
+                      hidePrint
+                    />
+                  ) : (
+                    <div className="rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 p-8 text-center text-sm text-slate-500 leading-7">
+                      الصق محتوى الخطة في تبويب «لصق محتوى» ليظهر هنا في النموذج الموحّد بهوية اللجنة.
+                      <br />
+                      الملفات المرفقة (PDF / Word / صورة) تُحفظ كما هي وتُفتح عبر زر «فتح».
+                    </div>
+                  )}
+                </TabsContent>
               </Tabs>
             </div>
 
@@ -396,11 +427,9 @@ export function CommitteePlanPanel({ committeeId, committeeName }: Props) {
                         </p>
                       </div>
                       <div className="flex items-center gap-1.5">
-                        {r.file_url && (
-                          <Button size="sm" variant="outline" onClick={() => openPreview(r)}>
-                            <Eye className="h-3.5 w-3.5 ms-1" /> فتح
-                          </Button>
-                        )}
+                        <Button size="sm" variant="outline" onClick={() => openPreview(r)}>
+                          <Eye className="h-3.5 w-3.5 ms-1" /> فتح
+                        </Button>
                         <Button size="sm" variant="outline" onClick={() => downloadPlan(r)}>
                           <Download className="h-3.5 w-3.5 ms-1" /> تنزيل
                         </Button>
@@ -432,6 +461,22 @@ export function CommitteePlanPanel({ committeeId, committeeName }: Props) {
         <DialogContent dir="rtl" className="max-w-5xl w-[95vw] h-[88vh] p-0 overflow-hidden flex flex-col">
           <DialogTitle className="sr-only">{preview?.name ?? "معاينة الخطة"}</DialogTitle>
           {preview && <FilePreview url={preview.url} name={preview.name} type={preview.type} />}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!textPreview} onOpenChange={(o) => !o && setTextPreview(null)}>
+        <DialogContent dir="rtl" className="max-w-4xl w-[95vw] max-h-[90vh] p-0 overflow-hidden bg-slate-50">
+          <DialogTitle className="sr-only">{textPreview?.title ?? "معاينة الخطة"}</DialogTitle>
+          <div className="overflow-y-auto p-4 sm:p-6">
+            {textPreview && (
+              <UnifiedPlanView
+                title={textPreview.title}
+                committeeName={committeeName}
+                content={textPreview.content}
+                analysisText={textPreview.analysis}
+              />
+            )}
+          </div>
         </DialogContent>
       </Dialog>
     </>
