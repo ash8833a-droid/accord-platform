@@ -303,11 +303,6 @@ function css(): string {
 
 export async function exportQualityCommitteesReport(opts: { authorName?: string } = {}): Promise<void> {
   const html = await buildQualityCommitteesReportHtml(opts);
-  await printHtmlDocument(html, "التقرير التفصيلي لأداء اللجان - لجنة الجودة");
-}
-
-export async function exportQualityCommitteesReport(opts: { authorName?: string } = {}): Promise<void> {
-  const html = await buildQualityCommitteesReportHtml(opts);
   await printHtmlDocument(html, "تقرير الجودة المختصر - المهام المنجزة وغير المنجزة");
 }
 
