@@ -9,8 +9,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
   Star, Copy, ExternalLink, MessageSquareHeart, Loader2,
-  Sparkles, FileSpreadsheet, FileText, FileOutput,
+  Sparkles, FileSpreadsheet, FileText, FileOutput, Download,
   TrendingUp, AlertTriangle, Lightbulb, Target, Trash2, QrCode,
+
 
 } from "lucide-react";
 import { toast } from "sonner";
