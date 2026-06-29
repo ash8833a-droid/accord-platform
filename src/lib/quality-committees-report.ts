@@ -722,5 +722,5 @@ export async function buildQualityCommitteesReportHtml(opts: { authorName?: stri
     <style>${css()}</style>
   `;
 
-  await printHtmlDocument(html, "التقرير التفصيلي لأداء اللجان - لجنة الجودة");
+  return html;
 }
