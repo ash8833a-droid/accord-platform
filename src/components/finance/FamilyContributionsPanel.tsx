@@ -96,18 +96,26 @@ export function FamilyContributionsPanel() {
     });
     setSaving(false);
     if (error) {
-      toast.error("تعذّر حفظ المساهمة");
+      console.error("[family_contributions.insert]", error);
+      toast.error(`تعذّر حفظ المساهمة: ${error.message}`);
       return;
     }
     toast.success("تم تسجيل المساهمة");
     setDonor(""); setAmount(""); setNotes(""); setDate(today);
+    // Force-refresh in case realtime channel is unavailable (offline tab / replica lag).
+    await load();
   }
 
   async function remove(id: string) {
     if (!confirm("حذف هذه المساهمة؟")) return;
     const { error } = await supabase.from("family_contributions").delete().eq("id", id);
-    if (error) toast.error("تعذّر الحذف");
-    else toast.success("تم الحذف");
+    if (error) {
+      console.error("[family_contributions.delete]", error);
+      toast.error(`تعذّر الحذف: ${error.message}`);
+    } else {
+      toast.success("تم الحذف");
+      await load();
+    }
   }
 
   return (
