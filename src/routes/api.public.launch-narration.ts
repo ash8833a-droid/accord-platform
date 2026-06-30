@@ -15,7 +15,7 @@ export const Route = createFileRoute("/api/public/launch-narration")({
           );
         }
 
-        let body: { text?: string; voice?: string; instructions?: string };
+        let body: { text?: string };
         try {
           body = await request.json();
         } catch {
@@ -26,11 +26,18 @@ export const Route = createFileRoute("/api/public/launch-narration")({
         }
 
         const text = (body.text ?? "").trim();
+        const MAX_TEXT_LEN = 2000;
         if (!text) {
           return new Response(JSON.stringify({ error: "Missing text" }), {
             status: 400,
             headers: { "Content-Type": "application/json" },
           });
+        }
+        if (text.length > MAX_TEXT_LEN) {
+          return new Response(
+            JSON.stringify({ error: `Text exceeds ${MAX_TEXT_LEN} characters` }),
+            { status: 413, headers: { "Content-Type": "application/json" } },
+          );
         }
 
         const upstream = await fetch(
@@ -44,10 +51,11 @@ export const Route = createFileRoute("/api/public/launch-narration")({
             body: JSON.stringify({
               model: "openai/gpt-4o-mini-tts",
               input: text,
-              voice: body.voice ?? "sage",
+              // Voice and instructions are hardcoded server-side to prevent
+              // user-controlled prompt injection or arbitrary voice selection.
+              voice: "sage",
               response_format: "mp3",
               instructions:
-                body.instructions ??
                 "تحدّث بالفصحى العربية بنبرة احتفالية رصينة ومهيبة، ببطء واتزان، كأنّك تقدّم حفلًا رسميًا لقبيلة.",
             }),
           },
