@@ -202,7 +202,7 @@ function cardHtml(m: CommitteeMetrics): string {
   return `
     <article class="card" style="border-right-color:${t.color}">
       <header class="card-head">
-        <h3 class="cname">${m.name}</h3>
+        <h3 class="cname">${escapeHtml(m.name)}</h3>
         <span class="badge" style="background:${t.bg};color:${t.fg};border-color:${t.border}">${t.label}</span>
       </header>
       <div class="kpis">
@@ -215,15 +215,15 @@ function cardHtml(m: CommitteeMetrics): string {
       ${m.budgetAllocated > 0 ? `<p class="util">الاستفادة من الميزانية: <b>${utilization}%</b> · مصروف ${m.budgetSpent.toLocaleString("ar-SA")} من ${m.budgetAllocated.toLocaleString("ar-SA")} ر.س</p>` : ""}
       <section class="blk s">
         <h4>نقاط القوة</h4>
-        <ul>${m.strengths.map((x) => `<li>${x}</li>`).join("")}</ul>
+        <ul>${m.strengths.map((x) => `<li>${escapeHtml(x)}</li>`).join("")}</ul>
       </section>
       <section class="blk w">
         <h4>مواطن الضعف</h4>
-        <ul>${m.weaknesses.map((x) => `<li>${x}</li>`).join("")}</ul>
+        <ul>${m.weaknesses.map((x) => `<li>${escapeHtml(x)}</li>`).join("")}</ul>
       </section>
       <section class="blk r">
         <h4>توصيات لجنة الجودة</h4>
-        <ul>${m.recommendations.map((x) => `<li>${x}</li>`).join("")}</ul>
+        <ul>${m.recommendations.map((x) => `<li>${escapeHtml(x)}</li>`).join("")}</ul>
       </section>
       ${qualityNote}
     </article>`;
