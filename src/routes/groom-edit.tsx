@@ -1,38 +1,35 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { lookupGroomByPhone, updateGroomByToken } from "@/lib/grooms-public.functions";
+import { lookupGroomByPhone } from "@/lib/grooms-public.functions";
 import { Logo } from "@/components/Logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import {
-  Loader2, Phone, Search, Camera, IdCard, Upload, CheckCircle2,
-  ArrowRight, ImageIcon, Send, ClipboardList, User as UserIcon,
+  Loader2, Phone, Search, Camera, IdCard, CheckCircle2,
+  ArrowRight, ImageIcon, ClipboardList, User as UserIcon, Info,
 } from "lucide-react";
 
 export const Route = createFileRoute("/groom-edit")({
   component: GroomEditPage,
   head: () => ({
     meta: [
-      { title: "تعديل بيانات العريس — لجنة الزواج الجماعي" },
+      { title: "متابعة طلب العريس — لجنة الزواج الجماعي" },
       {
         name: "description",
-        content: "حدّث صورك أو أضف طلباً جديداً لطلب التسجيل في برنامج الزواج الجماعي.",
+        content: "ابحث عن حالة طلبك المسجَّل في برنامج الزواج الجماعي.",
       },
     ],
   }),
 });
 
-const REQUEST_TYPES = [
-  { value: "extra_sheep", label: "زيادة في عدد الذبائح" },
-  { value: "transfer", label: "تنازل لعريس آخر" },
-  { value: "decline_extra", label: "اعتذار عن الزيادة" },
-  { value: "none", label: "لا يوجد طلبات" },
-];
+const REQUEST_TYPE_LABELS: Record<string, string> = {
+  extra_sheep: "زيادة في عدد الذبائح",
+  transfer: "تنازل لعريس آخر",
+  decline_extra: "اعتذار عن الزيادة",
+  none: "لا يوجد طلبات",
+};
 
 interface Groom {
   id: string;
@@ -45,23 +42,6 @@ interface Groom {
   request_details: string | null;
   status: string;
   created_at: string;
-  edit_token: string;
-}
-
-async function uploadPublic(file: File, prefix: string): Promise<string | null> {
-  const { safeStorageKey } = await import("@/lib/uploads");
-  const path = safeStorageKey(file.name, prefix);
-  const { error } = await supabase.storage.from("groom-public").upload(path, file, {
-    upsert: false,
-    contentType: file.type,
-  });
-  if (error) {
-    console.error(error);
-    toast.error("تعذّر رفع الملف");
-    return null;
-  }
-  const { data } = supabase.storage.from("groom-public").getPublicUrl(path);
-  return data.publicUrl;
 }
 
 function normalizePhone(p: string) {
@@ -76,13 +56,6 @@ function GroomEditPage() {
   const [phone, setPhone] = useState("");
   const [searching, setSearching] = useState(false);
   const [groom, setGroom] = useState<Groom | null>(null);
-  const [saving, setSaving] = useState(false);
-
-  // form state for the editable fields
-  const [photoFile, setPhotoFile] = useState<File | null>(null);
-  const [idFile, setIdFile] = useState<File | null>(null);
-  const [requestType, setRequestType] = useState<string>("none");
-  const [requestDetails, setRequestDetails] = useState<string>("");
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -102,62 +75,11 @@ function GroomEditPage() {
         return;
       }
       setGroom(row as Groom);
-      setRequestType((row as Groom).request_type ?? "none");
-      setRequestDetails((row as Groom).request_details ?? "");
       toast.success("تم العثور على طلبك");
     } catch (err: any) {
       toast.error("تعذّر البحث", { description: err.message });
     } finally {
       setSearching(false);
-    }
-  };
-
-  const handleSave = async () => {
-    if (!groom) return;
-    setSaving(true);
-    try {
-      const updates: {
-        photo_url?: string;
-        national_id_url?: string;
-        request_type?: string;
-        request_details?: string | null;
-      } = {};
-      if (photoFile) {
-        const url = await uploadPublic(photoFile, "photo");
-        if (url) updates.photo_url = url;
-      }
-      if (idFile) {
-        const url = await uploadPublic(idFile, "id");
-        if (url) updates.national_id_url = url;
-      }
-      if (requestType !== (groom.request_type ?? "none")) updates.request_type = requestType;
-      if (requestDetails !== (groom.request_details ?? "")) updates.request_details = requestDetails || null;
-
-      if (Object.keys(updates).length === 0) {
-        toast.info("لم تُجرِ أي تغييرات للحفظ");
-        return;
-      }
-
-      await updateGroomByToken({ data: { token: groom.edit_token, updates } });
-
-      toast.success("تم حفظ التعديلات بنجاح", {
-        description: "ستراجعها اللجنة قريباً وتتواصل معك.",
-      });
-
-      // refresh
-      setGroom({
-        ...groom,
-        ...(updates.photo_url !== undefined ? { photo_url: updates.photo_url } : {}),
-        ...(updates.national_id_url !== undefined ? { national_id_url: updates.national_id_url } : {}),
-        ...(updates.request_type !== undefined ? { request_type: updates.request_type } : {}),
-        ...(updates.request_details !== undefined ? { request_details: updates.request_details } : {}),
-      });
-      setPhotoFile(null);
-      setIdFile(null);
-    } catch (err: any) {
-      toast.error("تعذّر الحفظ", { description: err.message });
-    } finally {
-      setSaving(false);
     }
   };
 
@@ -174,23 +96,21 @@ function GroomEditPage() {
       </header>
 
       <main className="max-w-3xl mx-auto px-4 py-8 space-y-6">
-        {/* Hero */}
         <section className="rounded-2xl border bg-gradient-to-br from-primary/10 via-card to-card p-6 shadow-soft">
           <div className="flex items-start gap-3">
             <div className="h-12 w-12 rounded-2xl bg-primary text-primary-foreground flex items-center justify-center shrink-0">
-              <Camera className="h-6 w-6" />
+              <Search className="h-6 w-6" />
             </div>
             <div>
-              <h1 className="text-2xl font-extrabold">تعديل بيانات طلب العريس</h1>
+              <h1 className="text-2xl font-extrabold">متابعة طلب العريس</h1>
               <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
-                يمكنك تحديث صورك الشخصية وصورة الهوية أو إضافة طلب جديد بعد إرسال
-                بياناتك. أدخل رقم جوالك المسجَّل للوصول إلى طلبك.
+                أدخل رقم جوالك المسجَّل لعرض حالة طلبك. لتعديل البيانات أو إضافة
+                طلب جديد، استخدم الرابط الشخصي الذي وصلك عند التسجيل.
               </p>
             </div>
           </div>
         </section>
 
-        {/* Search by phone */}
         {!groom && (
           <section className="rounded-2xl border bg-card p-6 shadow-soft">
             <form onSubmit={handleSearch} className="space-y-4">
@@ -210,13 +130,10 @@ function GroomEditPage() {
                   className="text-right text-lg h-12"
                   autoComplete="tel"
                 />
-                <p className="text-[11px] text-muted-foreground">
-                  استخدم نفس الرقم الذي سجّلت به طلبك أوّل مرة.
-                </p>
               </div>
               <Button type="submit" disabled={searching} size="lg" className="w-full gap-2">
                 {searching ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
-                {searching ? "جارٍ البحث..." : "البحث عن طلبي"}
+                {searching ? "جارٍ البحث..." : "عرض حالة طلبي"}
               </Button>
             </form>
 
@@ -231,10 +148,8 @@ function GroomEditPage() {
           </section>
         )}
 
-        {/* Edit form */}
         {groom && (
           <>
-            {/* Summary card */}
             <section className="rounded-2xl border bg-card p-5 shadow-soft">
               <div className="flex items-start justify-between gap-3 flex-wrap">
                 <div className="flex items-center gap-3">
@@ -252,67 +167,45 @@ function GroomEditPage() {
                   بحث آخر
                 </Button>
               </div>
+              <div className="mt-4 inline-flex items-center gap-1.5 text-[11px] bg-emerald-500/10 text-emerald-700 border border-emerald-500/30 px-2 py-1 rounded-full">
+                <CheckCircle2 className="h-3 w-3" />
+                الحالة: {groom.status}
+              </div>
             </section>
 
-            {/* Photo */}
-            <PhotoEditor
-              label="الصورة الشخصية"
-              icon={<Camera className="h-4 w-4 text-primary" />}
-              currentUrl={groom.photo_url}
-              file={photoFile}
-              onFile={setPhotoFile}
-              hint="صورة شخصية حديثة وواضحة (JPG / PNG)"
-            />
+            <section className="rounded-2xl border bg-amber-50 border-amber-200 p-5 shadow-soft">
+              <div className="flex items-start gap-3">
+                <Info className="h-5 w-5 text-amber-700 shrink-0 mt-0.5" />
+                <div className="text-sm text-amber-900 leading-relaxed">
+                  لتعديل الصور أو إضافة طلب جديد، استخدم رابطك الشخصي الذي وصلك
+                  عند التسجيل. إذا فقدت الرابط، تواصل مع اللجنة لإعادة إرساله.
+                </div>
+              </div>
+            </section>
 
-            {/* National ID */}
-            <PhotoEditor
-              label="صورة الهوية"
-              icon={<IdCard className="h-4 w-4 text-primary" />}
-              currentUrl={groom.national_id_url}
-              file={idFile}
-              onFile={setIdFile}
-              hint="صورة واضحة من الهوية الوطنية"
-            />
+            <div className="grid grid-cols-2 gap-3">
+              <ReadOnlyImage label="الصورة الشخصية" icon={<Camera className="h-4 w-4 text-primary" />} url={groom.photo_url} />
+              <ReadOnlyImage label="صورة الهوية" icon={<IdCard className="h-4 w-4 text-primary" />} url={groom.national_id_url} />
+            </div>
 
-            {/* Request */}
-            <section className="rounded-2xl border bg-card p-5 shadow-soft space-y-4">
+            <section className="rounded-2xl border bg-card p-5 shadow-soft space-y-2">
               <div className="flex items-center gap-2">
                 <ClipboardList className="h-4 w-4 text-primary" />
-                <h2 className="font-bold">طلب جديد للجنة</h2>
+                <h2 className="font-bold">الطلب الحالي</h2>
               </div>
-              <div className="space-y-2">
-                <Label>نوع الطلب</Label>
-                <Select value={requestType} onValueChange={setRequestType}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {REQUEST_TYPES.map((r) => (
-                      <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              {requestType !== "none" && (
-                <div className="space-y-2">
-                  <Label>تفاصيل الطلب</Label>
-                  <Textarea
-                    rows={3}
-                    value={requestDetails}
-                    onChange={(e) => setRequestDetails(e.target.value)}
-                    placeholder="اكتب تفاصيل طلبك بوضوح حتى تتمكن اللجنة من دراسته..."
-                  />
-                </div>
+              <p className="text-sm">
+                <span className="text-muted-foreground">نوع الطلب: </span>
+                <span className="font-medium">
+                  {REQUEST_TYPE_LABELS[groom.request_type ?? "none"] ?? groom.request_type ?? "—"}
+                </span>
+              </p>
+              {groom.request_details && (
+                <p className="text-sm whitespace-pre-wrap">
+                  <span className="text-muted-foreground">التفاصيل: </span>
+                  {groom.request_details}
+                </p>
               )}
             </section>
-
-            <Button
-              onClick={handleSave}
-              disabled={saving}
-              size="lg"
-              className="w-full gap-2 bg-gradient-hero text-primary-foreground"
-            >
-              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-              {saving ? "جارٍ الحفظ..." : "حفظ التعديلات"}
-            </Button>
           </>
         )}
       </main>
@@ -320,93 +213,19 @@ function GroomEditPage() {
   );
 }
 
-interface PhotoEditorProps {
-  label: string;
-  icon: React.ReactNode;
-  currentUrl: string | null;
-  file: File | null;
-  onFile: (f: File | null) => void;
-  hint: string;
-}
-
-function PhotoEditor({ label, icon, currentUrl, file, onFile, hint }: PhotoEditorProps) {
-  const [preview, setPreview] = useState<string | null>(null);
-
-  const handleFile = (f: File | null) => {
-    if (preview) URL.revokeObjectURL(preview);
-    if (f) {
-      setPreview(URL.createObjectURL(f));
-      onFile(f);
-    } else {
-      setPreview(null);
-      onFile(null);
-    }
-  };
-
+function ReadOnlyImage({ label, icon, url }: { label: string; icon: React.ReactNode; url: string | null }) {
   return (
-    <section className="rounded-2xl border bg-card p-5 shadow-soft space-y-4">
-      <div className="flex items-center justify-between gap-3 flex-wrap">
-        <div className="flex items-center gap-2">
-          {icon}
-          <h2 className="font-bold">{label}</h2>
-        </div>
-        {currentUrl && !file && (
-          <span className="text-[11px] inline-flex items-center gap-1 bg-emerald-500/10 text-emerald-700 border border-emerald-500/30 px-2 py-0.5 rounded-full">
-            <CheckCircle2 className="h-3 w-3" />
-            مرفوعة سابقاً
-          </span>
-        )}
+    <section className="rounded-2xl border bg-card p-4 shadow-soft space-y-3">
+      <div className="flex items-center gap-2">
+        {icon}
+        <h2 className="font-bold text-sm">{label}</h2>
       </div>
-
-      {/* current vs new */}
-      <div className="grid grid-cols-2 gap-3">
-        <div className="space-y-1.5">
-          <p className="text-[11px] text-muted-foreground">الحالية</p>
-          <div className="aspect-square rounded-xl border-2 border-dashed bg-muted/30 overflow-hidden flex items-center justify-center">
-            {currentUrl ? (
-              <img src={currentUrl} alt={label} className="w-full h-full object-cover" />
-            ) : (
-              <ImageIcon className="h-8 w-8 text-muted-foreground/40" />
-            )}
-          </div>
-        </div>
-        <div className="space-y-1.5">
-          <p className="text-[11px] text-muted-foreground">الجديدة</p>
-          <div className="aspect-square rounded-xl border-2 border-dashed border-primary/40 bg-primary/5 overflow-hidden flex items-center justify-center">
-            {preview ? (
-              <img src={preview} alt="جديدة" className="w-full h-full object-cover" />
-            ) : (
-              <Upload className="h-8 w-8 text-primary/40" />
-            )}
-          </div>
-        </div>
-      </div>
-
-      <div>
-        <input
-          type="file"
-          accept="image/jpeg,image/png,image/webp"
-          id={`file-${label}`}
-          className="hidden"
-          onChange={(e) => handleFile(e.target.files?.[0] ?? null)}
-        />
-        <label
-          htmlFor={`file-${label}`}
-          className="inline-flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-lg border bg-card hover:bg-muted/40 cursor-pointer text-sm font-medium transition"
-        >
-          <Upload className="h-4 w-4" />
-          {file ? "تغيير الصورة المختارة" : currentUrl ? "استبدال الصورة الحالية" : "اختر صورة"}
-        </label>
-        {file && (
-          <button
-            type="button"
-            onClick={() => handleFile(null)}
-            className="mt-2 w-full text-xs text-muted-foreground hover:text-destructive"
-          >
-            إلغاء التحديد
-          </button>
+      <div className="aspect-square rounded-xl border-2 border-dashed bg-muted/30 overflow-hidden flex items-center justify-center">
+        {url ? (
+          <img src={url} alt={label} className="w-full h-full object-cover" />
+        ) : (
+          <ImageIcon className="h-8 w-8 text-muted-foreground/40" />
         )}
-        <p className="text-[11px] text-muted-foreground mt-2">{hint}</p>
       </div>
     </section>
   );

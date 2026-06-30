@@ -4,6 +4,10 @@ import { z } from "zod";
 const PUBLIC_FIELDS =
   "id, full_name, phone, family_branch, photo_url, national_id_url, request_type, request_details, status, edit_token, created_at";
 
+// Fields safe to return for unauthenticated phone-search (no edit_token).
+const PHONE_LOOKUP_FIELDS =
+  "id, full_name, phone, family_branch, photo_url, national_id_url, request_type, request_details, status, created_at";
+
 function normalizePhone(input: string): string {
   return input.replace(/[^\d]/g, "").replace(/^0+/, "");
 }
@@ -35,7 +39,7 @@ export const lookupGroomByPhone = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: row, error } = await supabaseAdmin
       .from("grooms")
-      .select(PUBLIC_FIELDS)
+      .select(PHONE_LOOKUP_FIELDS)
       .eq("phone", phone)
       .order("created_at", { ascending: false })
       .limit(1)
