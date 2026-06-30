@@ -6,10 +6,12 @@ import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import {
   HeartHandshake, Calculator, AlertTriangle, CheckCircle2, Coins, TrendingDown,
-  Download, Plus, Pencil, Trash2, FileSpreadsheet, FileText, FileJson,
+  Download, Plus, Pencil, Trash2, FileSpreadsheet, FileText, FileJson, FileImage, FileType2,
 } from "lucide-react";
 import { toast } from "sonner";
 import * as XLSX from "xlsx";
+import { jsPDF } from "jspdf";
+import { BRAND_LOGO_DATA_URI } from "@/assets/brand-logo";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
@@ -217,6 +219,142 @@ export function GroomContributions({ totalCollected, totalBudgetNeeded }: Props)
       `groom-contributions-${new Date().toISOString().slice(0,10)}.json`);
   };
 
+  const buildBrandedReportEl = () => {
+    const today = new Date().toLocaleDateString("ar-SA-u-ca-gregory");
+    const totalContrib = grooms.reduce((a, g) => a + Number(g.groom_contribution), 0);
+    const totalDef = grooms.reduce((a, g) => a + Number(g.deficit_share), 0);
+    const totalAll = totalContrib + totalDef;
+    const rowsHtml = grooms.map((g) => {
+      const status = STATUS_OPTIONS.find((s) => s.value === g.status)?.label ?? g.status;
+      const total = Number(g.groom_contribution) + Number(g.deficit_share);
+      const paid = g.contribution_paid
+        ? `<span style="color:#047857;font-weight:700">مدفوع</span>`
+        : `<span style="color:#b91c1c;font-weight:700">غير مدفوع</span>`;
+      return `<tr>
+        <td>${escapeHtml(g.full_name)}</td>
+        <td>${escapeHtml(g.family_branch)}</td>
+        <td>${escapeHtml(status)}</td>
+        <td style="text-align:left">${fmt(Number(g.groom_contribution))}</td>
+        <td style="text-align:left">${fmt(Number(g.deficit_share))}</td>
+        <td style="text-align:left;font-weight:700">${fmt(total)}</td>
+        <td>${paid}</td>
+      </tr>`;
+    }).join("");
+
+    const container = document.createElement("div");
+    container.setAttribute("dir", "rtl");
+    container.style.cssText = [
+      "position:fixed","top:-10000px","right:0","width:1100px","padding:32px",
+      "background:#ffffff","color:#111827",
+      "font-family:'Segoe UI',Tahoma,Arial,'Noto Naskh Arabic','Geeza Pro',sans-serif",
+      "font-size:13px","line-height:1.7","direction:rtl","text-align:right",
+    ].join(";");
+    container.innerHTML = `
+      <style>
+        .gc-hdr { display:flex; align-items:center; gap:16px; border-bottom:3px solid #C4A25C; padding-bottom:14px; margin-bottom:16px; }
+        .gc-hdr img { height:72px; width:auto; }
+        .gc-hdr h1 { margin:0; font-size:22px; color:#1B4F58; font-weight:800; }
+        .gc-hdr p  { margin:4px 0 0; font-size:12px; color:#6b7280; }
+        .gc-meta { display:flex; justify-content:space-between; font-size:11px; color:#6b7280; margin-bottom:10px; }
+        .gc-kpis { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin:8px 0 18px; }
+        .gc-kpi  { border:1px solid #e5e7eb; border-radius:10px; padding:10px 12px; background:#FAFAF7; }
+        .gc-kpi .k { font-size:10px; color:#6b7280; }
+        .gc-kpi .v { font-size:16px; font-weight:800; color:#1B4F58; margin-top:2px; }
+        table { border-collapse:collapse; width:100%; }
+        th { background:#1B4F58; color:#fff; padding:8px; text-align:right; font-weight:700; font-size:12px; }
+        td { border:1px solid #e5e7eb; padding:7px 8px; }
+        tbody tr:nth-child(even) td { background:#FAFAF7; }
+        .gc-foot { margin-top:18px; padding-top:10px; border-top:1px dashed #C4A25C; font-size:10px; color:#6b7280; display:flex; justify-content:space-between; }
+      </style>
+      <div class="gc-hdr">
+        <img src="${BRAND_LOGO_DATA_URI}" alt="شعار اللجنة" />
+        <div>
+          <h1>لجنة الزواج الجماعي — اللجنة المالية</h1>
+          <p>سجل مساهمات العرسان</p>
+        </div>
+      </div>
+      <div class="gc-meta">
+        <span>تاريخ التقرير: ${today}</span>
+        <span>عدد العرسان: ${grooms.length}</span>
+      </div>
+      <div class="gc-kpis">
+        <div class="gc-kpi"><div class="k">إجمالي المقدم</div><div class="v">${fmt(totalContrib)} ر.س</div></div>
+        <div class="gc-kpi"><div class="k">إجمالي حصص العجز</div><div class="v">${fmt(totalDef)} ر.س</div></div>
+        <div class="gc-kpi"><div class="k">الإجمالي المستحق</div><div class="v">${fmt(totalAll)} ر.س</div></div>
+        <div class="gc-kpi"><div class="k">المحصّل فعلياً</div><div class="v">${fmt(totalCollectedFromGrooms)} ر.س</div></div>
+      </div>
+      <table>
+        <thead><tr>
+          <th>العريس</th><th>الأسرة</th><th>الحالة</th>
+          <th>المقدم (ر.س)</th><th>حصة العجز (ر.س)</th><th>الإجمالي (ر.س)</th><th>الدفع</th>
+        </tr></thead>
+        <tbody>${rowsHtml || `<tr><td colspan="7" style="text-align:center;padding:20px;color:#6b7280">لا توجد بيانات</td></tr>`}</tbody>
+      </table>
+      <div class="gc-foot">
+        <span>© لجنة الزواج الجماعي — قبيلة الهملة من قريش</span>
+        <span>وثيقة رسمية صادرة عن النظام</span>
+      </div>
+    `;
+    document.body.appendChild(container);
+    return container;
+  };
+
+  const renderBrandedCanvas = async () => {
+    const html2canvas = (await import("html2canvas")).default;
+    const el = buildBrandedReportEl();
+    try {
+      // wait one frame so the logo image is laid out
+      await new Promise((r) => requestAnimationFrame(() => r(null)));
+      const canvas = await html2canvas(el, {
+        scale: 2, useCORS: true, backgroundColor: "#ffffff", windowWidth: el.scrollWidth,
+      });
+      return canvas;
+    } finally {
+      el.remove();
+    }
+  };
+
+  const exportImage = async () => {
+    try {
+      const canvas = await renderBrandedCanvas();
+      canvas.toBlob((blob) => {
+        if (!blob) return toast.error("تعذّر إنشاء الصورة");
+        downloadFile(blob, `groom-contributions-${new Date().toISOString().slice(0,10)}.png`);
+      }, "image/png");
+    } catch (e: any) {
+      toast.error("تعذّر إنشاء الصورة", { description: e?.message });
+    }
+  };
+
+  const exportPdf = async () => {
+    try {
+      const canvas = await renderBrandedCanvas();
+      const orientation = canvas.width >= canvas.height ? "landscape" : "portrait";
+      const pdf = new jsPDF({ unit: "pt", format: "a4", orientation });
+      const pageW = pdf.internal.pageSize.getWidth();
+      const pageH = pdf.internal.pageSize.getHeight();
+      const margin = 18;
+      const usableW = pageW - margin * 2;
+      const pxPerPage = (canvas.width * (pageH - margin * 2)) / usableW;
+      let rendered = 0, page = 0;
+      while (rendered < canvas.height) {
+        const sliceH = Math.min(pxPerPage, canvas.height - rendered);
+        const c = document.createElement("canvas");
+        c.width = canvas.width; c.height = sliceH;
+        const ctx = c.getContext("2d"); if (!ctx) break;
+        ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, c.width, c.height);
+        ctx.drawImage(canvas, 0, rendered, canvas.width, sliceH, 0, 0, canvas.width, sliceH);
+        const data = c.toDataURL("image/jpeg", 0.92);
+        if (page > 0) pdf.addPage();
+        pdf.addImage(data, "JPEG", margin, margin, usableW, (sliceH * usableW) / canvas.width, undefined, "FAST");
+        rendered += sliceH; page += 1;
+      }
+      pdf.save(`groom-contributions-${new Date().toISOString().slice(0,10)}.pdf`);
+    } catch (e: any) {
+      toast.error("تعذّر إنشاء PDF", { description: e?.message });
+    }
+  };
+
   return (
     <div className="space-y-5">
       {/* Equation explanation */}
@@ -281,6 +419,12 @@ export function GroomContributions({ totalCollected, totalBudgetNeeded }: Props)
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={exportJson} className="gap-2">
                   <FileJson className="h-4 w-4 text-amber-600" /> JSON
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={exportPdf} className="gap-2">
+                  <FileType2 className="h-4 w-4 text-rose-600" /> PDF بهوية اللجنة
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={exportImage} className="gap-2">
+                  <FileImage className="h-4 w-4 text-violet-600" /> صورة PNG بهوية اللجنة
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
