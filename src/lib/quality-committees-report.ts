@@ -342,7 +342,7 @@ export async function buildQualityCommitteesReportHtml(opts: { authorName?: stri
     if (items.length === 0) {
       allRows.push(
         `<tr class="grp"><td colspan="4">
-          <span class="grp-name">${c.name}</span>
+          <span class="grp-name">${escapeHtml(c.name)}</span>
           <span class="grp-stat"><span class="dot ok"></span>0 منجزة · <span class="dot no"></span>0 غير منجزة</span>
         </td></tr>`
       );
@@ -356,7 +356,7 @@ export async function buildQualityCommitteesReportHtml(opts: { authorName?: stri
     // رأس اللجنة
     allRows.push(
       `<tr class="grp"><td colspan="4">
-        <span class="grp-name">${c.name}</span>
+        <span class="grp-name">${escapeHtml(c.name)}</span>
         <span class="grp-stat"><span class="dot ok"></span>${cDone} منجزة · <span class="dot no"></span>${cPending} غير منجزة</span>
       </td></tr>`
     );
@@ -389,7 +389,7 @@ export async function buildQualityCommitteesReportHtml(opts: { authorName?: stri
       allRows.push(
         `<tr class="row ${isReady ? "is-ready" : isOngoing ? "is-ongoing" : isDone ? "is-ok" : "is-no"}">
           <td class="idx">${i + 1}</td>
-          <td class="title">${displayTitle}</td>
+          <td class="title">${escapeHtml(displayTitle)}</td>
           <td class="due">${dueText}</td>
           <td class="st">${badge}</td>
         </tr>`
