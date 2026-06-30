@@ -45,7 +45,14 @@ export function FamilyContributionsPanel() {
 
   const canDelete = hasRole("admin");
 
-  useEffect(() => { void load(); }, []);
+  // Wait for the auth session to be ready; otherwise the initial SELECT runs
+  // without a JWT and RLS returns an empty list, making previously saved rows
+  // appear to "disappear" on revisit.
+  useEffect(() => {
+    if (!user) return;
+    void load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
 
   useEffect(() => {
     const ch = supabase
