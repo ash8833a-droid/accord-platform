@@ -71,14 +71,17 @@ const emptyForm: GroomForm = {
 interface Props {
   totalCollected: number; // total subscriptions
   totalBudgetNeeded: number; // sum of committee budgets
+  year?: number; // Hijri year for filename, e.g. 1448
 }
 
-export function GroomContributions({ totalCollected, totalBudgetNeeded }: Props) {
+export function GroomContributions({ totalCollected, totalBudgetNeeded, year = 1448 }: Props) {
   const [grooms, setGrooms] = useState<Groom[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Groom | null>(null);
   const [form, setForm] = useState<GroomForm>(emptyForm);
   const [saving, setSaving] = useState(false);
+
+  const docFileName = (ext: string) => `سجل مساهمات العرسان ${year}.${ext}`;
 
   const load = async () => {
     const { data } = await supabase
@@ -210,17 +213,15 @@ export function GroomContributions({ totalCollected, totalBudgetNeeded }: Props)
     const ws = XLSX.utils.json_to_sheet(exportRows());
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "مساهمات العرسان");
-    XLSX.writeFile(wb, `groom-contributions-${new Date().toISOString().slice(0,10)}.xlsx`);
+    XLSX.writeFile(wb, docFileName("xlsx"));
   };
   const exportCsv = () => {
     const ws = XLSX.utils.json_to_sheet(exportRows());
     const csv = XLSX.utils.sheet_to_csv(ws);
-    downloadFile(new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8" }),
-      `groom-contributions-${new Date().toISOString().slice(0,10)}.csv`);
+    downloadFile(new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8" }), docFileName("csv"));
   };
   const exportJson = () => {
-    downloadFile(new Blob([JSON.stringify(exportRows(), null, 2)], { type: "application/json" }),
-      `groom-contributions-${new Date().toISOString().slice(0,10)}.json`);
+    downloadFile(new Blob([JSON.stringify(exportRows(), null, 2)], { type: "application/json" }), docFileName("json"));
   };
 
   const buildBrandedReportEl = () => {
@@ -346,7 +347,7 @@ export function GroomContributions({ totalCollected, totalBudgetNeeded }: Props)
       const canvas = await renderBrandedCanvas();
       canvas.toBlob((blob) => {
         if (!blob) return toast.error("تعذّر إنشاء الصورة");
-        downloadFile(blob, `groom-contributions-${new Date().toISOString().slice(0,10)}.png`);
+        downloadFile(blob, docFileName("png"));
       }, "image/png");
     } catch (e: any) {
       toast.error("تعذّر إنشاء الصورة", { description: e?.message });
@@ -376,7 +377,7 @@ export function GroomContributions({ totalCollected, totalBudgetNeeded }: Props)
         pdf.addImage(data, "JPEG", margin, margin, usableW, (sliceH * usableW) / canvas.width, undefined, "FAST");
         rendered += sliceH; page += 1;
       }
-      pdf.save(`groom-contributions-${new Date().toISOString().slice(0,10)}.pdf`);
+      pdf.save(docFileName("pdf"));
     } catch (e: any) {
       toast.error("تعذّر إنشاء PDF", { description: e?.message });
     }
