@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { lookupGroomByPhone, updateGroomByToken } from "@/lib/grooms-public.functions";
+import { lookupGroomByPhone } from "@/lib/grooms-public.functions";
 import { Logo } from "@/components/Logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,8 +10,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import {
-  Loader2, Phone, Search, Camera, IdCard, Upload, CheckCircle2,
-  ArrowRight, ImageIcon, Send, ClipboardList, User as UserIcon,
+  Loader2, Phone, Search, Camera, IdCard, CheckCircle2,
+  ArrowRight, ImageIcon, ClipboardList, User as UserIcon,
 } from "lucide-react";
 
 export const Route = createFileRoute("/groom-edit")({
@@ -45,7 +45,6 @@ interface Groom {
   request_details: string | null;
   status: string;
   created_at: string;
-  edit_token: string;
 }
 
 async function uploadPublic(file: File, prefix: string): Promise<string | null> {
