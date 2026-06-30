@@ -25,6 +25,10 @@ import { FAMILY_BRANCHES } from "@/lib/family-branches";
 
 const BASE_CONTRIBUTION = 10000;
 const fmt = (n: number) => new Intl.NumberFormat("ar-SA").format(Math.round(n));
+const escapeHtml = (s: string) =>
+  String(s ?? "").replace(/[&<>"']/g, (c) =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c] as string),
+  );
 
 interface Groom {
   id: string;
