@@ -377,7 +377,7 @@ export function GroomContributions({ totalCollected, totalBudgetNeeded, year = 1
         pdf.addImage(data, "JPEG", margin, margin, usableW, (sliceH * usableW) / canvas.width, undefined, "FAST");
         rendered += sliceH; page += 1;
       }
-      pdf.save(`groom-contributions-${new Date().toISOString().slice(0,10)}.pdf`);
+      pdf.save(docFileName("pdf"));
     } catch (e: any) {
       toast.error("تعذّر إنشاء PDF", { description: e?.message });
     }
