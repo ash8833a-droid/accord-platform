@@ -13,7 +13,6 @@ import { Route as WeddingFeedbackRouteImport } from './routes/wedding-feedback'
 import { Route as RegisterGroomRouteImport } from './routes/register-groom'
 import { Route as PendingRouteImport } from './routes/pending'
 import { Route as LaunchRouteImport } from './routes/launch'
-import { Route as GroomEditRouteImport } from './routes/groom-edit'
 import { Route as FeedbackQrRouteImport } from './routes/feedback-qr'
 import { Route as CommitteesRouteImport } from './routes/committees'
 import { Route as BudgetEntryRouteImport } from './routes/budget-entry'
@@ -64,11 +63,6 @@ const LaunchRoute = LaunchRouteImport.update({
   path: '/launch',
   getParentRoute: () => rootRouteImport,
 } as any)
-const GroomEditRoute = GroomEditRouteImport.update({
-  id: '/groom-edit',
-  path: '/groom-edit',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const FeedbackQrRoute = FeedbackQrRouteImport.update({
   id: '/feedback-qr',
   path: '/feedback-qr',
@@ -104,9 +98,9 @@ const SurveyWomenTalentsRoute = SurveyWomenTalentsRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const GroomEditTokenRoute = GroomEditTokenRouteImport.update({
-  id: '/$token',
-  path: '/$token',
-  getParentRoute: () => GroomEditRoute,
+  id: '/groom-edit/$token',
+  path: '/groom-edit/$token',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ContributeSharesYearRoute = ContributeSharesYearRouteImport.update({
   id: '/contribute-shares/$year',
@@ -222,7 +216,6 @@ export interface FileRoutesByFullPath {
   '/budget-entry': typeof BudgetEntryRouteWithChildren
   '/committees': typeof CommitteesRoute
   '/feedback-qr': typeof FeedbackQrRoute
-  '/groom-edit': typeof GroomEditRouteWithChildren
   '/launch': typeof LaunchRoute
   '/pending': typeof PendingRoute
   '/register-groom': typeof RegisterGroomRoute
@@ -257,7 +250,6 @@ export interface FileRoutesByTo {
   '/budget-entry': typeof BudgetEntryRouteWithChildren
   '/committees': typeof CommitteesRoute
   '/feedback-qr': typeof FeedbackQrRoute
-  '/groom-edit': typeof GroomEditRouteWithChildren
   '/launch': typeof LaunchRoute
   '/pending': typeof PendingRoute
   '/register-groom': typeof RegisterGroomRoute
@@ -294,7 +286,6 @@ export interface FileRoutesById {
   '/budget-entry': typeof BudgetEntryRouteWithChildren
   '/committees': typeof CommitteesRoute
   '/feedback-qr': typeof FeedbackQrRoute
-  '/groom-edit': typeof GroomEditRouteWithChildren
   '/launch': typeof LaunchRoute
   '/pending': typeof PendingRoute
   '/register-groom': typeof RegisterGroomRoute
@@ -331,7 +322,6 @@ export interface FileRouteTypes {
     | '/budget-entry'
     | '/committees'
     | '/feedback-qr'
-    | '/groom-edit'
     | '/launch'
     | '/pending'
     | '/register-groom'
@@ -366,7 +356,6 @@ export interface FileRouteTypes {
     | '/budget-entry'
     | '/committees'
     | '/feedback-qr'
-    | '/groom-edit'
     | '/launch'
     | '/pending'
     | '/register-groom'
@@ -402,7 +391,6 @@ export interface FileRouteTypes {
     | '/budget-entry'
     | '/committees'
     | '/feedback-qr'
-    | '/groom-edit'
     | '/launch'
     | '/pending'
     | '/register-groom'
@@ -439,12 +427,12 @@ export interface RootRouteChildren {
   BudgetEntryRoute: typeof BudgetEntryRouteWithChildren
   CommitteesRoute: typeof CommitteesRoute
   FeedbackQrRoute: typeof FeedbackQrRoute
-  GroomEditRoute: typeof GroomEditRouteWithChildren
   LaunchRoute: typeof LaunchRoute
   PendingRoute: typeof PendingRoute
   RegisterGroomRoute: typeof RegisterGroomRoute
   WeddingFeedbackRoute: typeof WeddingFeedbackRoute
   ContributeSharesYearRoute: typeof ContributeSharesYearRoute
+  GroomEditTokenRoute: typeof GroomEditTokenRoute
   SurveyWomenTalentsRoute: typeof SurveyWomenTalentsRoute
   ApiPublicLaunchNarrationRoute: typeof ApiPublicLaunchNarrationRoute
   ApiPublicHooksTaskDeadlineCheckRoute: typeof ApiPublicHooksTaskDeadlineCheckRoute
@@ -478,13 +466,6 @@ declare module '@tanstack/react-router' {
       path: '/launch'
       fullPath: '/launch'
       preLoaderRoute: typeof LaunchRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/groom-edit': {
-      id: '/groom-edit'
-      path: '/groom-edit'
-      fullPath: '/groom-edit'
-      preLoaderRoute: typeof GroomEditRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/feedback-qr': {
@@ -538,10 +519,10 @@ declare module '@tanstack/react-router' {
     }
     '/groom-edit/$token': {
       id: '/groom-edit/$token'
-      path: '/$token'
+      path: '/groom-edit/$token'
       fullPath: '/groom-edit/$token'
       preLoaderRoute: typeof GroomEditTokenRouteImport
-      parentRoute: typeof GroomEditRoute
+      parentRoute: typeof rootRouteImport
     }
     '/contribute-shares/$year': {
       id: '/contribute-shares/$year'
@@ -757,18 +738,6 @@ const BudgetEntryRouteWithChildren = BudgetEntryRoute._addFileChildren(
   BudgetEntryRouteChildren,
 )
 
-interface GroomEditRouteChildren {
-  GroomEditTokenRoute: typeof GroomEditTokenRoute
-}
-
-const GroomEditRouteChildren: GroomEditRouteChildren = {
-  GroomEditTokenRoute: GroomEditTokenRoute,
-}
-
-const GroomEditRouteWithChildren = GroomEditRoute._addFileChildren(
-  GroomEditRouteChildren,
-)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AppRoute: AppRouteWithChildren,
@@ -776,12 +745,12 @@ const rootRouteChildren: RootRouteChildren = {
   BudgetEntryRoute: BudgetEntryRouteWithChildren,
   CommitteesRoute: CommitteesRoute,
   FeedbackQrRoute: FeedbackQrRoute,
-  GroomEditRoute: GroomEditRouteWithChildren,
   LaunchRoute: LaunchRoute,
   PendingRoute: PendingRoute,
   RegisterGroomRoute: RegisterGroomRoute,
   WeddingFeedbackRoute: WeddingFeedbackRoute,
   ContributeSharesYearRoute: ContributeSharesYearRoute,
+  GroomEditTokenRoute: GroomEditTokenRoute,
   SurveyWomenTalentsRoute: SurveyWomenTalentsRoute,
   ApiPublicLaunchNarrationRoute: ApiPublicLaunchNarrationRoute,
   ApiPublicHooksTaskDeadlineCheckRoute: ApiPublicHooksTaskDeadlineCheckRoute,
