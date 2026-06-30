@@ -213,17 +213,15 @@ export function GroomContributions({ totalCollected, totalBudgetNeeded, year = 1
     const ws = XLSX.utils.json_to_sheet(exportRows());
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "مساهمات العرسان");
-    XLSX.writeFile(wb, `groom-contributions-${new Date().toISOString().slice(0,10)}.xlsx`);
+    XLSX.writeFile(wb, docFileName("xlsx"));
   };
   const exportCsv = () => {
     const ws = XLSX.utils.json_to_sheet(exportRows());
     const csv = XLSX.utils.sheet_to_csv(ws);
-    downloadFile(new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8" }),
-      `groom-contributions-${new Date().toISOString().slice(0,10)}.csv`);
+    downloadFile(new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8" }), docFileName("csv"));
   };
   const exportJson = () => {
-    downloadFile(new Blob([JSON.stringify(exportRows(), null, 2)], { type: "application/json" }),
-      `groom-contributions-${new Date().toISOString().slice(0,10)}.json`);
+    downloadFile(new Blob([JSON.stringify(exportRows(), null, 2)], { type: "application/json" }), docFileName("json"));
   };
 
   const buildBrandedReportEl = () => {
