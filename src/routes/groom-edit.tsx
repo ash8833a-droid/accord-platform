@@ -75,13 +75,6 @@ function GroomEditPage() {
   const [phone, setPhone] = useState("");
   const [searching, setSearching] = useState(false);
   const [groom, setGroom] = useState<Groom | null>(null);
-  const [saving, setSaving] = useState(false);
-
-  // form state for the editable fields
-  const [photoFile, setPhotoFile] = useState<File | null>(null);
-  const [idFile, setIdFile] = useState<File | null>(null);
-  const [requestType, setRequestType] = useState<string>("none");
-  const [requestDetails, setRequestDetails] = useState<string>("");
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -101,8 +94,6 @@ function GroomEditPage() {
         return;
       }
       setGroom(row as Groom);
-      setRequestType((row as Groom).request_type ?? "none");
-      setRequestDetails((row as Groom).request_details ?? "");
       toast.success("تم العثور على طلبك");
     } catch (err: any) {
       toast.error("تعذّر البحث", { description: err.message });
