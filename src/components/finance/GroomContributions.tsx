@@ -299,22 +299,45 @@ export function GroomContributions({ totalCollected, totalBudgetNeeded }: Props)
         <span>وثيقة رسمية صادرة عن النظام</span>
       </div>
     `;
-    document.body.appendChild(container);
     return container;
   };
 
   const renderBrandedCanvas = async () => {
     const html2canvas = (await import("html2canvas")).default;
-    const el = buildBrandedReportEl();
+    // Render inside an isolated iframe so the page's Tailwind v4 oklch()/lab()
+    // tokens are NOT inherited (html2canvas can't parse modern color functions).
+    const iframe = document.createElement("iframe");
+    iframe.style.cssText = "position:fixed;top:-10000px;left:0;width:1180px;height:10px;border:0;";
+    document.body.appendChild(iframe);
     try {
-      // wait one frame so the logo image is laid out
+      const doc = iframe.contentDocument!;
+      doc.open();
+      doc.write(`<!doctype html><html dir="rtl"><head><meta charset="utf-8"><style>
+        html,body{margin:0;padding:0;background:#ffffff;color:#111827;}
+      </style></head><body></body></html>`);
+      doc.close();
+      const el = buildBrandedReportEl();
+      // Re-parent into iframe (its style is position:fixed; reset to static there)
+      el.style.position = "static";
+      el.style.top = "auto";
+      doc.body.appendChild(el);
+      // Wait for logo image to load
+      const imgs = Array.from(doc.images);
+      await Promise.all(imgs.map((img) =>
+        img.complete ? Promise.resolve() : new Promise((r) => { img.onload = img.onerror = () => r(null); })
+      ));
       await new Promise((r) => requestAnimationFrame(() => r(null)));
       const canvas = await html2canvas(el, {
-        scale: 2, useCORS: true, backgroundColor: "#ffffff", windowWidth: el.scrollWidth,
+        scale: 2,
+        useCORS: true,
+        backgroundColor: "#ffffff",
+        windowWidth: el.scrollWidth,
+        width: el.scrollWidth,
+        height: el.scrollHeight,
       });
       return canvas;
     } finally {
-      el.remove();
+      iframe.remove();
     }
   };
 
