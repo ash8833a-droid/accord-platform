@@ -74,12 +74,14 @@ interface Props {
   year?: number; // Hijri year for filename, e.g. 1448
 }
 
-export function GroomContributions({ totalCollected, totalBudgetNeeded }: Props) {
+export function GroomContributions({ totalCollected, totalBudgetNeeded, year = 1448 }: Props) {
   const [grooms, setGrooms] = useState<Groom[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Groom | null>(null);
   const [form, setForm] = useState<GroomForm>(emptyForm);
   const [saving, setSaving] = useState(false);
+
+  const docFileName = (ext: string) => `سجل مساهمات العرسان ${year}.${ext}`;
 
   const load = async () => {
     const { data } = await supabase
