@@ -2,6 +2,16 @@ import { supabase } from "@/integrations/supabase/client";
 import { BRAND_LOGO_DATA_URI } from "@/assets/brand-logo";
 import { printHtmlDocument } from "@/lib/print-frame";
 
+function escapeHtml(input: unknown): string {
+  const s = input == null ? "" : String(input);
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 interface CommitteeRow {
   id: string;
   name: string;
