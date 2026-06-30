@@ -347,7 +347,7 @@ export function GroomContributions({ totalCollected, totalBudgetNeeded, year = 1
       const canvas = await renderBrandedCanvas();
       canvas.toBlob((blob) => {
         if (!blob) return toast.error("تعذّر إنشاء الصورة");
-        downloadFile(blob, `groom-contributions-${new Date().toISOString().slice(0,10)}.png`);
+        downloadFile(blob, docFileName("png"));
       }, "image/png");
     } catch (e: any) {
       toast.error("تعذّر إنشاء الصورة", { description: e?.message });
