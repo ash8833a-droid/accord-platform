@@ -3,7 +3,7 @@ import { z } from "zod";
 
 const ContributorSchema = z.object({
   full_name: z.string().trim().min(2).max(120),
-  amount: z.number().int().min(1).max(1_000_000),
+  amount: z.number().int().min(1).max(50_000),
   notes: z.string().trim().max(300).optional().nullable(),
 });
 
@@ -11,7 +11,7 @@ const SubmissionSchema = z.object({
   hijri_year: z.number().int().min(1300).max(1600),
   delegate_name: z.string().trim().min(2).max(120),
   family_branch: z.string().trim().min(2).max(80),
-  contributors: z.array(ContributorSchema).min(1).max(200),
+  contributors: z.array(ContributorSchema).min(1).max(50),
 });
 
 export type PublicSharesSubmission = z.infer<typeof SubmissionSchema>;
@@ -20,7 +20,10 @@ export const submitFamilyShares = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => SubmissionSchema.parse(input))
   .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const delegateLabel = `ممثل الأسرة: ${data.delegate_name}`;
+    // Unauthenticated public submissions are flagged so finance staff can
+    // review them before treating the entry as verified.
+    const UNVERIFIED_TAG = "[غير مُتحقَّق]";
+    const delegateLabel = `${UNVERIFIED_TAG} ممثل الأسرة: ${data.delegate_name}`;
     const rows = data.contributors.map((c) => ({
       full_name: c.full_name.trim(),
       family_branch: data.family_branch.trim(),
