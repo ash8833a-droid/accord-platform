@@ -71,6 +71,7 @@ const emptyForm: GroomForm = {
 interface Props {
   totalCollected: number; // total subscriptions
   totalBudgetNeeded: number; // sum of committee budgets
+  year?: number; // Hijri year for filename, e.g. 1448
 }
 
 export function GroomContributions({ totalCollected, totalBudgetNeeded }: Props) {
