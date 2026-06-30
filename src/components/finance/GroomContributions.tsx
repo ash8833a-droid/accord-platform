@@ -1,10 +1,25 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { HeartHandshake, Calculator, AlertTriangle, CheckCircle2, Coins, TrendingDown } from "lucide-react";
+import { Label } from "@/components/ui/label";
+import {
+  HeartHandshake, Calculator, AlertTriangle, CheckCircle2, Coins, TrendingDown,
+  Download, Plus, Pencil, Trash2, FileSpreadsheet, FileText, FileJson,
+} from "lucide-react";
 import { toast } from "sonner";
+import * as XLSX from "xlsx";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
+} from "@/components/ui/dialog";
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
+import { FAMILY_BRANCHES } from "@/lib/family-branches";
 
 const BASE_CONTRIBUTION = 10000;
 const fmt = (n: number) => new Intl.NumberFormat("ar-SA").format(Math.round(n));
@@ -19,6 +34,34 @@ interface Groom {
   contribution_paid: boolean;
 }
 
+const STATUS_OPTIONS: { value: string; label: string }[] = [
+  { value: "new", label: "جديد" },
+  { value: "under_review", label: "قيد المراجعة" },
+  { value: "approved", label: "معتمد" },
+  { value: "rejected", label: "مرفوض" },
+  { value: "completed", label: "مكتمل" },
+];
+
+type GroomForm = {
+  full_name: string;
+  phone: string;
+  family_branch: string;
+  status: string;
+  groom_contribution: number;
+  deficit_share: number;
+  contribution_paid: boolean;
+};
+
+const emptyForm: GroomForm = {
+  full_name: "",
+  phone: "",
+  family_branch: FAMILY_BRANCHES[0],
+  status: "approved",
+  groom_contribution: BASE_CONTRIBUTION,
+  deficit_share: 0,
+  contribution_paid: false,
+};
+
 interface Props {
   totalCollected: number; // total subscriptions
   totalBudgetNeeded: number; // sum of committee budgets
@@ -26,6 +69,10 @@ interface Props {
 
 export function GroomContributions({ totalCollected, totalBudgetNeeded }: Props) {
   const [grooms, setGrooms] = useState<Groom[]>([]);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editing, setEditing] = useState<Groom | null>(null);
+  const [form, setForm] = useState<GroomForm>(emptyForm);
+  const [saving, setSaving] = useState(false);
 
   const load = async () => {
     const { data } = await supabase
@@ -73,6 +120,103 @@ export function GroomContributions({ totalCollected, totalBudgetNeeded }: Props)
     await supabase.from("grooms").update(payload).eq("id", id);
   };
 
+  const openAdd = () => {
+    setEditing(null);
+    setForm(emptyForm);
+    setDialogOpen(true);
+  };
+
+  const openEdit = (g: Groom) => {
+    setEditing(g);
+    setForm({
+      full_name: g.full_name,
+      phone: "",
+      family_branch: g.family_branch,
+      status: g.status,
+      groom_contribution: Number(g.groom_contribution),
+      deficit_share: Number(g.deficit_share),
+      contribution_paid: g.contribution_paid,
+    });
+    setDialogOpen(true);
+  };
+
+  const saveForm = async () => {
+    if (!form.full_name.trim()) return toast.error("اسم العريس مطلوب");
+    setSaving(true);
+    if (editing) {
+      const { error } = await supabase.from("grooms").update({
+        full_name: form.full_name.trim(),
+        family_branch: form.family_branch,
+        status: form.status as any,
+        groom_contribution: form.groom_contribution,
+        deficit_share: form.deficit_share,
+        contribution_paid: form.contribution_paid,
+      }).eq("id", editing.id);
+      setSaving(false);
+      if (error) return toast.error("تعذّر التحديث", { description: error.message });
+      toast.success("تم تحديث بيانات العريس");
+    } else {
+      if (!form.phone.trim()) { setSaving(false); return toast.error("رقم الجوال مطلوب"); }
+      const { error } = await supabase.from("grooms").insert({
+        full_name: form.full_name.trim(),
+        phone: form.phone.trim(),
+        family_branch: form.family_branch,
+        status: form.status as any,
+        groom_contribution: form.groom_contribution,
+        deficit_share: form.deficit_share,
+        contribution_paid: form.contribution_paid,
+      });
+      setSaving(false);
+      if (error) return toast.error("تعذّر الإضافة", { description: error.message });
+      toast.success("تمت إضافة العريس");
+    }
+    setDialogOpen(false);
+    load();
+  };
+
+  const removeGroom = async (g: Groom) => {
+    if (!confirm(`حذف بيانات العريس "${g.full_name}"؟ لا يمكن التراجع.`)) return;
+    const { error } = await supabase.from("grooms").delete().eq("id", g.id);
+    if (error) return toast.error("تعذّر الحذف", { description: error.message });
+    toast.success("تم الحذف");
+    load();
+  };
+
+  const exportRows = () => grooms.map((g) => ({
+    "العريس": g.full_name,
+    "الأسرة": g.family_branch,
+    "الحالة": (STATUS_OPTIONS.find((s) => s.value === g.status)?.label) ?? g.status,
+    "المقدم": Number(g.groom_contribution),
+    "حصة العجز": Number(g.deficit_share),
+    "الإجمالي": Number(g.groom_contribution) + Number(g.deficit_share),
+    "الدفع": g.contribution_paid ? "مدفوع" : "غير مدفوع",
+  }));
+
+  const downloadFile = (blob: Blob, name: string) => {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(url);
+  };
+
+  const exportExcel = () => {
+    const ws = XLSX.utils.json_to_sheet(exportRows());
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "مساهمات العرسان");
+    XLSX.writeFile(wb, `groom-contributions-${new Date().toISOString().slice(0,10)}.xlsx`);
+  };
+  const exportCsv = () => {
+    const ws = XLSX.utils.json_to_sheet(exportRows());
+    const csv = XLSX.utils.sheet_to_csv(ws);
+    downloadFile(new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8" }),
+      `groom-contributions-${new Date().toISOString().slice(0,10)}.csv`);
+  };
+  const exportJson = () => {
+    downloadFile(new Blob([JSON.stringify(exportRows(), null, 2)], { type: "application/json" }),
+      `groom-contributions-${new Date().toISOString().slice(0,10)}.json`);
+  };
+
   return (
     <div className="space-y-5">
       {/* Equation explanation */}
@@ -114,11 +258,36 @@ export function GroomContributions({ totalCollected, totalBudgetNeeded }: Props)
 
       {/* Grooms table */}
       <div className="rounded-2xl border bg-card overflow-hidden shadow-soft">
-        <div className="px-5 py-4 border-b bg-gradient-to-l from-rose-500/5 to-transparent">
-          <h3 className="font-bold flex items-center gap-2">
-            <HeartHandshake className="h-4 w-4 text-rose-600" /> سجل مساهمات العرسان
-          </h3>
-          <p className="text-xs text-muted-foreground mt-1">يظهر هنا العرسان المعتمدون فقط</p>
+        <div className="px-5 py-4 border-b bg-gradient-to-l from-rose-500/5 to-transparent flex items-start justify-between gap-3 flex-wrap">
+          <div>
+            <h3 className="font-bold flex items-center gap-2">
+              <HeartHandshake className="h-4 w-4 text-rose-600" /> سجل مساهمات العرسان
+            </h3>
+            <p className="text-xs text-muted-foreground mt-1">يظهر هنا العرسان المعتمدون فقط</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="gap-2">
+                  <Download className="h-4 w-4" /> تصدير
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={exportExcel} className="gap-2">
+                  <FileSpreadsheet className="h-4 w-4 text-emerald-600" /> Excel (.xlsx)
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={exportCsv} className="gap-2">
+                  <FileText className="h-4 w-4 text-sky-600" /> CSV
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={exportJson} className="gap-2">
+                  <FileJson className="h-4 w-4 text-amber-600" /> JSON
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <Button size="sm" onClick={openAdd} className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2">
+              <Plus className="h-4 w-4" /> إضافة عريس
+            </Button>
+          </div>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
@@ -131,6 +300,7 @@ export function GroomContributions({ totalCollected, totalBudgetNeeded }: Props)
                 <th className="px-4 py-3 font-medium">حصة العجز</th>
                 <th className="px-4 py-3 font-medium">الإجمالي</th>
                 <th className="px-4 py-3 font-medium">الدفع</th>
+                <th className="px-4 py-3 font-medium">إجراءات</th>
               </tr>
             </thead>
             <tbody>
@@ -183,11 +353,21 @@ export function GroomContributions({ totalCollected, totalBudgetNeeded }: Props)
                         {g.contribution_paid ? "مدفوع" : "غير مدفوع"}
                       </Button>
                     </td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-1">
+                        <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => openEdit(g)} title="تعديل">
+                          <Pencil className="h-4 w-4 text-sky-600" />
+                        </Button>
+                        <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => removeGroom(g)} title="حذف">
+                          <Trash2 className="h-4 w-4 text-rose-600" />
+                        </Button>
+                      </div>
+                    </td>
                   </tr>
                 );
               })}
               {grooms.length === 0 && (
-                <tr><td colSpan={7} className="text-center py-12 text-muted-foreground">
+                <tr><td colSpan={8} className="text-center py-12 text-muted-foreground">
                   لا يوجد عرسان مسجلون بعد.
                 </td></tr>
               )}
@@ -195,6 +375,66 @@ export function GroomContributions({ totalCollected, totalBudgetNeeded }: Props)
           </table>
         </div>
       </div>
+
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent dir="rtl" className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>{editing ? "تعديل بيانات العريس" : "إضافة عريس جديد"}</DialogTitle>
+          </DialogHeader>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="md:col-span-2">
+              <Label>اسم العريس</Label>
+              <Input value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} />
+            </div>
+            {!editing && (
+              <div className="md:col-span-2">
+                <Label>رقم الجوال</Label>
+                <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="05xxxxxxxx" />
+              </div>
+            )}
+            <div>
+              <Label>الأسرة</Label>
+              <Select value={form.family_branch} onValueChange={(v) => setForm({ ...form, family_branch: v })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {FAMILY_BRANCHES.map((b) => <SelectItem key={b} value={b}>{b}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>الحالة</Label>
+              <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {STATUS_OPTIONS.map((s) => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>المقدم (ر.س)</Label>
+              <Input type="number" value={form.groom_contribution}
+                onChange={(e) => setForm({ ...form, groom_contribution: Number(e.target.value) })} />
+            </div>
+            <div>
+              <Label>حصة العجز (ر.س)</Label>
+              <Input type="number" value={form.deficit_share}
+                onChange={(e) => setForm({ ...form, deficit_share: Number(e.target.value) })} />
+            </div>
+            <div className="md:col-span-2 flex items-center gap-2">
+              <input id="paid" type="checkbox" checked={form.contribution_paid}
+                onChange={(e) => setForm({ ...form, contribution_paid: e.target.checked })}
+                className="h-4 w-4" />
+              <Label htmlFor="paid" className="cursor-pointer">تم الدفع</Label>
+            </div>
+          </div>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setDialogOpen(false)}>إلغاء</Button>
+            <Button onClick={saveForm} disabled={saving} className="bg-emerald-600 hover:bg-emerald-700 text-white">
+              {saving ? "جارٍ الحفظ..." : (editing ? "حفظ التعديلات" : "إضافة")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
