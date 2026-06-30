@@ -368,7 +368,7 @@ export function FinanceModule() {
             </h3>
             <p className="text-xs text-muted-foreground mt-1">المساهمات السنوية للعرسان وفرعهم العائلي.</p>
           </div>
-          <GroomContributions totalCollected={totalCollected} totalBudgetNeeded={totalBudgetNeeded} />
+          <GroomContributions totalCollected={totalCollected} totalBudgetNeeded={totalBudgetNeeded} year={1448} />
 
           <div className="rounded-2xl border bg-gradient-to-l from-primary/5 to-transparent p-4">
             <h3 className="font-bold flex items-center gap-2 text-primary">
