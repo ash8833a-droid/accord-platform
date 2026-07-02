@@ -123,7 +123,7 @@ function Inner() {
       const [committeesRes, tasksRes, groomsRes, paymentsRes, familyRes, shareholdersRes, budgetItemsRes] = await Promise.all([
         supabase.from("committees").select("id, name, type, budget_allocated, budget_spent"),
         supabase.from("committee_tasks").select("id, status, committee_id, created_at, updated_at, due_date"),
-        supabase.from("grooms").select("id, status, created_at, wedding_date, groom_contribution"),
+        supabase.from("grooms").select("id, status, created_at, wedding_date, groom_contribution, deficit_share"),
         supabase.from("payment_requests").select("id, amount, status, created_at"),
         supabase.from("family_contributions").select("id, amount, contribution_date"),
         supabase.from("historical_shareholders").select("id, amount, hijri_year, family_branch"),
@@ -202,6 +202,7 @@ function Inner() {
     const paymentsY = data.payments.filter((p: any) => inRange(p.created_at, r));
     const expenses = paymentsY.filter((p: any) => p.status === "paid").reduce((s: number, p: any) => s + Number(p.amount || 0), 0);
     const groomRevenues = groomsY.reduce((s: number, g: any) => s + Number(g.groom_contribution || 0), 0);
+    const deficitShare = groomsY.reduce((s: number, g: any) => s + Number(g.deficit_share || 0), 0);
     const familyY = (data.family ?? []).filter((f: any) => inRange(f.contribution_date, r));
     const familyCash = familyY.reduce((s: number, f: any) => s + Number(f.amount || 0), 0);
     const shareholders = (data.shareholders ?? []) as Array<{ amount: number; hijri_year: number }>;
@@ -210,7 +211,7 @@ function Inner() {
       : shareholders.filter((s) => Number(s.hijri_year) === gregorianToHijriYear(year as number))
     ).reduce((s: number, row: any) => s + Number(row.amount || 0), 0);
     const familyContributions = familyCash + branchShareholders;
-    const revenues = familyContributions + groomRevenues;
+    const revenues = familyContributions + groomRevenues + deficitShare;
     // Total estimated budget across all committees — sourced from the
     // Finance Management page (sum of budget_items.total_cost).
     const budgetTotal = (data.budgetItems ?? []).reduce(
@@ -227,7 +228,7 @@ function Inner() {
     return {
       totalTasks, completed, completionRate, totalMarriages,
       revenues, expenses, allocatedFunds, projectedExpenses, netBalance, balanceStatus,
-      familyContributions, groomRevenues, budgetTotal,
+      familyContributions, groomRevenues, deficitShare, budgetTotal,
       tasksY, groomsY, paymentsY,
     };
   }, [data, year]);
