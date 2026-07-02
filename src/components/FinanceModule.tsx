@@ -108,7 +108,7 @@ export function FinanceModule() {
     const fcTotal = (fc ?? []).reduce((s: number, r: any) => s + Number(r.amount || 0), 0);
     const hsTotal = (hs ?? []).reduce((s: number, r: any) => s + Number(r.amount || 0), 0);
     setFamilyContribTotal(fcTotal + hsTotal);
-    setGroomContribTotal((gr ?? []).reduce((s: number, r: any) => s + Number(r.groom_contribution || 0), 0));
+    setGroomContribTotal((gr ?? []).reduce((s: number, r: any) => s + Number(r.groom_contribution || 0) + Number(r.deficit_share || 0), 0));
     const biTotal = (bi ?? []).reduce((s: number, r: any) => s + Number(r.total_cost || 0), 0);
     setBudgetItemsTotal(biTotal);
     // Committee breakdown: prefer budget_items aggregation; fallback to committees.budget_spent
