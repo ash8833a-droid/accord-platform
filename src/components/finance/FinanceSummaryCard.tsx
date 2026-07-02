@@ -6,20 +6,22 @@ const fmt = (n: number) => new Intl.NumberFormat("en-US").format(Math.round(n));
 interface Props {
   groomSubsTotal: number;
   familyContribTotal: number;
+  deficitShareTotal: number;
   expensesTotal: number;
   committeeBreakdown: Array<{ name: string; spent: number }>;
 }
 
 export function FinanceSummaryCard({
-  groomSubsTotal, familyContribTotal, expensesTotal, committeeBreakdown,
+  groomSubsTotal, familyContribTotal, deficitShareTotal, expensesTotal, committeeBreakdown,
 }: Props) {
-  const revenues = groomSubsTotal + familyContribTotal;
+  const revenues = groomSubsTotal + familyContribTotal + deficitShareTotal;
   const balance = revenues - expensesTotal;
   const burn = revenues > 0 ? Math.min(100, (expensesTotal / revenues) * 100) : 0;
 
   const revenueData = [
     { name: "اشتراكات العرسان", value: groomSubsTotal, color: "hsl(190 80% 40%)" },
     { name: "مساهمات أفراد القبيلة", value: familyContribTotal, color: "hsl(142 70% 40%)" },
+    { name: "حصة العجز", value: deficitShareTotal, color: "hsl(35 90% 45%)" },
   ].filter((d) => d.value > 0);
 
   const expensesData = committeeBreakdown
