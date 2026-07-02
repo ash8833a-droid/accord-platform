@@ -84,6 +84,7 @@ export function FinanceModule() {
   const [familyContribTotal, setFamilyContribTotal] = useState(0);
   const [committeeBreakdown, setCommitteeBreakdown] = useState<Array<{ name: string; spent: number }>>([]);
   const [groomContribTotal, setGroomContribTotal] = useState(0);
+  const [deficitShareTotal, setDeficitShareTotal] = useState(0);
   const [budgetItemsTotal, setBudgetItemsTotal] = useState(0);
 
   const load = async () => {
@@ -101,14 +102,15 @@ export function FinanceModule() {
         .gte("contribution_date", "2026-06-16")
         .lte("contribution_date", "2027-06-05"),
       supabase.from("historical_shareholders").select("amount").eq("hijri_year", 1448),
-      supabase.from("grooms").select("groom_contribution"),
+      supabase.from("grooms").select("groom_contribution, deficit_share"),
       supabase.from("budget_items").select("committee_id, total_cost"),
     ]);
     setFinanceHeadId(financeCom?.head_user_id ?? null);
     const fcTotal = (fc ?? []).reduce((s: number, r: any) => s + Number(r.amount || 0), 0);
     const hsTotal = (hs ?? []).reduce((s: number, r: any) => s + Number(r.amount || 0), 0);
     setFamilyContribTotal(fcTotal + hsTotal);
-    setGroomContribTotal((gr ?? []).reduce((s: number, r: any) => s + Number(r.groom_contribution || 0) + Number(r.deficit_share || 0), 0));
+    setGroomContribTotal((gr ?? []).reduce((s: number, r: any) => s + Number(r.groom_contribution || 0), 0));
+    setDeficitShareTotal((gr ?? []).reduce((s: number, r: any) => s + Number(r.deficit_share || 0), 0));
     const biTotal = (bi ?? []).reduce((s: number, r: any) => s + Number(r.total_cost || 0), 0);
     setBudgetItemsTotal(biTotal);
     // Committee breakdown: prefer budget_items aggregation; fallback to committees.budget_spent
@@ -326,6 +328,7 @@ export function FinanceModule() {
         familyContribTotal={familyContribTotal}
         expensesTotal={expensesTotal}
         committeeBreakdown={committeeBreakdown}
+        deficitShareTotal={deficitShareTotal}
       />
 
       <Tabs defaultValue="overview" dir="rtl">
