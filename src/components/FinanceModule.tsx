@@ -328,6 +328,7 @@ export function FinanceModule() {
         familyContribTotal={familyContribTotal}
         expensesTotal={expensesTotal}
         committeeBreakdown={committeeBreakdown}
+        deficitShareTotal={deficitShareTotal}
       />
 
       <Tabs defaultValue="overview" dir="rtl">
