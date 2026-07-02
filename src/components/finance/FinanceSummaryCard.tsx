@@ -42,6 +42,7 @@ export function FinanceSummaryCard({
           sublines={[
             { k: "اشتراكات العرسان", v: groomSubsTotal },
             { k: "مساهمات أفراد القبيلة", v: familyContribTotal },
+            { k: "حصة العجز", v: deficitShareTotal },
           ]}
         />
         <KpiTile
