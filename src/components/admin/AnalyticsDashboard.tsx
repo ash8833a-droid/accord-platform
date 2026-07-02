@@ -470,7 +470,7 @@ function Inner() {
         <HeroKpi
           label="إجمالي الإيرادات"
           value={fmtSar(k.revenues)}
-          sub="مساهمات العائلة + مخصصات العرسان"
+          sub={`مساهمات العائلة + مخصصات العرسان + حصة العجز (${fmtSar(k.deficitShare)})`}
           icon={TrendingUp}
         />
         <HeroKpi
