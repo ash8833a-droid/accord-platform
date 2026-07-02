@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
-import { useAuth } from "@/lib/auth";
+import { useAuth, emailToPhone } from "@/lib/auth";
 import { Logo } from "@/components/Logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -35,7 +35,9 @@ function AuthPage() {
 
   useEffect(() => {
     if (user && !loading && accessLoaded) {
-      if (hasRole("admin")) nav({ to: "/admin" });
+      const phone = emailToPhone(user.email);
+      if (phone === "0504723415") nav({ to: "/finance-management" });
+      else if (hasRole("admin")) nav({ to: "/admin" });
       else if (hasRole("quality")) nav({ to: "/reports" });
       else nav({ to: "/admin/tasks" });
     }
