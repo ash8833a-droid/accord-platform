@@ -575,15 +575,55 @@ export function exportFinanceComprehensivePDF(
 
   const committeesTable = data.committees.length === 0
     ? `<div class="empty">لا توجد لجان</div>`
-    : `<table>
+    : (() => {
+      // ---- Colored bar chart per committee (SVG, print-friendly) ----
+      const palette = [
+        "#2563EB","#16A34A","#D97706","#DC2626","#7C3AED","#0891B2",
+        "#DB2777","#65A30D","#EA580C","#0D9488","#4F46E5","#B45309",
+        "#9333EA","#059669","#E11D48","#0EA5E9"
+      ];
+      const maxVal = Math.max(1, ...data.committees.flatMap(c => [Number(c.allocated||0), Number(c.spent||0)]));
+      const rowH = 46;
+      const chartH = data.committees.length * rowH + 40;
+      const labelW = 180;
+      const chartW = 900;
+      const barAreaW = chartW - labelW - 120;
+      const bars = data.committees.map((c, i) => {
+        const color = palette[i % palette.length];
+        const alloc = Number(c.allocated || 0);
+        const spent = Number(c.spent || 0);
+        const allocW = (alloc / maxVal) * barAreaW;
+        const spentW = (spent / maxVal) * barAreaW;
+        const y = 20 + i * rowH;
+        const pct = alloc > 0 ? Math.round((spent/alloc)*100) : 0;
+        return `
+          <text x="${chartW - 10}" y="${y + 14}" text-anchor="end" font-size="12" fill="#334155" font-weight="700">${escapeHtml(c.name)}</text>
+          <rect x="${chartW - labelW - barAreaW}" y="${y + 20}" width="${allocW}" height="10" fill="${color}" opacity="0.28" rx="3"/>
+          <rect x="${chartW - labelW - barAreaW}" y="${y + 20}" width="${spentW}" height="10" fill="${color}" rx="3"/>
+          <text x="${chartW - labelW - barAreaW - 6}" y="${y + 29}" text-anchor="end" font-size="11" fill="#0F172A">${fmt(spent)} / ${fmt(alloc)} — ${pct}%</text>
+        `;
+      }).join("");
+      const chart = `
+        <div style="margin:8px 0 14px; padding:12px; border:1px solid #E5E7EB; border-radius:10px; background:#FAFAFA;">
+          <div style="display:flex; gap:16px; align-items:center; margin-bottom:8px; font-size:12px; color:#334155;">
+            <div style="display:flex; align-items:center; gap:6px;"><span style="display:inline-block;width:14px;height:10px;background:#64748B;border-radius:2px"></span> المصروف</div>
+            <div style="display:flex; align-items:center; gap:6px;"><span style="display:inline-block;width:14px;height:10px;background:#64748B;opacity:.28;border-radius:2px"></span> المخصّص</div>
+            <div style="margin-inline-start:auto; color:#64748B;">رسم بياني بالألوان — ميزانيات اللجان</div>
+          </div>
+          <svg viewBox="0 0 ${chartW} ${chartH}" width="100%" style="direction:ltr; display:block;">
+            ${bars}
+          </svg>
+        </div>`;
+      const table = `<table>
       <thead><tr><th style="width:5%">#</th><th>اللجنة</th><th>المخصّص (ر.س)</th><th>المصروف (ر.س)</th><th>المتبقي (ر.س)</th><th>نسبة الاستهلاك</th></tr></thead>
       <tbody>
         ${data.committees.map((c,i)=>{
           const rem = Number(c.allocated||0) - Number(c.spent||0);
           const pct = c.allocated > 0 ? Math.round((c.spent/c.allocated)*100) : 0;
+          const color = palette[i % palette.length];
           return `<tr>
             <td>${i+1}</td>
-            <td class="ttl">${escapeHtml(c.name)}</td>
+            <td class="ttl"><span style="display:inline-block;width:10px;height:10px;background:${color};border-radius:2px;margin-inline-end:6px;vertical-align:middle"></span>${escapeHtml(c.name)}</td>
             <td class="amt">${fmt(c.allocated)}</td>
             <td class="amt">${fmt(c.spent)}</td>
             <td class="amt" style="color:${rem<0?'#B91C1C':'#166534'}">${fmt(rem)}</td>
@@ -597,6 +637,8 @@ export function exportFinanceComprehensivePDF(
         </tr>
       </tbody>
     </table>`;
+      return chart + table;
+    })();
 
   const budgetItemsTable = data.budgetItems.length === 0
     ? `<div class="empty">لا توجد بنود ميزانية مسجّلة</div>`
