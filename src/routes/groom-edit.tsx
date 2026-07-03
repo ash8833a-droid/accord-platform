@@ -38,6 +38,8 @@ interface Groom {
   family_branch: string;
   photo_url: string | null;
   national_id_url: string | null;
+  photo_signed_url?: string | null;
+  national_id_signed_url?: string | null;
   request_type: string | null;
   request_details: string | null;
   status: string;
@@ -184,8 +186,8 @@ function GroomEditPage() {
             </section>
 
             <div className="grid grid-cols-2 gap-3">
-              <ReadOnlyImage label="الصورة الشخصية" icon={<Camera className="h-4 w-4 text-primary" />} url={groom.photo_url} />
-              <ReadOnlyImage label="صورة الهوية" icon={<IdCard className="h-4 w-4 text-primary" />} url={groom.national_id_url} />
+              <ReadOnlyImage label="الصورة الشخصية" icon={<Camera className="h-4 w-4 text-primary" />} url={groom.photo_signed_url ?? null} />
+              <ReadOnlyImage label="صورة الهوية" icon={<IdCard className="h-4 w-4 text-primary" />} url={groom.national_id_signed_url ?? null} />
             </div>
 
             <section className="rounded-2xl border bg-card p-5 shadow-soft space-y-2">
