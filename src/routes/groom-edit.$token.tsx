@@ -55,8 +55,9 @@ async function uploadPublic(file: File, prefix: string): Promise<string | null> 
     toast.error("تعذّر رفع الملف");
     return null;
   }
-  const { data } = supabase.storage.from("groom-public").getPublicUrl(path);
-  return data.publicUrl;
+  // Bucket is private — store the storage path; the server returns
+  // signed URLs for previewing (see lookupGroomByToken).
+  return path;
 }
 
 function GroomEditByTokenPage() {
