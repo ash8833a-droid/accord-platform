@@ -58,12 +58,9 @@ export function MediaInbox() {
 
   useEffect(() => { load(); }, []);
 
-  const signedUrl = async (path: string | null) => {
-    if (!path) return null;
-    // If already a full URL (e.g. public bucket), return as-is
-    if (/^https?:\/\//i.test(path)) return path;
-    const { data } = await supabase.storage.from("groom-docs").createSignedUrl(path, 3600);
-    return data?.signedUrl ?? null;
+  const signedUrl = async (pathOrUrl: string | null) => {
+    const { getGroomFileSignedUrl } = await import("@/lib/groom-file-url");
+    return getGroomFileSignedUrl(pathOrUrl);
   };
 
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
