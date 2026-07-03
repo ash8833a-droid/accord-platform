@@ -134,7 +134,9 @@ export function FinanceModule() {
     setFamilyContribList(((fc ?? []) as any[]).map((r) => ({ donor_name: r.donor_name, amount: Number(r.amount||0), date: r.contribution_date, notes: r.notes })));
     setHistoricalList((hs ?? []) as any);
     setBudgetItemsList(((bi ?? []) as any[]).map((r) => ({ committee_id: r.committee_id, item_name: r.item_name, quantity: Number(r.quantity||0), unit_cost: Number(r.unit_cost||0), total_cost: Number(r.total_cost||0) })));
+    setCommittees((coms ?? []).map((c: any) => ({ id: c.id, name: c.name, type: c.type })));
     setCommitteesFull(((coms ?? []) as any[]).map((c) => ({ id: c.id, name: c.name, allocated: Number(c.budget_allocated||0), spent: Number(c.budget_spent||0) })));
+
     // Committee breakdown: prefer budget_items aggregation; fallback to committees.budget_spent
     const biByCom = new Map<string, number>();
     (bi ?? []).forEach((r: any) => {
