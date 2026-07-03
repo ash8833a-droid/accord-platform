@@ -43,7 +43,34 @@ export interface FinanceSummary {
   delegatesCount: number;
 }
 
+/* ---------- Comprehensive finance report types ---------- */
+export interface FinanceComprehensiveData {
+  // ملخص عام
+  revenues: {
+    groomSubs: number;         // اشتراكات العرسان (تحصيل ممثلي الأسر + مساهمة العرسان)
+    familyContrib: number;     // مساهمات أفراد القبيلة (السنة الحالية + السجل التاريخي)
+    deficitShare: number;      // حصص العجز
+    total: number;             // الإجمالي
+  };
+  expenses: {
+    paidRequests: number;      // طلبات صرف مصروفة
+    budgetItemsTotal: number;  // مجموع بنود الميزانية
+    total: number;             // الإجمالي
+  };
+  balance: number;             // الرصيد الحالي
+
+  // تفاصيل
+  delegates: Array<{ full_name: string; phone: string; family_branch: string; subs_count: number; collected: number }>;
+  grooms: Array<{ full_name: string; family_branch: string; groom_contribution: number; deficit_share: number; contribution_paid: boolean }>;
+  familyContributions: Array<{ donor_name: string; amount: number; date: string; notes?: string | null }>;
+  historicalShareholders: Array<{ full_name: string; family_branch: string; amount: number; hijri_year: number }>;
+  committees: Array<{ name: string; allocated: number; spent: number }>;
+  budgetItems: Array<{ committee_name: string; item_name: string; quantity: number; unit_cost: number; total_cost: number }>;
+  paymentRequests: ExportRequest[];
+}
+
 const fmt = (n: number) => new Intl.NumberFormat("ar-SA").format(n);
+const fmtM = (n: number) => `${fmt(Math.round(Number(n) || 0))} ر.س`;
 
 const downloadBlob = (blob: Blob, filename: string) => {
   const url = URL.createObjectURL(blob);
