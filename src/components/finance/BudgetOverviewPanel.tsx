@@ -378,8 +378,24 @@ export function BudgetOverviewPanel() {
             <Button size="sm" variant="outline" onClick={doExportXlsx} className="gap-1.5">
               <FileSpreadsheet className="h-3.5 w-3.5" /> Excel
             </Button>
-            <Button size="sm" variant="outline" onClick={doExportPdf} className="gap-1.5">
+            <Button
+              size="sm"
+              variant={freeEdit ? "default" : "outline"}
+              onClick={() => {
+                setFreeEdit((v) => !v);
+                if (!freeEdit) setExpanded(new Set(groups.map((g) => g.committee_id)));
+              }}
+              className={`gap-1.5 ${freeEdit ? "bg-gold text-gold-foreground hover:bg-gold/90" : ""}`}
+              title="تفعيل/إيقاف التعديل الحر لكل خلية"
+            >
+              <Sparkles className="h-3.5 w-3.5" />
+              {freeEdit ? "إنهاء التعديل الحر" : "التعديل الحر"}
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => setPdfEditorOpen(true)} className="gap-1.5">
               <Printer className="h-3.5 w-3.5" /> PDF موحّد
+            </Button>
+            <Button size="sm" variant="ghost" onClick={doExportPdf} className="gap-1.5 text-xs text-muted-foreground" title="طباعة مباشرة بدون تعديل">
+              طباعة مباشرة
             </Button>
           </div>
         </div>
