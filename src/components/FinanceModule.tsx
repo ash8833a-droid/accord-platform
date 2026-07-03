@@ -11,7 +11,7 @@ import { Wallet, Users2, Plus, CheckCircle2, Clock, Receipt, TrendingUp, XCircle
 import { toast } from "sonner";
 import { StatCard } from "@/components/StatCard";
 import { committeeByType } from "@/lib/committees";
-import { exportRequestsCSV, exportRequestsXLSX, exportRequestsPDF, type ExportRequest } from "@/lib/exporters";
+import { exportRequestsCSV, exportRequestsXLSX, exportFinanceComprehensivePDF, type ExportRequest, type FinanceComprehensiveData } from "@/lib/exporters";
 import { SharesByBranch } from "@/components/finance/SharesByBranch";
 import { GroomContributions } from "@/components/finance/GroomContributions";
 import { CommitteeBudgetLimits } from "@/components/finance/CommitteeBudgetLimits";
@@ -86,24 +86,30 @@ export function FinanceModule() {
   const [groomContribTotal, setGroomContribTotal] = useState(0);
   const [deficitShareTotal, setDeficitShareTotal] = useState(0);
   const [budgetItemsTotal, setBudgetItemsTotal] = useState(0);
+  // تفاصيل للتقرير الشامل
+  const [groomsList, setGroomsList] = useState<Array<{ full_name: string; family_branch: string; groom_contribution: number; deficit_share: number; contribution_paid: boolean }>>([]);
+  const [familyContribList, setFamilyContribList] = useState<Array<{ donor_name: string; amount: number; date: string; notes: string | null }>>([]);
+  const [historicalList, setHistoricalList] = useState<Array<{ full_name: string; family_branch: string; amount: number; hijri_year: number }>>([]);
+  const [committeesFull, setCommitteesFull] = useState<Array<{ id: string; name: string; allocated: number; spent: number }>>([]);
+  const [budgetItemsList, setBudgetItemsList] = useState<Array<{ committee_id: string; item_name: string; quantity: number; unit_cost: number; total_cost: number }>>([]);
 
   const load = async () => {
     const [{ data: dels }, { data: subs }, { data: prs }, { data: coms }, { data: financeCom }, { data: fc }, { data: hs }, { data: gr }, { data: bi }] = await Promise.all([
       supabase.from("delegates").select("*").order("created_at", { ascending: false }),
       supabase.from("subscriptions").select("delegate_id, amount, status"),
       supabase.from("payment_requests").select("*").order("created_at", { ascending: false }),
-      supabase.from("committees").select("id, name, type, budget_spent"),
+      supabase.from("committees").select("id, name, type, budget_spent, budget_allocated"),
       supabase.from("committees").select("head_user_id").eq("type", "finance").maybeSingle(),
       // مساهمات أفراد القبيلة للعام الحالي 1448هـ فقط
       // 1448هـ يبدأ تقريباً في 2026-06-16م وينتهي في 2027-06-05م
       supabase
         .from("family_contributions")
-        .select("amount")
+        .select("donor_name, amount, contribution_date, notes")
         .gte("contribution_date", "2026-06-16")
         .lte("contribution_date", "2027-06-05"),
-      supabase.from("historical_shareholders").select("amount").eq("hijri_year", 1448),
-      supabase.from("grooms").select("groom_contribution, deficit_share"),
-      supabase.from("budget_items").select("committee_id, total_cost"),
+      supabase.from("historical_shareholders").select("full_name, family_branch, amount, hijri_year").eq("hijri_year", 1448),
+      supabase.from("grooms").select("full_name, family_branch, groom_contribution, deficit_share, contribution_paid"),
+      supabase.from("budget_items").select("committee_id, item_name, quantity, unit_cost, total_cost"),
     ]);
     setFinanceHeadId(financeCom?.head_user_id ?? null);
     const fcTotal = (fc ?? []).reduce((s: number, r: any) => s + Number(r.amount || 0), 0);
@@ -113,6 +119,11 @@ export function FinanceModule() {
     setDeficitShareTotal((gr ?? []).reduce((s: number, r: any) => s + Number(r.deficit_share || 0), 0));
     const biTotal = (bi ?? []).reduce((s: number, r: any) => s + Number(r.total_cost || 0), 0);
     setBudgetItemsTotal(biTotal);
+    setGroomsList((gr ?? []) as any);
+    setFamilyContribList(((fc ?? []) as any[]).map((r) => ({ donor_name: r.donor_name, amount: Number(r.amount||0), date: r.contribution_date, notes: r.notes })));
+    setHistoricalList((hs ?? []) as any);
+    setBudgetItemsList(((bi ?? []) as any[]).map((r) => ({ committee_id: r.committee_id, item_name: r.item_name, quantity: Number(r.quantity||0), unit_cost: Number(r.unit_cost||0), total_cost: Number(r.total_cost||0) })));
+    setCommitteesFull(((coms ?? []) as any[]).map((c) => ({ id: c.id, name: c.name, allocated: Number(c.budget_allocated||0), spent: Number(c.budget_spent||0) })));
     // Committee breakdown: prefer budget_items aggregation; fallback to committees.budget_spent
     const biByCom = new Map<string, number>();
     (bi ?? []).forEach((r: any) => {
@@ -278,7 +289,6 @@ export function FinanceModule() {
   }));
 
   const handleExport = (kind: "csv" | "xlsx" | "pdf") => {
-    if (exportRows.length === 0) return toast.error("لا توجد بيانات للتصدير");
     const stamp = new Date().toISOString().slice(0, 10);
     const filename = `تقرير-طلبات-الصرف-${stamp}`;
     const summary = {
@@ -288,9 +298,70 @@ export function FinanceModule() {
       totalPaid,
       delegatesCount: delegates.length,
     };
-    if (kind === "csv") exportRequestsCSV(exportRows, filename);
-    if (kind === "xlsx") exportRequestsXLSX(exportRows, filename, summary);
-    if (kind === "pdf") exportRequestsPDF(exportRows, filename, summary);
+    if (kind === "csv") {
+      if (exportRows.length === 0) return toast.error("لا توجد طلبات صرف للتصدير");
+      exportRequestsCSV(exportRows, filename);
+    }
+    if (kind === "xlsx") {
+      if (exportRows.length === 0) return toast.error("لا توجد طلبات صرف للتصدير");
+      exportRequestsXLSX(exportRows, filename, summary);
+    }
+    if (kind === "pdf") {
+      const comFilename = `التقرير-الشامل-للإدارة-المالية-${stamp}`;
+      const comMap = new Map(committeesFull.map((c) => [c.id, c.name]));
+      const revenues = {
+        groomSubs: groomSubsTotal,
+        familyContrib: familyContribTotal,
+        deficitShare: deficitShareTotal,
+        total: groomSubsTotal + familyContribTotal + deficitShareTotal,
+      };
+      const expenses = {
+        paidRequests: totalPaid,
+        budgetItemsTotal,
+        total: expensesTotal,
+      };
+      const data: FinanceComprehensiveData = {
+        revenues,
+        expenses,
+        balance: revenues.total - expenses.total,
+        delegates: delegates.map((d) => ({
+          full_name: d.full_name,
+          phone: d.phone,
+          family_branch: d.family_branch,
+          subs_count: d.subs_count ?? 0,
+          collected: d.collected ?? 0,
+        })),
+        grooms: groomsList.map((g) => ({
+          full_name: g.full_name,
+          family_branch: g.family_branch,
+          groom_contribution: Number(g.groom_contribution || 0),
+          deficit_share: Number(g.deficit_share || 0),
+          contribution_paid: !!g.contribution_paid,
+        })),
+        familyContributions: familyContribList.map((f) => ({
+          donor_name: f.donor_name,
+          amount: f.amount,
+          date: new Date(f.date).toLocaleDateString("ar-SA"),
+          notes: f.notes,
+        })),
+        historicalShareholders: historicalList.map((h) => ({
+          full_name: h.full_name,
+          family_branch: h.family_branch,
+          amount: Number(h.amount || 0),
+          hijri_year: h.hijri_year,
+        })),
+        committees: committeesFull.map((c) => ({ name: c.name, allocated: c.allocated, spent: c.spent })),
+        budgetItems: budgetItemsList.map((b) => ({
+          committee_name: comMap.get(b.committee_id) ?? "—",
+          item_name: b.item_name,
+          quantity: b.quantity,
+          unit_cost: b.unit_cost,
+          total_cost: b.total_cost,
+        })),
+        paymentRequests: exportRows,
+      };
+      exportFinanceComprehensivePDF(data, comFilename);
+    }
     toast.success(`تم تصدير التقرير (${kind.toUpperCase()})`);
   };
 
