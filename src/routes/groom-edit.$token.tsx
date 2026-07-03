@@ -38,6 +38,8 @@ interface Groom {
   family_branch: string;
   photo_url: string | null;
   national_id_url: string | null;
+  photo_signed_url?: string | null;
+  national_id_signed_url?: string | null;
   request_type: string | null;
   request_details: string | null;
   status: string;
@@ -125,13 +127,9 @@ function GroomEditByTokenPage() {
 
       await updateGroomByToken({ data: { token, updates } });
       toast.success("تم حفظ التعديلات بنجاح");
-      setGroom({
-        ...groom,
-        ...(updates.photo_url !== undefined ? { photo_url: updates.photo_url } : {}),
-        ...(updates.national_id_url !== undefined ? { national_id_url: updates.national_id_url } : {}),
-        ...(updates.request_type !== undefined ? { request_type: updates.request_type } : {}),
-        ...(updates.request_details !== undefined ? { request_details: updates.request_details } : {}),
-      });
+      // Refetch so we get fresh signed URLs for the newly uploaded files.
+      const { groom: refreshed } = await lookupGroomByToken({ data: { token } });
+      if (refreshed) setGroom(refreshed as Groom);
       setPhotoFile(null);
       setIdFile(null);
       if (photoPreview) { URL.revokeObjectURL(photoPreview); setPhotoPreview(null); }
@@ -208,7 +206,7 @@ function GroomEditByTokenPage() {
         <PhotoEditor
           label="الصورة الشخصية"
           icon={<Camera className="h-4 w-4 text-primary" />}
-          currentUrl={groom.photo_url}
+          currentUrl={groom.photo_signed_url ?? null}
           file={photoFile}
           preview={photoPreview}
           onFile={(f) => {
@@ -222,7 +220,7 @@ function GroomEditByTokenPage() {
         <PhotoEditor
           label="صورة الهوية"
           icon={<IdCard className="h-4 w-4 text-primary" />}
-          currentUrl={groom.national_id_url}
+          currentUrl={groom.national_id_signed_url ?? null}
           file={idFile}
           preview={idPreview}
           onFile={(f) => {
