@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuLabel, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -24,6 +25,7 @@ import { Pencil, Trash2 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { Textarea } from "@/components/ui/textarea";
 import { FilePreview } from "@/components/FilePreview";
+
 
 interface Delegate {
   id: string;
@@ -86,7 +88,16 @@ export function FinanceModule() {
   const [groomContribTotal, setGroomContribTotal] = useState(0);
   const [deficitShareTotal, setDeficitShareTotal] = useState(0);
   const [budgetItemsTotal, setBudgetItemsTotal] = useState(0);
+  const [committees, setCommittees] = useState<Array<{ id: string; name: string; type: string }>>([]);
+  // Manual payment request dialog
+  const [addPrOpen, setAddPrOpen] = useState(false);
+  const [addPrTitle, setAddPrTitle] = useState("");
+  const [addPrAmount, setAddPrAmount] = useState("");
+  const [addPrDesc, setAddPrDesc] = useState("");
+  const [addPrCommitteeId, setAddPrCommitteeId] = useState("");
+  const [addPrLoading, setAddPrLoading] = useState(false);
   // تفاصيل للتقرير الشامل
+
   const [groomsList, setGroomsList] = useState<Array<{ full_name: string; family_branch: string; groom_contribution: number; deficit_share: number; contribution_paid: boolean }>>([]);
   const [familyContribList, setFamilyContribList] = useState<Array<{ donor_name: string; amount: number; date: string; notes: string | null }>>([]);
   const [historicalList, setHistoricalList] = useState<Array<{ full_name: string; family_branch: string; amount: number; hijri_year: number }>>([]);
@@ -123,7 +134,9 @@ export function FinanceModule() {
     setFamilyContribList(((fc ?? []) as any[]).map((r) => ({ donor_name: r.donor_name, amount: Number(r.amount||0), date: r.contribution_date, notes: r.notes })));
     setHistoricalList((hs ?? []) as any);
     setBudgetItemsList(((bi ?? []) as any[]).map((r) => ({ committee_id: r.committee_id, item_name: r.item_name, quantity: Number(r.quantity||0), unit_cost: Number(r.unit_cost||0), total_cost: Number(r.total_cost||0) })));
+    setCommittees((coms ?? []).map((c: any) => ({ id: c.id, name: c.name, type: c.type })));
     setCommitteesFull(((coms ?? []) as any[]).map((c) => ({ id: c.id, name: c.name, allocated: Number(c.budget_allocated||0), spent: Number(c.budget_spent||0) })));
+
     // Committee breakdown: prefer budget_items aggregation; fallback to committees.budget_spent
     const biByCom = new Map<string, number>();
     (bi ?? []).forEach((r: any) => {
@@ -240,6 +253,40 @@ export function FinanceModule() {
     toast.success("تم تحديث حالة الطلب");
     load();
   };
+
+  const resetAddRequest = () => {
+    setAddPrTitle("");
+    setAddPrAmount("");
+    setAddPrDesc("");
+    setAddPrCommitteeId("");
+    setAddPrLoading(false);
+  };
+
+  const addManualRequest = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user) return toast.error("يجب تسجيل الدخول");
+    if (!addPrTitle.trim()) return toast.error("عنوان الطلب مطلوب");
+    const amt = Number(addPrAmount);
+    if (!amt || amt <= 0) return toast.error("المبلغ غير صحيح");
+    if (!addPrCommitteeId) return toast.error("اختر اللجنة");
+
+    setAddPrLoading(true);
+    const { error } = await supabase.from("payment_requests").insert({
+      committee_id: addPrCommitteeId,
+      title: addPrTitle.trim(),
+      amount: amt,
+      description: addPrDesc.trim() || null,
+      status: "pending",
+      requested_by: user.id,
+    });
+    setAddPrLoading(false);
+    if (error) return toast.error("تعذر إضافة الطلب", { description: error.message });
+    toast.success("تم إضافة طلب الصرف اليدوي");
+    resetAddRequest();
+    setAddPrOpen(false);
+    load();
+  };
+
 
   const openInvoice = async (path: string, title: string) => {
     setInvoiceTitle(title);
@@ -470,12 +517,67 @@ export function FinanceModule() {
 
         <TabsContent value="requests" className="mt-5">
           <div className="rounded-2xl border bg-card overflow-hidden shadow-soft">
-            <div className="px-6 py-4 border-b bg-gradient-to-l from-gold/5 to-transparent">
-              <h3 className="font-bold flex items-center gap-2">
-                <Receipt className="h-4 w-4 text-gold" /> الطلبات الواردة من اللجان
-              </h3>
-              <p className="text-xs text-muted-foreground mt-1">راجع واعتمد طلبات الصرف والعهد المالية</p>
+            <div className="px-6 py-4 border-b bg-gradient-to-l from-gold/5 to-transparent flex items-start justify-between gap-3 flex-wrap">
+              <div>
+                <h3 className="font-bold flex items-center gap-2">
+                  <Receipt className="h-4 w-4 text-gold" /> الطلبات الواردة من اللجان
+                </h3>
+                <p className="text-xs text-muted-foreground mt-1">راجع واعتمد طلبات الصرف والعهد المالية</p>
+              </div>
+              {canManage && (
+                <Dialog open={addPrOpen} onOpenChange={(o) => { setAddPrOpen(o); if (!o) resetAddRequest(); }}>
+                  <DialogTrigger asChild>
+                    <Button size="sm" className="bg-gradient-hero text-primary-foreground gap-1.5">
+                      <Plus className="h-4 w-4" /> طلب يدوي
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent dir="rtl" className="max-w-lg">
+                    <DialogHeader>
+                      <DialogTitle className="flex items-center gap-2">
+                        <Plus className="h-4 w-4 text-primary" /> طلب صرف يدوي جديد
+                      </DialogTitle>
+                    </DialogHeader>
+                    <form onSubmit={addManualRequest} className="space-y-3 pt-2">
+                      <div className="space-y-2">
+                        <Label>عنوان الطلب *</Label>
+                        <Input value={addPrTitle} onChange={(e) => setAddPrTitle(e.target.value)} placeholder="مثال: شراء مواد استهلاكية" required />
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-2">
+                          <Label>المبلغ (ر.س) *</Label>
+                          <Input type="number" min="1" value={addPrAmount} onChange={(e) => setAddPrAmount(e.target.value)} required dir="ltr" />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>اللجنة *</Label>
+                          <Select value={addPrCommitteeId} onValueChange={(v) => setAddPrCommitteeId(v)} required>
+                            <SelectTrigger>
+                              <SelectValue placeholder="اختر اللجنة" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {committees.map((c) => (
+                                <SelectItem key={c.id} value={c.id}>
+                                  {c.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label>تفاصيل الطلب</Label>
+                        <Textarea value={addPrDesc} onChange={(e) => setAddPrDesc(e.target.value)} rows={4} placeholder="اشرح سبب الصرف والتفاصيل" />
+                      </div>
+                      <Button type="submit" className="w-full bg-gradient-hero text-primary-foreground" disabled={addPrLoading}>
+                        {addPrLoading && <Clock className="h-4 w-4 ms-1 animate-spin" />}
+                        حفظ الطلب
+                      </Button>
+                    </form>
+                  </DialogContent>
+                </Dialog>
+              )}
+
             </div>
+
             <div className="divide-y">
               {requests.length === 0 && (
                 <p className="text-center text-muted-foreground py-12 text-sm">لا توجد طلبات صرف حالياً</p>
