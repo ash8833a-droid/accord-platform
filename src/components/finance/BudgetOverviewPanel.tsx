@@ -476,7 +476,7 @@ export function BudgetOverviewPanel() {
               )}
               {groups.map((g) => {
                 const pct = overall > 0 ? (g.total / overall) * 100 : 0;
-                const isOpen = expanded.has(g.committee_id);
+                const isOpen = freeEdit || expanded.has(g.committee_id);
                 return (
                   <>
                     <tr
@@ -525,6 +525,7 @@ export function BudgetOverviewPanel() {
                               </thead>
                               <tbody>
                                 {g.rows.map((r, idx) => {
+                                  if (freeEdit) return <FreeEditRow key={r.id} r={r} idx={idx} />;
                                   const isEditing = editingId === r.id;
                                   return (
                                     <tr key={r.id} className="border-t" onClick={(e) => e.stopPropagation()}>
