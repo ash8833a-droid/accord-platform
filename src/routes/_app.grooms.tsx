@@ -50,14 +50,15 @@ const getFileExtension = (fileRef: string, fallback = "bin") => {
 };
 
 const downloadStoredFile = async (fileRef: string) => {
-  if (isAbsoluteUrl(fileRef)) {
-    const response = await fetch(fileRef);
-    if (!response.ok) throw new Error("download failed");
-    return response.blob();
-  }
-  const { data, error } = await sb.storage.from("groom-docs").download(fileRef);
-  if (error || !data) throw error ?? new Error("download failed");
-  return data;
+  // Legacy: may still be a full URL — strip to storage path.
+  const { extractGroomFilePath } = await import("@/lib/groom-file-url");
+  const path = extractGroomFilePath(fileRef);
+  // Try `groom-public` (registration flow) first, then `groom-docs` (admin).
+  const pub = await sb.storage.from("groom-public").download(path);
+  if (pub.data) return pub.data;
+  const docs = await sb.storage.from("groom-docs").download(path);
+  if (docs.error || !docs.data) throw docs.error ?? pub.error ?? new Error("download failed");
+  return docs.data;
 };
 
 function useRegistrationUrl() {
