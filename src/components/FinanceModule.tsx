@@ -135,7 +135,17 @@ export function FinanceModule() {
     setHistoricalList((hs ?? []) as any);
     setBudgetItemsList(((bi ?? []) as any[]).map((r) => ({ committee_id: r.committee_id, item_name: r.item_name, quantity: Number(r.quantity||0), unit_cost: Number(r.unit_cost||0), total_cost: Number(r.total_cost||0) })));
     setCommittees((coms ?? []).map((c: any) => ({ id: c.id, name: c.name, type: c.type })));
-    setCommitteesFull(((coms ?? []) as any[]).map((c) => ({ id: c.id, name: c.name, allocated: Number(c.budget_allocated||0), spent: Number(c.budget_spent||0) })));
+    // اعتماد إجمالي بنود ميزانية اللجنة كمخصّص (يطابق ما يظهر في لوحة سقوف اللجان)
+    const biSumByCom = new Map<string, number>();
+    (bi ?? []).forEach((r: any) => {
+      biSumByCom.set(r.committee_id, (biSumByCom.get(r.committee_id) ?? 0) + Number(r.total_cost || 0));
+    });
+    setCommitteesFull(((coms ?? []) as any[]).map((c) => ({
+      id: c.id,
+      name: c.name,
+      allocated: Number(biSumByCom.get(c.id) ?? c.budget_allocated ?? 0),
+      spent: Number(c.budget_spent||0),
+    })));
 
     // Committee breakdown: prefer budget_items aggregation; fallback to committees.budget_spent
     const biByCom = new Map<string, number>();
