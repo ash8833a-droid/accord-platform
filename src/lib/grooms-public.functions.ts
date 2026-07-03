@@ -12,6 +12,46 @@ function normalizePhone(input: string): string {
   return input.replace(/[^\d]/g, "").replace(/^0+/, "");
 }
 
+/** Strip a legacy public URL down to the storage path inside the groom-public bucket. */
+function toGroomPath(pathOrUrl: string | null | undefined): string | null {
+  if (!pathOrUrl) return null;
+  if (/^https?:\/\//i.test(pathOrUrl)) {
+    const m = pathOrUrl.match(/\/groom-public\/(.+)$/);
+    if (m) {
+      try {
+        return decodeURIComponent(m[1]);
+      } catch {
+        return m[1];
+      }
+    }
+    return null;
+  }
+  return pathOrUrl;
+}
+
+async function signGroomFile(
+  admin: { storage: { from: (b: string) => { createSignedUrl: (p: string, s: number) => Promise<{ data: { signedUrl: string } | null; error: unknown }> } } },
+  pathOrUrl: string | null | undefined,
+  expiresIn = 3600,
+): Promise<string | null> {
+  const path = toGroomPath(pathOrUrl);
+  if (!path) return null;
+  const { data } = await admin.storage.from("groom-public").createSignedUrl(path, expiresIn);
+  return data?.signedUrl ?? null;
+}
+
+async function withSignedUrls<T extends { photo_url?: string | null; national_id_url?: string | null }>(
+  row: T | null,
+): Promise<(T & { photo_signed_url: string | null; national_id_signed_url: string | null }) | null> {
+  if (!row) return null;
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const [photo, id] = await Promise.all([
+    signGroomFile(supabaseAdmin as any, row.photo_url ?? null),
+    signGroomFile(supabaseAdmin as any, row.national_id_url ?? null),
+  ]);
+  return { ...row, photo_signed_url: photo, national_id_signed_url: id };
+}
+
 // Look up a groom by edit_token (used in /groom-edit/$token)
 export const lookupGroomByToken = createServerFn({ method: "POST" })
   .inputValidator((input: { token: string }) =>
@@ -25,7 +65,7 @@ export const lookupGroomByToken = createServerFn({ method: "POST" })
       .eq("edit_token", data.token)
       .maybeSingle();
     if (error) throw new Error(error.message);
-    return { groom: row ?? null };
+    return { groom: await withSignedUrls(row as any) };
   });
 
 // Look up the latest groom record for a phone number (used in /groom-edit search)
@@ -45,7 +85,7 @@ export const lookupGroomByPhone = createServerFn({ method: "POST" })
       .limit(1)
       .maybeSingle();
     if (error) throw new Error(error.message);
-    return { groom: row ?? null };
+    return { groom: await withSignedUrls(row as any) };
   });
 
 // Apply public-facing updates to a groom record, gated by edit_token
