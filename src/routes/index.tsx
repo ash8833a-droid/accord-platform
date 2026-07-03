@@ -274,7 +274,7 @@ function PublicHome() {
         <div className="relative grid grid-cols-1 sm:grid-cols-2 gap-4 lg:gap-5 mb-4">
           <HeroKpi
             label="إجمالي العرسان"
-            value={fmt(staticStats.grooms)}
+            value={`${fmt(staticStats.grooms)} عريس وعروس`}
             hint="منذ انطلاق البرنامج"
             icon={HeartHandshake}
             tone="gold"
