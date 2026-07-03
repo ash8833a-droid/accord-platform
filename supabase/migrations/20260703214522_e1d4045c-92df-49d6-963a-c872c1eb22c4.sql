@@ -1,0 +1,1 @@
+ALTER TABLE public.wedding_feedback DROP CONSTRAINT wf_event_year_range; ALTER TABLE public.wedding_feedback ALTER COLUMN event_year SET DEFAULT 1448; ALTER TABLE public.wedding_feedback ADD CONSTRAINT wf_event_year_range CHECK (event_year >= 1440 AND event_year <= 1600);
