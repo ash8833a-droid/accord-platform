@@ -244,14 +244,14 @@ export function MediaInbox() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {selected.photo_url && (
                     <AttachmentItem
-                      bucket="groom-docs"
+                      bucket="groom-public"
                       pathOrUrl={selected.photo_url}
                       fileName="الصورة الشخصية"
                     />
                   )}
                   {selected.national_id_url && (
                     <AttachmentItem
-                      bucket="groom-docs"
+                      bucket="groom-public"
                       pathOrUrl={selected.national_id_url}
                       fileName="الهوية الوطنية"
                     />
