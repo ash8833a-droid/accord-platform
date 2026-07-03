@@ -531,8 +531,51 @@ export function FinanceModule() {
                       <Plus className="h-4 w-4" /> طلب يدوي
                     </Button>
                   </DialogTrigger>
+                  <DialogContent dir="rtl" className="max-w-lg">
+                    <DialogHeader>
+                      <DialogTitle className="flex items-center gap-2">
+                        <Plus className="h-4 w-4 text-primary" /> طلب صرف يدوي جديد
+                      </DialogTitle>
+                    </DialogHeader>
+                    <form onSubmit={addManualRequest} className="space-y-3 pt-2">
+                      <div className="space-y-2">
+                        <Label>عنوان الطلب *</Label>
+                        <Input value={addPrTitle} onChange={(e) => setAddPrTitle(e.target.value)} placeholder="مثال: شراء مواد استهلاكية" required />
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-2">
+                          <Label>المبلغ (ر.س) *</Label>
+                          <Input type="number" min="1" value={addPrAmount} onChange={(e) => setAddPrAmount(e.target.value)} required dir="ltr" />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>اللجنة *</Label>
+                          <Select value={addPrCommitteeId} onValueChange={(v) => setAddPrCommitteeId(v)} required>
+                            <SelectTrigger>
+                              <SelectValue placeholder="اختر اللجنة" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {committees.map((c) => (
+                                <SelectItem key={c.id} value={c.id}>
+                                  {c.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label>تفاصيل الطلب</Label>
+                        <Textarea value={addPrDesc} onChange={(e) => setAddPrDesc(e.target.value)} rows={4} placeholder="اشرح سبب الصرف والتفاصيل" />
+                      </div>
+                      <Button type="submit" className="w-full bg-gradient-hero text-primary-foreground" disabled={addPrLoading}>
+                        {addPrLoading && <Clock className="h-4 w-4 ms-1 animate-spin" />}
+                        حفظ الطلب
+                      </Button>
+                    </form>
+                  </DialogContent>
                 </Dialog>
               )}
+
             </div>
 
             <div className="divide-y">
