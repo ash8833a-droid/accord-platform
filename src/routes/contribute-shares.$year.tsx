@@ -97,12 +97,13 @@ function ContributeSharesPage() {
           defaultAmount: 300,
         },
       });
-      if (!res.rows.length) {
+      const extractedRows = res?.rows ?? [];
+      if (!extractedRows.length) {
         toast.error("لم يتم العثور على أسماء واضحة. حاول بصورة أو ملف أوضح.", { id: t });
         return;
       }
       // استبدال الصفوف بالنتائج المستخرجة
-      const extracted: ContribRow[] = res.rows.map((r) => {
+      const extracted: ContribRow[] = extractedRows.map((r) => {
         // نقرّب المبلغ لأقرب خيار من القائمة
         const closest = AMOUNT_OPTIONS.reduce((p, c) =>
           Math.abs(c - r.amount) < Math.abs(p - r.amount) ? c : p,
@@ -114,7 +115,7 @@ function ContributeSharesPage() {
         };
       });
       setRows(extracted);
-      toast.success(`تم استخراج ${res.count} مساهماً. يمكنك المراجعة قبل الإرسال.`, { id: t });
+      toast.success(`تم استخراج ${res?.count ?? extracted.length} مساهماً. يمكنك المراجعة قبل الإرسال.`, { id: t });
     } catch (e) {
       toast.error((e as Error).message || "فشل التحليل الذكي", { id: t });
     } finally {
