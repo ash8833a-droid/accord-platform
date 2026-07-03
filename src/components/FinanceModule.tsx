@@ -517,12 +517,24 @@ export function FinanceModule() {
 
         <TabsContent value="requests" className="mt-5">
           <div className="rounded-2xl border bg-card overflow-hidden shadow-soft">
-            <div className="px-6 py-4 border-b bg-gradient-to-l from-gold/5 to-transparent">
-              <h3 className="font-bold flex items-center gap-2">
-                <Receipt className="h-4 w-4 text-gold" /> الطلبات الواردة من اللجان
-              </h3>
-              <p className="text-xs text-muted-foreground mt-1">راجع واعتمد طلبات الصرف والعهد المالية</p>
+            <div className="px-6 py-4 border-b bg-gradient-to-l from-gold/5 to-transparent flex items-start justify-between gap-3 flex-wrap">
+              <div>
+                <h3 className="font-bold flex items-center gap-2">
+                  <Receipt className="h-4 w-4 text-gold" /> الطلبات الواردة من اللجان
+                </h3>
+                <p className="text-xs text-muted-foreground mt-1">راجع واعتمد طلبات الصرف والعهد المالية</p>
+              </div>
+              {canManage && (
+                <Dialog open={addPrOpen} onOpenChange={(o) => { setAddPrOpen(o); if (!o) resetAddRequest(); }}>
+                  <DialogTrigger asChild>
+                    <Button size="sm" className="bg-gradient-hero text-primary-foreground gap-1.5">
+                      <Plus className="h-4 w-4" /> طلب يدوي
+                    </Button>
+                  </DialogTrigger>
+                </Dialog>
+              )}
             </div>
+
             <div className="divide-y">
               {requests.length === 0 && (
                 <p className="text-center text-muted-foreground py-12 text-sm">لا توجد طلبات صرف حالياً</p>
