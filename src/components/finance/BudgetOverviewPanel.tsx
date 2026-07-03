@@ -651,6 +651,7 @@ export function BudgetOverviewPanel() {
                                     </tr>
                                   );
                                 })}
+                                <QuickAddRow committeeId={g.committee_id} />
                               </tbody>
                             </table>
                           </div>
