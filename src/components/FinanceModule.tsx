@@ -254,6 +254,40 @@ export function FinanceModule() {
     load();
   };
 
+  const resetAddRequest = () => {
+    setAddPrTitle("");
+    setAddPrAmount("");
+    setAddPrDesc("");
+    setAddPrCommitteeId("");
+    setAddPrLoading(false);
+  };
+
+  const addManualRequest = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user) return toast.error("يجب تسجيل الدخول");
+    if (!addPrTitle.trim()) return toast.error("عنوان الطلب مطلوب");
+    const amt = Number(addPrAmount);
+    if (!amt || amt <= 0) return toast.error("المبلغ غير صحيح");
+    if (!addPrCommitteeId) return toast.error("اختر اللجنة");
+
+    setAddPrLoading(true);
+    const { error } = await supabase.from("payment_requests").insert({
+      committee_id: addPrCommitteeId,
+      title: addPrTitle.trim(),
+      amount: amt,
+      description: addPrDesc.trim() || null,
+      status: "pending",
+      requested_by: user.id,
+    });
+    setAddPrLoading(false);
+    if (error) return toast.error("تعذر إضافة الطلب", { description: error.message });
+    toast.success("تم إضافة طلب الصرف اليدوي");
+    resetAddRequest();
+    setAddPrOpen(false);
+    load();
+  };
+
+
   const openInvoice = async (path: string, title: string) => {
     setInvoiceTitle(title);
     setInvoicePath(path);
