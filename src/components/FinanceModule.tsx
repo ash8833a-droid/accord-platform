@@ -378,13 +378,13 @@ export function FinanceModule() {
             <DropdownMenuLabel>اختر صيغة التصدير</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => handleExport("pdf")} className="gap-2 cursor-pointer">
-              <FileType2 className="h-4 w-4 text-rose-600" /> PDF — تقرير رسمي
+              <FileType2 className="h-4 w-4 text-rose-600" /> PDF — التقرير الشامل
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => handleExport("xlsx")} className="gap-2 cursor-pointer">
-              <FileSpreadsheet className="h-4 w-4 text-emerald-600" /> Excel — جدول كامل
+              <FileSpreadsheet className="h-4 w-4 text-emerald-600" /> Excel — طلبات الصرف
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => handleExport("csv")} className="gap-2 cursor-pointer">
-              <FileText className="h-4 w-4 text-sky-600" /> CSV — بيانات خام
+              <FileText className="h-4 w-4 text-sky-600" /> CSV — طلبات الصرف
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => window.print()} className="gap-2 cursor-pointer">
