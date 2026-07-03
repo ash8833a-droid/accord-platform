@@ -88,7 +88,16 @@ export function FinanceModule() {
   const [groomContribTotal, setGroomContribTotal] = useState(0);
   const [deficitShareTotal, setDeficitShareTotal] = useState(0);
   const [budgetItemsTotal, setBudgetItemsTotal] = useState(0);
+  const [committees, setCommittees] = useState<Array<{ id: string; name: string; type: string }>>([]);
+  // Manual payment request dialog
+  const [addPrOpen, setAddPrOpen] = useState(false);
+  const [addPrTitle, setAddPrTitle] = useState("");
+  const [addPrAmount, setAddPrAmount] = useState("");
+  const [addPrDesc, setAddPrDesc] = useState("");
+  const [addPrCommitteeId, setAddPrCommitteeId] = useState("");
+  const [addPrLoading, setAddPrLoading] = useState(false);
   // تفاصيل للتقرير الشامل
+
   const [groomsList, setGroomsList] = useState<Array<{ full_name: string; family_branch: string; groom_contribution: number; deficit_share: number; contribution_paid: boolean }>>([]);
   const [familyContribList, setFamilyContribList] = useState<Array<{ donor_name: string; amount: number; date: string; notes: string | null }>>([]);
   const [historicalList, setHistoricalList] = useState<Array<{ full_name: string; family_branch: string; amount: number; hijri_year: number }>>([]);
