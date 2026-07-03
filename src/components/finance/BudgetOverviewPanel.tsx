@@ -4,8 +4,9 @@ import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { ChevronDown, ChevronLeft, FileSpreadsheet, Printer, Search, Wallet, Loader2, ArrowDownUp, Plus, Lock, Check, Copy, Pencil, Trash2, Save, X } from "lucide-react";
-import { exportBudgetXLSX, exportBudgetPDF } from "@/lib/budget-export";
+import { ChevronDown, ChevronLeft, FileSpreadsheet, Printer, Search, Wallet, Loader2, ArrowDownUp, Plus, Lock, Check, Copy, Pencil, Trash2, Save, X, Sparkles } from "lucide-react";
+import { exportBudgetXLSX, exportBudgetPDF, buildBudgetPDFHtml } from "@/lib/budget-export";
+import { ReportEditorDialog } from "@/components/reports/ReportEditorDialog";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -66,6 +67,8 @@ export function BudgetOverviewPanel() {
   const [editUnit, setEditUnit] = useState("");
   const [editNotes, setEditNotes] = useState("");
   const [savingEdit, setSavingEdit] = useState(false);
+  const [freeEdit, setFreeEdit] = useState(false);
+  const [pdfEditorOpen, setPdfEditorOpen] = useState(false);
 
   const startEdit = (r: BudgetItem) => {
     setEditingId(r.id);
@@ -229,6 +232,67 @@ export function BudgetOverviewPanel() {
       filenamePrefix: "BUD-ALL",
     });
 
+  const loadPdfEditorHtml = async () =>
+    buildBudgetPDFHtml({
+      title: "الميزانية الإجمالية لجميع اللجان",
+      groups: groups.map((g) => ({ committee_name: g.committee_name, rows: g.rows })),
+      filenamePrefix: "BUD-ALL",
+    }).bodyHtml;
+
+  // Free-edit row: every cell is an input, saves on blur.
+  const FreeEditRow = ({ r, idx }: { r: BudgetItem; idx: number }) => {
+    const [name, setName] = useState(r.item_name);
+    const [qty, setQty] = useState(String(r.quantity));
+    const [unit, setUnit] = useState(String(r.unit_cost));
+    const [notes, setNotes] = useState(r.notes ?? "");
+    useEffect(() => {
+      setName(r.item_name);
+      setQty(String(r.quantity));
+      setUnit(String(r.unit_cost));
+      setNotes(r.notes ?? "");
+    }, [r.item_name, r.quantity, r.unit_cost, r.notes]);
+    const commit = async () => {
+      const n = name.trim();
+      const q = Number(qty);
+      const u = Number(unit);
+      if (!n) return;
+      if (!(q > 0) || !(u >= 0)) return;
+      if (n === r.item_name && q === Number(r.quantity) && u === Number(r.unit_cost) && (notes.trim() || null) === (r.notes ?? null)) return;
+      const { error } = await supabase
+        .from("budget_items" as any)
+        .update({ item_name: n, quantity: q, unit_cost: u, notes: notes.trim() || null } as any)
+        .eq("id", r.id);
+      if (error) toast.error("تعذّر الحفظ", { description: error.message });
+    };
+    return (
+      <tr className="border-t" onClick={(e) => e.stopPropagation()}>
+        <td className="px-3 py-2 text-muted-foreground align-top">{idx + 1}</td>
+        <td className="px-3 py-2">
+          <Input value={name} onChange={(e) => setName(e.target.value)} onBlur={commit} className="h-8 text-xs" />
+          <Input placeholder="ملاحظات" value={notes} onChange={(e) => setNotes(e.target.value)} onBlur={commit} className="h-8 text-xs mt-1" />
+        </td>
+        <td className="px-3 py-2">
+          <Input type="number" min={0} step="0.01" value={qty} onChange={(e) => setQty(e.target.value)} onBlur={commit} className="h-8 text-xs" dir="ltr" />
+        </td>
+        <td className="px-3 py-2">
+          <Input type="number" min={0} step="0.01" value={unit} onChange={(e) => setUnit(e.target.value)} onBlur={commit} className="h-8 text-xs" dir="ltr" />
+        </td>
+        <td className="px-3 py-2 font-semibold text-primary tabular-nums">
+          {fmt((Number(qty) || 0) * (Number(unit) || 0))} ر.س
+        </td>
+        <td className="px-3 py-2">
+          <button
+            onClick={() => removeItem(r)}
+            className="h-7 w-7 rounded-md flex items-center justify-center hover:bg-destructive/10 text-destructive"
+            title="حذف"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+          </button>
+        </td>
+      </tr>
+    );
+  };
+
   const resetAddForm = () => {
     setAddCommitteeId("");
     setAddItemName("");
@@ -314,8 +378,24 @@ export function BudgetOverviewPanel() {
             <Button size="sm" variant="outline" onClick={doExportXlsx} className="gap-1.5">
               <FileSpreadsheet className="h-3.5 w-3.5" /> Excel
             </Button>
-            <Button size="sm" variant="outline" onClick={doExportPdf} className="gap-1.5">
+            <Button
+              size="sm"
+              variant={freeEdit ? "default" : "outline"}
+              onClick={() => {
+                setFreeEdit((v) => !v);
+                if (!freeEdit) setExpanded(new Set(groups.map((g) => g.committee_id)));
+              }}
+              className={`gap-1.5 ${freeEdit ? "bg-gold text-gold-foreground hover:bg-gold/90" : ""}`}
+              title="تفعيل/إيقاف التعديل الحر لكل خلية"
+            >
+              <Sparkles className="h-3.5 w-3.5" />
+              {freeEdit ? "إنهاء التعديل الحر" : "التعديل الحر"}
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => setPdfEditorOpen(true)} className="gap-1.5">
               <Printer className="h-3.5 w-3.5" /> PDF موحّد
+            </Button>
+            <Button size="sm" variant="ghost" onClick={doExportPdf} className="gap-1.5 text-xs text-muted-foreground" title="طباعة مباشرة بدون تعديل">
+              طباعة مباشرة
             </Button>
           </div>
         </div>
@@ -396,7 +476,7 @@ export function BudgetOverviewPanel() {
               )}
               {groups.map((g) => {
                 const pct = overall > 0 ? (g.total / overall) * 100 : 0;
-                const isOpen = expanded.has(g.committee_id);
+                const isOpen = freeEdit || expanded.has(g.committee_id);
                 return (
                   <>
                     <tr
@@ -445,6 +525,7 @@ export function BudgetOverviewPanel() {
                               </thead>
                               <tbody>
                                 {g.rows.map((r, idx) => {
+                                  if (freeEdit) return <FreeEditRow key={r.id} r={r} idx={idx} />;
                                   const isEditing = editingId === r.id;
                                   return (
                                     <tr key={r.id} className="border-t" onClick={(e) => e.stopPropagation()}>
@@ -599,6 +680,14 @@ export function BudgetOverviewPanel() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <ReportEditorDialog
+        open={pdfEditorOpen}
+        onOpenChange={setPdfEditorOpen}
+        title="تحرير حر للميزانية قبل الطباعة"
+        loadHtml={loadPdfEditorHtml}
+        printTitle="الميزانية الإجمالية"
+      />
     </div>
   );
 }

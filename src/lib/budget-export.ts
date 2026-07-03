@@ -92,7 +92,12 @@ export function exportBudgetXLSX(opts: {
 
 /* ---------- PDF (branded HTML → print) ---------- */
 
-export function exportBudgetPDF(opts: {
+/**
+ * Builds only the printable body markup + inlined <style> for a budget report.
+ * Suitable for embedding inside the free-edit report editor (ReportEditorDialog)
+ * or the popup window used by {@link exportBudgetPDF}.
+ */
+export function buildBudgetPDFHtml(opts: {
   title: string;
   groups: BudgetExportGroup[];
   filenamePrefix?: string;
@@ -149,6 +154,73 @@ export function exportBudgetPDF(opts: {
     })
     .join("");
 
+  const bodyHtml = `
+<style>
+  .budget-report * { box-sizing: border-box; }
+  .budget-report { font-family: 'Tajawal','Segoe UI',Tahoma,Arial,sans-serif; color:#1f2937; direction:rtl; }
+  .budget-report .header { display:flex; align-items:center; gap:14px; border-bottom:3px solid #1B4F58; padding-bottom:12px; margin-bottom:18px; }
+  .budget-report .header .logo { width:82px; height:82px; }
+  .budget-report .header .logo img { width:100%; height:100%; object-fit:contain; }
+  .budget-report .header .titles { flex:1; }
+  .budget-report .header .kicker { margin:0; font-size:9pt; font-weight:700; letter-spacing:1px; color:#C4A25C; }
+  .budget-report .header h1 { margin:4px 0 2px; font-size:18pt; font-weight:900; color:#1B4F58; }
+  .budget-report .header .meta { margin:0; font-size:10pt; color:#6B7280; }
+  .budget-report .header .ref { text-align:left; font-size:9pt; color:#374151; border:1px solid #E5E7EB; border-radius:8px; padding:8px 10px; min-width:160px; }
+  .budget-report .header .ref b { display:block; color:#1B4F58; font-size:11pt; margin-top:2px; }
+  .budget-report .grand { display:flex; justify-content:space-between; align-items:center; background:linear-gradient(135deg,#1B4F58,#2A6B76); color:#fff; border-radius:12px; padding:14px 18px; margin-bottom:18px; }
+  .budget-report .grand .label { font-size:11pt; font-weight:600; opacity:0.9; }
+  .budget-report .grand .value { font-size:20pt; font-weight:900; color:#F5D98C; }
+  .budget-report .group { margin-bottom:18px; page-break-inside:avoid; }
+  .budget-report .group-head { display:flex; align-items:center; gap:10px; margin-bottom:8px; }
+  .budget-report .group-head .bar { width:5px; height:24px; background:linear-gradient(180deg,#C4A25C,#1B4F58); border-radius:3px; }
+  .budget-report .group-head h2 { margin:0; font-size:13pt; font-weight:800; color:#1B4F58; flex:1; }
+  .budget-report .group-head .count { font-size:9pt; padding:3px 10px; border-radius:999px; background:#FBF7EE; color:#8C6E2E; font-weight:700; border:1px solid #F1E4C1; }
+  .budget-report table { width:100%; border-collapse:separate; border-spacing:0; font-size:10pt; }
+  .budget-report thead th { background:#1B4F58; color:#fff; padding:9px 8px; text-align:center; font-weight:700; }
+  .budget-report thead th:first-child { border-radius:0 8px 8px 0; }
+  .budget-report thead th:last-child { border-radius:8px 0 0 8px; }
+  .budget-report tbody td { padding:8px; text-align:center; border-bottom:1px solid #F1E9D6; }
+  .budget-report tbody tr:nth-child(even) td { background:#FBF7EE; }
+  .budget-report td.ttl { text-align:right; font-weight:600; color:#1B4F58; }
+  .budget-report td.amt { font-weight:700; color:#1B4F58; font-variant-numeric:tabular-nums; }
+  .budget-report td.empty { padding:20px; color:#9CA3AF; font-style:italic; }
+  .budget-report tfoot td { padding:10px 8px; background:#FFF8E8; border-top:2px solid #C4A25C; font-weight:800; }
+  .budget-report td.ttl-final { text-align:right; color:#1B4F58; }
+  .budget-report td.amt-final { text-align:center; color:#1B4F58; font-size:12pt; font-variant-numeric:tabular-nums; }
+  .budget-report .footer { margin-top:22px; padding-top:10px; border-top:1px dashed #C4A25C; display:flex; justify-content:space-between; color:#6B7280; font-size:8.5pt; }
+  .budget-report .footer .stamp { color:#1B4F58; font-weight:700; }
+</style>
+<div class="budget-report">
+  <div class="header">
+    <div class="logo"><img src="${BRAND_LOGO_DATA_URI}" alt="شعار اللجنة"/></div>
+    <div class="titles">
+      <p class="kicker">لجنة الزواج الجماعي</p>
+      <h1>${escapeHtml(opts.title)}</h1>
+      <p class="meta">${todayAr()}</p>
+    </div>
+    <div class="ref">مرجع التقرير<b>${escapeHtml(ref)}</b></div>
+  </div>
+  <div class="grand">
+    <div class="label">الإجمالي العام للميزانية المطلوبة</div>
+    <div class="value">${fmt(overall)} ر.س</div>
+  </div>
+  ${groupHtml}
+  <div class="footer">
+    <div><span class="stamp">لجنة الزواج الجماعي</span> — وثيقة رسمية تمثل بيانات اللحظة وقت التصدير</div>
+    <div>مرجع: ${escapeHtml(ref)}</div>
+  </div>
+</div>`;
+
+  return { bodyHtml, ref, title: opts.title };
+}
+
+export function exportBudgetPDF(opts: {
+  title: string;
+  groups: BudgetExportGroup[];
+  filenamePrefix?: string;
+}) {
+  const { bodyHtml, ref } = buildBudgetPDFHtml(opts);
+
   const html = `<!doctype html>
 <html lang="ar" dir="rtl">
 <head>
@@ -159,76 +231,8 @@ export function exportBudgetPDF(opts: {
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&display=swap" rel="stylesheet">
 <style>
   @page { size: A4 portrait; margin: 14mm 12mm 16mm; }
-  * { box-sizing: border-box; }
-  html, body {
-    font-family: 'Tajawal', 'Segoe UI', Tahoma, Arial, sans-serif;
-    color: #1f2937; margin: 0; padding: 0;
-    -webkit-print-color-adjust: exact; print-color-adjust: exact;
-  }
-  .header {
-    display: flex; align-items: center; gap: 14px;
-    border-bottom: 3px solid #1B4F58; padding-bottom: 12px; margin-bottom: 18px;
-  }
-  .header .logo {
-    width: 82px; height: 82px;
-    background: transparent; padding: 0; box-shadow: none; border: 0;
-  }
-  .header .logo img { width: 100%; height: 100%; display: block; object-fit: contain; background: transparent; filter: drop-shadow(0 6px 10px rgba(27,79,88,0.16)); }
-  .header .titles { flex: 1; }
-  .header .kicker { margin: 0; font-size: 9pt; font-weight: 700; letter-spacing: 1px; color: #C4A25C; }
-  .header h1 { margin: 4px 0 2px; font-size: 18pt; font-weight: 900; color: #1B4F58; }
-  .header .meta { margin: 0; font-size: 10pt; color: #6B7280; }
-  .header .ref {
-    text-align: left; font-size: 9pt; color: #374151;
-    border: 1px solid #E5E7EB; border-radius: 8px; padding: 8px 10px; min-width: 160px;
-  }
-  .header .ref b { display: block; color: #1B4F58; font-size: 11pt; margin-top: 2px; }
-
-  .grand {
-    display: flex; justify-content: space-between; align-items: center;
-    background: linear-gradient(135deg, #1B4F58, #2A6B76); color: #fff;
-    border-radius: 12px; padding: 14px 18px; margin-bottom: 18px;
-    box-shadow: 0 8px 20px -10px rgba(27,79,88,0.4);
-  }
-  .grand .label { font-size: 11pt; opacity: 0.9; font-weight: 600; }
-  .grand .value { font-size: 20pt; font-weight: 900; color: #F5D98C; }
-
-  .group { margin-bottom: 18px; page-break-inside: avoid; }
-  .group-head { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
-  .group-head .bar { width: 5px; height: 24px; background: linear-gradient(180deg, #C4A25C, #1B4F58); border-radius: 3px; }
-  .group-head h2 { margin: 0; font-size: 13pt; font-weight: 800; color: #1B4F58; flex: 1; }
-  .group-head .count {
-    font-size: 9pt; padding: 3px 10px; border-radius: 999px;
-    background: #FBF7EE; color: #8C6E2E; font-weight: 700;
-    border: 1px solid #F1E4C1;
-  }
-
-  table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 10pt; }
-  thead th {
-    background: #1B4F58; color: #fff; padding: 9px 8px; text-align: center;
-    font-weight: 700; font-size: 10pt;
-  }
-  thead th:first-child { border-radius: 0 8px 8px 0; }
-  thead th:last-child  { border-radius: 8px 0 0 8px; }
-  tbody td {
-    padding: 8px; text-align: center; border-bottom: 1px solid #F1E9D6;
-  }
-  tbody tr:nth-child(even) td { background: #FBF7EE; }
-  td.ttl { text-align: right; font-weight: 600; color: #1B4F58; }
-  td.amt { font-weight: 700; color: #1B4F58; font-variant-numeric: tabular-nums; }
-  td.empty { padding: 20px; color: #9CA3AF; font-style: italic; }
-  tfoot td {
-    padding: 10px 8px; background: #FFF8E8; border-top: 2px solid #C4A25C;
-    font-weight: 800;
-  }
-  td.ttl-final { text-align: right; color: #1B4F58; }
-  td.amt-final { text-align: center; color: #1B4F58; font-size: 12pt; font-variant-numeric: tabular-nums; }
-
-  .footer {
-    margin-top: 22px; padding-top: 10px; border-top: 1px dashed #C4A25C;
-    display: flex; justify-content: space-between; color: #6B7280; font-size: 8.5pt;
-  }
-  .footer .stamp { color: #1B4F58; font-weight: 700; }
+  html, body { font-family: 'Tajawal', 'Segoe UI', Tahoma, Arial, sans-serif; margin: 0; padding: 0;
+    -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 
   .toolbar { position: fixed; top: 12px; left: 12px; z-index: 10; display: flex; gap: 8px; }
   .toolbar button {
@@ -245,32 +249,11 @@ export function exportBudgetPDF(opts: {
     <button onclick="window.print()">🖨️ طباعة / حفظ PDF</button>
     <button class="gold" onclick="window.close()">إغلاق</button>
   </div>
-
-  <div class="header">
-    <div class="logo"><img id="brand-logo" src="${BRAND_LOGO_DATA_URI}" alt="شعار اللجنة"/></div>
-    <div class="titles">
-      <p class="kicker">لجنة الزواج الجماعي</p>
-      <h1>${escapeHtml(opts.title)}</h1>
-      <p class="meta">${todayAr()}</p>
-    </div>
-    <div class="ref">مرجع التقرير<b>${escapeHtml(ref)}</b></div>
-  </div>
-
-  <div class="grand">
-    <div class="label">الإجمالي العام للميزانية المطلوبة</div>
-    <div class="value">${fmt(overall)} ر.س</div>
-  </div>
-
-  ${groupHtml}
-
-  <div class="footer">
-    <div><span class="stamp">لجنة الزواج الجماعي</span> — وثيقة رسمية تمثل بيانات اللحظة وقت التصدير</div>
-    <div>مرجع: ${escapeHtml(ref)}</div>
-  </div>
+  ${bodyHtml}
 
   <script>
     window.addEventListener('load', function(){
-      var img = document.getElementById('brand-logo');
+      var img = document.querySelector('.budget-report img');
       var go = function(){ setTimeout(function(){ window.print(); }, 400); };
       if (img && !img.complete) { img.onload = go; img.onerror = go; }
       else { go(); }
