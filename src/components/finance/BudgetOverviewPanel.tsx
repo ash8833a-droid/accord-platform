@@ -680,6 +680,14 @@ export function BudgetOverviewPanel() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <ReportEditorDialog
+        open={pdfEditorOpen}
+        onOpenChange={setPdfEditorOpen}
+        title="تحرير حر للميزانية قبل الطباعة"
+        loadHtml={loadPdfEditorHtml}
+        printTitle="الميزانية الإجمالية"
+      />
     </div>
   );
 }
