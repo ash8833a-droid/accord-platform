@@ -293,6 +293,62 @@ export function BudgetOverviewPanel() {
     );
   };
 
+  // Inline "add new item" row per committee.
+  const QuickAddRow = ({ committeeId }: { committeeId: string }) => {
+    const [name, setName] = useState("");
+    const [qty, setQty] = useState("");
+    const [unit, setUnit] = useState("");
+    const [notes, setNotes] = useState("");
+    const [saving, setSaving] = useState(false);
+    const reset = () => { setName(""); setQty(""); setUnit(""); setNotes(""); };
+    const add = async () => {
+      const n = name.trim();
+      const q = Number(qty);
+      const u = Number(unit);
+      if (!n) return toast.error("اسم البند مطلوب");
+      if (!(q > 0)) return toast.error("الكمية يجب أن تكون أكبر من صفر");
+      if (!(u >= 0)) return toast.error("تكلفة الوحدة غير صحيحة");
+      setSaving(true);
+      const { error } = await supabase.from("budget_items" as any).insert({
+        committee_id: committeeId,
+        item_name: n,
+        quantity: q,
+        unit_cost: u,
+        notes: notes.trim() || null,
+        assigned_by_finance: true,
+        created_by: user?.id ?? null,
+      } as any);
+      setSaving(false);
+      if (error) return toast.error("تعذّر إضافة البند", { description: error.message });
+      toast.success("تمت إضافة البند");
+      reset();
+    };
+    return (
+      <tr className="border-t bg-primary/5" onClick={(e) => e.stopPropagation()}>
+        <td className="px-3 py-2 text-primary font-bold">+</td>
+        <td className="px-3 py-2">
+          <Input placeholder="اسم بند جديد" value={name} onChange={(e) => setName(e.target.value)} className="h-8 text-xs" />
+          <Input placeholder="ملاحظات (اختياري)" value={notes} onChange={(e) => setNotes(e.target.value)} className="h-8 text-xs mt-1" />
+        </td>
+        <td className="px-3 py-2">
+          <Input type="number" min={0} step="0.01" placeholder="0" value={qty} onChange={(e) => setQty(e.target.value)} className="h-8 text-xs" dir="ltr" />
+        </td>
+        <td className="px-3 py-2">
+          <Input type="number" min={0} step="0.01" placeholder="0" value={unit} onChange={(e) => setUnit(e.target.value)} className="h-8 text-xs" dir="ltr" />
+        </td>
+        <td className="px-3 py-2 font-semibold text-primary tabular-nums">
+          {fmt((Number(qty) || 0) * (Number(unit) || 0))} ر.س
+        </td>
+        <td className="px-3 py-2">
+          <Button size="sm" onClick={add} disabled={saving} className="h-7 px-2 gap-1 bg-gradient-to-l from-primary to-gold text-primary-foreground">
+            {saving ? <Loader2 className="h-3 w-3 animate-spin" /> : <Plus className="h-3 w-3" />}
+            إضافة
+          </Button>
+        </td>
+      </tr>
+    );
+  };
+
   const resetAddForm = () => {
     setAddCommitteeId("");
     setAddItemName("");
@@ -595,6 +651,7 @@ export function BudgetOverviewPanel() {
                                     </tr>
                                   );
                                 })}
+                                <QuickAddRow committeeId={g.committee_id} />
                               </tbody>
                             </table>
                           </div>
