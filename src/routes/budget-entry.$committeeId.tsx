@@ -318,6 +318,26 @@ function BudgetEntryPage() {
                         onChange={(e) => setEditDraft({ ...editDraft, item_name: e.target.value })}
                         className="h-10"
                       />
+                      <label className="flex items-center gap-2 text-xs bg-muted/40 rounded-md px-2 py-1.5 cursor-pointer select-none">
+                        <input
+                          type="checkbox"
+                          checked={editManualMode}
+                          onChange={(e) => setEditManualMode(e.target.checked)}
+                          className="h-4 w-4 accent-primary"
+                        />
+                        <span>إدخال المبلغ الإجمالي يدوياً</span>
+                      </label>
+                      {editManualMode ? (
+                        <Input
+                          type="number"
+                          inputMode="decimal"
+                          placeholder="المبلغ الإجمالي (ر.س)"
+                          value={editManualTotal}
+                          onChange={(e) => setEditManualTotal(e.target.value)}
+                          className="h-10"
+                          dir="ltr"
+                        />
+                      ) : (
                       <div className="grid grid-cols-2 gap-2">
                         <Input
                           type="number"
@@ -336,6 +356,7 @@ function BudgetEntryPage() {
                           dir="ltr"
                         />
                       </div>
+                      )}
                       <Input
                         placeholder="ملاحظات"
                         value={editDraft.notes}
