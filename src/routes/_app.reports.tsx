@@ -19,6 +19,7 @@ import { exportMindMapReport } from "@/lib/mindmap-report";
 import { PieChart } from "lucide-react";
 import { buildQualityCommitteesReportHtml } from "@/lib/quality-committees-report";
 import { CommitteePlanPanel } from "@/components/committee/CommitteePlanPanel";
+import { ReportEditorDialog } from "@/components/reports/ReportEditorDialog";
 import { BudgetExceptionNotice } from "@/components/BudgetExceptionNotice";
 
 export const Route = createFileRoute("/_app/reports")({
