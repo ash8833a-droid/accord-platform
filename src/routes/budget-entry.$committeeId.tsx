@@ -16,6 +16,7 @@ interface BudgetItem {
   total_cost: number;
   notes: string | null;
   assigned_by_finance?: boolean | null;
+  is_manual_total?: boolean | null;
 }
 
 const fmt = (n: number) =>
