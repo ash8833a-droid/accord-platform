@@ -1,11 +1,8 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { committeeByType } from "@/lib/committees";
-import { Save, AlertTriangle, CheckCircle2, Settings2 } from "lucide-react";
-import { toast } from "sonner";
+import { AlertTriangle, CheckCircle2, Settings2 } from "lucide-react";
 
 interface Committee {
   id: string;
@@ -25,7 +22,6 @@ const fmt = (n: number) => new Intl.NumberFormat("ar-SA").format(n);
 
 export function CommitteeBudgetLimits({ onTotalChange }: Props) {
   const [coms, setComs] = useState<Committee[]>([]);
-  const [edits, setEdits] = useState<Record<string, { min: number; max: number; allocated: number }>>({});
 
   const load = async () => {
     const { data } = await supabase
@@ -55,33 +51,13 @@ export function CommitteeBudgetLimits({ onTotalChange }: Props) {
       };
     });
     setComs(enriched);
-    const e: Record<string, { min: number; max: number; allocated: number }> = {};
-    enriched.forEach((c) => {
-      e[c.id] = { min: Number(c.min_budget), max: Number(c.max_budget), allocated: Number(c.budget_allocated) };
-    });
-    setEdits(e);
     onTotalChange?.(enriched.reduce((a, c) => a + Number(c.budget_allocated), 0));
   };
 
   useEffect(() => { load(); }, []);
 
-  const save = async (id: string) => {
-    const e = edits[id];
-    if (!e) return;
-    if (e.max > 0 && e.min > e.max) return toast.error("الحد الأدنى أكبر من الحد الأعلى");
-    if (e.max > 0 && e.allocated > e.max) return toast.error("المخصص يتجاوز الحد الأعلى");
-    if (e.min > 0 && e.allocated < e.min) return toast.error("المخصص أقل من الحد الأدنى");
-    const { error } = await supabase
-      .from("committees")
-      .update({ min_budget: e.min, max_budget: e.max, budget_allocated: e.allocated })
-      .eq("id", id);
-    if (error) return toast.error("تعذر الحفظ", { description: error.message });
-    toast.success("تم تحديث المخصصات");
-    load();
-  };
-
-  const totalAllocated = Object.values(edits).reduce((a, e) => a + e.allocated, 0);
-  const totalMax = Object.values(edits).reduce((a, e) => a + e.max, 0);
+  const totalAllocated = coms.reduce((a, c) => a + Number(c.budget_allocated), 0);
+  const totalMax = coms.reduce((a, c) => a + Number(c.max_budget), 0);
 
   return (
     <div className="space-y-5">
@@ -91,7 +67,7 @@ export function CommitteeBudgetLimits({ onTotalChange }: Props) {
           <div className="flex-1">
             <h3 className="font-bold">سقوف ومخصصات اللجان</h3>
             <p className="text-xs text-muted-foreground mt-1">
-              حدد الحد الأدنى والأعلى لكل لجنة. يُمنع اعتماد طلبات صرف تتجاوز السقف الأعلى المعتمد للجنة.
+              يتم حساب الحد الأدنى والمخصص والأعلى تلقائياً من بنود الميزانية المعتمدة لكل لجنة.
             </p>
           </div>
           <div className="text-left">
@@ -113,17 +89,18 @@ export function CommitteeBudgetLimits({ onTotalChange }: Props) {
                 <th className="px-4 py-3 font-medium">الحد الأعلى</th>
                 <th className="px-4 py-3 font-medium">المصروف</th>
                 <th className="px-4 py-3 font-medium">الحالة</th>
-                <th className="px-4 py-3 font-medium">حفظ</th>
               </tr>
             </thead>
             <tbody>
               {coms.map((c) => {
                 const meta = committeeByType(c.type);
                 const Icon = meta?.icon;
-                const e = edits[c.id] ?? { min: 0, max: 0, allocated: 0 };
-                const pct = e.max > 0 ? (Number(c.budget_spent) / e.max) * 100 : 0;
-                const overMax = e.max > 0 && e.allocated > e.max;
-                const underMin = e.min > 0 && e.allocated < e.min;
+                const max = Number(c.max_budget);
+                const min = Number(c.min_budget);
+                const allocated = Number(c.budget_allocated);
+                const pct = max > 0 ? (Number(c.budget_spent) / max) * 100 : 0;
+                const overMax = max > 0 && allocated > max;
+                const underMin = min > 0 && allocated < min;
                 const ok = !overMax && !underMin;
                 return (
                   <tr key={c.id} className="border-t hover:bg-muted/20">
@@ -138,33 +115,24 @@ export function CommitteeBudgetLimits({ onTotalChange }: Props) {
                       </div>
                     </td>
                     <td className="px-4 py-3">
-                      <Input
-                        type="number"
-                        value={e.min}
-                        onChange={(ev) => setEdits({ ...edits, [c.id]: { ...e, min: Number(ev.target.value) } })}
-                        className="h-8 w-28"
-                      />
+                      <span className="inline-block rounded-md bg-muted px-3 py-1.5 text-sm font-medium">
+                        {fmt(min)}
+                      </span>
                     </td>
                     <td className="px-4 py-3">
-                      <Input
-                        type="number"
-                        value={e.allocated}
-                        onChange={(ev) => setEdits({ ...edits, [c.id]: { ...e, allocated: Number(ev.target.value) } })}
-                        className={`h-8 w-28 ${overMax || underMin ? "border-rose-500" : ""}`}
-                      />
+                      <span className={`inline-block rounded-md px-3 py-1.5 text-sm font-medium ${overMax || underMin ? "bg-rose-100 text-rose-700" : "bg-muted"}`}>
+                        {fmt(allocated)}
+                      </span>
                     </td>
                     <td className="px-4 py-3">
-                      <Input
-                        type="number"
-                        value={e.max}
-                        onChange={(ev) => setEdits({ ...edits, [c.id]: { ...e, max: Number(ev.target.value) } })}
-                        className="h-8 w-28"
-                      />
+                      <span className="inline-block rounded-md bg-muted px-3 py-1.5 text-sm font-medium">
+                        {fmt(max)}
+                      </span>
                     </td>
                     <td className="px-4 py-3">
                       <div className="space-y-1">
                         <p className="font-semibold text-xs">{fmt(Number(c.budget_spent))} ر.س</p>
-                        {e.max > 0 && (
+                        {max > 0 && (
                           <div className="h-1.5 w-24 bg-muted rounded-full overflow-hidden">
                             <div
                               className={`h-full ${pct > 90 ? "bg-rose-500" : pct > 70 ? "bg-amber-500" : "bg-emerald-500"}`}
@@ -185,16 +153,11 @@ export function CommitteeBudgetLimits({ onTotalChange }: Props) {
                         </Badge>
                       )}
                     </td>
-                    <td className="px-4 py-3">
-                      <Button size="sm" onClick={() => save(c.id)} className="gap-1 bg-gradient-hero text-primary-foreground">
-                        <Save className="h-3.5 w-3.5" /> حفظ
-                      </Button>
-                    </td>
                   </tr>
                 );
               })}
               {coms.length === 0 && (
-                <tr><td colSpan={7} className="text-center py-12 text-muted-foreground">لا توجد لجان مسجلة</td></tr>
+                <tr><td colSpan={6} className="text-center py-12 text-muted-foreground">لا توجد لجان مسجلة</td></tr>
               )}
             </tbody>
           </table>
