@@ -39,6 +39,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { ClipboardList, ClipboardCheck, CalendarRange, ShieldCheck, UsersRound, HeartHandshake, Wallet as WalletIcon, Megaphone, Inbox, Archive, Sparkles as SparklesIcon } from "lucide-react";
 import { WomenTalentsPanel } from "@/components/committee/WomenTalentsPanel";
 import { isExcludedFromWomenSurvey } from "@/lib/women-committee-access";
+import { BudgetExceptionNotice } from "@/components/BudgetExceptionNotice";
 import { TaskHighlightBanner } from "@/components/committee/TaskHighlightBanner";
 import { BudgetItemsPanel } from "@/components/finance/BudgetItemsPanel";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -924,6 +925,7 @@ function CommitteePage() {
 
       {type === "finance" && (
         <QualitySection storageKey={`committee:${type}:finance`} title="الوحدة المالية" icon={WalletIcon} defaultOpen>
+          <BudgetExceptionNotice />
           <div className="rounded-2xl border bg-card p-5 shadow-soft">
             <FinanceModule />
           </div>
