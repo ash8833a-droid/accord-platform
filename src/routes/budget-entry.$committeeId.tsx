@@ -95,8 +95,8 @@ function BudgetEntryPage() {
     let payload = draft;
     if (manualMode) {
       const total = Number(manualTotal);
-      if (!(total >= 0) || !draft.item_name.trim()) {
-        return toast.error("أدخل اسم البند والمبلغ الإجمالي");
+      if (!(total > 0) || !draft.item_name.trim()) {
+        return toast.error("أدخل اسم البند ومبلغاً إجمالياً أكبر من صفر");
       }
       payload = { ...draft, quantity: "1", unit_cost: String(total) };
     } else {
@@ -136,8 +136,8 @@ function BudgetEntryPage() {
     let payload = editDraft;
     if (editManualMode) {
       const total = Number(editManualTotal);
-      if (!(total >= 0) || !editDraft.item_name.trim()) {
-        return toast.error("أدخل اسم البند والمبلغ الإجمالي");
+      if (!(total > 0) || !editDraft.item_name.trim()) {
+        return toast.error("أدخل اسم البند ومبلغاً إجمالياً أكبر من صفر");
       }
       payload = { ...editDraft, quantity: "1", unit_cost: String(total) };
     } else {
@@ -243,6 +243,8 @@ function BudgetEntryPage() {
               <Input
                 type="number"
                 inputMode="decimal"
+                min="0.01"
+                step="any"
                 placeholder="المبلغ الإجمالي (ر.س)"
                 value={manualTotal}
                 onChange={(e) => setManualTotal(e.target.value)}
@@ -331,6 +333,8 @@ function BudgetEntryPage() {
                         <Input
                           type="number"
                           inputMode="decimal"
+                          min="0.01"
+                          step="any"
                           placeholder="المبلغ الإجمالي (ر.س)"
                           value={editManualTotal}
                           onChange={(e) => setEditManualTotal(e.target.value)}
