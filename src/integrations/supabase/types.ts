@@ -69,6 +69,7 @@ export type Database = {
           created_at: string
           created_by: string | null
           id: string
+          is_manual_total: boolean
           item_name: string
           notes: string | null
           quantity: number
@@ -82,6 +83,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           id?: string
+          is_manual_total?: boolean
           item_name: string
           notes?: string | null
           quantity: number
@@ -95,6 +97,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           id?: string
+          is_manual_total?: boolean
           item_name?: string
           notes?: string | null
           quantity?: number
@@ -2072,16 +2075,28 @@ export type Database = {
           isSetofReturn: false
         }
       }
-      public_add_budget_item: {
-        Args: {
-          _committee_id: string
-          _item_name: string
-          _notes?: string
-          _quantity: number
-          _unit_cost: number
-        }
-        Returns: string
-      }
+      public_add_budget_item:
+        | {
+            Args: {
+              _committee_id: string
+              _item_name: string
+              _notes?: string
+              _quantity: number
+              _unit_cost: number
+            }
+            Returns: string
+          }
+        | {
+            Args: {
+              _committee_id: string
+              _is_manual_total?: boolean
+              _item_name: string
+              _notes?: string
+              _quantity: number
+              _unit_cost: number
+            }
+            Returns: string
+          }
       public_delete_budget_item: {
         Args: { _committee_id: string; _item_id: string }
         Returns: undefined
@@ -2090,17 +2105,30 @@ export type Database = {
         Args: { _committee_id: string }
         Returns: Json
       }
-      public_update_budget_item: {
-        Args: {
-          _committee_id: string
-          _item_id: string
-          _item_name: string
-          _notes?: string
-          _quantity: number
-          _unit_cost: number
-        }
-        Returns: undefined
-      }
+      public_update_budget_item:
+        | {
+            Args: {
+              _committee_id: string
+              _item_id: string
+              _item_name: string
+              _notes?: string
+              _quantity: number
+              _unit_cost: number
+            }
+            Returns: undefined
+          }
+        | {
+            Args: {
+              _committee_id: string
+              _is_manual_total?: boolean
+              _item_id: string
+              _item_name: string
+              _notes?: string
+              _quantity: number
+              _unit_cost: number
+            }
+            Returns: undefined
+          }
       reset_launch_status: {
         Args: never
         Returns: {

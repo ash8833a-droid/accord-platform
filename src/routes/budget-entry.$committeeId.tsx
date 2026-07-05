@@ -16,6 +16,7 @@ interface BudgetItem {
   total_cost: number;
   notes: string | null;
   assigned_by_finance?: boolean | null;
+  is_manual_total?: boolean | null;
 }
 
 const fmt = (n: number) =>
@@ -110,6 +111,7 @@ function BudgetEntryPage() {
       _quantity: Number(payload.quantity),
       _unit_cost: Number(payload.unit_cost),
       _notes: payload.notes.trim() || null,
+      _is_manual_total: manualMode,
     });
     setAdding(false);
     if (error) return toast.error("تعذّر الإضافة", { description: error.message });
@@ -120,13 +122,13 @@ function BudgetEntryPage() {
 
   const startEdit = (it: BudgetItem) => {
     setEditingId(it.id);
-    const isManual = Number(it.quantity) === 1;
+    const isManual = !!it.is_manual_total;
     setEditManualMode(isManual);
     setEditManualTotal(isManual ? String(it.total_cost) : "");
     setEditDraft({
       item_name: it.item_name,
-      quantity: String(it.quantity),
-      unit_cost: String(it.unit_cost),
+      quantity: String(isManual ? 1 : it.quantity),
+      unit_cost: String(isManual ? it.total_cost : it.unit_cost),
       notes: it.notes ?? "",
     });
   };
@@ -151,6 +153,7 @@ function BudgetEntryPage() {
       _quantity: Number(payload.quantity),
       _unit_cost: Number(payload.unit_cost),
       _notes: payload.notes.trim() || null,
+      _is_manual_total: editManualMode,
     });
     if (error) return toast.error("تعذّر التحديث", { description: error.message });
     toast.success("تم الحفظ");
