@@ -111,6 +111,7 @@ function BudgetEntryPage() {
       _quantity: Number(payload.quantity),
       _unit_cost: Number(payload.unit_cost),
       _notes: payload.notes.trim() || null,
+      _is_manual_total: manualMode,
     });
     setAdding(false);
     if (error) return toast.error("تعذّر الإضافة", { description: error.message });
