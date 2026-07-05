@@ -29,29 +29,8 @@ export function CommitteeBudgetLimits({ onTotalChange }: Props) {
       .select("id, name, type, budget_allocated, budget_spent, min_budget, max_budget")
       .order("name");
     const list = (data ?? []) as Committee[];
-
-    // Aggregate budget_items totals per committee
-    const { data: items } = await supabase
-      .from("budget_items")
-      .select("committee_id, total_cost");
-    const sumByCom = new Map<string, number>();
-    (items ?? []).forEach((it: any) => {
-      const cid = it.committee_id as string;
-      sumByCom.set(cid, (sumByCom.get(cid) ?? 0) + Number(it.total_cost ?? 0));
-    });
-
-    // Override allocated/min/max from budget_items: allocated = sum, min = -5%, max = +5%
-    const enriched = list.map((c) => {
-      const allocated = Math.round(sumByCom.get(c.id) ?? 0);
-      return {
-        ...c,
-        budget_allocated: allocated,
-        min_budget: Math.round(allocated * 0.95),
-        max_budget: Math.round(allocated * 1.05),
-      };
-    });
-    setComs(enriched);
-    onTotalChange?.(enriched.reduce((a, c) => a + Number(c.budget_allocated), 0));
+    setComs(list);
+    onTotalChange?.(list.reduce((a, c) => a + Number(c.budget_allocated), 0));
   };
 
   useEffect(() => { load(); }, []);
@@ -67,7 +46,7 @@ export function CommitteeBudgetLimits({ onTotalChange }: Props) {
           <div className="flex-1">
             <h3 className="font-bold">سقوف ومخصصات اللجان</h3>
             <p className="text-xs text-muted-foreground mt-1">
-              يتم حساب الحد الأدنى والمخصص والأعلى تلقائياً من بنود الميزانية المعتمدة لكل لجنة.
+              يتم عرض الحد الأدنى والمخصص والأعلى مباشرة من قيم اللجان المسجلة.
             </p>
           </div>
           <div className="text-left">
