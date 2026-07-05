@@ -153,6 +153,7 @@ function BudgetEntryPage() {
       _quantity: Number(payload.quantity),
       _unit_cost: Number(payload.unit_cost),
       _notes: payload.notes.trim() || null,
+      _is_manual_total: editManualMode,
     });
     if (error) return toast.error("تعذّر التحديث", { description: error.message });
     toast.success("تم الحفظ");
