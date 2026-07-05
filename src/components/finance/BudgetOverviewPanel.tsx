@@ -34,6 +34,7 @@ interface BudgetItem {
   total_cost: number;
   notes: string | null;
   assigned_by_finance?: boolean | null;
+  is_manual_total?: boolean | null;
 }
 
 interface Committee {
@@ -59,6 +60,8 @@ export function BudgetOverviewPanel() {
   const [addQuantity, setAddQuantity] = useState("");
   const [addUnitCost, setAddUnitCost] = useState("");
   const [addNotes, setAddNotes] = useState("");
+  const [addManualMode, setAddManualMode] = useState(false);
+  const [addManualTotal, setAddManualTotal] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -66,6 +69,8 @@ export function BudgetOverviewPanel() {
   const [editQty, setEditQty] = useState("");
   const [editUnit, setEditUnit] = useState("");
   const [editNotes, setEditNotes] = useState("");
+  const [editManualMode, setEditManualMode] = useState(false);
+  const [editManualTotal, setEditManualTotal] = useState("");
   const [savingEdit, setSavingEdit] = useState(false);
   const [freeEdit, setFreeEdit] = useState(false);
   const [pdfEditorOpen, setPdfEditorOpen] = useState(false);
@@ -73,6 +78,9 @@ export function BudgetOverviewPanel() {
   const startEdit = (r: BudgetItem) => {
     setEditingId(r.id);
     setEditName(r.item_name);
+    const isManual = !!r.is_manual_total;
+    setEditManualMode(isManual);
+    setEditManualTotal(isManual ? String(r.total_cost) : "");
     setEditQty(String(r.quantity));
     setEditUnit(String(r.unit_cost));
     setEditNotes(r.notes ?? "");
@@ -82,11 +90,20 @@ export function BudgetOverviewPanel() {
 
   const saveEdit = async (r: BudgetItem) => {
     const name = editName.trim();
-    const qty = Number(editQty);
-    const unit = Number(editUnit);
     if (!name) return toast.error("اسم البند مطلوب");
-    if (!(qty > 0)) return toast.error("الكمية يجب أن تكون أكبر من صفر");
-    if (!(unit >= 0)) return toast.error("تكلفة الوحدة غير صحيحة");
+    let qty: number;
+    let unit: number;
+    if (editManualMode) {
+      const total = Number(editManualTotal);
+      if (!(total > 0)) return toast.error("أدخل مبلغاً إجمالياً أكبر من صفر");
+      qty = 1;
+      unit = total;
+    } else {
+      qty = Number(editQty);
+      unit = Number(editUnit);
+      if (!(qty > 0)) return toast.error("الكمية يجب أن تكون أكبر من صفر");
+      if (!(unit >= 0)) return toast.error("تكلفة الوحدة غير صحيحة");
+    }
     setSavingEdit(true);
     const { error } = await supabase
       .from("budget_items" as any)
@@ -95,6 +112,7 @@ export function BudgetOverviewPanel() {
         quantity: qty,
         unit_cost: unit,
         notes: editNotes.trim() || null,
+        is_manual_total: editManualMode,
       } as any)
       .eq("id", r.id);
     setSavingEdit(false);
@@ -127,7 +145,7 @@ export function BudgetOverviewPanel() {
       supabase.from("committees").select("id, name").order("name"),
       supabase
         .from("budget_items" as any)
-        .select("id, committee_id, item_name, quantity, unit_cost, total_cost, notes, assigned_by_finance")
+        .select("id, committee_id, item_name, quantity, unit_cost, total_cost, notes, assigned_by_finance, is_manual_total")
         .order("created_at", { ascending: true }),
     ]);
     if (error) toast.error("تعذّر تحميل البيانات", { description: error.message });
@@ -245,22 +263,41 @@ export function BudgetOverviewPanel() {
     const [qty, setQty] = useState(String(r.quantity));
     const [unit, setUnit] = useState(String(r.unit_cost));
     const [notes, setNotes] = useState(r.notes ?? "");
+    const [manual, setManual] = useState(!!r.is_manual_total);
+    const [manualTotal, setManualTotal] = useState(r.is_manual_total ? String(r.total_cost) : "");
     useEffect(() => {
       setName(r.item_name);
       setQty(String(r.quantity));
       setUnit(String(r.unit_cost));
       setNotes(r.notes ?? "");
-    }, [r.item_name, r.quantity, r.unit_cost, r.notes]);
+      setManual(!!r.is_manual_total);
+      setManualTotal(r.is_manual_total ? String(r.total_cost) : "");
+    }, [r.item_name, r.quantity, r.unit_cost, r.notes, r.is_manual_total, r.total_cost]);
     const commit = async () => {
       const n = name.trim();
-      const q = Number(qty);
-      const u = Number(unit);
       if (!n) return;
-      if (!(q > 0) || !(u >= 0)) return;
-      if (n === r.item_name && q === Number(r.quantity) && u === Number(r.unit_cost) && (notes.trim() || null) === (r.notes ?? null)) return;
+      let q: number;
+      let u: number;
+      if (manual) {
+        const t = Number(manualTotal);
+        if (!(t > 0)) return;
+        q = 1;
+        u = t;
+      } else {
+        q = Number(qty);
+        u = Number(unit);
+        if (!(q > 0) || !(u >= 0)) return;
+      }
+      if (
+        n === r.item_name &&
+        q === Number(r.quantity) &&
+        u === Number(r.unit_cost) &&
+        (notes.trim() || null) === (r.notes ?? null) &&
+        manual === !!r.is_manual_total
+      ) return;
       const { error } = await supabase
         .from("budget_items" as any)
-        .update({ item_name: n, quantity: q, unit_cost: u, notes: notes.trim() || null } as any)
+        .update({ item_name: n, quantity: q, unit_cost: u, notes: notes.trim() || null, is_manual_total: manual } as any)
         .eq("id", r.id);
       if (error) toast.error("تعذّر الحفظ", { description: error.message });
     };
@@ -270,16 +307,33 @@ export function BudgetOverviewPanel() {
         <td className="px-3 py-2">
           <Input value={name} onChange={(e) => setName(e.target.value)} onBlur={commit} className="h-8 text-xs" />
           <Input placeholder="ملاحظات" value={notes} onChange={(e) => setNotes(e.target.value)} onBlur={commit} className="h-8 text-xs mt-1" />
+          <label className="mt-1 flex items-center gap-1 text-[10px] text-muted-foreground cursor-pointer">
+            <input type="checkbox" checked={manual} onChange={(e) => { setManual(e.target.checked); }} onBlur={commit} />
+            <span>إدخال المبلغ يدوياً</span>
+          </label>
         </td>
-        <td className="px-3 py-2">
-          <Input type="number" min={0} step="0.01" value={qty} onChange={(e) => setQty(e.target.value)} onBlur={commit} className="h-8 text-xs" dir="ltr" />
-        </td>
-        <td className="px-3 py-2">
-          <Input type="number" min={0} step="0.01" value={unit} onChange={(e) => setUnit(e.target.value)} onBlur={commit} className="h-8 text-xs" dir="ltr" />
-        </td>
-        <td className="px-3 py-2 font-semibold text-primary tabular-nums">
-          {fmt((Number(qty) || 0) * (Number(unit) || 0))} ر.س
-        </td>
+        {manual ? (
+          <>
+            <td className="px-3 py-2 text-muted-foreground text-[10px]" colSpan={2}>
+              <Input type="number" min="0.01" step="any" placeholder="المبلغ الإجمالي" value={manualTotal} onChange={(e) => setManualTotal(e.target.value)} onBlur={commit} className="h-8 text-xs" dir="ltr" />
+            </td>
+            <td className="px-3 py-2 font-semibold text-primary tabular-nums">
+              {fmt(Number(manualTotal) || 0)} ر.س
+            </td>
+          </>
+        ) : (
+          <>
+            <td className="px-3 py-2">
+              <Input type="number" min={0} step="0.01" value={qty} onChange={(e) => setQty(e.target.value)} onBlur={commit} className="h-8 text-xs" dir="ltr" />
+            </td>
+            <td className="px-3 py-2">
+              <Input type="number" min={0} step="0.01" value={unit} onChange={(e) => setUnit(e.target.value)} onBlur={commit} className="h-8 text-xs" dir="ltr" />
+            </td>
+            <td className="px-3 py-2 font-semibold text-primary tabular-nums">
+              {fmt((Number(qty) || 0) * (Number(unit) || 0))} ر.س
+            </td>
+          </>
+        )}
         <td className="px-3 py-2">
           <button
             onClick={() => removeItem(r)}
@@ -299,15 +353,26 @@ export function BudgetOverviewPanel() {
     const [qty, setQty] = useState("");
     const [unit, setUnit] = useState("");
     const [notes, setNotes] = useState("");
+    const [manual, setManual] = useState(false);
+    const [manualTotal, setManualTotal] = useState("");
     const [saving, setSaving] = useState(false);
-    const reset = () => { setName(""); setQty(""); setUnit(""); setNotes(""); };
+    const reset = () => { setName(""); setQty(""); setUnit(""); setNotes(""); setManualTotal(""); setManual(false); };
     const add = async () => {
       const n = name.trim();
-      const q = Number(qty);
-      const u = Number(unit);
       if (!n) return toast.error("اسم البند مطلوب");
-      if (!(q > 0)) return toast.error("الكمية يجب أن تكون أكبر من صفر");
-      if (!(u >= 0)) return toast.error("تكلفة الوحدة غير صحيحة");
+      let q: number;
+      let u: number;
+      if (manual) {
+        const t = Number(manualTotal);
+        if (!(t > 0)) return toast.error("أدخل مبلغاً إجمالياً أكبر من صفر");
+        q = 1;
+        u = t;
+      } else {
+        q = Number(qty);
+        u = Number(unit);
+        if (!(q > 0)) return toast.error("الكمية يجب أن تكون أكبر من صفر");
+        if (!(u >= 0)) return toast.error("تكلفة الوحدة غير صحيحة");
+      }
       setSaving(true);
       const { error } = await supabase.from("budget_items" as any).insert({
         committee_id: committeeId,
@@ -316,6 +381,7 @@ export function BudgetOverviewPanel() {
         unit_cost: u,
         notes: notes.trim() || null,
         assigned_by_finance: true,
+        is_manual_total: manual,
         created_by: user?.id ?? null,
       } as any);
       setSaving(false);
@@ -329,16 +395,33 @@ export function BudgetOverviewPanel() {
         <td className="px-3 py-2">
           <Input placeholder="اسم بند جديد" value={name} onChange={(e) => setName(e.target.value)} className="h-8 text-xs" />
           <Input placeholder="ملاحظات (اختياري)" value={notes} onChange={(e) => setNotes(e.target.value)} className="h-8 text-xs mt-1" />
+          <label className="mt-1 flex items-center gap-1 text-[10px] text-muted-foreground cursor-pointer">
+            <input type="checkbox" checked={manual} onChange={(e) => setManual(e.target.checked)} />
+            <span>إدخال المبلغ يدوياً (بدون كمية × سعر)</span>
+          </label>
         </td>
-        <td className="px-3 py-2">
-          <Input type="number" min={0} step="0.01" placeholder="0" value={qty} onChange={(e) => setQty(e.target.value)} className="h-8 text-xs" dir="ltr" />
-        </td>
-        <td className="px-3 py-2">
-          <Input type="number" min={0} step="0.01" placeholder="0" value={unit} onChange={(e) => setUnit(e.target.value)} className="h-8 text-xs" dir="ltr" />
-        </td>
-        <td className="px-3 py-2 font-semibold text-primary tabular-nums">
-          {fmt((Number(qty) || 0) * (Number(unit) || 0))} ر.س
-        </td>
+        {manual ? (
+          <>
+            <td className="px-3 py-2" colSpan={2}>
+              <Input type="number" min="0.01" step="any" placeholder="المبلغ الإجمالي" value={manualTotal} onChange={(e) => setManualTotal(e.target.value)} className="h-8 text-xs" dir="ltr" />
+            </td>
+            <td className="px-3 py-2 font-semibold text-primary tabular-nums">
+              {fmt(Number(manualTotal) || 0)} ر.س
+            </td>
+          </>
+        ) : (
+          <>
+            <td className="px-3 py-2">
+              <Input type="number" min={0} step="0.01" placeholder="0" value={qty} onChange={(e) => setQty(e.target.value)} className="h-8 text-xs" dir="ltr" />
+            </td>
+            <td className="px-3 py-2">
+              <Input type="number" min={0} step="0.01" placeholder="0" value={unit} onChange={(e) => setUnit(e.target.value)} className="h-8 text-xs" dir="ltr" />
+            </td>
+            <td className="px-3 py-2 font-semibold text-primary tabular-nums">
+              {fmt((Number(qty) || 0) * (Number(unit) || 0))} ر.س
+            </td>
+          </>
+        )}
         <td className="px-3 py-2">
           <Button size="sm" onClick={add} disabled={saving} className="h-7 px-2 gap-1 bg-gradient-to-l from-primary to-gold text-primary-foreground">
             {saving ? <Loader2 className="h-3 w-3 animate-spin" /> : <Plus className="h-3 w-3" />}
@@ -355,16 +438,27 @@ export function BudgetOverviewPanel() {
     setAddQuantity("");
     setAddUnitCost("");
     setAddNotes("");
+    setAddManualMode(false);
+    setAddManualTotal("");
   };
 
   const submitAdd = async () => {
     if (!addCommitteeId) return toast.error("اختر اللجنة المستهدفة");
     const name = addItemName.trim();
-    const qty = Number(addQuantity);
-    const unit = Number(addUnitCost);
     if (!name) return toast.error("اسم البند مطلوب");
-    if (!(qty > 0)) return toast.error("الكمية يجب أن تكون أكبر من صفر");
-    if (!(unit >= 0)) return toast.error("تكلفة الوحدة غير صحيحة");
+    let qty: number;
+    let unit: number;
+    if (addManualMode) {
+      const t = Number(addManualTotal);
+      if (!(t > 0)) return toast.error("أدخل مبلغاً إجمالياً أكبر من صفر");
+      qty = 1;
+      unit = t;
+    } else {
+      qty = Number(addQuantity);
+      unit = Number(addUnitCost);
+      if (!(qty > 0)) return toast.error("الكمية يجب أن تكون أكبر من صفر");
+      if (!(unit >= 0)) return toast.error("تكلفة الوحدة غير صحيحة");
+    }
     setSubmitting(true);
     const { error } = await supabase.from("budget_items" as any).insert({
       committee_id: addCommitteeId,
@@ -373,6 +467,7 @@ export function BudgetOverviewPanel() {
       unit_cost: unit,
       notes: addNotes.trim() || null,
       assigned_by_finance: true,
+      is_manual_total: addManualMode,
       created_by: user?.id ?? null,
     } as any);
     setSubmitting(false);
@@ -382,7 +477,9 @@ export function BudgetOverviewPanel() {
     setAddOpen(false);
   };
 
-  const addDraftTotal = (Number(addQuantity) || 0) * (Number(addUnitCost) || 0);
+  const addDraftTotal = addManualMode
+    ? Number(addManualTotal) || 0
+    : (Number(addQuantity) || 0) * (Number(addUnitCost) || 0);
 
   if (loading) {
     return (
@@ -708,16 +805,27 @@ export function BudgetOverviewPanel() {
               <Label>اسم البند</Label>
               <Input value={addItemName} onChange={(e) => setAddItemName(e.target.value)} placeholder="مثال: طباعة كروت الدعوة" />
             </div>
-            <div className="grid grid-cols-2 gap-2">
+            <label className="flex items-center gap-2 text-xs cursor-pointer rounded-md border bg-muted/20 px-3 py-2">
+              <input type="checkbox" checked={addManualMode} onChange={(e) => setAddManualMode(e.target.checked)} />
+              <span>إدخال المبلغ الإجمالي يدوياً (بدون كمية × سعر)</span>
+            </label>
+            {addManualMode ? (
               <div className="space-y-1.5">
-                <Label>الكمية</Label>
-                <Input type="number" min={0} step="0.01" value={addQuantity} onChange={(e) => setAddQuantity(e.target.value)} dir="ltr" />
+                <Label>المبلغ الإجمالي (ر.س)</Label>
+                <Input type="number" min="0.01" step="any" value={addManualTotal} onChange={(e) => setAddManualTotal(e.target.value)} dir="ltr" />
               </div>
-              <div className="space-y-1.5">
-                <Label>تكلفة الوحدة (ر.س)</Label>
-                <Input type="number" min={0} step="0.01" value={addUnitCost} onChange={(e) => setAddUnitCost(e.target.value)} dir="ltr" />
+            ) : (
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-1.5">
+                  <Label>الكمية</Label>
+                  <Input type="number" min={0} step="0.01" value={addQuantity} onChange={(e) => setAddQuantity(e.target.value)} dir="ltr" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>تكلفة الوحدة (ر.س)</Label>
+                  <Input type="number" min={0} step="0.01" value={addUnitCost} onChange={(e) => setAddUnitCost(e.target.value)} dir="ltr" />
+                </div>
               </div>
-            </div>
+            )}
             <div className="space-y-1.5">
               <Label>ملاحظات (اختياري)</Label>
               <Input value={addNotes} onChange={(e) => setAddNotes(e.target.value)} />
