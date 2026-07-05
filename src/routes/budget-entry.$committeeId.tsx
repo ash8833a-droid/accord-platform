@@ -136,8 +136,8 @@ function BudgetEntryPage() {
     let payload = editDraft;
     if (editManualMode) {
       const total = Number(editManualTotal);
-      if (!(total >= 0) || !editDraft.item_name.trim()) {
-        return toast.error("أدخل اسم البند والمبلغ الإجمالي");
+      if (!(total > 0) || !editDraft.item_name.trim()) {
+        return toast.error("أدخل اسم البند ومبلغاً إجمالياً أكبر من صفر");
       }
       payload = { ...editDraft, quantity: "1", unit_cost: String(total) };
     } else {
