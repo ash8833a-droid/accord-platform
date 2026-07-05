@@ -6,7 +6,7 @@ import { PageGate } from "@/components/PageGate";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { BudgetExceptionNotice } from "@/components/BudgetExceptionNotice";
 
 const FinanceModule = lazy(() =>
   import("@/components/FinanceModule").then((m) => ({ default: m.FinanceModule }))
