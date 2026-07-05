@@ -230,6 +230,26 @@ function BudgetEntryPage() {
               onChange={(e) => setDraft({ ...draft, item_name: e.target.value })}
               className="h-11"
             />
+            <label className="flex items-center gap-2 text-xs bg-muted/40 rounded-md px-2 py-1.5 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={manualMode}
+                onChange={(e) => setManualMode(e.target.checked)}
+                className="h-4 w-4 accent-primary"
+              />
+              <span>إدخال المبلغ الإجمالي يدوياً (بدون كمية × سعر)</span>
+            </label>
+            {manualMode ? (
+              <Input
+                type="number"
+                inputMode="decimal"
+                placeholder="المبلغ الإجمالي (ر.س)"
+                value={manualTotal}
+                onChange={(e) => setManualTotal(e.target.value)}
+                className="h-11"
+                dir="ltr"
+              />
+            ) : (
             <div className="grid grid-cols-2 gap-2">
               <Input
                 type="number"
@@ -250,6 +270,7 @@ function BudgetEntryPage() {
                 dir="ltr"
               />
             </div>
+            )}
             <Input
               placeholder="ملاحظات (اختياري)"
               value={draft.notes}
@@ -258,7 +279,7 @@ function BudgetEntryPage() {
             />
             <div className="flex items-center justify-between pt-1">
               <span className="text-xs text-muted-foreground">
-                الإجمالي: <span className="font-bold text-primary">{fmt(draftTotal)} ر.س</span>
+                الإجمالي: <span className="font-bold text-primary">{fmt(manualMode ? Number(manualTotal) || 0 : draftTotal)} ر.س</span>
               </span>
               <Button
                 onClick={handleAdd}
