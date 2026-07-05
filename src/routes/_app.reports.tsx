@@ -164,6 +164,8 @@ function ReportsPage() {
         loadHtml={() => buildQualityCommitteesReportHtml({ authorName: undefined })}
       />
 
+      <BudgetExceptionNotice />
+
       {/* Operational plan — Quality Committee */}
       {(() => {
         const quality = committees.find((c: any) => (c as any).type === "quality") ?? committees.find((c) => c.name?.includes("الجودة"));

@@ -924,6 +924,7 @@ function CommitteePage() {
 
       {type === "finance" && (
         <QualitySection storageKey={`committee:${type}:finance`} title="الوحدة المالية" icon={WalletIcon} defaultOpen>
+          <BudgetExceptionNotice />
           <div className="rounded-2xl border bg-card p-5 shadow-soft">
             <FinanceModule />
           </div>

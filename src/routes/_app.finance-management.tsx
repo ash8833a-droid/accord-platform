@@ -82,6 +82,7 @@ function FinanceManagementInner() {
         subtitle="المحفظة، ممثلو الأسر، الاشتراكات، وطلبات الصرف الواردة"
         icon={Banknote}
       />
+      <BudgetExceptionNotice />
       {allowed ? (
         <Suspense fallback={<PageFallback />}>
           <FinanceModule />
