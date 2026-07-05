@@ -243,6 +243,8 @@ function BudgetEntryPage() {
               <Input
                 type="number"
                 inputMode="decimal"
+                min="0.01"
+                step="any"
                 placeholder="المبلغ الإجمالي (ر.س)"
                 value={manualTotal}
                 onChange={(e) => setManualTotal(e.target.value)}
