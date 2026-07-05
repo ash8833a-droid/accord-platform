@@ -122,13 +122,13 @@ function BudgetEntryPage() {
 
   const startEdit = (it: BudgetItem) => {
     setEditingId(it.id);
-    const isManual = Number(it.quantity) === 1;
+    const isManual = !!it.is_manual_total;
     setEditManualMode(isManual);
     setEditManualTotal(isManual ? String(it.total_cost) : "");
     setEditDraft({
       item_name: it.item_name,
-      quantity: String(it.quantity),
-      unit_cost: String(it.unit_cost),
+      quantity: String(isManual ? 1 : it.quantity),
+      unit_cost: String(isManual ? it.total_cost : it.unit_cost),
       notes: it.notes ?? "",
     });
   };
