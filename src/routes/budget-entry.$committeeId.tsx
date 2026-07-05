@@ -34,6 +34,10 @@ function BudgetEntryPage() {
   const [adding, setAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editDraft, setEditDraft] = useState<Draft>(EMPTY);
+  const [manualMode, setManualMode] = useState(false);
+  const [manualTotal, setManualTotal] = useState("");
+  const [editManualMode, setEditManualMode] = useState(false);
+  const [editManualTotal, setEditManualTotal] = useState("");
 
   const load = async () => {
     const { data, error } = await supabase.rpc("public_get_budget_for_committee" as any, {
@@ -88,24 +92,37 @@ function BudgetEntryPage() {
   };
 
   const handleAdd = async () => {
-    const err = validateDraft(draft);
-    if (err) return toast.error(err);
+    let payload = draft;
+    if (manualMode) {
+      const total = Number(manualTotal);
+      if (!(total >= 0) || !draft.item_name.trim()) {
+        return toast.error("أدخل اسم البند والمبلغ الإجمالي");
+      }
+      payload = { ...draft, quantity: "1", unit_cost: String(total) };
+    } else {
+      const err = validateDraft(draft);
+      if (err) return toast.error(err);
+    }
     setAdding(true);
     const { error } = await supabase.rpc("public_add_budget_item" as any, {
       _committee_id: committeeId,
-      _item_name: draft.item_name.trim(),
-      _quantity: Number(draft.quantity),
-      _unit_cost: Number(draft.unit_cost),
-      _notes: draft.notes.trim() || null,
+      _item_name: payload.item_name.trim(),
+      _quantity: Number(payload.quantity),
+      _unit_cost: Number(payload.unit_cost),
+      _notes: payload.notes.trim() || null,
     });
     setAdding(false);
     if (error) return toast.error("تعذّر الإضافة", { description: error.message });
     toast.success("تمت إضافة البند");
     setDraft(EMPTY);
+    setManualTotal("");
   };
 
   const startEdit = (it: BudgetItem) => {
     setEditingId(it.id);
+    const isManual = Number(it.quantity) === 1;
+    setEditManualMode(isManual);
+    setEditManualTotal(isManual ? String(it.total_cost) : "");
     setEditDraft({
       item_name: it.item_name,
       quantity: String(it.quantity),
@@ -116,15 +133,24 @@ function BudgetEntryPage() {
 
   const saveEdit = async () => {
     if (!editingId) return;
-    const err = validateDraft(editDraft);
-    if (err) return toast.error(err);
+    let payload = editDraft;
+    if (editManualMode) {
+      const total = Number(editManualTotal);
+      if (!(total >= 0) || !editDraft.item_name.trim()) {
+        return toast.error("أدخل اسم البند والمبلغ الإجمالي");
+      }
+      payload = { ...editDraft, quantity: "1", unit_cost: String(total) };
+    } else {
+      const err = validateDraft(editDraft);
+      if (err) return toast.error(err);
+    }
     const { error } = await supabase.rpc("public_update_budget_item" as any, {
       _item_id: editingId,
       _committee_id: committeeId,
-      _item_name: editDraft.item_name.trim(),
-      _quantity: Number(editDraft.quantity),
-      _unit_cost: Number(editDraft.unit_cost),
-      _notes: editDraft.notes.trim() || null,
+      _item_name: payload.item_name.trim(),
+      _quantity: Number(payload.quantity),
+      _unit_cost: Number(payload.unit_cost),
+      _notes: payload.notes.trim() || null,
     });
     if (error) return toast.error("تعذّر التحديث", { description: error.message });
     toast.success("تم الحفظ");
