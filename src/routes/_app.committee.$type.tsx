@@ -29,6 +29,7 @@ import { CommitteeMinutes } from "@/components/CommitteeMinutes";
 import { CommitteeMembersPanel } from "@/components/CommitteeMembersPanel";
 import { QuickResponseBar } from "@/components/QuickResponseBar";
 import { GroomFollowups } from "@/components/committee/GroomFollowups";
+import { GroomExtraRequests } from "@/components/committee/GroomExtraRequests";
 import { GroomsPage } from "@/routes/_app.grooms";
 import { QualityAuditPanel } from "@/components/quality/QualityAuditPanel";
 import { EvaluationPlanBuilder } from "@/components/quality/EvaluationPlanBuilder";
@@ -909,6 +910,17 @@ function CommitteePage() {
       <QualitySection storageKey={`committee:${type}:grooms`} title="متابعة العرسان" icon={HeartHandshake}>
         <GroomFollowups committeeType={type as any} />
       </QualitySection>
+
+      {type === "procurement" && (
+        <QualitySection
+          storageKey={`committee:${type}:groom-extras`}
+          title="طلبات الزيادة من العرسان"
+          icon={PackagePlus}
+          defaultOpen
+        >
+          <GroomExtraRequests />
+        </QualitySection>
+      )}
 
       {type === "finance" && (
         <QualitySection storageKey={`committee:${type}:finance`} title="الوحدة المالية" icon={WalletIcon} defaultOpen>
