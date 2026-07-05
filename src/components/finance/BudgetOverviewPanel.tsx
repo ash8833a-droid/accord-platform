@@ -688,12 +688,29 @@ export function BudgetOverviewPanel() {
                                           <td className="px-3 py-2">
                                             <Input value={editName} onChange={(e) => setEditName(e.target.value)} className="h-8 text-xs" />
                                             <Input placeholder="ملاحظات" value={editNotes} onChange={(e) => setEditNotes(e.target.value)} className="h-8 text-xs mt-1" />
+                                            <label className="mt-1 flex items-center gap-1 text-[10px] text-muted-foreground cursor-pointer">
+                                              <input type="checkbox" checked={editManualMode} onChange={(e) => setEditManualMode(e.target.checked)} />
+                                              <span>إدخال المبلغ يدوياً</span>
+                                            </label>
                                           </td>
-                                          <td className="px-3 py-2"><Input type="number" value={editQty} onChange={(e) => setEditQty(e.target.value)} className="h-8 text-xs" dir="ltr" /></td>
-                                          <td className="px-3 py-2"><Input type="number" value={editUnit} onChange={(e) => setEditUnit(e.target.value)} className="h-8 text-xs" dir="ltr" /></td>
-                                          <td className="px-3 py-2 font-semibold text-primary tabular-nums">
-                                            {fmt((Number(editQty) || 0) * (Number(editUnit) || 0))} ر.س
-                                          </td>
+                                          {editManualMode ? (
+                                            <>
+                                              <td className="px-3 py-2" colSpan={2}>
+                                                <Input type="number" min="0.01" step="any" placeholder="المبلغ الإجمالي" value={editManualTotal} onChange={(e) => setEditManualTotal(e.target.value)} className="h-8 text-xs" dir="ltr" />
+                                              </td>
+                                              <td className="px-3 py-2 font-semibold text-primary tabular-nums">
+                                                {fmt(Number(editManualTotal) || 0)} ر.س
+                                              </td>
+                                            </>
+                                          ) : (
+                                            <>
+                                              <td className="px-3 py-2"><Input type="number" value={editQty} onChange={(e) => setEditQty(e.target.value)} className="h-8 text-xs" dir="ltr" /></td>
+                                              <td className="px-3 py-2"><Input type="number" value={editUnit} onChange={(e) => setEditUnit(e.target.value)} className="h-8 text-xs" dir="ltr" /></td>
+                                              <td className="px-3 py-2 font-semibold text-primary tabular-nums">
+                                                {fmt((Number(editQty) || 0) * (Number(editUnit) || 0))} ر.س
+                                              </td>
+                                            </>
+                                          )}
                                           <td className="px-3 py-2">
                                             <div className="flex items-center gap-1">
                                               <Button size="sm" onClick={() => saveEdit(r)} disabled={savingEdit} className="h-7 px-2 gap-1">
