@@ -2,11 +2,26 @@ import roadmapAsset from "@/assets/procurement-roadmap.png.asset.json";
 import {
   Download, Map, Sparkles, ClipboardList, Target, Users, ClipboardCheck,
   Truck, BarChart3, ShieldCheck, AlertTriangle, TrendingUp, X, ZoomIn,
-  ChevronDown, type LucideIcon,
+  ChevronDown, FileSpreadsheet, Printer, Circle, Loader2, CheckCircle2,
+  type LucideIcon,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import * as XLSX from "xlsx";
+import { printHtmlDocument } from "@/lib/print-frame";
+import { BRAND_LOGO_DATA_URI } from "@/assets/brand-logo";
+
+type StageStatus = "todo" | "in_progress" | "completed";
+
+const STATUS_META: Record<StageStatus, { label: string; cls: string; icon: LucideIcon; hex: string }> = {
+  todo:        { label: "قائمة الانتظار", cls: "bg-slate-100 text-slate-700 border-slate-300",   icon: Circle,        hex: "#64748b" },
+  in_progress: { label: "قيد التنفيذ",    cls: "bg-sky-100 text-sky-800 border-sky-300",         icon: Loader2,       hex: "#0284c7" },
+  completed:   { label: "مكتملة",         cls: "bg-emerald-100 text-emerald-800 border-emerald-300", icon: CheckCircle2, hex: "#059669" },
+};
+const STATUS_ORDER: StageStatus[] = ["todo", "in_progress", "completed"];
 
 type Stage = {
   id: string;
