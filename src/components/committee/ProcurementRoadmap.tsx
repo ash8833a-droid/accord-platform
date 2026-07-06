@@ -234,7 +234,7 @@ export function ProcurementRoadmap() {
       if (cancelled || error || !data) return;
       setProgress((prev) => {
         const next = { ...prev };
-        (data as Array<{ stage_id: string; status: StageStatus }>).forEach((r) => {
+        (data as unknown as Array<{ stage_id: string; status: StageStatus }>).forEach((r) => {
           if (r.stage_id in next) next[r.stage_id] = r.status;
         });
         return next;
