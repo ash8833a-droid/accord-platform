@@ -2,11 +2,26 @@ import roadmapAsset from "@/assets/procurement-roadmap.png.asset.json";
 import {
   Download, Map, Sparkles, ClipboardList, Target, Users, ClipboardCheck,
   Truck, BarChart3, ShieldCheck, AlertTriangle, TrendingUp, X, ZoomIn,
-  ChevronDown, type LucideIcon,
+  ChevronDown, FileSpreadsheet, Printer, Circle, Loader2, CheckCircle2,
+  type LucideIcon,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import * as XLSX from "xlsx";
+import { printHtmlDocument } from "@/lib/print-frame";
+import { BRAND_LOGO_DATA_URI } from "@/assets/brand-logo";
+
+type StageStatus = "todo" | "in_progress" | "completed";
+
+const STATUS_META: Record<StageStatus, { label: string; cls: string; icon: LucideIcon; hex: string }> = {
+  todo:        { label: "قائمة الانتظار", cls: "bg-slate-100 text-slate-700 border-slate-300",   icon: Circle,        hex: "#64748b" },
+  in_progress: { label: "قيد التنفيذ",    cls: "bg-sky-100 text-sky-800 border-sky-300",         icon: Loader2,       hex: "#0284c7" },
+  completed:   { label: "مكتملة",         cls: "bg-emerald-100 text-emerald-800 border-emerald-300", icon: CheckCircle2, hex: "#059669" },
+};
+const STATUS_ORDER: StageStatus[] = ["todo", "in_progress", "completed"];
 
 type Stage = {
   id: string;
@@ -204,6 +219,177 @@ export function ProcurementRoadmap() {
   const [activeId, setActiveId] = useState<string>(STAGES[0].id);
   const active = STAGES.find((s) => s.id === activeId) ?? STAGES[0];
 
+  // ---------- Progress persistence ----------
+  const [progress, setProgress] = useState<Record<string, StageStatus>>(() =>
+    Object.fromEntries(STAGES.map((s) => [s.id, "todo" as StageStatus])),
+  );
+  const [savingId, setSavingId] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { data, error } = await supabase
+        .from("procurement_roadmap_progress" as any)
+        .select("stage_id, status");
+      if (cancelled || error || !data) return;
+      setProgress((prev) => {
+        const next = { ...prev };
+        (data as unknown as Array<{ stage_id: string; status: StageStatus }>).forEach((r) => {
+          if (r.stage_id in next) next[r.stage_id] = r.status;
+        });
+        return next;
+      });
+    })();
+
+    const ch = supabase
+      .channel("procurement_roadmap_progress")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "procurement_roadmap_progress" },
+        (payload: any) => {
+          const row = (payload.new ?? payload.old) as { stage_id?: string; status?: StageStatus } | undefined;
+          if (!row?.stage_id) return;
+          setProgress((prev) => ({ ...prev, [row.stage_id!]: (row.status as StageStatus) ?? "todo" }));
+        },
+      )
+      .subscribe();
+
+    return () => {
+      cancelled = true;
+      supabase.removeChannel(ch);
+    };
+  }, []);
+
+  const saveStatus = async (stageId: string, status: StageStatus) => {
+    const prev = progress[stageId];
+    setProgress((p) => ({ ...p, [stageId]: status }));
+    setSavingId(stageId);
+    const { data: userRes } = await supabase.auth.getUser();
+    const { error } = await supabase
+      .from("procurement_roadmap_progress" as any)
+      .upsert(
+        { stage_id: stageId, status, updated_by: userRes.user?.id ?? null } as any,
+        { onConflict: "stage_id" },
+      );
+    setSavingId(null);
+    if (error) {
+      setProgress((p) => ({ ...p, [stageId]: prev }));
+      toast.error("تعذّر حفظ حالة المرحلة (تحقق من الصلاحيات)");
+    } else {
+      toast.success("تم حفظ حالة المرحلة");
+    }
+  };
+
+  const stats = useMemo(() => {
+    const total = STAGES.length;
+    const done = STAGES.filter((s) => progress[s.id] === "completed").length;
+    const inProg = STAGES.filter((s) => progress[s.id] === "in_progress").length;
+    const pct = Math.round((done / total) * 100);
+    return { total, done, inProg, pct };
+  }, [progress]);
+
+  // ---------- Export ----------
+  const exportExcel = () => {
+    const rows = STAGES.map((s, i) => ({
+      "الترتيب": i + 1,
+      "المرحلة": s.title,
+      "العنوان الفرعي": s.subtitle,
+      "الحالة": STATUS_META[progress[s.id]].label,
+      "عدد البنود": s.items.length,
+      "التفاصيل": s.items.map((it, k) => `${k + 1}. ${it}`).join("\n"),
+    }));
+    const ws = XLSX.utils.json_to_sheet(rows);
+    ws["!cols"] = [
+      { wch: 8 }, { wch: 34 }, { wch: 26 }, { wch: 14 }, { wch: 10 }, { wch: 80 },
+    ];
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "خارطة الطريق");
+    XLSX.writeFile(wb, "خارطة-طريق-لجنة-المشتريات.xlsx");
+    toast.success("تم تصدير ملف Excel");
+  };
+
+  const exportPdf = async () => {
+    const esc = (s: string) => s.replace(/[&<>"']/g, (c) => (
+      c === "&" ? "&amp;" : c === "<" ? "&lt;" : c === ">" ? "&gt;" : c === '"' ? "&quot;" : "&#39;"
+    ));
+    const stagesHtml = STAGES.map((s, i) => {
+      const st = STATUS_META[progress[s.id]];
+      return `
+        <section class="stage">
+          <div class="stage-head">
+            <div class="num">${i + 1}</div>
+            <div class="title">
+              <div class="t">${esc(s.title)}</div>
+              <div class="sub">${esc(s.subtitle)}</div>
+            </div>
+            <div class="status" style="background:${st.hex}20;color:${st.hex};border-color:${st.hex}55">
+              ${esc(st.label)}
+            </div>
+          </div>
+          <ul>${s.items.map((it) => `<li>${esc(it)}</li>`).join("")}</ul>
+        </section>`;
+    }).join("");
+
+    const html = `
+      <style>
+        .doc { max-width: 190mm; margin: 0 auto; color: #1f2937; font-size: 12.5px; line-height: 1.7; }
+        .header {
+          display:flex;align-items:center;gap:14px;padding:14px 16px;
+          border:1px solid #e5e7eb;border-radius:14px;
+          background:linear-gradient(180deg,#f0fdfa,#ffffff);
+        }
+        .header img { width: 58px; height: 58px; object-fit: contain; }
+        .header .meta { font-size: 11px; color:#64748b; }
+        .header h1 { margin: 2px 0 0; font-size: 19px; color:#0f172a; }
+        .cover { margin: 10px 0 6px; }
+        .cover img { width: 100%; border: 1px solid #e5e7eb; border-radius: 10px; }
+        .kpis { display:flex; gap:10px; margin: 10px 0 6px; }
+        .kpi { flex:1; border:1px solid #e5e7eb; border-radius:10px; padding:8px 10px; text-align:center; }
+        .kpi .v { font-size:18px; font-weight:800; color:#0e7490; }
+        .kpi .l { font-size:10.5px; color:#64748b; }
+        .stage { break-inside: avoid; margin-top: 10px; border:1px solid #e5e7eb; border-radius:12px; padding: 10px 12px; }
+        .stage-head { display:flex; align-items:center; gap:10px; }
+        .stage-head .num {
+          width:28px;height:28px;border-radius:50%;
+          background:#0e7490;color:#fff;font-weight:800;
+          display:flex;align-items:center;justify-content:center;font-size:12px;
+        }
+        .stage-head .title .t { font-weight:800; color:#0f172a; font-size:13.5px; }
+        .stage-head .title .sub { font-size:11px; color:#64748b; }
+        .stage-head .status {
+          margin-inline-start:auto;border:1px solid;border-radius:999px;
+          padding:2px 10px;font-size:11px;font-weight:700;
+        }
+        .stage ul { padding-inline-start:20px; margin: 6px 0 0; }
+        .stage li { margin: 2px 0; }
+        .footer { margin-top:10px; padding-top:6px; border-top:1px dashed #cbd5e1;
+          font-size:10px; color:#94a3b8; display:flex; justify-content:space-between; }
+      </style>
+      <div class="doc">
+        <div class="header">
+          <img src="${BRAND_LOGO_DATA_URI}" alt="شعار" />
+          <div style="flex:1">
+            <div class="meta">لجنة الزواج الجماعي · لجنة المشتريات</div>
+            <h1>خارطة طريق لجنة المشتريات</h1>
+          </div>
+        </div>
+        <div class="kpis">
+          <div class="kpi"><div class="v">${stats.pct}%</div><div class="l">نسبة الإنجاز</div></div>
+          <div class="kpi"><div class="v">${stats.done}</div><div class="l">مكتملة</div></div>
+          <div class="kpi"><div class="v">${stats.inProg}</div><div class="l">قيد التنفيذ</div></div>
+          <div class="kpi"><div class="v">${stats.total}</div><div class="l">إجمالي المراحل</div></div>
+        </div>
+        <div class="cover"><img src="${roadmapAsset.url}" alt="خارطة" /></div>
+        ${stagesHtml}
+        <div class="footer">
+          <span>وثيقة مؤسسية — لجنة الزواج الجماعي</span>
+          <span>${new Date().toLocaleDateString("ar-SA")}</span>
+        </div>
+      </div>
+    `;
+    await printHtmlDocument(html, "خارطة طريق لجنة المشتريات");
+  };
+
   // Compute background zoom for the map crop
   const zoomStyle = {
     backgroundImage: `url(${roadmapAsset.url})`,
@@ -238,14 +424,50 @@ export function ProcurementRoadmap() {
             </p>
           </div>
         </div>
-        <a
-          href={roadmapAsset.url}
-          download="خارطة-طريق-لجنة-المشتريات.png"
-          className="inline-flex items-center gap-2 rounded-xl border border-primary/20 bg-white/70 backdrop-blur px-3.5 py-2 text-[12px] font-semibold text-primary hover:bg-primary hover:text-primary-foreground transition-colors shadow-sm"
-        >
-          <Download className="h-4 w-4" />
-          تحميل الخارطة
-        </a>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={exportPdf}
+            className="inline-flex items-center gap-2 rounded-xl border border-rose-500/30 bg-white/80 backdrop-blur px-3 py-2 text-[12px] font-semibold text-rose-700 hover:bg-rose-500 hover:text-white transition-colors shadow-sm"
+          >
+            <Printer className="h-4 w-4" /> PDF
+          </button>
+          <button
+            type="button"
+            onClick={exportExcel}
+            className="inline-flex items-center gap-2 rounded-xl border border-emerald-500/30 bg-white/80 backdrop-blur px-3 py-2 text-[12px] font-semibold text-emerald-700 hover:bg-emerald-500 hover:text-white transition-colors shadow-sm"
+          >
+            <FileSpreadsheet className="h-4 w-4" /> Excel
+          </button>
+          <a
+            href={roadmapAsset.url}
+            download="خارطة-طريق-لجنة-المشتريات.png"
+            className="inline-flex items-center gap-2 rounded-xl border border-primary/20 bg-white/70 backdrop-blur px-3 py-2 text-[12px] font-semibold text-primary hover:bg-primary hover:text-primary-foreground transition-colors shadow-sm"
+          >
+            <Download className="h-4 w-4" /> صورة
+          </a>
+        </div>
+      </div>
+
+      {/* Overall progress bar */}
+      <div className="relative px-6 pt-4">
+        <div className="rounded-2xl border bg-white/70 backdrop-blur p-3 shadow-sm">
+          <div className="flex items-center justify-between text-[12px] font-semibold text-slate-700 mb-2">
+            <span>الإنجاز الإجمالي للخارطة</span>
+            <span className="text-primary">{stats.done} / {stats.total} · {stats.pct}%</span>
+          </div>
+          <div className="h-2.5 rounded-full bg-slate-200 overflow-hidden">
+            <div
+              className="h-full rounded-full bg-gradient-to-r from-emerald-400 via-teal-500 to-primary transition-[width] duration-700 ease-out"
+              style={{ width: `${stats.pct}%` }}
+            />
+          </div>
+          <div className="mt-2 flex flex-wrap gap-3 text-[11px] text-slate-500">
+            <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-emerald-500" /> مكتملة {stats.done}</span>
+            <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-sky-500" /> قيد التنفيذ {stats.inProg}</span>
+            <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-slate-400" /> بالانتظار {stats.total - stats.done - stats.inProg}</span>
+          </div>
+        </div>
       </div>
 
       {/* Stage chips (clickable) */}
@@ -254,6 +476,8 @@ export function ProcurementRoadmap() {
           {STAGES.map((s) => {
             const isActive = s.id === activeId;
             const IconEl = s.icon;
+            const st = STATUS_META[progress[s.id]];
+            const StIcon = st.icon;
             return (
               <button
                 key={s.id}
@@ -278,6 +502,15 @@ export function ProcurementRoadmap() {
                 </span>
                 <IconEl className="h-3.5 w-3.5" />
                 <span className="whitespace-nowrap">{s.title}</span>
+                <span
+                  className={cn(
+                    "inline-flex items-center gap-1 rounded-full border px-1.5 py-0.5 text-[10px] font-bold",
+                    st.cls,
+                  )}
+                  title={st.label}
+                >
+                  <StIcon className={cn("h-3 w-3", progress[s.id] === "in_progress" && "animate-spin")} />
+                </span>
               </button>
             );
           })}
@@ -361,6 +594,42 @@ export function ProcurementRoadmap() {
               </li>
             ))}
           </ul>
+
+          {/* Status controls */}
+          <div className="mt-5 rounded-xl border border-slate-200 bg-slate-50/60 p-3">
+            <div className="text-[11px] font-bold text-slate-600 mb-2 flex items-center justify-between">
+              <span>حالة هذه المرحلة</span>
+              {savingId === active.id && (
+                <span className="inline-flex items-center gap-1 text-primary">
+                  <Loader2 className="h-3 w-3 animate-spin" /> جاري الحفظ
+                </span>
+              )}
+            </div>
+            <div className="grid grid-cols-3 gap-1.5">
+              {STATUS_ORDER.map((s) => {
+                const meta = STATUS_META[s];
+                const Icon = meta.icon;
+                const isOn = progress[active.id] === s;
+                return (
+                  <button
+                    key={s}
+                    type="button"
+                    onClick={() => saveStatus(active.id, s)}
+                    className={cn(
+                      "inline-flex items-center justify-center gap-1.5 rounded-lg border px-2 py-2 text-[11.5px] font-semibold transition-all",
+                      isOn
+                        ? `${meta.cls} ring-2 ring-offset-1 shadow-sm scale-[1.02]`
+                        : "bg-white text-slate-600 border-slate-200 hover:border-slate-300 hover:bg-slate-50",
+                    )}
+                    aria-pressed={isOn}
+                  >
+                    <Icon className={cn("h-3.5 w-3.5", isOn && s === "in_progress" && "animate-spin")} />
+                    {meta.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
 
           {/* nav arrows */}
           <div className="mt-5 flex items-center justify-between text-[12px]">
