@@ -214,6 +214,8 @@ export function ProcurementRoadmap() {
     backgroundRepeat: "no-repeat",
   } as React.CSSProperties;
 
+  const ActiveIcon = active.icon;
+
   return (
     <div className="relative overflow-hidden rounded-3xl border border-primary/15 bg-gradient-to-br from-[#f8fafc] via-white to-[#f0fdfa] shadow-soft">
       {/* Decorative glow */}
@@ -308,7 +310,7 @@ export function ProcurementRoadmap() {
               "absolute top-3 right-3 inline-flex items-center gap-1.5 rounded-full bg-white/95 backdrop-blur px-2.5 py-1 text-[11px] font-bold border",
               active.tone,
             )}>
-              <active.icon className="h-3.5 w-3.5" />
+              <ActiveIcon className="h-3.5 w-3.5" />
               {active.title}
             </div>
             <div className="absolute bottom-3 left-3 inline-flex items-center gap-1.5 rounded-full bg-white/90 text-slate-700 text-[11px] px-2.5 py-1 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -331,7 +333,7 @@ export function ProcurementRoadmap() {
               "h-11 w-11 shrink-0 rounded-2xl bg-gradient-to-br text-white flex items-center justify-center shadow-md",
               active.chip,
             )}>
-              <active.icon className="h-5 w-5" />
+              <ActiveIcon className="h-5 w-5" />
             </div>
             <div className="min-w-0">
               <div className="text-[11px] font-semibold text-slate-500">
