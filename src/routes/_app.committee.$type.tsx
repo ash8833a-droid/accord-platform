@@ -30,6 +30,7 @@ import { CommitteeMembersPanel } from "@/components/CommitteeMembersPanel";
 import { QuickResponseBar } from "@/components/QuickResponseBar";
 import { GroomFollowups } from "@/components/committee/GroomFollowups";
 import { GroomExtraRequests } from "@/components/committee/GroomExtraRequests";
+import { ProcurementRoadmap } from "@/components/committee/ProcurementRoadmap";
 import { GroomsPage } from "@/routes/_app.grooms";
 import { QualityAuditPanel } from "@/components/quality/QualityAuditPanel";
 import { EvaluationPlanBuilder } from "@/components/quality/EvaluationPlanBuilder";
@@ -920,6 +921,17 @@ function CommitteePage() {
           defaultOpen
         >
           <GroomExtraRequests />
+        </QualitySection>
+      )}
+
+      {type === "procurement" && (
+        <QualitySection
+          storageKey={`committee:${type}:roadmap`}
+          title="خارطة طريق لجنة المشتريات"
+          icon={Target}
+          defaultOpen
+        >
+          <ProcurementRoadmap />
         </QualitySection>
       )}
 
