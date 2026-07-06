@@ -33,6 +33,7 @@ import { CommitteeMinutes } from "@/components/CommitteeMinutes";
 import { BudgetItemsPanel } from "@/components/finance/BudgetItemsPanel";
 import { CreatePurchaseRequestForm } from "@/components/CreatePurchaseRequestForm";
 import { PurchasingDashboard } from "@/components/PurchasingDashboard";
+import { ProcurementRoadmap } from "@/components/committee/ProcurementRoadmap";
 
 
 interface CommitteeRow { id: string; name: string; type: string }
@@ -467,6 +468,11 @@ function TaskCenterInner({ canEdit }: { canEdit: boolean }) {
               )}
             </div>
           </section>
+          {activeCommittee.type === "procurement" && (
+            <section id="procurement-roadmap-section">
+              <ProcurementRoadmap />
+            </section>
+          )}
         </div>
       )}
 
