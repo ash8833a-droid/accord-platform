@@ -1,9 +1,9 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { signAlbumPaths } from "@/lib/media-album";
 import { parseMediaUrl } from "@/lib/media-url";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { Camera, Video as VideoIcon, X, ChevronLeft, ChevronRight, Play, Image as ImageIcon, Pause } from "lucide-react";
+import { Camera, Video as VideoIcon, X, ChevronLeft, ChevronRight, Play, Image as ImageIcon, Pause, Move, Maximize2, RotateCcw } from "lucide-react";
 
 interface Album {
   id: string;
@@ -125,7 +125,7 @@ export function PublicAlbumSection() {
         </div>
       </div>
 
-      <PhoneCarousel
+      <DraggableBannersStage
         key={`${selectedAlbum}-${mediaTab}`}
         items={activeList}
         signed={signed}
@@ -163,183 +163,293 @@ function MediaTabBtn({
   );
 }
 
-function PhoneCarousel({
+type Placement = { x: number; y: number; w: number; h: number };
+
+function DraggableBannersStage({
   items, signed, onOpen,
 }: { items: Item[]; signed: Record<string, string>; onOpen: (idx: number) => void }) {
-  const scrollerRef = useRef<HTMLDivElement | null>(null);
+  const stageRef = useRef<HTMLDivElement | null>(null);
+  const panelRef = useRef<HTMLDivElement | null>(null);
+  const [placement, setPlacement] = useState<Placement | null>(null);
+  const [dragging, setDragging] = useState(false);
+  const [resizing, setResizing] = useState(false);
   const [index, setIndex] = useState(0);
   const [playing, setPlaying] = useState(true);
 
-  // Auto-advance
+  // Initialize placement based on stage size
   useEffect(() => {
-    if (!playing || items.length <= 1) return;
-    const t = setInterval(() => {
-      setIndex((i) => (i + 1) % items.length);
-    }, 3800);
-    return () => clearInterval(t);
-  }, [playing, items.length]);
+    const stage = stageRef.current;
+    if (!stage || placement) return;
+    const rect = stage.getBoundingClientRect();
+    const w = Math.min(880, rect.width - 40);
+    const h = Math.min(460, rect.height - 40);
+    setPlacement({
+      x: Math.max(0, (rect.width - w) / 2),
+      y: 20,
+      w,
+      h,
+    });
+  }, [placement]);
 
-  // Scroll to index
-  useEffect(() => {
-    const el = scrollerRef.current;
-    if (!el) return;
-    const child = el.children[index] as HTMLElement | undefined;
-    if (child) el.scrollTo({ left: child.offsetLeft, behavior: "smooth" });
-  }, [index]);
-
-  // Track manual scroll
-  const onScroll = () => {
-    const el = scrollerRef.current;
-    if (!el) return;
-    const width = el.clientWidth;
-    const i = Math.round(el.scrollLeft / width);
-    if (i !== index) setIndex(i);
+  const reset = () => {
+    const stage = stageRef.current;
+    if (!stage) return;
+    const rect = stage.getBoundingClientRect();
+    const w = Math.min(880, rect.width - 40);
+    const h = Math.min(460, rect.height - 40);
+    setPlacement({ x: Math.max(0, (rect.width - w) / 2), y: 20, w, h });
   };
 
-  if (items.length === 0) {
-    return (
-      <PhoneFrame>
-        <div className="h-full w-full flex flex-col items-center justify-center text-white/70 gap-2">
-          <ImageIcon className="h-10 w-10 opacity-50" />
-          <span className="text-sm">لا يوجد محتوى بعد</span>
-        </div>
-      </PhoneFrame>
-    );
-  }
+  // Auto-advance
+  useEffect(() => {
+    if (!playing || items.length <= 1 || dragging || resizing) return;
+    const t = setInterval(() => {
+      setIndex((i) => (i + 1) % items.length);
+    }, 3600);
+    return () => clearInterval(t);
+  }, [playing, items.length, dragging, resizing]);
+
+  // Drag handler (header)
+  const startDrag = (e: React.PointerEvent) => {
+    if (!placement || !stageRef.current) return;
+    (e.target as Element).setPointerCapture(e.pointerId);
+    setDragging(true);
+    const startX = e.clientX;
+    const startY = e.clientY;
+    const orig = { ...placement };
+    const stageRect = stageRef.current.getBoundingClientRect();
+
+    const move = (ev: PointerEvent) => {
+      const dx = ev.clientX - startX;
+      const dy = ev.clientY - startY;
+      const nx = Math.min(Math.max(0, orig.x + dx), stageRect.width - orig.w);
+      const ny = Math.min(Math.max(0, orig.y + dy), stageRect.height - orig.h);
+      setPlacement({ ...orig, x: nx, y: ny });
+    };
+    const up = () => {
+      setDragging(false);
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+    };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+  };
+
+  // Resize handler
+  const startResize = (e: React.PointerEvent) => {
+    if (!placement || !stageRef.current) return;
+    e.stopPropagation();
+    (e.target as Element).setPointerCapture(e.pointerId);
+    setResizing(true);
+    const startX = e.clientX;
+    const startY = e.clientY;
+    const orig = { ...placement };
+    const stageRect = stageRef.current.getBoundingClientRect();
+
+    const move = (ev: PointerEvent) => {
+      // Resize handle is on the LEFT-bottom (RTL bottom-start)
+      const dx = ev.clientX - startX;
+      const dy = ev.clientY - startY;
+      const newW = Math.min(Math.max(360, orig.w - dx), stageRect.width - orig.x);
+      const newH = Math.min(Math.max(260, orig.h + dy), stageRect.height - orig.y);
+      setPlacement({ ...orig, w: newW, h: newH });
+    };
+    const up = () => {
+      setResizing(false);
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+    };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+  };
+
+  // The three banners: prev / current / next
+  const banners = items.length
+    ? [-1, 0, 1].map((off) => {
+        const i = ((index + off) % items.length + items.length) % items.length;
+        return { item: items[i], realIndex: i, offset: off };
+      })
+    : [];
 
   return (
-    <div className="flex flex-col items-center">
-      <PhoneFrame>
+    <div
+      ref={stageRef}
+      className="relative w-full rounded-2xl overflow-hidden border border-border/60 bg-gradient-to-br from-muted/40 via-background to-muted/20"
+      style={{
+        height: "min(640px, 78vh)",
+        minHeight: 480,
+        backgroundImage:
+          "radial-gradient(circle at 20% 20%, oklch(0.82 0.1 90 / 0.10), transparent 40%), radial-gradient(circle at 80% 80%, oklch(0.55 0.15 200 / 0.10), transparent 45%), linear-gradient(0deg, transparent 24px, oklch(0.55 0.02 200 / 0.06) 25px), linear-gradient(90deg, transparent 24px, oklch(0.55 0.02 200 / 0.06) 25px)",
+        backgroundSize: "auto, auto, 25px 25px, 25px 25px",
+      }}
+      dir="ltr"
+    >
+      {/* Hint pill */}
+      <div className="absolute top-3 left-3 z-10 inline-flex items-center gap-1.5 rounded-full bg-background/80 backdrop-blur px-2.5 py-1 text-[10px] font-semibold text-muted-foreground border border-border/60 pointer-events-none">
+        <Move className="h-3 w-3" /> اسحب الرأس • غيّر الحجم من الزاوية
+      </div>
+      <button
+        onClick={reset}
+        className="absolute top-3 right-3 z-10 inline-flex items-center gap-1 rounded-full bg-background/80 backdrop-blur px-2.5 py-1 text-[10px] font-semibold text-muted-foreground border border-border/60 hover:text-foreground hover:bg-background"
+      >
+        <RotateCcw className="h-3 w-3" /> إعادة الترتيب
+      </button>
+
+      {placement && (
         <div
-          ref={scrollerRef}
-          onScroll={onScroll}
-          onMouseEnter={() => setPlaying(false)}
-          onMouseLeave={() => setPlaying(true)}
-          className="h-full w-full overflow-x-auto snap-x snap-mandatory flex scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          ref={panelRef}
+          className={`absolute rounded-2xl bg-card/95 backdrop-blur-xl border border-border shadow-[0_30px_80px_-20px_rgba(0,0,0,0.35)] ring-1 ring-primary/10 flex flex-col overflow-hidden select-none ${dragging || resizing ? "" : "transition-shadow"}`}
+          style={{
+            left: placement.x,
+            top: placement.y,
+            width: placement.w,
+            height: placement.h,
+          }}
+          dir="rtl"
         >
-          {items.map((it, idx) => {
-            const previewPath = it.thumbnail_url || (it.kind === "image" ? it.file_url : null);
-            const preview = previewPath ? signed[previewPath] : null;
-            return (
-              <button
-                key={it.id}
-                onClick={() => onOpen(idx)}
-                className="relative shrink-0 w-full h-full snap-center overflow-hidden group"
-              >
-                {preview ? (
-                  <img
-                    src={preview}
-                    alt={it.title ?? ""}
-                    loading="lazy"
-                    className="h-full w-full object-cover transition-transform duration-[6000ms] ease-out group-hover:scale-110"
-                  />
-                ) : (
-                  <div className="h-full w-full flex items-center justify-center bg-neutral-900 text-white/40">
-                    <VideoIcon className="h-10 w-10" />
-                  </div>
-                )}
-                {/* Gradient overlay */}
-                <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/70 to-transparent pointer-events-none" />
-                {it.kind === "video" && (
-                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                    <div className="h-16 w-16 rounded-full bg-white/15 backdrop-blur-md flex items-center justify-center shadow-2xl ring-1 ring-white/30 group-hover:scale-110 transition-transform">
-                      <Play className="h-7 w-7 text-white translate-x-[2px]" fill="white" />
-                    </div>
-                  </div>
-                )}
-                {it.title && (
-                  <div className="absolute bottom-3 inset-x-3 text-white text-xs font-semibold text-center drop-shadow">
-                    {it.title}
-                  </div>
-                )}
-                <div className="absolute top-3 left-3 rounded-full bg-black/40 backdrop-blur px-2 py-0.5 text-[10px] text-white font-semibold">
-                  {idx + 1} / {items.length}
-                </div>
-              </button>
-            );
-          })}
-        </div>
-      </PhoneFrame>
-
-      {/* Controls */}
-      <div className="flex items-center gap-3 mt-5">
-        <button
-          onClick={() => setIndex((i) => (i - 1 + items.length) % items.length)}
-          className="h-9 w-9 rounded-full border bg-card hover:bg-accent flex items-center justify-center transition-colors"
-          aria-label="السابق"
-        >
-          <ChevronRight className="h-4 w-4" />
-        </button>
-
-        <button
-          onClick={() => setPlaying((p) => !p)}
-          className="h-9 w-9 rounded-full bg-primary text-primary-foreground hover:opacity-90 flex items-center justify-center shadow-elegant"
-          aria-label={playing ? "إيقاف" : "تشغيل"}
-        >
-          {playing ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4 translate-x-[1px]" fill="currentColor" />}
-        </button>
-
-        <button
-          onClick={() => setIndex((i) => (i + 1) % items.length)}
-          className="h-9 w-9 rounded-full border bg-card hover:bg-accent flex items-center justify-center transition-colors"
-          aria-label="التالي"
-        >
-          <ChevronLeft className="h-4 w-4" />
-        </button>
-      </div>
-
-      {/* Dots */}
-      {items.length > 1 && items.length <= 20 && (
-        <div className="flex items-center gap-1.5 mt-4 flex-wrap justify-center max-w-md">
-          {items.map((_, i) => (
-            <button
-              key={i}
-              onClick={() => setIndex(i)}
-              className={`h-1.5 rounded-full transition-all ${i === index ? "w-6 bg-primary" : "w-1.5 bg-muted-foreground/30 hover:bg-muted-foreground/50"}`}
-              aria-label={`الانتقال إلى ${i + 1}`}
-            />
-          ))}
-        </div>
-      )}
-      {items.length > 20 && (
-        <div className="mt-4 text-xs text-muted-foreground font-mono tabular-nums">
-          {index + 1} / {items.length}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function PhoneFrame({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="relative mx-auto" style={{ width: "min(320px, 92vw)" }}>
-      {/* Ambient glow */}
-      <div
-        aria-hidden
-        className="absolute -inset-8 -z-10 rounded-[3rem] blur-3xl opacity-60"
-        style={{
-          background:
-            "radial-gradient(circle at 30% 20%, oklch(0.82 0.1 90 / 0.35), transparent 60%), radial-gradient(circle at 70% 80%, oklch(0.55 0.15 200 / 0.3), transparent 60%)",
-        }}
-      />
-      {/* Phone body */}
-      <div className="relative rounded-[2.5rem] p-2 bg-gradient-to-b from-neutral-800 via-neutral-900 to-black shadow-[0_30px_80px_-20px_rgba(0,0,0,0.6)] ring-1 ring-white/5">
-        {/* Side buttons */}
-        <span className="absolute right-[-3px] top-24 h-10 w-[3px] rounded-l bg-neutral-700" />
-        <span className="absolute left-[-3px] top-20 h-6 w-[3px] rounded-r bg-neutral-700" />
-        <span className="absolute left-[-3px] top-32 h-12 w-[3px] rounded-r bg-neutral-700" />
-        <span className="absolute left-[-3px] top-48 h-12 w-[3px] rounded-r bg-neutral-700" />
-
-        {/* Screen */}
-        <div className="relative rounded-[2rem] overflow-hidden bg-black" style={{ aspectRatio: "9 / 16" }}>
-          {/* Dynamic island */}
-          <div className="absolute top-2 left-1/2 -translate-x-1/2 z-20 h-6 w-24 rounded-full bg-black ring-1 ring-white/10 flex items-center justify-end pr-2 gap-1">
-            <span className="h-1.5 w-1.5 rounded-full bg-neutral-700" />
-            <span className="h-1 w-1 rounded-full bg-neutral-800" />
+          {/* Header (drag handle) */}
+          <div
+            onPointerDown={startDrag}
+            className={`h-10 shrink-0 flex items-center gap-2 px-3 border-b bg-gradient-to-l from-muted/60 to-card ${dragging ? "cursor-grabbing" : "cursor-grab"}`}
+          >
+            <div className="flex items-center gap-1.5">
+              <span className="h-2.5 w-2.5 rounded-full bg-[oklch(0.72_0.18_25)]" />
+              <span className="h-2.5 w-2.5 rounded-full bg-[oklch(0.82_0.15_85)]" />
+              <span className="h-2.5 w-2.5 rounded-full bg-[oklch(0.72_0.18_150)]" />
+            </div>
+            <div className="flex-1 text-center text-[11px] font-semibold text-muted-foreground tracking-wide">
+              معرض الوسائط · {items.length ? `${index + 1} / ${items.length}` : "0"}
+            </div>
+            <Move className="h-3.5 w-3.5 text-muted-foreground/60" />
           </div>
-          {children}
+
+          {/* Body: 3 banners */}
+          <div className="flex-1 relative bg-gradient-to-br from-background to-muted/30 overflow-hidden">
+            {items.length === 0 ? (
+              <div className="h-full w-full flex flex-col items-center justify-center text-muted-foreground gap-2">
+                <ImageIcon className="h-10 w-10 opacity-50" />
+                <span className="text-sm">لا يوجد محتوى بعد</span>
+              </div>
+            ) : (
+              <div className="h-full w-full flex items-stretch gap-3 p-4">
+                {banners.map(({ item, realIndex, offset }) => {
+                  const isCenter = offset === 0;
+                  const previewPath = item.thumbnail_url || (item.kind === "image" ? item.file_url : null);
+                  const preview = previewPath ? signed[previewPath] : null;
+                  return (
+                    <button
+                      key={`${item.id}-${offset}`}
+                      onClick={() => {
+                        if (isCenter) onOpen(realIndex);
+                        else setIndex(realIndex);
+                      }}
+                      className={`group relative overflow-hidden rounded-xl border shadow-lg transition-all duration-500 ease-out ${
+                        isCenter
+                          ? "flex-[2] ring-2 ring-primary/60 scale-100 opacity-100"
+                          : "flex-[1] opacity-70 hover:opacity-95 scale-[0.96] hover:scale-[0.99]"
+                      }`}
+                      style={{ minWidth: 0 }}
+                    >
+                      {preview ? (
+                        <img
+                          src={preview}
+                          alt={item.title ?? ""}
+                          loading="lazy"
+                          className={`h-full w-full object-cover transition-transform duration-[6000ms] ease-out ${isCenter ? "group-hover:scale-110" : ""}`}
+                        />
+                      ) : (
+                        <div className="h-full w-full flex items-center justify-center bg-neutral-900 text-white/40">
+                          <VideoIcon className="h-10 w-10" />
+                        </div>
+                      )}
+                      <div className="absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-black/85 via-black/40 to-transparent pointer-events-none" />
+                      {item.kind === "video" && (
+                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                          <div className={`rounded-full bg-white/15 backdrop-blur-md flex items-center justify-center shadow-2xl ring-1 ring-white/30 transition-transform ${isCenter ? "h-14 w-14" : "h-9 w-9"}`}>
+                            <Play className={`text-white translate-x-[2px] ${isCenter ? "h-6 w-6" : "h-4 w-4"}`} fill="white" />
+                          </div>
+                        </div>
+                      )}
+                      <div className={`absolute top-2 right-2 rounded-full bg-black/50 backdrop-blur px-2 py-0.5 font-semibold text-white ${isCenter ? "text-[11px]" : "text-[10px]"}`}>
+                        {realIndex + 1}
+                      </div>
+                      {isCenter && item.title && (
+                        <div className="absolute bottom-3 inset-x-3 text-white text-sm font-semibold text-center drop-shadow-lg">
+                          {item.title}
+                        </div>
+                      )}
+                      {isCenter && (
+                        <div className="absolute top-2 left-2 rounded-full bg-primary/90 text-primary-foreground px-2 py-0.5 text-[10px] font-bold">
+                          الحالي
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Footer controls */}
+          <div className="h-12 shrink-0 flex items-center justify-between px-3 border-t bg-gradient-to-r from-card to-muted/40">
+            <div className="flex items-center gap-1.5">
+              <button
+                onClick={() => setIndex((i) => (i - 1 + Math.max(1, items.length)) % Math.max(1, items.length))}
+                className="h-8 w-8 rounded-full border bg-background hover:bg-accent flex items-center justify-center"
+                aria-label="السابق"
+                disabled={items.length === 0}
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
+              <button
+                onClick={() => setPlaying((p) => !p)}
+                className="h-8 w-8 rounded-full bg-primary text-primary-foreground hover:opacity-90 flex items-center justify-center shadow"
+                aria-label={playing ? "إيقاف" : "تشغيل"}
+                disabled={items.length === 0}
+              >
+                {playing ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4 translate-x-[1px]" fill="currentColor" />}
+              </button>
+              <button
+                onClick={() => setIndex((i) => (i + 1) % Math.max(1, items.length))}
+                className="h-8 w-8 rounded-full border bg-background hover:bg-accent flex items-center justify-center"
+                aria-label="التالي"
+                disabled={items.length === 0}
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+            </div>
+
+            {/* Progress dots */}
+            <div className="flex-1 mx-3 flex items-center gap-1 justify-center overflow-hidden">
+              {items.slice(0, 30).map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setIndex(i)}
+                  className={`h-1.5 rounded-full transition-all ${i === index % Math.max(1, items.length) ? "w-6 bg-primary" : "w-1.5 bg-muted-foreground/30 hover:bg-muted-foreground/50"}`}
+                  aria-label={`عنصر ${i + 1}`}
+                />
+              ))}
+              {items.length > 30 && (
+                <span className="text-[10px] text-muted-foreground mr-1 tabular-nums">+{items.length - 30}</span>
+              )}
+            </div>
+
+            <span className="text-[10px] text-muted-foreground font-mono tabular-nums">
+              {Math.round(placement.w)}×{Math.round(placement.h)}
+            </span>
+          </div>
+
+          {/* Resize handle (bottom-left in RTL) */}
+          <div
+            onPointerDown={startResize}
+            className={`absolute bottom-1 left-1 h-6 w-6 rounded-md flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-primary/10 ${resizing ? "cursor-nesw-resize text-primary" : "cursor-nesw-resize"}`}
+            style={{ touchAction: "none" }}
+            aria-label="تغيير الحجم"
+          >
+            <Maximize2 className="h-3.5 w-3.5 -scale-x-100" />
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
