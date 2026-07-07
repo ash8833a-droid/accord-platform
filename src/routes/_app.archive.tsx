@@ -573,13 +573,20 @@ function SmartDistributePanel({
 
   const processOne = async (item: DistItem) => {
     try {
+      // 0) Compress large media before anything else
+      let workFile = item.file;
+      if (workFile.size > COMPRESS_TARGET_SIZE) {
+        update(item.id, { status: "uploading" });
+        workFile = await compressIfNeeded(workFile, COMPRESS_TARGET_SIZE);
+      }
+
       // 1) Temporary upload under inbox/ so analyzer can fetch it
       update(item.id, { status: "uploading" });
-      const tempPath = safeStorageKey(item.file.name, `${year}/_inbox`);
+      const tempPath = safeStorageKey(workFile.name, `${year}/_inbox`);
       const { error: upErr } = await supabase.storage
         .from("wedding-archive")
-        .upload(tempPath, item.file, {
-          contentType: item.file.type || "application/octet-stream",
+        .upload(tempPath, workFile, {
+          contentType: workFile.type || "application/octet-stream",
           upsert: false,
         });
       if (upErr) throw new Error(upErr.message);
@@ -589,15 +596,15 @@ function SmartDistributePanel({
       const result = await analyzeFn({
         data: {
           storage_path: tempPath,
-          filename: item.file.name,
-          mime_type: item.file.type || "",
+          filename: workFile.name,
+          mime_type: workFile.type || "",
           description: "",
           wedding_year: year,
         },
       });
 
       // 3) Move to category folder (copy + remove)
-      const finalPath = safeStorageKey(item.file.name, `${year}/${result.category}`);
+      const finalPath = safeStorageKey(workFile.name, `${year}/${result.category}`);
       const { error: mvErr } = await supabase.storage
         .from("wedding-archive")
         .move(tempPath, finalPath);
@@ -608,11 +615,11 @@ function SmartDistributePanel({
       const { error: insErr } = await supabase.from("wedding_archive_items").insert({
         wedding_year: year,
         category: result.category,
-        title: result.suggested_title || item.file.name.replace(/\.[^.]+$/, ""),
+        title: result.suggested_title || workFile.name.replace(/\.[^.]+$/, ""),
         description: result.summary || null,
         file_url: usedPath,
-        file_type: item.file.type,
-        file_size: item.file.size,
+        file_type: workFile.type,
+        file_size: workFile.size,
         created_by: userId,
       });
       if (insErr) throw new Error(insErr.message);
