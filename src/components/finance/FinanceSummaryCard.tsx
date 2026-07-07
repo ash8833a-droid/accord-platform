@@ -16,7 +16,7 @@ export function FinanceSummaryCard({
 }: Props) {
   const revenues = groomSubsTotal + familyContribTotal + deficitShareTotal;
   const balance = revenues - expensesTotal;
-  const burn = revenues > 0 ? Math.min(100, (expensesTotal / revenues) * 100) : 0;
+  const burn = revenues > 0 ? (expensesTotal / revenues) * 100 : 0;
 
   const revenueData = [
     { name: "اشتراكات العرسان", value: groomSubsTotal, color: "hsl(190 80% 40%)" },
