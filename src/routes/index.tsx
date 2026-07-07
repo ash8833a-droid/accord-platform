@@ -17,6 +17,7 @@ import {
   Handshake,
 } from "lucide-react";
 import { DotsPattern } from "@/components/decor/DotsPattern";
+import { PublicAlbumSection } from "@/components/album/PublicAlbumSection";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -315,6 +316,9 @@ function PublicHome() {
           />
         </div>
       </section>
+
+      {/* Public media album */}
+      <PublicAlbumSection />
 
       {/* Closing strip — different message, no repeated buttons */}
       <section className="max-w-7xl mx-auto px-4 lg:px-8 pb-16">

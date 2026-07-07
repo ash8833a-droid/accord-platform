@@ -957,6 +957,86 @@ export type Database = {
           },
         ]
       }
+      media_albums: {
+        Row: {
+          cover_url: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          is_published: boolean
+          sort_order: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          cover_url?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_published?: boolean
+          sort_order?: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          cover_url?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_published?: boolean
+          sort_order?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      media_items: {
+        Row: {
+          album_id: string
+          created_at: string
+          created_by: string | null
+          file_url: string
+          id: string
+          kind: string
+          sort_order: number
+          thumbnail_url: string | null
+          title: string | null
+        }
+        Insert: {
+          album_id: string
+          created_at?: string
+          created_by?: string | null
+          file_url: string
+          id?: string
+          kind: string
+          sort_order?: number
+          thumbnail_url?: string | null
+          title?: string | null
+        }
+        Update: {
+          album_id?: string
+          created_at?: string
+          created_by?: string | null
+          file_url?: string
+          id?: string
+          kind?: string
+          sort_order?: number
+          thumbnail_url?: string | null
+          title?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "media_items_album_id_fkey"
+            columns: ["album_id"]
+            isOneToOne: false
+            referencedRelation: "media_albums"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       membership_requests: {
         Row: {
           assigned_committee_id: string | null
