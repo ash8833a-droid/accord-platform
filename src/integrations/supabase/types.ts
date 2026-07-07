@@ -904,6 +904,59 @@ export type Database = {
         }
         Relationships: []
       }
+      invoices: {
+        Row: {
+          amount: number
+          attachment_url: string | null
+          committee_id: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          invoice_date: string
+          invoice_number: string
+          notes: string | null
+          updated_at: string
+          vendor: string
+        }
+        Insert: {
+          amount: number
+          attachment_url?: string | null
+          committee_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          invoice_date: string
+          invoice_number: string
+          notes?: string | null
+          updated_at?: string
+          vendor: string
+        }
+        Update: {
+          amount?: number
+          attachment_url?: string | null
+          committee_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          invoice_date?: string
+          invoice_number?: string
+          notes?: string | null
+          updated_at?: string
+          vendor?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoices_committee_id_fkey"
+            columns: ["committee_id"]
+            isOneToOne: false
+            referencedRelation: "committees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       membership_requests: {
         Row: {
           assigned_committee_id: string | null
