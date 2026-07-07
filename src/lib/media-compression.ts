@@ -31,13 +31,17 @@ function replaceExt(name: string, newExt: string) {
 }
 
 export async function compressImage(file: File): Promise<File> {
-  // Load
-  const bmpSrc: ImageBitmapSource = file;
+  // Load — first try native decoding, fall back to HEIC WASM decoder
   let bitmap: ImageBitmap;
   try {
-    bitmap = await createImageBitmap(bmpSrc);
+    bitmap = await createImageBitmap(file);
   } catch {
-    return file; // Unsupported (e.g. HEIC on some browsers)
+    const decoded = await decodeHeicToBitmap(file);
+    if (!decoded) {
+      // Last resort: ask the server to convert.
+      return await serverConvert(file);
+    }
+    bitmap = decoded;
   }
 
   const { width, height } = bitmap;
@@ -62,6 +66,41 @@ export async function compressImage(file: File): Promise<File> {
     type: "image/jpeg",
     lastModified: Date.now(),
   });
+}
+
+/** Try to decode a HEIC/HEIF file using the browser-side libheif WASM. */
+async function decodeHeicToBitmap(file: File): Promise<ImageBitmap | null> {
+  const isHeic =
+    /image\/hei[cf]/i.test(file.type) ||
+    /\.(heic|heif)$/i.test(file.name);
+  if (!isHeic) return null;
+  try {
+    const { heicTo } = await import("heic-to");
+    const jpegBlob = await heicTo({ blob: file, type: "image/jpeg", quality: 0.9 });
+    return await createImageBitmap(jpegBlob);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Server-side conversion fallback. Sends the file to /api/convert-media
+ * which converts HEIC → JPEG using libheif. Videos are refused with a clear
+ * message (Cloudflare Workers cannot transcode video without a native ffmpeg).
+ */
+async function serverConvert(file: File): Promise<File> {
+  try {
+    const fd = new FormData();
+    fd.append("file", file, file.name);
+    const res = await fetch("/api/convert-media", { method: "POST", body: fd });
+    if (!res.ok) return file;
+    const blob = await res.blob();
+    const outName = res.headers.get("x-filename") || replaceExt(file.name, "jpg");
+    const outType = res.headers.get("content-type") || "image/jpeg";
+    return new File([blob], outName, { type: outType, lastModified: Date.now() });
+  } catch {
+    return file;
+  }
 }
 
 export async function compressVideo(
@@ -90,7 +129,8 @@ export async function compressVideo(
     });
   } catch {
     URL.revokeObjectURL(url);
-    return file;
+    // Browser can't decode this codec (often HEVC in .mov). Try server.
+    return await serverConvert(file);
   }
 
   const srcW = video.videoWidth;
