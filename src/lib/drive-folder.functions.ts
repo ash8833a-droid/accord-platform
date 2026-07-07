@@ -24,14 +24,13 @@ export const listDriveFolder = createServerFn({ method: "POST" })
     }
     const html = await res.text();
 
-    // Each entry looks like:
-    //   <a href="https://drive.google.com/file/d/FILE_ID/view?usp=drive_web"
-    //      class="flip-entry-link" ...>
-    //     <div class="flip-entry-title">NAME.jpg</div>
-    //     ... class="flip-entry-last-modified" ...
+    // Each entry is an anchor like:
+    //   <a href="https://drive.google.com/file/d/FILE_ID/view?usp=drive_web" ...>
+    //     <div ...>NAME.ext</div>
     //   </a>
+    // The filename shows up as the anchor's visible text; strip inner tags.
     const entryRe =
-      /<a[^>]+href="https:\/\/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]{15,})\/view[^"]*"[\s\S]*?<div class="flip-entry-title">([^<]+)<\/div>/g;
+      /href="https:\/\/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]{15,})\/view[^"]*"[^>]*>([\s\S]*?)<\/a>/g;
 
     type Item = { id: string; name: string; kind: "image" | "video" | "other" };
     const seen = new Set<string>();
@@ -41,7 +40,7 @@ export const listDriveFolder = createServerFn({ method: "POST" })
       const id = m[1];
       if (seen.has(id)) continue;
       seen.add(id);
-      const name = m[2].trim();
+      const name = m[2].replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
       const isImg = /\.(png|jpe?g|webp|gif|avif|heic|heif|bmp|tiff?)$/i.test(name);
       const isVid = /\.(mp4|mov|m4v|webm|mkv|avi|ogv|3gp)$/i.test(name);
       items.push({ id, name, kind: isImg ? "image" : isVid ? "video" : "other" });
