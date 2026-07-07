@@ -782,6 +782,8 @@ export function exportFinanceComprehensivePDF(
   td.amt { font-weight:800; color:${exportBrand.primary_color}; font-variant-numeric:tabular-nums; }
   tr.tot td { background:${hexToRgba(exportBrand.gold_color,0.15)} !important; font-size:9.5pt; }
   tr.fam td.fam-h { background:${hexToRgba(exportBrand.primary_color,0.08)}; color:${exportBrand.primary_color}; text-align:right; font-weight:800; font-size:10pt; padding:7px 10px; border-right:4px solid ${exportBrand.gold_color}; }
+  tr.fam-sub td { background:${hexToRgba(exportBrand.gold_color,0.10)} !important; font-size:9.5pt; border-top:1px solid ${hexToRgba(exportBrand.gold_color,0.4)}; }
+  tr.fam-sub td.ttl { text-align:right; color:${exportBrand.primary_color}; }
 
   .empty { text-align:center; padding:20px; color:#9CA3AF; font-size:10pt; border:2px dashed #E5E7EB; border-radius:10px; }
 
