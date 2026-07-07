@@ -446,6 +446,22 @@ function escapeHtml(s: string) {
     .replace(/"/g, "&quot;");
 }
 
+/* ---------- group by family (Arabic-aware sort) ---------- */
+function groupByFamily<T extends { __branch: string; __name: string }>(
+  rows: T[],
+): Array<[string, T[]]> {
+  const map = new Map<string, T[]>();
+  rows.forEach((r) => {
+    const key = (r.__branch || "غير محدد").toString().trim() || "غير محدد";
+    if (!map.has(key)) map.set(key, []);
+    map.get(key)!.push(r);
+  });
+  const cmp = new Intl.Collator("ar", { numeric: true, sensitivity: "base" }).compare;
+  const sorted = Array.from(map.entries()).sort(([a], [b]) => cmp(a, b));
+  sorted.forEach(([, items]) => items.sort((a, b) => cmp(a.__name || "", b.__name || "")));
+  return sorted;
+}
+
 /* ---------- color helpers ---------- */
 function hexToRgba(hex: string, alpha: number): string {
   const m = /^#?([a-f\d]{6})$/i.exec(hex.trim());
