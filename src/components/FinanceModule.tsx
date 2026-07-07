@@ -458,6 +458,8 @@ export function FinanceModule() {
         deficitShareTotal={deficitShareTotal}
       />
 
+      <FinanceReconciliationAlerts canFix={canManage} onFixed={load} />
+
       <Tabs defaultValue="overview" dir="rtl">
         <TabsList className="flex flex-wrap h-auto w-full justify-start gap-1">
           <TabsTrigger value="overview" className="gap-2">
