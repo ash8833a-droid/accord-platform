@@ -513,13 +513,13 @@ export function AlbumAdminPanel() {
               <Textarea
                 dir="ltr"
                 rows={6}
-                placeholder={"https://youtube.com/watch?v=...\nhttps://drive.google.com/file/d/FILE_ID/view\nhttps://example.com/image.jpg"}
+                placeholder={"https://youtube.com/watch?v=...\nhttps://drive.google.com/drive/folders/FOLDER_ID\nhttps://drive.google.com/file/d/FILE_ID/view\nhttps://example.com/image.jpg"}
                 value={urlInput}
                 onChange={(e) => setUrlInput(e.target.value)}
                 className="font-mono text-xs"
               />
               <p className="text-xs text-muted-foreground">
-                الصق عدة روابط دفعة واحدة (سطر لكل رابط). يدعم YouTube و Vimeo و Google Drive (ملفات مفردة) وروابط الصور/الفيديو المباشرة. لمجلدات Drive: افتح المجلد، حدّد الملفات، انسخ روابطها والصقها هنا.
+                الصق عدة روابط دفعة واحدة (سطر لكل رابط). يدعم YouTube و Vimeo وروابط الصور/الفيديو المباشرة و <strong>مجلدات Google Drive</strong> (يتم استخراج جميع الصور والفيديوهات تلقائيًا — يجب أن يكون المجلد مشاركًا على «Anyone with the link»).
               </p>
             </div>
             {/drive\.google\.com/i.test(urlInput) && (
