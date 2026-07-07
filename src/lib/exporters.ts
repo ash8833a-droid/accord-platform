@@ -532,7 +532,9 @@ export function exportFinanceComprehensivePDF(
         );
         const rows: string[] = [];
         grouped.forEach(([branch, items]: [string, any[]]) => {
-          rows.push(`<tr class="fam"><td colspan="6" class="fam-h">أسرة: ${escapeHtml(branch)} · ${items.length} عريس</td></tr>`);
+          const subContrib = items.reduce((s: number, g: any) => s + Number(g.groom_contribution || 0), 0);
+          const subDeficit = items.reduce((s: number, g: any) => s + Number(g.deficit_share || 0), 0);
+          rows.push(`<tr class="fam"><td colspan="6" class="fam-h">أسرة: ${escapeHtml(branch)} · ${items.length} عريس · مساهمات ${fmt(subContrib)} ر.س · عجز ${fmt(subDeficit)} ر.س</td></tr>`);
           items.forEach((g: any, i: number) => {
             rows.push(`<tr>
               <td>${i + 1}</td>
@@ -543,6 +545,7 @@ export function exportFinanceComprehensivePDF(
               <td>${g.contribution_paid ? '<span style="color:#166534;font-weight:700">مدفوعة</span>' : '<span style="color:#92400E">غير مدفوعة</span>'}</td>
             </tr>`);
           });
+          rows.push(`<tr class="fam-sub"><td colspan="3" class="ttl"><b>إجمالي أسرة ${escapeHtml(branch)}</b></td><td class="amt"><b>${fmt(subContrib)}</b></td><td class="amt"><b>${fmt(subDeficit)}</b></td><td></td></tr>`);
         });
         return `<table>
           <thead><tr><th style="width:5%">#</th><th>اسم العريس</th><th>الأسرة</th><th>المساهمة (ر.س)</th><th>حصة العجز</th><th>الحالة</th></tr></thead>
@@ -565,7 +568,9 @@ export function exportFinanceComprehensivePDF(
         );
         const rows: string[] = [];
         grouped.forEach(([branch, items]: [string, any[]]) => {
-          rows.push(`<tr class="fam"><td colspan="6" class="fam-h">أسرة: ${escapeHtml(branch)} · ${items.length} ممثل</td></tr>`);
+          const subCount = items.reduce((s: number, d: any) => s + Number(d.subs_count || 0), 0);
+          const subCollected = items.reduce((s: number, d: any) => s + Number(d.collected || 0), 0);
+          rows.push(`<tr class="fam"><td colspan="6" class="fam-h">أسرة: ${escapeHtml(branch)} · ${items.length} ممثل · ${fmt(subCount)} اشتراك · ${fmt(subCollected)} ر.س</td></tr>`);
           items.forEach((d: any, i: number) => {
             rows.push(`<tr>
               <td>${i + 1}</td>
@@ -576,6 +581,7 @@ export function exportFinanceComprehensivePDF(
               <td class="amt">${fmt(d.collected)}</td>
             </tr>`);
           });
+          rows.push(`<tr class="fam-sub"><td colspan="4" class="ttl"><b>إجمالي أسرة ${escapeHtml(branch)}</b></td><td><b>${fmt(subCount)}</b></td><td class="amt"><b>${fmt(subCollected)}</b></td></tr>`);
         });
         return `<table>
           <thead><tr><th style="width:5%">#</th><th>ممثل الأسرة</th><th>الأسرة</th><th>الجوال</th><th>عدد الاشتراكات</th><th>المحصّل (ر.س)</th></tr></thead>
@@ -613,6 +619,7 @@ export function exportFinanceComprehensivePDF(
               <td>${escapeHtml(String(r.ref))}</td>
             </tr>`);
           });
+          rows.push(`<tr class="fam-sub"><td colspan="3" class="ttl"><b>إجمالي أسرة ${escapeHtml(branch)}</b></td><td class="amt"><b>${fmt(sub)}</b></td><td></td></tr>`);
         });
         return `<table>
           <thead><tr><th style="width:5%">#</th><th>اسم المساهم</th><th>الأسرة</th><th>المبلغ (ر.س)</th><th>المرجع</th></tr></thead>
