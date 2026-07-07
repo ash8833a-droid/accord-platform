@@ -129,7 +129,7 @@ export async function fetchVimeoThumbnail(id: string): Promise<string | null> {
 }
 
 /** Detect provider for an already-stored external URL (used by the viewer). */
-export function detectProvider(url: string): "youtube" | "vimeo" | "direct" | null {
+export function detectProvider(url: string): "youtube" | "vimeo" | "gdrive" | "direct" | null {
   const p = parseMediaUrl(url);
   return p && "provider" in p ? p.provider : null;
 }
