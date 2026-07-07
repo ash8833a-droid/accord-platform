@@ -11,7 +11,8 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Loader2, Plus, Pencil, Trash2, Upload, Eye, EyeOff, Image as ImageIcon, Video, Link as LinkIcon } from "lucide-react";
+import { Loader2, Plus, Pencil, Trash2, Upload, Eye, EyeOff, Image as ImageIcon, Video, Link as LinkIcon, CheckSquare, Square } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { compressIfNeeded } from "@/lib/media-compression";
 import { extractVideoThumbnail } from "@/lib/video-thumbnail";
 import { uploadAlbumFile, signAlbumPaths, removeAlbumFiles } from "@/lib/media-album";
@@ -56,6 +57,9 @@ export function AlbumAdminPanel() {
   const [urlTitle, setUrlTitle] = useState("");
   const [urlKind, setUrlKind] = useState<"image" | "video">("image");
   const [urlBusy, setUrlBusy] = useState(false);
+  const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
+  const [confirmBulkDelete, setConfirmBulkDelete] = useState(false);
+  const [bulkBusy, setBulkBusy] = useState(false);
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -83,6 +87,45 @@ export function AlbumAdminPanel() {
 
   const currentAlbum = albums.find((a) => a.id === selected) ?? null;
   const currentItems = selected ? items[selected] ?? [] : [];
+
+  // Clear selection when switching album
+  useEffect(() => { setSelectedItems(new Set()); }, [selected]);
+
+  const toggleItemSelection = (id: string) => {
+    setSelectedItems((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+  const selectAllCurrent = () => setSelectedItems(new Set(currentItems.map((it) => it.id)));
+  const clearSelection = () => setSelectedItems(new Set());
+
+  const bulkDelete = async () => {
+    const ids = Array.from(selectedItems);
+    if (ids.length === 0) return;
+    setBulkBusy(true);
+    try {
+      const toRemove = currentItems.filter((it) => selectedItems.has(it.id));
+      const paths: (string | null)[] = [];
+      for (const it of toRemove) {
+        paths.push(it.file_url);
+        if (it.thumbnail_url) paths.push(it.thumbnail_url);
+      }
+      await removeAlbumFiles(paths);
+      const { error } = await supabase.from("media_items").delete().in("id", ids);
+      if (error) {
+        toast.error("فشل الحذف الجماعي", { description: error.message });
+        return;
+      }
+      toast.success(`تم حذف ${ids.length} عنصر`);
+      setConfirmBulkDelete(false);
+      setSelectedItems(new Set());
+      await refresh();
+    } finally {
+      setBulkBusy(false);
+    }
+  };
 
   const saveAlbum = async (form: { title: string; description: string; is_published: boolean }) => {
     if (!form.title.trim()) return toast.error("العنوان مطلوب");
@@ -426,12 +469,39 @@ export function AlbumAdminPanel() {
                   لا توجد وسائط في هذا الألبوم بعد.
                 </div>
               ) : (
+                <>
+                <div className="flex items-center gap-2 flex-wrap rounded-xl border bg-card p-3">
+                  <Button size="sm" variant="outline" className="gap-2" onClick={selectAllCurrent} disabled={selectedItems.size === currentItems.length}>
+                    <CheckSquare className="h-4 w-4" /> تحديد الكل ({currentItems.length})
+                  </Button>
+                  <Button size="sm" variant="outline" className="gap-2" onClick={clearSelection} disabled={selectedItems.size === 0}>
+                    <Square className="h-4 w-4" /> إلغاء التحديد
+                  </Button>
+                  <div className="flex-1" />
+                  {selectedItems.size > 0 && (
+                    <>
+                      <span className="text-sm text-muted-foreground">محدد: {selectedItems.size}</span>
+                      <Button size="sm" variant="destructive" className="gap-2" onClick={() => setConfirmBulkDelete(true)}>
+                        <Trash2 className="h-4 w-4" /> حذف المحدد
+                      </Button>
+                    </>
+                  )}
+                </div>
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
                   {currentItems.map((it) => {
                     const previewPath = it.thumbnail_url || (it.kind === "image" ? it.file_url : null);
                     const previewUrl = previewPath ? signed[previewPath] : null;
+                    const isSelected = selectedItems.has(it.id);
                     return (
-                      <div key={it.id} className="group relative rounded-xl overflow-hidden border bg-muted aspect-square">
+                      <div key={it.id} className={`group relative rounded-xl overflow-hidden border bg-muted aspect-square ${isSelected ? "ring-2 ring-primary" : ""}`}>
+                        <button
+                          type="button"
+                          onClick={() => toggleItemSelection(it.id)}
+                          className={`absolute top-2 right-2 z-20 h-7 w-7 rounded-md flex items-center justify-center transition-opacity ${isSelected ? "bg-primary text-primary-foreground opacity-100" : "bg-white/90 text-foreground opacity-0 group-hover:opacity-100"}`}
+                          aria-label={isSelected ? "إلغاء التحديد" : "تحديد"}
+                        >
+                          <Checkbox checked={isSelected} className="pointer-events-none" />
+                        </button>
                         {previewUrl ? (
                           <img src={previewUrl} alt={it.title ?? ""} className="h-full w-full object-cover" />
                         ) : (
@@ -458,6 +528,7 @@ export function AlbumAdminPanel() {
                     );
                   })}
                 </div>
+                </>
               )}
             </div>
           )}
@@ -497,6 +568,23 @@ export function AlbumAdminPanel() {
           <AlertDialogFooter>
             <AlertDialogCancel>إلغاء</AlertDialogCancel>
             <AlertDialogAction onClick={() => confirmDelItem && deleteItem(confirmDelItem)}>حذف</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={confirmBulkDelete} onOpenChange={(o) => !bulkBusy && setConfirmBulkDelete(o)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>حذف {selectedItems.size} عنصر؟</AlertDialogTitle>
+            <AlertDialogDescription>
+              سيتم حذف جميع الوسائط المحددة نهائيًا. لا يمكن التراجع.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={bulkBusy}>إلغاء</AlertDialogCancel>
+            <AlertDialogAction onClick={bulkDelete} disabled={bulkBusy}>
+              {bulkBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : "حذف"}
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
