@@ -328,10 +328,8 @@ export function FinanceModule() {
   const totalSubs = delegates.reduce((a, d) => a + (d.subs_count ?? 0), 0);
   const pendingCount = requests.filter((r) => r.status === "pending").length;
   const totalPaid = requests.filter((r) => r.status === "paid").reduce((a, r) => a + Number(r.amount), 0);
-  const expensesTotal = Math.max(
-    totalPaid,
-    committeesFull.reduce((s, c) => s + c.spent, 0)
-  );
+  // إجمالي المصروف = مجموع طلبات الصرف المدفوعة فعلياً فقط
+  const expensesTotal = totalPaid;
   // Groom revenues = confirmed delegate subscriptions + grooms.groom_contribution
   const groomSubsTotal = totalCollected + groomContribTotal;
   const fmt = (n: number) => new Intl.NumberFormat("ar-SA").format(n);
