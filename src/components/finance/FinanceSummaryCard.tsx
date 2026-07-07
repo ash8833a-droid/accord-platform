@@ -73,7 +73,7 @@ export function FinanceSummaryCard({
         <div className="h-2 rounded-full bg-muted overflow-hidden">
           <div
             className={`h-full transition-all ${burn <= 70 ? "bg-emerald-500" : burn <= 90 ? "bg-amber-500" : "bg-rose-500"}`}
-            style={{ width: `${burn}%` }}
+            style={{ width: `${Math.min(100, burn)}%` }}
           />
         </div>
       </div>
