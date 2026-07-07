@@ -531,7 +531,7 @@ export function exportFinanceComprehensivePDF(
           data.grooms.map((g) => ({ ...g, __branch: g.family_branch || "غير محدد", __name: g.full_name })),
         );
         const rows: string[] = [];
-        grouped.forEach(([branch, items]) => {
+        grouped.forEach(([branch, items]: [string, any[]]) => {
           rows.push(`<tr class="fam"><td colspan="6" class="fam-h">أسرة: ${escapeHtml(branch)} · ${items.length} عريس</td></tr>`);
           items.forEach((g: any, i: number) => {
             rows.push(`<tr>
@@ -564,7 +564,7 @@ export function exportFinanceComprehensivePDF(
           data.delegates.map((d) => ({ ...d, __branch: d.family_branch || "غير محدد", __name: d.full_name })),
         );
         const rows: string[] = [];
-        grouped.forEach(([branch, items]) => {
+        grouped.forEach(([branch, items]: [string, any[]]) => {
           rows.push(`<tr class="fam"><td colspan="6" class="fam-h">أسرة: ${escapeHtml(branch)} · ${items.length} ممثل</td></tr>`);
           items.forEach((d: any, i: number) => {
             rows.push(`<tr>
@@ -601,7 +601,7 @@ export function exportFinanceComprehensivePDF(
           fcRows.map((r) => ({ ...r, __branch: r.branch && r.branch !== "—" ? r.branch : "غير محدد", __name: r.name })),
         );
         const rows: string[] = [];
-        grouped.forEach(([branch, items]) => {
+        grouped.forEach(([branch, items]: [string, any[]]) => {
           const sub = items.reduce((s: number, r: any) => s + Number(r.amount || 0), 0);
           rows.push(`<tr class="fam"><td colspan="5" class="fam-h">أسرة: ${escapeHtml(branch)} · ${items.length} مساهم · ${fmt(sub)} ر.س</td></tr>`);
           items.forEach((r: any, i: number) => {
