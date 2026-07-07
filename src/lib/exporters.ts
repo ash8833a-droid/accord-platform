@@ -510,45 +510,69 @@ export function exportFinanceComprehensivePDF(
 
   const groomsTable = data.grooms.length === 0
     ? `<div class="empty">لا يوجد عرسان مسجلون</div>`
-    : `<table>
-      <thead><tr><th style="width:5%">#</th><th>اسم العريس</th><th>الأسرة</th><th>المساهمة (ر.س)</th><th>حصة العجز</th><th>الحالة</th></tr></thead>
-      <tbody>
-        ${data.grooms.map((g,i)=>`<tr>
-          <td>${i+1}</td>
-          <td class="ttl">${escapeHtml(g.full_name)}</td>
-          <td>${escapeHtml(g.family_branch)}</td>
-          <td class="amt">${fmt(g.groom_contribution)}</td>
-          <td class="amt">${fmt(g.deficit_share)}</td>
-          <td>${g.contribution_paid ? '<span style="color:#166534;font-weight:700">مدفوعة</span>' : '<span style="color:#92400E">غير مدفوعة</span>'}</td>
-        </tr>`).join("")}
-        <tr class="tot"><td colspan="3" class="ttl"><b>الإجمالي</b></td>
-          <td class="amt"><b>${fmt(data.grooms.reduce((s,g)=>s+Number(g.groom_contribution||0),0))}</b></td>
-          <td class="amt"><b>${fmt(data.grooms.reduce((s,g)=>s+Number(g.deficit_share||0),0))}</b></td>
-          <td></td>
-        </tr>
-      </tbody>
-    </table>`;
+    : (() => {
+        const grouped = groupByFamily(
+          data.grooms.map((g) => ({ ...g, __branch: g.family_branch || "غير محدد", __name: g.full_name })),
+        );
+        const rows: string[] = [];
+        grouped.forEach(([branch, items]) => {
+          rows.push(`<tr class="fam"><td colspan="6" class="fam-h">أسرة: ${escapeHtml(branch)} · ${items.length} عريس</td></tr>`);
+          items.forEach((g: any, i: number) => {
+            rows.push(`<tr>
+              <td>${i + 1}</td>
+              <td class="ttl">${escapeHtml(g.full_name)}</td>
+              <td>${escapeHtml(branch)}</td>
+              <td class="amt">${fmt(g.groom_contribution)}</td>
+              <td class="amt">${fmt(g.deficit_share)}</td>
+              <td>${g.contribution_paid ? '<span style="color:#166534;font-weight:700">مدفوعة</span>' : '<span style="color:#92400E">غير مدفوعة</span>'}</td>
+            </tr>`);
+          });
+        });
+        return `<table>
+          <thead><tr><th style="width:5%">#</th><th>اسم العريس</th><th>الأسرة</th><th>المساهمة (ر.س)</th><th>حصة العجز</th><th>الحالة</th></tr></thead>
+          <tbody>
+            ${rows.join("")}
+            <tr class="tot"><td colspan="3" class="ttl"><b>الإجمالي</b></td>
+              <td class="amt"><b>${fmt(data.grooms.reduce((s,g)=>s+Number(g.groom_contribution||0),0))}</b></td>
+              <td class="amt"><b>${fmt(data.grooms.reduce((s,g)=>s+Number(g.deficit_share||0),0))}</b></td>
+              <td></td>
+            </tr>
+          </tbody>
+        </table>`;
+      })();
 
   const delegatesTable = data.delegates.length === 0
     ? `<div class="empty">لا يوجد ممثلو أسر مسجّلون</div>`
-    : `<table>
-      <thead><tr><th style="width:5%">#</th><th>ممثل الأسرة</th><th>الأسرة</th><th>الجوال</th><th>عدد الاشتراكات</th><th>المحصّل (ر.س)</th></tr></thead>
-      <tbody>
-        ${data.delegates.map((d,i)=>`<tr>
-          <td>${i+1}</td>
-          <td class="ttl">${escapeHtml(d.full_name)}</td>
-          <td>${escapeHtml(d.family_branch)}</td>
-          <td dir="ltr">${escapeHtml(d.phone)}</td>
-          <td>${fmt(d.subs_count)}</td>
-          <td class="amt">${fmt(d.collected)}</td>
-        </tr>`).join("")}
-        <tr class="tot">
-          <td colspan="4" class="ttl"><b>الإجمالي</b></td>
-          <td><b>${fmt(data.delegates.reduce((s,d)=>s+(d.subs_count||0),0))}</b></td>
-          <td class="amt"><b>${fmt(data.delegates.reduce((s,d)=>s+(d.collected||0),0))}</b></td>
-        </tr>
-      </tbody>
-    </table>`;
+    : (() => {
+        const grouped = groupByFamily(
+          data.delegates.map((d) => ({ ...d, __branch: d.family_branch || "غير محدد", __name: d.full_name })),
+        );
+        const rows: string[] = [];
+        grouped.forEach(([branch, items]) => {
+          rows.push(`<tr class="fam"><td colspan="6" class="fam-h">أسرة: ${escapeHtml(branch)} · ${items.length} ممثل</td></tr>`);
+          items.forEach((d: any, i: number) => {
+            rows.push(`<tr>
+              <td>${i + 1}</td>
+              <td class="ttl">${escapeHtml(d.full_name)}</td>
+              <td>${escapeHtml(branch)}</td>
+              <td dir="ltr">${escapeHtml(d.phone)}</td>
+              <td>${fmt(d.subs_count)}</td>
+              <td class="amt">${fmt(d.collected)}</td>
+            </tr>`);
+          });
+        });
+        return `<table>
+          <thead><tr><th style="width:5%">#</th><th>ممثل الأسرة</th><th>الأسرة</th><th>الجوال</th><th>عدد الاشتراكات</th><th>المحصّل (ر.س)</th></tr></thead>
+          <tbody>
+            ${rows.join("")}
+            <tr class="tot">
+              <td colspan="4" class="ttl"><b>الإجمالي</b></td>
+              <td><b>${fmt(data.delegates.reduce((s,d)=>s+(d.subs_count||0),0))}</b></td>
+              <td class="amt"><b>${fmt(data.delegates.reduce((s,d)=>s+(d.collected||0),0))}</b></td>
+            </tr>
+          </tbody>
+        </table>`;
+      })();
 
   const fcRows = [
     ...data.familyContributions.map((f) => ({ name: f.donor_name, branch: "—", amount: f.amount, ref: f.date })),
@@ -556,22 +580,35 @@ export function exportFinanceComprehensivePDF(
   ];
   const contribTable = fcRows.length === 0
     ? `<div class="empty">لا توجد مساهمات مسجّلة</div>`
-    : `<table>
-      <thead><tr><th style="width:5%">#</th><th>اسم المساهم</th><th>الأسرة</th><th>المبلغ (ر.س)</th><th>المرجع</th></tr></thead>
-      <tbody>
-        ${fcRows.map((r,i)=>`<tr>
-          <td>${i+1}</td>
-          <td class="ttl">${escapeHtml(r.name)}</td>
-          <td>${escapeHtml(r.branch)}</td>
-          <td class="amt">${fmt(Number(r.amount||0))}</td>
-          <td>${escapeHtml(String(r.ref))}</td>
-        </tr>`).join("")}
-        <tr class="tot"><td colspan="3" class="ttl"><b>الإجمالي</b></td>
-          <td class="amt"><b>${fmt(fcRows.reduce((s,r)=>s+Number(r.amount||0),0))}</b></td>
-          <td></td>
-        </tr>
-      </tbody>
-    </table>`;
+    : (() => {
+        const grouped = groupByFamily(
+          fcRows.map((r) => ({ ...r, __branch: r.branch && r.branch !== "—" ? r.branch : "غير محدد", __name: r.name })),
+        );
+        const rows: string[] = [];
+        grouped.forEach(([branch, items]) => {
+          const sub = items.reduce((s: number, r: any) => s + Number(r.amount || 0), 0);
+          rows.push(`<tr class="fam"><td colspan="5" class="fam-h">أسرة: ${escapeHtml(branch)} · ${items.length} مساهم · ${fmt(sub)} ر.س</td></tr>`);
+          items.forEach((r: any, i: number) => {
+            rows.push(`<tr>
+              <td>${i + 1}</td>
+              <td class="ttl">${escapeHtml(r.name)}</td>
+              <td>${escapeHtml(branch)}</td>
+              <td class="amt">${fmt(Number(r.amount||0))}</td>
+              <td>${escapeHtml(String(r.ref))}</td>
+            </tr>`);
+          });
+        });
+        return `<table>
+          <thead><tr><th style="width:5%">#</th><th>اسم المساهم</th><th>الأسرة</th><th>المبلغ (ر.س)</th><th>المرجع</th></tr></thead>
+          <tbody>
+            ${rows.join("")}
+            <tr class="tot"><td colspan="3" class="ttl"><b>الإجمالي</b></td>
+              <td class="amt"><b>${fmt(fcRows.reduce((s,r)=>s+Number(r.amount||0),0))}</b></td>
+              <td></td>
+            </tr>
+          </tbody>
+        </table>`;
+      })();
 
   const committeesTable = data.committees.length === 0
     ? `<div class="empty">لا توجد لجان</div>`
