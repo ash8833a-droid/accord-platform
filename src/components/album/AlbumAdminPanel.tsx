@@ -15,7 +15,7 @@ import { Loader2, Plus, Pencil, Trash2, Upload, Eye, EyeOff, Image as ImageIcon,
 import { compressIfNeeded } from "@/lib/media-compression";
 import { extractVideoThumbnail } from "@/lib/video-thumbnail";
 import { uploadAlbumFile, signAlbumPaths, removeAlbumFiles } from "@/lib/media-album";
-import { parseMediaUrl, fetchVimeoThumbnail } from "@/lib/media-url";
+import { parseMediaUrlDetailed, fetchVimeoThumbnail } from "@/lib/media-url";
 import { COMPRESS_TARGET_SIZE, MAX_UPLOAD_SIZE, MAX_UPLOAD_SIZE_LABEL } from "@/lib/uploads";
 
 interface Album {
@@ -53,6 +53,7 @@ export function AlbumAdminPanel() {
   const [urlDialog, setUrlDialog] = useState(false);
   const [urlInput, setUrlInput] = useState("");
   const [urlTitle, setUrlTitle] = useState("");
+  const [urlKind, setUrlKind] = useState<"image" | "video">("image");
   const [urlBusy, setUrlBusy] = useState(false);
 
   const refresh = useCallback(async () => {
@@ -203,9 +204,15 @@ export function AlbumAdminPanel() {
 
   const addFromUrl = async () => {
     if (!selected) return;
-    const parsed = parseMediaUrl(urlInput);
-    if (!parsed) {
-      toast.error("رابط غير مدعوم", { description: "أدخل رابط YouTube أو Vimeo أو رابطًا مباشرًا لصورة/فيديو." });
+    const parsed = parseMediaUrlDetailed(urlInput, urlKind);
+    if (!("kind" in parsed)) {
+      const msg =
+        parsed.code === "empty" ? "أدخل رابطًا." :
+        parsed.code === "invalid" ? "الرابط غير صالح." :
+        parsed.code === "gdrive_folder" ? "روابط مجلدات Google Drive غير مدعومة. افتح الملف داخل المجلد وانسخ رابط الملف نفسه (File → Share → Copy link)، وتأكد أن الوصول مضبوط على «Anyone with the link»." :
+        parsed.code === "gdrive_needs_kind" ? "حدد نوع محتوى Drive (صورة أو فيديو) قبل الإضافة." :
+        "رابط غير مدعوم. الأنواع المدعومة: YouTube, Vimeo, Google Drive (ملف)، وروابط مباشرة (jpg/png/webp/mp4/webm…).";
+      toast.error("تعذّر إضافة الرابط", { description: msg });
       return;
     }
     setUrlBusy(true);
@@ -216,11 +223,13 @@ export function AlbumAdminPanel() {
       if (parsed.kind === "image") {
         kind = "image";
         fileUrl = parsed.url;
+        if (parsed.provider === "gdrive") thumb = parsed.thumbnailUrl;
       } else {
         kind = "video";
-        fileUrl = parsed.provider === "youtube" ? parsed.url : parsed.provider === "vimeo" ? parsed.url : parsed.url;
+        fileUrl = parsed.url;
         if (parsed.provider === "youtube") thumb = parsed.thumbnailUrl;
         else if (parsed.provider === "vimeo") thumb = await fetchVimeoThumbnail(parsed.id);
+        else if (parsed.provider === "gdrive") thumb = parsed.thumbnailUrl;
       }
       const { data: userRes } = await supabase.auth.getUser();
       const { error } = await supabase.from("media_items").insert({
@@ -457,9 +466,29 @@ export function AlbumAdminPanel() {
                 onChange={(e) => setUrlInput(e.target.value)}
               />
               <p className="text-xs text-muted-foreground">
-                يدعم YouTube و Vimeo وروابط الصور (.jpg, .png, .webp…) وروابط الفيديو المباشرة (.mp4, .webm…). يتم استخراج الصورة المصغّرة تلقائيًا لفيديوهات YouTube / Vimeo.
+                يدعم YouTube و Vimeo و Google Drive (رابط ملف مفرد وليس مجلد) وروابط الصور المباشرة (.jpg, .png, .webp…) وروابط الفيديو المباشرة (.mp4, .webm…). يتم استخراج الصورة المصغّرة تلقائيًا.
               </p>
             </div>
+            {/drive\.google\.com/i.test(urlInput) && (
+              <div className="space-y-2">
+                <Label>نوع المحتوى (لروابط Google Drive)</Label>
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant={urlKind === "image" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setUrlKind("image")}
+                  >صورة</Button>
+                  <Button
+                    type="button"
+                    variant={urlKind === "video" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setUrlKind("video")}
+                  >فيديو</Button>
+                </div>
+                <p className="text-xs text-muted-foreground">تأكد أن مشاركة الملف على Drive مضبوطة على «Anyone with the link».</p>
+              </div>
+            )}
             <div className="space-y-2">
               <Label>عنوان (اختياري)</Label>
               <Input value={urlTitle} onChange={(e) => setUrlTitle(e.target.value)} />
