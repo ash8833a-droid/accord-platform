@@ -112,13 +112,27 @@ export function AlbumAdminPanel() {
         paths.push(it.file_url);
         if (it.thumbnail_url) paths.push(it.thumbnail_url);
       }
-      await removeAlbumFiles(paths);
-      const { error } = await supabase.from("media_items").delete().in("id", ids);
-      if (error) {
-        toast.error("فشل الحذف الجماعي", { description: error.message });
-        return;
+      try { await removeAlbumFiles(paths); } catch (e) {
+        console.warn("[bulkDelete] storage remove failed", e);
       }
-      toast.success(`تم حذف ${ids.length} عنصر`);
+      // Delete in chunks to avoid URL length limits on very large selections
+      const chunkSize = 100;
+      let deleted = 0;
+      for (let i = 0; i < ids.length; i += chunkSize) {
+        const chunk = ids.slice(i, i + chunkSize);
+        const { error, count } = await supabase
+          .from("media_items")
+          .delete({ count: "exact" })
+          .in("id", chunk);
+        if (error) {
+          toast.error("فشل الحذف الجماعي", { description: error.message });
+          setConfirmBulkDelete(false);
+          await refresh();
+          return;
+        }
+        deleted += count ?? chunk.length;
+      }
+      toast.success(`تم حذف ${deleted} عنصر`);
       setConfirmBulkDelete(false);
       setSelectedItems(new Set());
       await refresh();
@@ -582,7 +596,10 @@ export function AlbumAdminPanel() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={bulkBusy}>إلغاء</AlertDialogCancel>
-            <AlertDialogAction onClick={bulkDelete} disabled={bulkBusy}>
+            <AlertDialogAction
+              onClick={(e) => { e.preventDefault(); void bulkDelete(); }}
+              disabled={bulkBusy}
+            >
               {bulkBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : "حذف"}
             </AlertDialogAction>
           </AlertDialogFooter>
