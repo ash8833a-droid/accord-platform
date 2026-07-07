@@ -5,18 +5,35 @@
 export type ParsedMediaUrl =
   | { kind: "video"; provider: "youtube"; id: string; embedUrl: string; thumbnailUrl: string; url: string }
   | { kind: "video"; provider: "vimeo"; id: string; embedUrl: string; thumbnailUrl: string | null; url: string }
+  | { kind: "video"; provider: "gdrive"; id: string; embedUrl: string; thumbnailUrl: string; url: string }
+  | { kind: "image"; provider: "gdrive"; id: string; thumbnailUrl: string; url: string }
   | { kind: "video"; provider: "direct"; url: string; thumbnailUrl: string | null }
   | { kind: "image"; provider: "direct"; url: string };
+
+export type ParseError =
+  | { code: "empty" }
+  | { code: "invalid" }
+  | { code: "gdrive_folder" }
+  | { code: "gdrive_needs_kind"; id: string }
+  | { code: "unsupported" };
 
 const IMG_RE = /\.(png|jpe?g|webp|gif|avif|heic|heif)(\?|#|$)/i;
 const VID_RE = /\.(mp4|webm|mov|m4v|mkv|ogv)(\?|#|$)/i;
 
-export function parseMediaUrl(raw: string): ParsedMediaUrl | null {
+export function parseMediaUrl(raw: string, hint?: "image" | "video"): ParsedMediaUrl | null {
+  const r = parseMediaUrlDetailed(raw, hint);
+  return "kind" in r ? r : null;
+}
+
+export function parseMediaUrlDetailed(
+  raw: string,
+  hint?: "image" | "video",
+): ParsedMediaUrl | ParseError {
   const trimmed = raw.trim();
-  if (!trimmed) return null;
+  if (!trimmed) return { code: "empty" };
   let u: URL;
-  try { u = new URL(trimmed); } catch { return null; }
-  if (u.protocol !== "http:" && u.protocol !== "https:") return null;
+  try { u = new URL(trimmed); } catch { return { code: "invalid" }; }
+  if (u.protocol !== "http:" && u.protocol !== "https:") return { code: "invalid" };
 
   const host = u.hostname.replace(/^www\./, "").toLowerCase();
 
@@ -58,6 +75,36 @@ export function parseMediaUrl(raw: string): ParsedMediaUrl | null {
     }
   }
 
+  // Google Drive
+  if (host === "drive.google.com" || host === "docs.google.com") {
+    // Folder → cannot extract individual media
+    if (/\/drive\/folders\//.test(u.pathname) || /\/drive\/u\/\d+\/folders\//.test(u.pathname)) {
+      return { code: "gdrive_folder" };
+    }
+    // File: /file/d/ID/view  or  ?id=ID
+    let id: string | null = null;
+    const m = u.pathname.match(/\/file\/d\/([^/]+)/);
+    if (m) id = m[1];
+    if (!id) id = u.searchParams.get("id");
+    if (id) {
+      const thumb = `https://drive.google.com/thumbnail?id=${id}&sz=w1600`;
+      if (hint === "image") {
+        return { kind: "image", provider: "gdrive", id, thumbnailUrl: thumb, url: `https://drive.google.com/uc?id=${id}` };
+      }
+      if (hint === "video") {
+        return {
+          kind: "video",
+          provider: "gdrive",
+          id,
+          embedUrl: `https://drive.google.com/file/d/${id}/preview`,
+          thumbnailUrl: thumb,
+          url: `https://drive.google.com/file/d/${id}/view`,
+        };
+      }
+      return { code: "gdrive_needs_kind", id };
+    }
+  }
+
   // Direct file
   if (IMG_RE.test(u.pathname)) {
     return { kind: "image", provider: "direct", url: trimmed };
@@ -66,7 +113,7 @@ export function parseMediaUrl(raw: string): ParsedMediaUrl | null {
     return { kind: "video", provider: "direct", url: trimmed, thumbnailUrl: null };
   }
 
-  return null;
+  return { code: "unsupported" };
 }
 
 /** Try to fetch a Vimeo thumbnail via oEmbed. Returns null on failure. */
@@ -82,7 +129,7 @@ export async function fetchVimeoThumbnail(id: string): Promise<string | null> {
 }
 
 /** Detect provider for an already-stored external URL (used by the viewer). */
-export function detectProvider(url: string): "youtube" | "vimeo" | "direct" | null {
+export function detectProvider(url: string): "youtube" | "vimeo" | "gdrive" | "direct" | null {
   const p = parseMediaUrl(url);
   return p && "provider" in p ? p.provider : null;
 }
