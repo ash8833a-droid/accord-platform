@@ -22,6 +22,7 @@ import { FinanceSummaryCard } from "@/components/finance/FinanceSummaryCard";
 import { FinanceReconciliationAlerts } from "@/components/finance/FinanceReconciliationAlerts";
 import { DelegateUploadPanel } from "@/components/finance/DelegateUploadPanel";
 import { HistoricalContributionsDashboard } from "@/components/finance/HistoricalContributionsDashboard";
+import { InvoicesPanel } from "@/components/finance/InvoicesPanel";
 import { Pencil, Trash2 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { Textarea } from "@/components/ui/textarea";
@@ -478,6 +479,9 @@ export function FinanceModule() {
             <Receipt className="h-4 w-4" /> طلبات الصرف
             {pendingCount > 0 && <span className="bg-gold text-gold-foreground text-[10px] px-1.5 py-0.5 rounded-full font-bold">{pendingCount}</span>}
           </TabsTrigger>
+          <TabsTrigger value="invoices" className="gap-2">
+            <FileText className="h-4 w-4" /> الفواتير السنوية
+          </TabsTrigger>
           <TabsTrigger value="shares" className="gap-2"><TreePine className="h-4 w-4" /> أسهم الأسر</TabsTrigger>
           <TabsTrigger value="delegates" className="gap-2"><Users2 className="h-4 w-4" /> ممثلو الأسر</TabsTrigger>
           <TabsTrigger value="safety" className="gap-2"><ShieldCheck className="h-4 w-4" /> السلامة المالية</TabsTrigger>
@@ -672,6 +676,10 @@ export function FinanceModule() {
               })}
             </div>
           </div>
+        </TabsContent>
+
+        <TabsContent value="invoices" className="mt-5">
+          <InvoicesPanel canManage={canManage} />
         </TabsContent>
 
         <TabsContent value="delegates" className="mt-5">
