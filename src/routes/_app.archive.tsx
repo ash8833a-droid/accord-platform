@@ -689,7 +689,7 @@ function SmartDistributePanel({
           <label className="flex flex-col items-center justify-center gap-2 h-28 rounded-xl border-2 border-dashed border-fuchsia-300 cursor-pointer hover:bg-fuchsia-50/60 transition">
             <Upload className="h-6 w-6 text-fuchsia-600" />
             <span className="text-sm font-bold">اسحب الملفات هنا أو اختر عدة ملفات</span>
-            <span className="text-[11px] text-muted-foreground">صور · PDF · مستندات · حد الحجم {MAX_UPLOAD_SIZE_LABEL} للملف</span>
+            <span className="text-[11px] text-muted-foreground">صور · فيديو · PDF · مستندات — يتم ضغط الصور والفيديو تلقائياً · الحد الأقصى {MAX_UPLOAD_SIZE_LABEL}</span>
             <input
               type="file"
               multiple
