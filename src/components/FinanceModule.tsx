@@ -678,6 +678,10 @@ export function FinanceModule() {
           </div>
         </TabsContent>
 
+        <TabsContent value="invoices" className="mt-5">
+          <InvoicesPanel canManage={canManage} />
+        </TabsContent>
+
         <TabsContent value="delegates" className="mt-5">
           <div className="rounded-2xl border bg-card overflow-hidden shadow-soft">
             <div className="px-6 py-4 border-b bg-gradient-to-l from-primary/5 to-transparent flex items-center justify-between">
