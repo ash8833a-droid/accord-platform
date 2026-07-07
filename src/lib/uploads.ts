@@ -8,11 +8,14 @@
  * column (file_name) for display.
  */
 
-/** Maximum allowed upload size (100 MB) — applies to every bucket. */
-export const MAX_UPLOAD_SIZE = 100 * 1024 * 1024;
+/** Maximum allowed upload size (1 GB) — applies to every bucket. */
+export const MAX_UPLOAD_SIZE = 1024 * 1024 * 1024;
 
 /** Human readable size limit string. */
-export const MAX_UPLOAD_SIZE_LABEL = "100 ميجابايت";
+export const MAX_UPLOAD_SIZE_LABEL = "1 جيجابايت";
+
+/** Target size we try to compress large media down to before uploading. */
+export const COMPRESS_TARGET_SIZE = 90 * 1024 * 1024; // 90 MB
 
 /** Broadly accepted file types — images, PDFs, Office, archives, audio, video, text. */
 export const ACCEPT_ANY_FILE =
