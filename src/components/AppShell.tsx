@@ -14,7 +14,7 @@ import {
   Target,
   History,
 } from "lucide-react";
-import { ShoppingCart, Inbox, LayoutGrid } from "lucide-react";
+import { ShoppingCart, Inbox, LayoutGrid, Images } from "lucide-react";
 import { Logo } from "./Logo";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
@@ -41,6 +41,7 @@ const ADMIN_BOTTOM = [
   { to: "/communications", label: "إدارة الطلبات", icon: Inbox },
   { to: "/finance-management", label: "الإدارة المالية", icon: Wallet },
   { to: "/admin/users", label: "إدارة المستخدمين", icon: UserCog },
+  { to: "/admin/album", label: "ألبوم الوسائط", icon: Images },
 ] as const;
 
 // للأعضاء العاديين: لجنتهم هي المدخل (تظهر تلقائياً ضمن "لجاني")
