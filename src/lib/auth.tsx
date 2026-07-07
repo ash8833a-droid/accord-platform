@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState, ReactNode, useCallback 
 import { supabase } from "@/integrations/supabase/client";
 import type { Session, User } from "@supabase/supabase-js";
 import { installServerFnAuth } from "@/lib/server-fn-auth";
+import { decideAuthAction, type AuthEvent } from "@/lib/auth-event";
 
 // Install global fetch interceptor so server functions receive the auth token
 installServerFnAuth();
@@ -72,17 +73,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSession(s);
       setUser(s?.user ?? null);
       const newUserId = s?.user?.id ?? null;
-      // Ignore token refresh / initial session / tab-focus re-emits — they
-      // must NOT reset access state or trigger redirects. Only reload
-      // access when the actual user identity changes.
-      if (event === "TOKEN_REFRESHED" || event === "USER_UPDATED") {
-        return;
-      }
-      if (newUserId && newUserId !== currentUserId) {
+      const action = decideAuthAction(currentUserId, event as AuthEvent, newUserId);
+      if (action === "load-access" && newUserId) {
         currentUserId = newUserId;
         setAccessLoaded(false);
         setTimeout(() => loadAccess(newUserId), 0);
-      } else if (!newUserId && currentUserId) {
+      } else if (action === "clear-access") {
         currentUserId = null;
         setRoles([]);
         setCommitteeId(null);
