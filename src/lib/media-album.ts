@@ -2,6 +2,11 @@ import { supabase } from "@/integrations/supabase/client";
 
 const BUCKET = "media-album";
 
+/** External http(s) URLs are stored as-is in file_url / thumbnail_url. */
+export function isExternalUrl(p: string | null | undefined): p is string {
+  return !!p && /^https?:\/\//i.test(p);
+}
+
 /**
  * Batch-sign storage paths into short-lived HTTPS URLs. Silently returns
  * null for entries the server can't sign (e.g. deleted objects).
@@ -10,13 +15,18 @@ export async function signAlbumPaths(
   paths: (string | null | undefined)[],
   expiresIn = 3600,
 ): Promise<Record<string, string>> {
-  const uniq = Array.from(new Set(paths.filter((p): p is string => !!p)));
-  if (uniq.length === 0) return {};
+  const all = Array.from(new Set(paths.filter((p): p is string => !!p)));
+  const out: Record<string, string> = {};
+  const uniq: string[] = [];
+  for (const p of all) {
+    if (isExternalUrl(p)) out[p] = p;
+    else uniq.push(p);
+  }
+  if (uniq.length === 0) return out;
   const { data, error } = await supabase.storage
     .from(BUCKET)
     .createSignedUrls(uniq, expiresIn);
-  if (error || !data) return {};
-  const out: Record<string, string> = {};
+  if (error || !data) return out;
   for (const row of data) {
     if (row.path && row.signedUrl) out[row.path] = row.signedUrl;
   }
@@ -42,7 +52,7 @@ export async function uploadAlbumFile(
 }
 
 export async function removeAlbumFiles(paths: (string | null | undefined)[]) {
-  const clean = paths.filter((p): p is string => !!p);
+  const clean = paths.filter((p): p is string => !!p && !isExternalUrl(p));
   if (clean.length === 0) return;
   await supabase.storage.from(BUCKET).remove(clean);
 }
