@@ -329,8 +329,8 @@ export function FinanceModule() {
   const pendingCount = requests.filter((r) => r.status === "pending").length;
   const totalPaid = requests.filter((r) => r.status === "paid").reduce((a, r) => a + Number(r.amount), 0);
   const expensesTotal = Math.max(
-    totalPaid + budgetItemsTotal,
-    committeeBreakdown.reduce((s, c) => s + c.spent, 0)
+    totalPaid,
+    committeesFull.reduce((s, c) => s + c.spent, 0)
   );
   // Groom revenues = confirmed delegate subscriptions + grooms.groom_contribution
   const groomSubsTotal = totalCollected + groomContribTotal;
