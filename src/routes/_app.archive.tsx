@@ -11,7 +11,8 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FilePreview } from "@/components/FilePreview";
-import { ACCEPT_ANY_FILE, MAX_UPLOAD_SIZE, MAX_UPLOAD_SIZE_LABEL, safeStorageKey } from "@/lib/uploads";
+import { ACCEPT_ANY_FILE, MAX_UPLOAD_SIZE, MAX_UPLOAD_SIZE_LABEL, COMPRESS_TARGET_SIZE, safeStorageKey } from "@/lib/uploads";
+import { compressIfNeeded } from "@/lib/media-compression";
 import { toast } from "sonner";
 import {
   Archive, Upload, Loader2, Eye, Download, Trash2, Image as ImageIcon,
@@ -354,13 +355,21 @@ function UploadPanel({
   const ensureUpload = async (): Promise<string | null> => {
     if (uploadedPath) return uploadedPath;
     if (!file) return null;
-    if (file.size > MAX_UPLOAD_SIZE) {
+    let toUpload = file;
+    if (toUpload.size > COMPRESS_TARGET_SIZE) {
+      toast.info("جاري ضغط الملف قبل الرفع…");
+      toUpload = await compressIfNeeded(toUpload, COMPRESS_TARGET_SIZE);
+      if (toUpload !== file) {
+        toast.success(`تم الضغط: ${(file.size / 1024 / 1024).toFixed(1)}MB → ${(toUpload.size / 1024 / 1024).toFixed(1)}MB`);
+      }
+    }
+    if (toUpload.size > MAX_UPLOAD_SIZE) {
       toast.error(`حجم الملف أكبر من ${MAX_UPLOAD_SIZE_LABEL}`);
       return null;
     }
-    const path = safeStorageKey(file.name, `${year}/${cat}`);
-    const { error: upErr } = await supabase.storage.from("wedding-archive").upload(path, file, {
-      contentType: file.type || "application/octet-stream",
+    const path = safeStorageKey(toUpload.name, `${year}/${cat}`);
+    const { error: upErr } = await supabase.storage.from("wedding-archive").upload(path, toUpload, {
+      contentType: toUpload.type || "application/octet-stream",
       upsert: false,
     });
     if (upErr) {
