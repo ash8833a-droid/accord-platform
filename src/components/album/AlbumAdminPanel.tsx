@@ -204,52 +204,67 @@ export function AlbumAdminPanel() {
 
   const addFromUrl = async () => {
     if (!selected) return;
-    const parsed = parseMediaUrlDetailed(urlInput, urlKind);
-    if (!("kind" in parsed)) {
-      const msg =
-        parsed.code === "empty" ? "أدخل رابطًا." :
-        parsed.code === "invalid" ? "الرابط غير صالح." :
-        parsed.code === "gdrive_folder" ? "روابط مجلدات Google Drive غير مدعومة. افتح الملف داخل المجلد وانسخ رابط الملف نفسه (File → Share → Copy link)، وتأكد أن الوصول مضبوط على «Anyone with the link»." :
-        parsed.code === "gdrive_needs_kind" ? "حدد نوع محتوى Drive (صورة أو فيديو) قبل الإضافة." :
-        "رابط غير مدعوم. الأنواع المدعومة: YouTube, Vimeo, Google Drive (ملف)، وروابط مباشرة (jpg/png/webp/mp4/webm…).";
-      toast.error("تعذّر إضافة الرابط", { description: msg });
+    const lines = urlInput.split(/\r?\n|\s{2,}/).map((s) => s.trim()).filter(Boolean);
+    if (lines.length === 0) {
+      toast.error("أدخل رابطًا واحدًا على الأقل");
       return;
     }
     setUrlBusy(true);
+    let okCount = 0;
+    const errors: string[] = [];
     try {
-      let thumb: string | null = null;
-      let fileUrl: string;
-      let kind: "image" | "video";
-      if (parsed.kind === "image") {
-        kind = "image";
-        fileUrl = parsed.url;
-        if (parsed.provider === "gdrive") thumb = parsed.thumbnailUrl;
-      } else {
-        kind = "video";
-        fileUrl = parsed.url;
-        if (parsed.provider === "youtube") thumb = parsed.thumbnailUrl;
-        else if (parsed.provider === "vimeo") thumb = await fetchVimeoThumbnail(parsed.id);
-        else if (parsed.provider === "gdrive") thumb = parsed.thumbnailUrl;
-      }
       const { data: userRes } = await supabase.auth.getUser();
-      const { error } = await supabase.from("media_items").insert({
-        album_id: selected,
-        kind,
-        file_url: fileUrl,
-        thumbnail_url: thumb,
-        title: urlTitle.trim() || null,
-        sort_order: items[selected]?.length ?? 0,
-        created_by: userRes.user?.id ?? null,
-      });
-      if (error) {
-        toast.error("فشل الحفظ", { description: error.message });
-        return;
+      let order = items[selected]?.length ?? 0;
+      for (const line of lines) {
+        const parsed = parseMediaUrlDetailed(line, urlKind);
+        if (!("kind" in parsed)) {
+          const short = line.length > 60 ? line.slice(0, 60) + "…" : line;
+          const why =
+            parsed.code === "gdrive_folder" ? "مجلد Drive (استخدم روابط الملفات المفردة)" :
+            parsed.code === "gdrive_needs_kind" ? "حدد نوع محتوى Drive (صورة/فيديو)" :
+            parsed.code === "invalid" ? "رابط غير صالح" :
+            "غير مدعوم";
+          errors.push(`${short} — ${why}`);
+          continue;
+        }
+        let thumb: string | null = null;
+        let kind: "image" | "video";
+        let fileUrl: string;
+        if (parsed.kind === "image") {
+          kind = "image";
+          fileUrl = parsed.url;
+          if (parsed.provider === "gdrive") thumb = parsed.thumbnailUrl;
+        } else {
+          kind = "video";
+          fileUrl = parsed.url;
+          if (parsed.provider === "youtube") thumb = parsed.thumbnailUrl;
+          else if (parsed.provider === "vimeo") thumb = await fetchVimeoThumbnail(parsed.id);
+          else if (parsed.provider === "gdrive") thumb = parsed.thumbnailUrl;
+        }
+        const { error } = await supabase.from("media_items").insert({
+          album_id: selected,
+          kind,
+          file_url: fileUrl,
+          thumbnail_url: thumb,
+          title: (lines.length === 1 ? urlTitle.trim() : "") || null,
+          sort_order: order++,
+          created_by: userRes.user?.id ?? null,
+        });
+        if (error) errors.push(`فشل الحفظ: ${error.message}`);
+        else okCount++;
       }
-      toast.success("تمت إضافة الرابط");
-      setUrlDialog(false);
-      setUrlInput("");
-      setUrlTitle("");
-      await refresh();
+      if (okCount > 0) toast.success(`تمت إضافة ${okCount} رابط`);
+      if (errors.length > 0) {
+        toast.error(`تعذّر إضافة ${errors.length} رابط`, {
+          description: errors.slice(0, 3).join(" • ") + (errors.length > 3 ? " …" : ""),
+        });
+      }
+      if (okCount > 0) {
+        setUrlDialog(false);
+        setUrlInput("");
+        setUrlTitle("");
+        await refresh();
+      }
     } finally {
       setUrlBusy(false);
     }
@@ -458,15 +473,17 @@ export function AlbumAdminPanel() {
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label>الرابط</Label>
-              <Input
+              <Label>الروابط (رابط في كل سطر)</Label>
+              <Textarea
                 dir="ltr"
-                placeholder="https://youtube.com/... أو رابط مباشر لصورة/فيديو"
+                rows={6}
+                placeholder={"https://youtube.com/watch?v=...\nhttps://drive.google.com/file/d/FILE_ID/view\nhttps://example.com/image.jpg"}
                 value={urlInput}
                 onChange={(e) => setUrlInput(e.target.value)}
+                className="font-mono text-xs"
               />
               <p className="text-xs text-muted-foreground">
-                يدعم YouTube و Vimeo و Google Drive (رابط ملف مفرد وليس مجلد) وروابط الصور المباشرة (.jpg, .png, .webp…) وروابط الفيديو المباشرة (.mp4, .webm…). يتم استخراج الصورة المصغّرة تلقائيًا.
+                الصق عدة روابط دفعة واحدة (سطر لكل رابط). يدعم YouTube و Vimeo و Google Drive (ملفات مفردة) وروابط الصور/الفيديو المباشرة. لمجلدات Drive: افتح المجلد، حدّد الملفات، انسخ روابطها والصقها هنا.
               </p>
             </div>
             {/drive\.google\.com/i.test(urlInput) && (
@@ -489,10 +506,12 @@ export function AlbumAdminPanel() {
                 <p className="text-xs text-muted-foreground">تأكد أن مشاركة الملف على Drive مضبوطة على «Anyone with the link».</p>
               </div>
             )}
-            <div className="space-y-2">
-              <Label>عنوان (اختياري)</Label>
-              <Input value={urlTitle} onChange={(e) => setUrlTitle(e.target.value)} />
-            </div>
+            {urlInput.trim().split(/\r?\n/).filter((s) => s.trim()).length <= 1 && (
+              <div className="space-y-2">
+                <Label>عنوان (اختياري)</Label>
+                <Input value={urlTitle} onChange={(e) => setUrlTitle(e.target.value)} />
+              </div>
+            )}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setUrlDialog(false)} disabled={urlBusy}>إلغاء</Button>
