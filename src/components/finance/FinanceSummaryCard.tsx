@@ -1,5 +1,5 @@
 import { TrendingUp, TrendingDown, Wallet, ArrowUpRight, ArrowDownRight } from "lucide-react";
-import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts";
+import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip } from "recharts";
 
 const fmt = (n: number) => new Intl.NumberFormat("en-US").format(Math.round(n));
 
@@ -110,22 +110,17 @@ export function FinanceSummaryCard({
         </div>
 
         <div className="bg-card p-5">
-          <h4 className="text-sm font-bold mb-3 text-muted-foreground">مصاريف اللجان</h4>
-          <div className="h-56">
-            {expensesData.length === 0 ? (
-              <EmptyChart text="لا توجد مصاريف بعد" />
-            ) : (
-              <ResponsiveContainer>
-                <BarChart data={expensesData} margin={{ top: 5, right: 5, left: 0, bottom: 30 }}>
-                  <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
-                  <XAxis dataKey="name" tick={{ fontSize: 10 }} angle={-25} textAnchor="end" height={50} />
-                  <YAxis tick={{ fontSize: 10 }} />
-                  <Tooltip formatter={(v: number) => `${fmt(v)} ر.س`} />
-                  <Bar dataKey="spent" fill="hsl(190 80% 40%)" radius={[6, 6, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            )}
+          <div className="flex items-center justify-between mb-3">
+            <h4 className="text-sm font-bold text-muted-foreground">مصاريف اللجان</h4>
+            <span className="text-[11px] text-muted-foreground tabular-nums">
+              {fmt(expensesData.reduce((a, c) => a + c.spent, 0))} ر.س
+            </span>
           </div>
+          {expensesData.length === 0 ? (
+            <div className="h-56"><EmptyChart text="لا توجد مصاريف بعد" /></div>
+          ) : (
+            <ExpensesRanked items={expensesData} />
+          )}
         </div>
       </div>
     </div>
@@ -177,5 +172,55 @@ function EmptyChart({ text }: { text: string }) {
     <div className="h-full flex items-center justify-center text-xs text-muted-foreground">
       {text}
     </div>
+  );
+}
+
+function ExpensesRanked({ items }: { items: Array<{ name: string; spent: number }> }) {
+  const max = Math.max(...items.map((i) => i.spent), 1);
+  const total = items.reduce((a, c) => a + c.spent, 0);
+  const palette = [
+    "hsl(190 80% 40%)",
+    "hsl(35 90% 50%)",
+    "hsl(142 65% 40%)",
+    "hsl(265 70% 55%)",
+    "hsl(0 75% 55%)",
+    "hsl(210 70% 50%)",
+    "hsl(48 90% 50%)",
+    "hsl(160 60% 40%)",
+  ];
+  return (
+    <ol className="space-y-2.5">
+      {items.map((it, i) => {
+        const pct = (it.spent / max) * 100;
+        const share = total > 0 ? (it.spent / total) * 100 : 0;
+        const color = palette[i % palette.length];
+        return (
+          <li key={it.name} className="group">
+            <div className="flex items-baseline justify-between gap-3 mb-1">
+              <div className="flex items-center gap-2 min-w-0">
+                <span className="text-[10px] font-bold text-muted-foreground tabular-nums w-4 shrink-0">
+                  {i + 1}
+                </span>
+                <span className="text-xs font-semibold truncate">{it.name}</span>
+              </div>
+              <div className="flex items-baseline gap-2 shrink-0">
+                <span className="text-[10px] text-muted-foreground tabular-nums">
+                  {share.toFixed(1)}%
+                </span>
+                <span className="text-xs font-bold tabular-nums">
+                  {fmt(it.spent)} <span className="text-[10px] text-muted-foreground">ر.س</span>
+                </span>
+              </div>
+            </div>
+            <div className="h-2 rounded-full bg-muted/60 overflow-hidden">
+              <div
+                className="h-full rounded-full transition-all duration-700"
+                style={{ width: `${pct}%`, background: color }}
+              />
+            </div>
+          </li>
+        );
+      })}
+    </ol>
   );
 }
