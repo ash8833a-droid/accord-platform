@@ -37,10 +37,7 @@ export async function compressImage(file: File): Promise<File> {
     bitmap = await createImageBitmap(file);
   } catch {
     const decoded = await decodeHeicToBitmap(file);
-    if (!decoded) {
-      // Last resort: ask the server to convert.
-      return await serverConvert(file);
-    }
+    if (!decoded) return file;
     bitmap = decoded;
   }
 
@@ -83,25 +80,6 @@ async function decodeHeicToBitmap(file: File): Promise<ImageBitmap | null> {
   }
 }
 
-/**
- * Server-side conversion fallback. Sends the file to /api/convert-media
- * which converts HEIC → JPEG using libheif. Videos are refused with a clear
- * message (Cloudflare Workers cannot transcode video without a native ffmpeg).
- */
-async function serverConvert(file: File): Promise<File> {
-  try {
-    const fd = new FormData();
-    fd.append("file", file, file.name);
-    const res = await fetch("/api/convert-media", { method: "POST", body: fd });
-    if (!res.ok) return file;
-    const blob = await res.blob();
-    const outName = res.headers.get("x-filename") || replaceExt(file.name, "jpg");
-    const outType = res.headers.get("content-type") || "image/jpeg";
-    return new File([blob], outName, { type: outType, lastModified: Date.now() });
-  } catch {
-    return file;
-  }
-}
 
 export async function compressVideo(
   file: File,
@@ -129,8 +107,7 @@ export async function compressVideo(
     });
   } catch {
     URL.revokeObjectURL(url);
-    // Browser can't decode this codec (often HEVC in .mov). Try server.
-    return await serverConvert(file);
+    return file;
   }
 
   const srcW = video.videoWidth;
