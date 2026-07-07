@@ -19,6 +19,7 @@ import { CommitteeBudgetLimits } from "@/components/finance/CommitteeBudgetLimit
 import { BudgetOverviewPanel } from "@/components/finance/BudgetOverviewPanel";
 import { FamilyContributionsPanel } from "@/components/finance/FamilyContributionsPanel";
 import { FinanceSummaryCard } from "@/components/finance/FinanceSummaryCard";
+import { FinanceReconciliationAlerts } from "@/components/finance/FinanceReconciliationAlerts";
 import { DelegateUploadPanel } from "@/components/finance/DelegateUploadPanel";
 import { HistoricalContributionsDashboard } from "@/components/finance/HistoricalContributionsDashboard";
 import { Pencil, Trash2 } from "lucide-react";
@@ -456,6 +457,8 @@ export function FinanceModule() {
         committeeBreakdown={committeeBreakdown}
         deficitShareTotal={deficitShareTotal}
       />
+
+      <FinanceReconciliationAlerts canFix={canManage} onFixed={load} />
 
       <Tabs defaultValue="overview" dir="rtl">
         <TabsList className="flex flex-wrap h-auto w-full justify-start gap-1">
