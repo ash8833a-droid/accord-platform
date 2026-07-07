@@ -42,6 +42,7 @@ import { Route as AppAdminWeeklyRouteImport } from './routes/_app.admin.weekly'
 import { Route as AppAdminUsersRouteImport } from './routes/_app.admin.users'
 import { Route as AppAdminTasksRouteImport } from './routes/_app.admin.tasks'
 import { Route as AppAdminSupremeMinutesRouteImport } from './routes/_app.admin.supreme-minutes'
+import { Route as AppAdminAlbumRouteImport } from './routes/_app.admin.album'
 import { Route as ApiPublicHooksTaskDeadlineCheckRouteImport } from './routes/api.public.hooks.task-deadline-check'
 
 const WeddingFeedbackRoute = WeddingFeedbackRouteImport.update({
@@ -209,6 +210,11 @@ const AppAdminSupremeMinutesRoute = AppAdminSupremeMinutesRouteImport.update({
   path: '/supreme-minutes',
   getParentRoute: () => AppAdminRoute,
 } as any)
+const AppAdminAlbumRoute = AppAdminAlbumRouteImport.update({
+  id: '/album',
+  path: '/album',
+  getParentRoute: () => AppAdminRoute,
+} as any)
 const ApiPublicHooksTaskDeadlineCheckRoute =
   ApiPublicHooksTaskDeadlineCheckRouteImport.update({
     id: '/api/public/hooks/task-deadline-check',
@@ -243,6 +249,7 @@ export interface FileRoutesByFullPath {
   '/contribute-shares/$year': typeof ContributeSharesYearRoute
   '/groom-edit/$token': typeof GroomEditTokenRoute
   '/survey/women-talents': typeof SurveyWomenTalentsRoute
+  '/admin/album': typeof AppAdminAlbumRoute
   '/admin/supreme-minutes': typeof AppAdminSupremeMinutesRoute
   '/admin/tasks': typeof AppAdminTasksRoute
   '/admin/users': typeof AppAdminUsersRoute
@@ -278,6 +285,7 @@ export interface FileRoutesByTo {
   '/contribute-shares/$year': typeof ContributeSharesYearRoute
   '/groom-edit/$token': typeof GroomEditTokenRoute
   '/survey/women-talents': typeof SurveyWomenTalentsRoute
+  '/admin/album': typeof AppAdminAlbumRoute
   '/admin/supreme-minutes': typeof AppAdminSupremeMinutesRoute
   '/admin/tasks': typeof AppAdminTasksRoute
   '/admin/users': typeof AppAdminUsersRoute
@@ -315,6 +323,7 @@ export interface FileRoutesById {
   '/contribute-shares/$year': typeof ContributeSharesYearRoute
   '/groom-edit/$token': typeof GroomEditTokenRoute
   '/survey/women-talents': typeof SurveyWomenTalentsRoute
+  '/_app/admin/album': typeof AppAdminAlbumRoute
   '/_app/admin/supreme-minutes': typeof AppAdminSupremeMinutesRoute
   '/_app/admin/tasks': typeof AppAdminTasksRoute
   '/_app/admin/users': typeof AppAdminUsersRoute
@@ -352,6 +361,7 @@ export interface FileRouteTypes {
     | '/contribute-shares/$year'
     | '/groom-edit/$token'
     | '/survey/women-talents'
+    | '/admin/album'
     | '/admin/supreme-minutes'
     | '/admin/tasks'
     | '/admin/users'
@@ -387,6 +397,7 @@ export interface FileRouteTypes {
     | '/contribute-shares/$year'
     | '/groom-edit/$token'
     | '/survey/women-talents'
+    | '/admin/album'
     | '/admin/supreme-minutes'
     | '/admin/tasks'
     | '/admin/users'
@@ -423,6 +434,7 @@ export interface FileRouteTypes {
     | '/contribute-shares/$year'
     | '/groom-edit/$token'
     | '/survey/women-talents'
+    | '/_app/admin/album'
     | '/_app/admin/supreme-minutes'
     | '/_app/admin/tasks'
     | '/_app/admin/users'
@@ -683,6 +695,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAdminSupremeMinutesRouteImport
       parentRoute: typeof AppAdminRoute
     }
+    '/_app/admin/album': {
+      id: '/_app/admin/album'
+      path: '/album'
+      fullPath: '/admin/album'
+      preLoaderRoute: typeof AppAdminAlbumRouteImport
+      parentRoute: typeof AppAdminRoute
+    }
     '/api/public/hooks/task-deadline-check': {
       id: '/api/public/hooks/task-deadline-check'
       path: '/api/public/hooks/task-deadline-check'
@@ -694,6 +713,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AppAdminRouteChildren {
+  AppAdminAlbumRoute: typeof AppAdminAlbumRoute
   AppAdminSupremeMinutesRoute: typeof AppAdminSupremeMinutesRoute
   AppAdminTasksRoute: typeof AppAdminTasksRoute
   AppAdminUsersRoute: typeof AppAdminUsersRoute
@@ -701,6 +721,7 @@ interface AppAdminRouteChildren {
 }
 
 const AppAdminRouteChildren: AppAdminRouteChildren = {
+  AppAdminAlbumRoute: AppAdminAlbumRoute,
   AppAdminSupremeMinutesRoute: AppAdminSupremeMinutesRoute,
   AppAdminTasksRoute: AppAdminTasksRoute,
   AppAdminUsersRoute: AppAdminUsersRoute,
