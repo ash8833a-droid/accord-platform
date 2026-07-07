@@ -11,10 +11,11 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Loader2, Plus, Pencil, Trash2, Upload, Eye, EyeOff, Image as ImageIcon, Video, GripVertical } from "lucide-react";
+import { Loader2, Plus, Pencil, Trash2, Upload, Eye, EyeOff, Image as ImageIcon, Video, Link as LinkIcon } from "lucide-react";
 import { compressIfNeeded } from "@/lib/media-compression";
 import { extractVideoThumbnail } from "@/lib/video-thumbnail";
 import { uploadAlbumFile, signAlbumPaths, removeAlbumFiles } from "@/lib/media-album";
+import { parseMediaUrl, fetchVimeoThumbnail } from "@/lib/media-url";
 import { COMPRESS_TARGET_SIZE, MAX_UPLOAD_SIZE, MAX_UPLOAD_SIZE_LABEL } from "@/lib/uploads";
 
 interface Album {
@@ -49,6 +50,10 @@ export function AlbumAdminPanel() {
   const [uploadMsg, setUploadMsg] = useState<string>("");
   const [confirmDelAlbum, setConfirmDelAlbum] = useState<Album | null>(null);
   const [confirmDelItem, setConfirmDelItem] = useState<Item | null>(null);
+  const [urlDialog, setUrlDialog] = useState(false);
+  const [urlInput, setUrlInput] = useState("");
+  const [urlTitle, setUrlTitle] = useState("");
+  const [urlBusy, setUrlBusy] = useState(false);
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -196,6 +201,51 @@ export function AlbumAdminPanel() {
     await refresh();
   };
 
+  const addFromUrl = async () => {
+    if (!selected) return;
+    const parsed = parseMediaUrl(urlInput);
+    if (!parsed) {
+      toast.error("رابط غير مدعوم", { description: "أدخل رابط YouTube أو Vimeo أو رابطًا مباشرًا لصورة/فيديو." });
+      return;
+    }
+    setUrlBusy(true);
+    try {
+      let thumb: string | null = null;
+      let fileUrl: string;
+      let kind: "image" | "video";
+      if (parsed.kind === "image") {
+        kind = "image";
+        fileUrl = parsed.url;
+      } else {
+        kind = "video";
+        fileUrl = parsed.provider === "youtube" ? parsed.url : parsed.provider === "vimeo" ? parsed.url : parsed.url;
+        if (parsed.provider === "youtube") thumb = parsed.thumbnailUrl;
+        else if (parsed.provider === "vimeo") thumb = await fetchVimeoThumbnail(parsed.id);
+      }
+      const { data: userRes } = await supabase.auth.getUser();
+      const { error } = await supabase.from("media_items").insert({
+        album_id: selected,
+        kind,
+        file_url: fileUrl,
+        thumbnail_url: thumb,
+        title: urlTitle.trim() || null,
+        sort_order: items[selected]?.length ?? 0,
+        created_by: userRes.user?.id ?? null,
+      });
+      if (error) {
+        toast.error("فشل الحفظ", { description: error.message });
+        return;
+      }
+      toast.success("تمت إضافة الرابط");
+      setUrlDialog(false);
+      setUrlInput("");
+      setUrlTitle("");
+      await refresh();
+    } finally {
+      setUrlBusy(false);
+    }
+  };
+
   const togglePublish = async (a: Album) => {
     const { error } = await supabase.from("media_albums")
       .update({ is_published: !a.is_published }).eq("id", a.id);
@@ -302,6 +352,9 @@ export function AlbumAdminPanel() {
                       onChange={(e) => { handleUpload(e.target.files); e.currentTarget.value = ""; }}
                     />
                   </label>
+                  <Button variant="outline" className="gap-2" onClick={() => setUrlDialog(true)} disabled={uploadBusy}>
+                    <LinkIcon className="h-4 w-4" /> إضافة عبر رابط
+                  </Button>
                   {uploadBusy && uploadMsg && (
                     <span className="text-xs text-muted-foreground">{uploadMsg}</span>
                   )}
@@ -387,6 +440,40 @@ export function AlbumAdminPanel() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Add via URL dialog */}
+      <Dialog open={urlDialog} onOpenChange={(o) => !urlBusy && setUrlDialog(o)}>
+        <DialogContent dir="rtl">
+          <DialogHeader>
+            <DialogTitle>إضافة وسائط عبر رابط</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>الرابط</Label>
+              <Input
+                dir="ltr"
+                placeholder="https://youtube.com/... أو رابط مباشر لصورة/فيديو"
+                value={urlInput}
+                onChange={(e) => setUrlInput(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">
+                يدعم YouTube و Vimeo وروابط الصور (.jpg, .png, .webp…) وروابط الفيديو المباشرة (.mp4, .webm…). يتم استخراج الصورة المصغّرة تلقائيًا لفيديوهات YouTube / Vimeo.
+              </p>
+            </div>
+            <div className="space-y-2">
+              <Label>عنوان (اختياري)</Label>
+              <Input value={urlTitle} onChange={(e) => setUrlTitle(e.target.value)} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setUrlDialog(false)} disabled={urlBusy}>إلغاء</Button>
+            <Button onClick={addFromUrl} disabled={urlBusy || !urlInput.trim()} className="gap-2">
+              {urlBusy && <Loader2 className="h-4 w-4 animate-spin" />}
+              إضافة
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
