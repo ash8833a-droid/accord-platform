@@ -557,8 +557,10 @@ function SmartDistributePanel({
     if (!files || !files.length) return;
     const next: DistItem[] = [];
     for (const f of Array.from(files)) {
-      if (f.size > MAX_UPLOAD_SIZE) {
-        toast.error(`"${f.name}" أكبر من ${MAX_UPLOAD_SIZE_LABEL}`);
+      // Allow oversize media — it will be compressed before upload.
+      const isMedia = /^(image|video)\//i.test(f.type) || /\.(png|jpe?g|webp|heic|heif|mp4|mov|m4v|webm|mkv|avi)$/i.test(f.name);
+      if (!isMedia && f.size > MAX_UPLOAD_SIZE) {
+        toast.error(`"${f.name}" أكبر من ${MAX_UPLOAD_SIZE_LABEL} ولا يمكن ضغطه`);
         continue;
       }
       next.push({ id: crypto.randomUUID(), file: f, status: "pending" });
