@@ -487,7 +487,7 @@ export function exportFinanceComprehensivePDF(
 ) {
   const R = data.revenues;
   const E = data.expenses;
-  const burnPct = R.total > 0 ? Math.min(100, Math.round((E.total / R.total) * 1000) / 10) : 0;
+  const burnPct = R.total > 0 ? Math.round((E.total / R.total) * 1000) / 10 : 0;
 
   const kpiCards = [
     { label: "إجمالي الإيرادات", value: fmtM(R.total), accent: "teal" },
