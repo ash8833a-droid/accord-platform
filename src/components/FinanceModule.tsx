@@ -486,7 +486,7 @@ export function FinanceModule() {
             <StatCard variant="teal" label="إجمالي المحصّل" value={`${fmt(totalCollected)} ر.س`} icon={Wallet} hint={`${totalSubs} اشتراك مؤكد`} />
             <StatCard variant="gold" label="ممثلو الأسر النشطون" value={delegates.length} icon={Users2} hint="في قاعدة البيانات" />
             <StatCard label="طلبات قيد المراجعة" value={pendingCount} icon={Clock} hint="بانتظار قرار المالية" />
-            <StatCard label="إجمالي المصروف" value={`${fmt(expensesTotal)} ر.س`} icon={TrendingUp} hint="طلبات صُرفت فعلياً + مصروف اللجان المسجّل" />
+            <StatCard label="إجمالي المصروف" value={`${fmt(expensesTotal)} ر.س`} icon={TrendingUp} hint="مجموع طلبات الصرف المدفوعة فعلياً" />
           </div>
         </TabsContent>
 
