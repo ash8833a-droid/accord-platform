@@ -334,6 +334,7 @@ function UploadPanel({
   const [file, setFile] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
   const [uploadedPath, setUploadedPath] = useState<string | null>(null);
+  const [uploadedMeta, setUploadedMeta] = useState<{ type: string; size: number } | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
   const [analysis, setAnalysis] = useState<ArchiveAnalysis | null>(null);
   const analyzeFn = useServerFn(analyzeArchiveFile);
@@ -342,13 +343,14 @@ function UploadPanel({
 
   const resetForm = () => {
     setTitle(""); setDesc(""); setFile(null);
-    setUploadedPath(null); setAnalysis(null);
+    setUploadedPath(null); setUploadedMeta(null); setAnalysis(null);
   };
 
   // If user replaces the picked file, drop any previous upload reference.
   const onPickFile = (f: File | null) => {
     setFile(f);
     setUploadedPath(null);
+    setUploadedMeta(null);
     setAnalysis(null);
   };
 
@@ -377,6 +379,7 @@ function UploadPanel({
       return null;
     }
     setUploadedPath(path);
+    setUploadedMeta({ type: toUpload.type || file.type, size: toUpload.size });
     return path;
   };
 
@@ -423,8 +426,8 @@ function UploadPanel({
         title: title.trim(),
         description: desc.trim() || null,
         file_url: path,
-        file_type: file.type,
-        file_size: file.size,
+        file_type: uploadedMeta?.type ?? file.type,
+        file_size: uploadedMeta?.size ?? file.size,
         created_by: userId,
       });
       if (error) { toast.error("تعذر الحفظ", { description: error.message }); return; }
