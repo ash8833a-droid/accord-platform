@@ -328,8 +328,10 @@ export function FinanceModule() {
   const totalSubs = delegates.reduce((a, d) => a + (d.subs_count ?? 0), 0);
   const pendingCount = requests.filter((r) => r.status === "pending").length;
   const totalPaid = requests.filter((r) => r.status === "paid").reduce((a, r) => a + Number(r.amount), 0);
-  // إجمالي المصروف = مجموع طلبات الصرف المدفوعة فعلياً فقط
-  const expensesTotal = totalPaid;
+  const expensesTotal = Math.max(
+    totalPaid,
+    committeesFull.reduce((s, c) => s + c.spent, 0)
+  );
   // Groom revenues = confirmed delegate subscriptions + grooms.groom_contribution
   const groomSubsTotal = totalCollected + groomContribTotal;
   const fmt = (n: number) => new Intl.NumberFormat("ar-SA").format(n);
@@ -486,7 +488,7 @@ export function FinanceModule() {
             <StatCard variant="teal" label="إجمالي المحصّل" value={`${fmt(totalCollected)} ر.س`} icon={Wallet} hint={`${totalSubs} اشتراك مؤكد`} />
             <StatCard variant="gold" label="ممثلو الأسر النشطون" value={delegates.length} icon={Users2} hint="في قاعدة البيانات" />
             <StatCard label="طلبات قيد المراجعة" value={pendingCount} icon={Clock} hint="بانتظار قرار المالية" />
-            <StatCard label="إجمالي المصروف" value={`${fmt(expensesTotal)} ر.س`} icon={TrendingUp} hint="مجموع طلبات الصرف المدفوعة فعلياً" />
+            <StatCard label="إجمالي المصروف" value={`${fmt(expensesTotal)} ر.س`} icon={TrendingUp} hint="طلبات صُرفت فعلياً + مصروف اللجان المسجّل" />
           </div>
         </TabsContent>
 
