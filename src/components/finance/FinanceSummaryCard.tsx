@@ -16,7 +16,7 @@ export function FinanceSummaryCard({
 }: Props) {
   const revenues = groomSubsTotal + familyContribTotal + deficitShareTotal;
   const balance = revenues - expensesTotal;
-  const burn = revenues > 0 ? Math.min(100, (expensesTotal / revenues) * 100) : 0;
+  const burn = revenues > 0 ? (expensesTotal / revenues) * 100 : 0;
 
   const revenueData = [
     { name: "اشتراكات العرسان", value: groomSubsTotal, color: "hsl(190 80% 40%)" },
@@ -73,7 +73,7 @@ export function FinanceSummaryCard({
         <div className="h-2 rounded-full bg-muted overflow-hidden">
           <div
             className={`h-full transition-all ${burn <= 70 ? "bg-emerald-500" : burn <= 90 ? "bg-amber-500" : "bg-rose-500"}`}
-            style={{ width: `${burn}%` }}
+            style={{ width: `${Math.min(100, burn)}%` }}
           />
         </div>
       </div>
