@@ -16,6 +16,7 @@ import { compressIfNeeded } from "@/lib/media-compression";
 import { extractVideoThumbnail } from "@/lib/video-thumbnail";
 import { uploadAlbumFile, signAlbumPaths, removeAlbumFiles } from "@/lib/media-album";
 import { parseMediaUrlDetailed, fetchVimeoThumbnail } from "@/lib/media-url";
+import { listDriveFolder, extractDriveFolderId } from "@/lib/drive-folder.functions";
 import { COMPRESS_TARGET_SIZE, MAX_UPLOAD_SIZE, MAX_UPLOAD_SIZE_LABEL } from "@/lib/uploads";
 
 interface Album {
@@ -204,8 +205,8 @@ export function AlbumAdminPanel() {
 
   const addFromUrl = async () => {
     if (!selected) return;
-    const lines = urlInput.split(/\r?\n|\s{2,}/).map((s) => s.trim()).filter(Boolean);
-    if (lines.length === 0) {
+    const rawLines = urlInput.split(/\r?\n|\s{2,}/).map((s) => s.trim()).filter(Boolean);
+    if (rawLines.length === 0) {
       toast.error("أدخل رابطًا واحدًا على الأقل");
       return;
     }
@@ -213,10 +214,45 @@ export function AlbumAdminPanel() {
     let okCount = 0;
     const errors: string[] = [];
     try {
+      // Expand Google Drive folder links → individual file links
+      const lines: string[] = [];
+      const perLineKind: Record<string, "image" | "video" | undefined> = {};
+      for (const line of rawLines) {
+        const folderId = /drive\.google\.com\/.*\/folders\//i.test(line)
+          ? extractDriveFolderId(line)
+          : null;
+        if (folderId) {
+          setUploadMsg(`جاري قراءة مجلد Drive…`);
+          try {
+            const res = await listDriveFolder({ data: { folderId } });
+            if (res.items.length === 0) {
+              errors.push(`المجلد فارغ أو غير مشارك بشكل عام (${folderId.slice(0, 8)}…)`);
+              continue;
+            }
+            for (const it of res.items) {
+              const fileUrl = `https://drive.google.com/file/d/${it.id}/view`;
+              lines.push(fileUrl);
+              perLineKind[fileUrl] = it.kind;
+            }
+          } catch (e: any) {
+            errors.push(`تعذّر قراءة المجلد: ${e?.message ?? "خطأ غير معروف"}`);
+          }
+        } else {
+          lines.push(line);
+        }
+      }
+      setUploadMsg("");
+      if (lines.length === 0) {
+        toast.error("لم يتم العثور على وسائط", {
+          description: errors.slice(0, 3).join(" • "),
+        });
+        return;
+      }
       const { data: userRes } = await supabase.auth.getUser();
       let order = items[selected]?.length ?? 0;
       for (const line of lines) {
-        const parsed = parseMediaUrlDetailed(line, urlKind);
+        const effectiveKind = perLineKind[line] ?? urlKind;
+        const parsed = parseMediaUrlDetailed(line, effectiveKind);
         if (!("kind" in parsed)) {
           const short = line.length > 60 ? line.slice(0, 60) + "…" : line;
           const why =
