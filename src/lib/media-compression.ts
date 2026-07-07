@@ -31,13 +31,14 @@ function replaceExt(name: string, newExt: string) {
 }
 
 export async function compressImage(file: File): Promise<File> {
-  // Load
-  const bmpSrc: ImageBitmapSource = file;
+  // Load — first try native decoding, fall back to HEIC WASM decoder
   let bitmap: ImageBitmap;
   try {
-    bitmap = await createImageBitmap(bmpSrc);
+    bitmap = await createImageBitmap(file);
   } catch {
-    return file; // Unsupported (e.g. HEIC on some browsers)
+    const decoded = await decodeHeicToBitmap(file);
+    if (!decoded) return file;
+    bitmap = decoded;
   }
 
   const { width, height } = bitmap;
@@ -63,6 +64,22 @@ export async function compressImage(file: File): Promise<File> {
     lastModified: Date.now(),
   });
 }
+
+/** Try to decode a HEIC/HEIF file using the browser-side libheif WASM. */
+async function decodeHeicToBitmap(file: File): Promise<ImageBitmap | null> {
+  const isHeic =
+    /image\/hei[cf]/i.test(file.type) ||
+    /\.(heic|heif)$/i.test(file.name);
+  if (!isHeic) return null;
+  try {
+    const { heicTo } = await import("heic-to");
+    const jpegBlob = await heicTo({ blob: file, type: "image/jpeg", quality: 0.9 });
+    return await createImageBitmap(jpegBlob);
+  } catch {
+    return null;
+  }
+}
+
 
 export async function compressVideo(
   file: File,
