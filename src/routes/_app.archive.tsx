@@ -11,7 +11,8 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FilePreview } from "@/components/FilePreview";
-import { ACCEPT_ANY_FILE, MAX_UPLOAD_SIZE, MAX_UPLOAD_SIZE_LABEL, safeStorageKey } from "@/lib/uploads";
+import { ACCEPT_ANY_FILE, MAX_UPLOAD_SIZE, MAX_UPLOAD_SIZE_LABEL, COMPRESS_TARGET_SIZE, safeStorageKey } from "@/lib/uploads";
+import { compressIfNeeded } from "@/lib/media-compression";
 import { toast } from "sonner";
 import {
   Archive, Upload, Loader2, Eye, Download, Trash2, Image as ImageIcon,
@@ -333,6 +334,7 @@ function UploadPanel({
   const [file, setFile] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
   const [uploadedPath, setUploadedPath] = useState<string | null>(null);
+  const [uploadedMeta, setUploadedMeta] = useState<{ type: string; size: number } | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
   const [analysis, setAnalysis] = useState<ArchiveAnalysis | null>(null);
   const analyzeFn = useServerFn(analyzeArchiveFile);
@@ -341,26 +343,35 @@ function UploadPanel({
 
   const resetForm = () => {
     setTitle(""); setDesc(""); setFile(null);
-    setUploadedPath(null); setAnalysis(null);
+    setUploadedPath(null); setUploadedMeta(null); setAnalysis(null);
   };
 
   // If user replaces the picked file, drop any previous upload reference.
   const onPickFile = (f: File | null) => {
     setFile(f);
     setUploadedPath(null);
+    setUploadedMeta(null);
     setAnalysis(null);
   };
 
   const ensureUpload = async (): Promise<string | null> => {
     if (uploadedPath) return uploadedPath;
     if (!file) return null;
-    if (file.size > MAX_UPLOAD_SIZE) {
+    let toUpload = file;
+    if (toUpload.size > COMPRESS_TARGET_SIZE) {
+      toast.info("جاري ضغط الملف قبل الرفع…");
+      toUpload = await compressIfNeeded(toUpload, COMPRESS_TARGET_SIZE);
+      if (toUpload !== file) {
+        toast.success(`تم الضغط: ${(file.size / 1024 / 1024).toFixed(1)}MB → ${(toUpload.size / 1024 / 1024).toFixed(1)}MB`);
+      }
+    }
+    if (toUpload.size > MAX_UPLOAD_SIZE) {
       toast.error(`حجم الملف أكبر من ${MAX_UPLOAD_SIZE_LABEL}`);
       return null;
     }
-    const path = safeStorageKey(file.name, `${year}/${cat}`);
-    const { error: upErr } = await supabase.storage.from("wedding-archive").upload(path, file, {
-      contentType: file.type || "application/octet-stream",
+    const path = safeStorageKey(toUpload.name, `${year}/${cat}`);
+    const { error: upErr } = await supabase.storage.from("wedding-archive").upload(path, toUpload, {
+      contentType: toUpload.type || "application/octet-stream",
       upsert: false,
     });
     if (upErr) {
@@ -368,6 +379,7 @@ function UploadPanel({
       return null;
     }
     setUploadedPath(path);
+    setUploadedMeta({ type: toUpload.type || file.type, size: toUpload.size });
     return path;
   };
 
@@ -414,8 +426,8 @@ function UploadPanel({
         title: title.trim(),
         description: desc.trim() || null,
         file_url: path,
-        file_type: file.type,
-        file_size: file.size,
+        file_type: uploadedMeta?.type ?? file.type,
+        file_size: uploadedMeta?.size ?? file.size,
         created_by: userId,
       });
       if (error) { toast.error("تعذر الحفظ", { description: error.message }); return; }
@@ -545,8 +557,10 @@ function SmartDistributePanel({
     if (!files || !files.length) return;
     const next: DistItem[] = [];
     for (const f of Array.from(files)) {
-      if (f.size > MAX_UPLOAD_SIZE) {
-        toast.error(`"${f.name}" أكبر من ${MAX_UPLOAD_SIZE_LABEL}`);
+      // Allow oversize media — it will be compressed before upload.
+      const isMedia = /^(image|video)\//i.test(f.type) || /\.(png|jpe?g|webp|heic|heif|mp4|mov|m4v|webm|mkv|avi)$/i.test(f.name);
+      if (!isMedia && f.size > MAX_UPLOAD_SIZE) {
+        toast.error(`"${f.name}" أكبر من ${MAX_UPLOAD_SIZE_LABEL} ولا يمكن ضغطه`);
         continue;
       }
       next.push({ id: crypto.randomUUID(), file: f, status: "pending" });
@@ -561,13 +575,20 @@ function SmartDistributePanel({
 
   const processOne = async (item: DistItem) => {
     try {
+      // 0) Compress large media before anything else
+      let workFile = item.file;
+      if (workFile.size > COMPRESS_TARGET_SIZE) {
+        update(item.id, { status: "uploading" });
+        workFile = await compressIfNeeded(workFile, COMPRESS_TARGET_SIZE);
+      }
+
       // 1) Temporary upload under inbox/ so analyzer can fetch it
       update(item.id, { status: "uploading" });
-      const tempPath = safeStorageKey(item.file.name, `${year}/_inbox`);
+      const tempPath = safeStorageKey(workFile.name, `${year}/_inbox`);
       const { error: upErr } = await supabase.storage
         .from("wedding-archive")
-        .upload(tempPath, item.file, {
-          contentType: item.file.type || "application/octet-stream",
+        .upload(tempPath, workFile, {
+          contentType: workFile.type || "application/octet-stream",
           upsert: false,
         });
       if (upErr) throw new Error(upErr.message);
@@ -577,15 +598,15 @@ function SmartDistributePanel({
       const result = await analyzeFn({
         data: {
           storage_path: tempPath,
-          filename: item.file.name,
-          mime_type: item.file.type || "",
+          filename: workFile.name,
+          mime_type: workFile.type || "",
           description: "",
           wedding_year: year,
         },
       });
 
       // 3) Move to category folder (copy + remove)
-      const finalPath = safeStorageKey(item.file.name, `${year}/${result.category}`);
+      const finalPath = safeStorageKey(workFile.name, `${year}/${result.category}`);
       const { error: mvErr } = await supabase.storage
         .from("wedding-archive")
         .move(tempPath, finalPath);
@@ -596,11 +617,11 @@ function SmartDistributePanel({
       const { error: insErr } = await supabase.from("wedding_archive_items").insert({
         wedding_year: year,
         category: result.category,
-        title: result.suggested_title || item.file.name.replace(/\.[^.]+$/, ""),
+        title: result.suggested_title || workFile.name.replace(/\.[^.]+$/, ""),
         description: result.summary || null,
         file_url: usedPath,
-        file_type: item.file.type,
-        file_size: item.file.size,
+        file_type: workFile.type,
+        file_size: workFile.size,
         created_by: userId,
       });
       if (insErr) throw new Error(insErr.message);
@@ -670,7 +691,7 @@ function SmartDistributePanel({
           <label className="flex flex-col items-center justify-center gap-2 h-28 rounded-xl border-2 border-dashed border-fuchsia-300 cursor-pointer hover:bg-fuchsia-50/60 transition">
             <Upload className="h-6 w-6 text-fuchsia-600" />
             <span className="text-sm font-bold">اسحب الملفات هنا أو اختر عدة ملفات</span>
-            <span className="text-[11px] text-muted-foreground">صور · PDF · مستندات · حد الحجم {MAX_UPLOAD_SIZE_LABEL} للملف</span>
+            <span className="text-[11px] text-muted-foreground">صور · فيديو · PDF · مستندات — يتم ضغط الصور والفيديو تلقائياً · الحد الأقصى {MAX_UPLOAD_SIZE_LABEL}</span>
             <input
               type="file"
               multiple
