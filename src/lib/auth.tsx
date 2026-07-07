@@ -67,13 +67,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => {
+    let currentUserId: string | null = null;
+    const { data: sub } = supabase.auth.onAuthStateChange((event, s) => {
       setSession(s);
       setUser(s?.user ?? null);
-      if (s?.user) {
+      const newUserId = s?.user?.id ?? null;
+      // Ignore token refresh / initial session / tab-focus re-emits — they
+      // must NOT reset access state or trigger redirects. Only reload
+      // access when the actual user identity changes.
+      if (event === "TOKEN_REFRESHED" || event === "USER_UPDATED") {
+        return;
+      }
+      if (newUserId && newUserId !== currentUserId) {
+        currentUserId = newUserId;
         setAccessLoaded(false);
-        setTimeout(() => loadAccess(s.user.id), 0);
-      } else {
+        setTimeout(() => loadAccess(newUserId), 0);
+      } else if (!newUserId && currentUserId) {
+        currentUserId = null;
         setRoles([]);
         setCommitteeId(null);
         setApproved(false);
@@ -94,6 +104,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setSession(data.session);
           setUser(data.session?.user ?? null);
           if (data.session?.user) {
+            currentUserId = data.session.user.id;
             await loadAccess(data.session.user.id);
           } else {
             setAccessLoaded(true);
