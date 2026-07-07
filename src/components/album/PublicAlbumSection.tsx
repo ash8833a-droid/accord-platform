@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { signAlbumPaths } from "@/lib/media-album";
+import { parseMediaUrl } from "@/lib/media-url";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Camera, Video as VideoIcon, X, ChevronLeft, ChevronRight, Play } from "lucide-react";
@@ -166,6 +167,9 @@ function Lightbox({
   if (!state) return null;
   const it = state.items[state.index];
   const url = signed[it.file_url];
+  const external = /^https?:\/\//i.test(it.file_url) ? parseMediaUrl(it.file_url) : null;
+  const embedUrl =
+    external && "embedUrl" in external ? external.embedUrl : null;
 
   return (
     <Dialog open onOpenChange={(o) => !o && onClose()}>
@@ -197,7 +201,15 @@ function Lightbox({
             </>
           )}
           <div className="flex items-center justify-center min-h-[60vh] max-h-[85vh]">
-            {it.kind === "image" ? (
+            {embedUrl ? (
+              <iframe
+                src={`${embedUrl}?autoplay=1`}
+                title={it.title ?? "video"}
+                className="w-full aspect-video max-h-[85vh]"
+                allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
+                allowFullScreen
+              />
+            ) : it.kind === "image" ? (
               url ? <img src={url} alt={it.title ?? ""} className="max-h-[85vh] max-w-full object-contain" /> : null
             ) : (
               url ? (
