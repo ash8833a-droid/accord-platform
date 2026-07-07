@@ -1,9 +1,9 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { signAlbumPaths } from "@/lib/media-album";
 import { parseMediaUrl } from "@/lib/media-url";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { Camera, Video as VideoIcon, X, ChevronLeft, ChevronRight, Play, Image as ImageIcon, Pause } from "lucide-react";
+import { Camera, Video as VideoIcon, X, ChevronLeft, ChevronRight, Play, Image as ImageIcon, Pause, Move, Maximize2, RotateCcw } from "lucide-react";
 
 interface Album {
   id: string;
@@ -125,7 +125,7 @@ export function PublicAlbumSection() {
         </div>
       </div>
 
-      <PhoneCarousel
+      <DraggableBannersStage
         key={`${selectedAlbum}-${mediaTab}`}
         items={activeList}
         signed={signed}
