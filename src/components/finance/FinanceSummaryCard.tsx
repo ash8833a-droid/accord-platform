@@ -7,20 +7,22 @@ interface Props {
   groomSubsTotal: number;
   familyContribTotal: number;
   deficitShareTotal: number;
+  sheepRevenueTotal?: number;
   expensesTotal: number;
   committeeBreakdown: Array<{ name: string; spent: number }>;
 }
 
 export function FinanceSummaryCard({
-  groomSubsTotal, familyContribTotal, deficitShareTotal, expensesTotal, committeeBreakdown,
+  groomSubsTotal, familyContribTotal, deficitShareTotal, sheepRevenueTotal = 0, expensesTotal, committeeBreakdown,
 }: Props) {
-  const revenues = groomSubsTotal + familyContribTotal + deficitShareTotal;
+  const revenues = groomSubsTotal + familyContribTotal + deficitShareTotal + sheepRevenueTotal;
   const balance = revenues - expensesTotal;
   const burn = revenues > 0 ? (expensesTotal / revenues) * 100 : 0;
 
   const revenueData = [
     { name: "اشتراكات العرسان", value: groomSubsTotal, color: "hsl(190 80% 40%)" },
     { name: "مساهمات أفراد القبيلة", value: familyContribTotal, color: "hsl(142 70% 40%)" },
+    { name: "قيمة الذبائح المضافة من العرسان", value: sheepRevenueTotal, color: "hsl(280 70% 50%)" },
     { name: "حصة العجز", value: deficitShareTotal, color: "hsl(35 90% 45%)" },
   ].filter((d) => d.value > 0);
 
@@ -42,8 +44,9 @@ export function FinanceSummaryCard({
           sublines={[
             { k: "اشتراكات العرسان", v: groomSubsTotal },
             { k: "مساهمات أفراد القبيلة", v: familyContribTotal },
+            { k: "قيمة الذبائح المضافة من العرسان", v: sheepRevenueTotal },
             { k: "حصة العجز", v: deficitShareTotal },
-          ]}
+          ].filter((s) => s.v > 0)}
         />
         <KpiTile
           label="إجمالي المصروفات"
