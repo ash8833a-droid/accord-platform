@@ -12,7 +12,7 @@ import { Wallet, Users2, Plus, CheckCircle2, Clock, Receipt, TrendingUp, XCircle
 import { toast } from "sonner";
 import { StatCard } from "@/components/StatCard";
 import { committeeByType } from "@/lib/committees";
-import { exportRequestsCSV, exportRequestsXLSX, exportFinanceComprehensivePDF, type ExportRequest, type FinanceComprehensiveData } from "@/lib/exporters";
+import { exportRequestsCSV, exportRequestsXLSX, exportFinanceComprehensivePDF, exportFinanceSummaryPDF, type ExportRequest, type FinanceComprehensiveData } from "@/lib/exporters";
 import { SharesByBranch } from "@/components/finance/SharesByBranch";
 import { GroomContributions } from "@/components/finance/GroomContributions";
 import { CommitteeBudgetLimits } from "@/components/finance/CommitteeBudgetLimits";
@@ -348,7 +348,7 @@ export function FinanceModule() {
     description: r.description ?? "",
   }));
 
-  const handleExport = (kind: "csv" | "xlsx" | "pdf") => {
+  const handleExport = (kind: "csv" | "xlsx" | "pdf" | "pdf-summary") => {
     const stamp = new Date().toISOString().slice(0, 10);
     const filename = `تقرير-طلبات-الصرف-${stamp}`;
     const summary = {
@@ -366,8 +366,11 @@ export function FinanceModule() {
       if (exportRows.length === 0) return toast.error("لا توجد طلبات صرف للتصدير");
       exportRequestsXLSX(exportRows, filename, summary);
     }
-    if (kind === "pdf") {
-      const comFilename = `التقرير-الشامل-للإدارة-المالية-${stamp}`;
+    if (kind === "pdf" || kind === "pdf-summary") {
+      const isSummary = kind === "pdf-summary";
+      const comFilename = isSummary
+        ? `التقرير-الملخص-للإدارة-المالية-${stamp}`
+        : `التقرير-الشامل-للإدارة-المالية-${stamp}`;
       const comMap = new Map(committeesFull.map((c) => [c.id, c.name]));
       const revenues = {
         groomSubs: groomSubsTotal,
@@ -421,7 +424,8 @@ export function FinanceModule() {
         })),
         paymentRequests: exportRows,
       };
-      exportFinanceComprehensivePDF(data, comFilename);
+      if (isSummary) exportFinanceSummaryPDF(data, comFilename);
+      else exportFinanceComprehensivePDF(data, comFilename);
     }
     toast.success(`تم تصدير التقرير (${kind.toUpperCase()})`);
   };
@@ -440,6 +444,9 @@ export function FinanceModule() {
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => handleExport("pdf")} className="gap-2 cursor-pointer">
               <FileType2 className="h-4 w-4 text-rose-600" /> PDF — التقرير الشامل
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleExport("pdf-summary")} className="gap-2 cursor-pointer">
+              <FileType2 className="h-4 w-4 text-amber-600" /> PDF — التقرير الملخص
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => handleExport("xlsx")} className="gap-2 cursor-pointer">
               <FileSpreadsheet className="h-4 w-4 text-emerald-600" /> Excel — طلبات الصرف
