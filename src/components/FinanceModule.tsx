@@ -90,6 +90,7 @@ export function FinanceModule() {
   const [groomContribTotal, setGroomContribTotal] = useState(0);
   const [deficitShareTotal, setDeficitShareTotal] = useState(0);
   const [budgetItemsTotal, setBudgetItemsTotal] = useState(0);
+  const [sheepRevenueTotal, setSheepRevenueTotal] = useState(0);
   const [committees, setCommittees] = useState<Array<{ id: string; name: string; type: string }>>([]);
   // Manual payment request dialog
   const [addPrOpen, setAddPrOpen] = useState(false);
@@ -107,7 +108,7 @@ export function FinanceModule() {
   const [budgetItemsList, setBudgetItemsList] = useState<Array<{ committee_id: string; item_name: string; quantity: number; unit_cost: number; total_cost: number }>>([]);
 
   const load = async () => {
-    const [{ data: dels }, { data: subs }, { data: prs }, { data: coms }, { data: financeCom }, { data: fc }, { data: hs }, { data: gr }, { data: bi }] = await Promise.all([
+    const [{ data: dels }, { data: subs }, { data: prs }, { data: coms }, { data: financeCom }, { data: fc }, { data: hs }, { data: gr }, { data: bi }, { data: sheepSetting }] = await Promise.all([
       supabase.from("delegates").select("*").order("created_at", { ascending: false }),
       supabase.from("subscriptions").select("delegate_id, amount, status"),
       supabase.from("payment_requests").select("*").order("created_at", { ascending: false }),
@@ -123,6 +124,7 @@ export function FinanceModule() {
       supabase.from("historical_shareholders").select("full_name, family_branch, amount, hijri_year").eq("hijri_year", 1448),
       supabase.from("grooms").select("full_name, family_branch, groom_contribution, deficit_share, contribution_paid"),
       supabase.from("budget_items").select("committee_id, item_name, quantity, unit_cost, total_cost"),
+      supabase.from("app_settings").select("value").eq("key", "revenue_extra_sheep").maybeSingle(),
     ]);
     setFinanceHeadId(financeCom?.head_user_id ?? null);
     const fcTotal = (fc ?? []).reduce((s: number, r: any) => s + Number(r.amount || 0), 0);
@@ -130,6 +132,7 @@ export function FinanceModule() {
     setFamilyContribTotal(fcTotal + hsTotal);
     setGroomContribTotal((gr ?? []).reduce((s: number, r: any) => s + Number(r.groom_contribution || 0), 0));
     setDeficitShareTotal((gr ?? []).reduce((s: number, r: any) => s + Number(r.deficit_share || 0), 0));
+    setSheepRevenueTotal(Number((sheepSetting as any)?.value ?? 0));
     const biTotal = (bi ?? []).reduce((s: number, r: any) => s + Number(r.total_cost || 0), 0);
     setBudgetItemsTotal(biTotal);
     setGroomsList((gr ?? []) as any);
@@ -457,6 +460,7 @@ export function FinanceModule() {
         expensesTotal={expensesTotal}
         committeeBreakdown={committeeBreakdown}
         deficitShareTotal={deficitShareTotal}
+        sheepRevenueTotal={sheepRevenueTotal}
       />
 
       <FinanceReconciliationAlerts canFix={canManage} onFixed={load} />
@@ -490,7 +494,13 @@ export function FinanceModule() {
 
         <TabsContent value="overview" className="mt-5 space-y-4">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <StatCard variant="teal" label="إجمالي المحصّل" value={`${fmt(totalCollected)} ر.س`} icon={Wallet} hint={`${totalSubs} اشتراك مؤكد`} />
+            <StatCard
+              variant="teal"
+              label="إجمالي المحصّل"
+              value={`${fmt(groomSubsTotal + familyContribTotal + sheepRevenueTotal)} ر.س`}
+              icon={Wallet}
+              hint="عرسان + مساهمون + قيمة الذبائح"
+            />
             <StatCard variant="gold" label="ممثلو الأسر النشطون" value={delegates.length} icon={Users2} hint="في قاعدة البيانات" />
             <StatCard label="طلبات قيد المراجعة" value={pendingCount} icon={Clock} hint="بانتظار قرار المالية" />
             <StatCard label="إجمالي المصروف" value={`${fmt(expensesTotal)} ر.س`} icon={TrendingUp} hint="مجموع بنود ميزانيات اللجان (المصروف الفعلي)" />
