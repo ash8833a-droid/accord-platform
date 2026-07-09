@@ -5,8 +5,10 @@ const PUBLIC_FIELDS =
   "id, full_name, phone, family_branch, photo_url, national_id_url, request_type, request_details, status, edit_token, created_at";
 
 // Fields safe to return for unauthenticated phone-search (no edit_token).
+// Do NOT include national_id_url / photo_url — those are sensitive identity
+// documents and must only be revealed via the edit_token-gated path.
 const PHONE_LOOKUP_FIELDS =
-  "id, full_name, phone, family_branch, photo_url, national_id_url, request_type, request_details, status, created_at";
+  "id, full_name, phone, family_branch, request_type, request_details, status, created_at";
 
 function normalizePhone(input: string): string {
   return input.replace(/[^\d]/g, "").replace(/^0+/, "");
@@ -85,7 +87,14 @@ export const lookupGroomByPhone = createServerFn({ method: "POST" })
       .limit(1)
       .maybeSingle();
     if (error) throw new Error(error.message);
-    return { groom: await withSignedUrls(row as any) };
+    // Never sign / return identity documents for phone-only lookups.
+    // The status text is enough to confirm the request exists; edits
+    // must go through the edit_token flow (updateGroomByToken).
+    return {
+      groom: row
+        ? { ...(row as any), photo_signed_url: null, national_id_signed_url: null }
+        : null,
+    };
   });
 
 // Apply public-facing updates to a groom record, gated by edit_token
