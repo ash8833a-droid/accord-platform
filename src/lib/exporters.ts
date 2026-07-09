@@ -50,6 +50,7 @@ export interface FinanceComprehensiveData {
     groomSubs: number;         // اشتراكات العرسان (تحصيل ممثلي الأسر + مساهمة العرسان)
     familyContrib: number;     // مساهمات أفراد القبيلة (السنة الحالية + السجل التاريخي)
     deficitShare: number;      // حصص العجز
+    sheepRevenue?: number;     // قيمة الذبائح المضافة من العرسان
     total: number;             // الإجمالي
   };
   expenses: {
