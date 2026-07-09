@@ -127,8 +127,10 @@ export const updateGroomByToken = createServerFn({ method: "POST" })
 // Public groom registration (anon) — handles duplicate check and insert server-side
 const RegisterSchema = z.object({
   full_name: z.string().min(2).max(200),
-  phone: z.string().min(7).max(20),
-  national_id: z.string().min(4).max(30),
+  // Strict digit-only allow-list to prevent PostgREST filter-syntax injection
+  // when this value is used in a duplicate-check query below.
+  phone: z.string().regex(/^\d{7,20}$/, "رقم الجوال غير صالح"),
+  national_id: z.string().regex(/^\d{4,30}$/, "رقم الهوية غير صالح"),
   family_branch: z.string().min(1).max(120).default("غير محدد"),
   national_id_url: z.string().url().max(1024).nullable().optional(),
   photo_url: z.string().url().max(1024).nullable().optional(),
@@ -147,15 +149,19 @@ export const registerGroomPublic = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const phone = data.phone.trim();
     const nid = data.national_id.trim();
-    const { data: dup, error: dupErr } = await supabaseAdmin
-      .from("grooms")
-      .select("id, phone, national_id")
-      .or(`phone.eq.${phone},national_id.eq.${nid}`)
-      .limit(1);
-    if (dupErr) throw new Error(dupErr.message);
-    if (dup && dup.length > 0) {
-      const which = dup[0].phone === phone ? "phone" : "national_id";
-      return { duplicate: which as "phone" | "national_id" };
+    // Two separate equality queries — never interpolate user input into a
+    // PostgREST filter string.
+    const [phoneHit, nidHit] = await Promise.all([
+      supabaseAdmin.from("grooms").select("id").eq("phone", phone).limit(1).maybeSingle(),
+      supabaseAdmin.from("grooms").select("id").eq("national_id", nid).limit(1).maybeSingle(),
+    ]);
+    if (phoneHit.error) throw new Error(phoneHit.error.message);
+    if (nidHit.error) throw new Error(nidHit.error.message);
+    if (phoneHit.data) {
+      return { duplicate: "phone" as const };
+    }
+    if (nidHit.data) {
+      return { duplicate: "national_id" as const };
     }
     const { data: inserted, error } = await supabaseAdmin
       .from("grooms")
