@@ -887,18 +887,19 @@ export function exportFinanceSummaryPDF(
   const R = data.revenues;
   const E = data.expenses;
   const groomsCount = data.grooms.length;
-  // نصيب كل عريس = (مساهمة العريس + حصة العجز) بحسب البيانات الفعلية للعرسان
-  const totalGroomContribs = data.grooms.reduce((s, g) => s + Number(g.groom_contribution || 0), 0);
-  const totalDeficitShares = data.grooms.reduce((s, g) => s + Number(g.deficit_share || 0), 0);
-  const totalGroomsObligations = totalGroomContribs + totalDeficitShares;
-  const perGroom = groomsCount > 0 ? Math.round((totalGroomsObligations / groomsCount) * 100) / 100 : 0;
-  const surplus = data.balance;
+  const balance = data.balance;
+  const GIFT_PER_GROOM = 500; // هدية ثابتة لكل عريس
+  // فائض من الميزانية موزّع على العرسان
+  const surplusPerGroom = groomsCount > 0 ? Math.round((balance / groomsCount) * 100) / 100 : 0;
+  const totalPerGroom = surplusPerGroom + GIFT_PER_GROOM;
+  // عدد المساهمين من أفراد القبيلة (السنة الحالية + السجل التاريخي)
+  const contributorsCount = data.familyContributions.length + data.historicalShareholders.length;
 
   const kpiCards = [
     { label: "إجمالي الإيرادات", value: fmtM(R.total), accent: "teal" },
     { label: "إجمالي المصروفات", value: fmtM(E.total), accent: "gold" },
-    { label: surplus >= 0 ? "الفائض" : "العجز", value: fmtM(Math.abs(surplus)), accent: surplus < 0 ? "danger" : "teal" },
-    { label: "متوسط نصيب كل عريس", value: fmtM(perGroom), accent: "gold" },
+    { label: balance >= 0 ? "الرصيد الحالي" : "العجز", value: fmtM(Math.abs(balance)), accent: balance < 0 ? "danger" : "teal" },
+    { label: "نصيب كل عريس", value: fmtM(totalPerGroom), accent: "gold" },
   ];
 
   const section = (title: string, body: string) => `
@@ -908,13 +909,13 @@ export function exportFinanceSummaryPDF(
 
   const revenuesTable = `
     <table>
-      <thead><tr><th>بند الإيراد</th><th>القيمة (ر.س)</th></tr></thead>
+      <thead><tr><th>بند الإيراد</th><th>القيمة (ر.س)</th><th>ملاحظات</th></tr></thead>
       <tbody>
-        <tr><td class="ttl">اشتراكات العرسان</td><td class="amt">${fmt(R.groomSubs)}</td></tr>
-        <tr><td class="ttl">مساهمات أفراد القبيلة</td><td class="amt">${fmt(R.familyContrib)}</td></tr>
-        <tr><td class="ttl">حصص العجز</td><td class="amt">${fmt(R.deficitShare)}</td></tr>
-        ${R.sheepRevenue && R.sheepRevenue > 0 ? `<tr><td class="ttl">قيمة الذبائح المضافة من العرسان</td><td class="amt">${fmt(R.sheepRevenue)}</td></tr>` : ""}
-        <tr class="tot"><td class="ttl"><b>إجمالي الإيرادات</b></td><td class="amt"><b>${fmt(R.total)}</b></td></tr>
+        <tr><td class="ttl">اشتراكات العرسان</td><td class="amt">${fmt(R.groomSubs)}</td><td>${fmt(groomsCount)} عريس</td></tr>
+        <tr><td class="ttl">مساهمات أفراد القبيلة</td><td class="amt">${fmt(R.familyContrib)}</td><td>${fmt(contributorsCount)} مساهم</td></tr>
+        ${R.deficitShare && R.deficitShare > 0 ? `<tr><td class="ttl">حصص العجز</td><td class="amt">${fmt(R.deficitShare)}</td><td>موزّعة على العرسان</td></tr>` : ""}
+        ${R.sheepRevenue && R.sheepRevenue > 0 ? `<tr><td class="ttl">قيمة الذبائح المضافة من العرسان</td><td class="amt">${fmt(R.sheepRevenue)}</td><td>—</td></tr>` : ""}
+        <tr class="tot"><td class="ttl"><b>إجمالي الإيرادات</b></td><td class="amt"><b>${fmt(R.total)}</b></td><td></td></tr>
       </tbody>
     </table>
   `;
@@ -956,12 +957,12 @@ export function exportFinanceSummaryPDF(
       <tbody>
         <tr><td class="ttl">إجمالي الإيرادات</td><td class="amt">${fmt(R.total)}</td></tr>
         <tr><td class="ttl">إجمالي المصروفات</td><td class="amt">${fmt(E.total)}</td></tr>
-        <tr class="tot"><td class="ttl"><b>${surplus >= 0 ? "الفائض" : "العجز"}</b></td><td class="amt"><b>${fmt(Math.abs(surplus))}</b></td></tr>
+        <tr class="tot"><td class="ttl"><b>${balance >= 0 ? "الرصيد الحالي (الفائض)" : "العجز"}</b></td><td class="amt"><b>${fmt(Math.abs(balance))}</b></td></tr>
         <tr><td class="ttl">عدد العرسان</td><td class="amt">${fmt(groomsCount)}</td></tr>
-        <tr><td class="ttl">إجمالي مساهمات العرسان</td><td class="amt">${fmt(totalGroomContribs)}</td></tr>
-        <tr><td class="ttl">إجمالي حصص العجز على العرسان</td><td class="amt">${fmt(totalDeficitShares)}</td></tr>
-        <tr><td class="ttl">إجمالي التزامات العرسان (مساهمة + عجز)</td><td class="amt">${fmt(totalGroomsObligations)}</td></tr>
-        <tr class="tot"><td class="ttl"><b>متوسط نصيب كل عريس</b></td><td class="amt"><b>${fmt(perGroom)}</b></td></tr>
+        <tr><td class="ttl">عدد المساهمين من أفراد القبيلة</td><td class="amt">${fmt(contributorsCount)}</td></tr>
+        <tr><td class="ttl">فائض الميزانية لكل عريس (الرصيد ÷ عدد العرسان)</td><td class="amt">${fmt(surplusPerGroom)}</td></tr>
+        <tr><td class="ttl">هدية ثابتة لكل عريس</td><td class="amt">${fmt(GIFT_PER_GROOM)}</td></tr>
+        <tr class="tot"><td class="ttl"><b>إجمالي نصيب كل عريس (فائض + هدية)</b></td><td class="amt"><b>${fmt(totalPerGroom)}</b></td></tr>
       </tbody>
     </table>
   `;
