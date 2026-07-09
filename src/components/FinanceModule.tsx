@@ -460,6 +460,7 @@ export function FinanceModule() {
         expensesTotal={expensesTotal}
         committeeBreakdown={committeeBreakdown}
         deficitShareTotal={deficitShareTotal}
+        sheepRevenueTotal={sheepRevenueTotal}
       />
 
       <FinanceReconciliationAlerts canFix={canManage} onFixed={load} />
