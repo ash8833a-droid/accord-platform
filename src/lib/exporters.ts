@@ -887,14 +887,18 @@ export function exportFinanceSummaryPDF(
   const R = data.revenues;
   const E = data.expenses;
   const groomsCount = data.grooms.length;
-  const perGroom = groomsCount > 0 ? Math.round((E.total / groomsCount) * 100) / 100 : 0;
+  // نصيب كل عريس = (مساهمة العريس + حصة العجز) بحسب البيانات الفعلية للعرسان
+  const totalGroomContribs = data.grooms.reduce((s, g) => s + Number(g.groom_contribution || 0), 0);
+  const totalDeficitShares = data.grooms.reduce((s, g) => s + Number(g.deficit_share || 0), 0);
+  const totalGroomsObligations = totalGroomContribs + totalDeficitShares;
+  const perGroom = groomsCount > 0 ? Math.round((totalGroomsObligations / groomsCount) * 100) / 100 : 0;
   const surplus = data.balance;
 
   const kpiCards = [
     { label: "إجمالي الإيرادات", value: fmtM(R.total), accent: "teal" },
     { label: "إجمالي المصروفات", value: fmtM(E.total), accent: "gold" },
     { label: surplus >= 0 ? "الفائض" : "العجز", value: fmtM(Math.abs(surplus)), accent: surplus < 0 ? "danger" : "teal" },
-    { label: "نصيب كل عريس", value: fmtM(perGroom), accent: "gold" },
+    { label: "متوسط نصيب كل عريس", value: fmtM(perGroom), accent: "gold" },
   ];
 
   const section = (title: string, body: string) => `
@@ -954,7 +958,10 @@ export function exportFinanceSummaryPDF(
         <tr><td class="ttl">إجمالي المصروفات</td><td class="amt">${fmt(E.total)}</td></tr>
         <tr class="tot"><td class="ttl"><b>${surplus >= 0 ? "الفائض" : "العجز"}</b></td><td class="amt"><b>${fmt(Math.abs(surplus))}</b></td></tr>
         <tr><td class="ttl">عدد العرسان</td><td class="amt">${fmt(groomsCount)}</td></tr>
-        <tr><td class="ttl">نصيب كل عريس من المصروفات</td><td class="amt">${fmt(perGroom)}</td></tr>
+        <tr><td class="ttl">إجمالي مساهمات العرسان</td><td class="amt">${fmt(totalGroomContribs)}</td></tr>
+        <tr><td class="ttl">إجمالي حصص العجز على العرسان</td><td class="amt">${fmt(totalDeficitShares)}</td></tr>
+        <tr><td class="ttl">إجمالي التزامات العرسان (مساهمة + عجز)</td><td class="amt">${fmt(totalGroomsObligations)}</td></tr>
+        <tr class="tot"><td class="ttl"><b>متوسط نصيب كل عريس</b></td><td class="amt"><b>${fmt(perGroom)}</b></td></tr>
       </tbody>
     </table>
   `;
