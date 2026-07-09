@@ -2173,6 +2173,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_access_women_talent_survey: {
+        Args: { _user_id: string }
+        Returns: boolean
+      }
       create_task_evidence_reminders: {
         Args: { _task_id: string }
         Returns: undefined

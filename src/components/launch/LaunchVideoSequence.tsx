@@ -91,24 +91,39 @@ export function LaunchVideoSequence({
   // Pre-generate narration audio for all scenes in parallel.
   useEffect(() => {
     let cancelled = false;
-    Promise.all(
-      scenes.map(async (scene) => {
-        try {
-          const res = await fetch("/api/public/launch-narration", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ text: scene.narration }),
-          });
-          if (!res.ok) return null;
-          const blob = await res.blob();
-          return URL.createObjectURL(blob);
-        } catch {
-          return null;
-        }
-      }),
-    ).then((urls) => {
+    (async () => {
+      // Attach the current Supabase session so the TTS proxy can verify the
+      // caller server-side (prevents anonymous abuse of the paid AI TTS API).
+      const { supabase } = await import("@/integrations/supabase/client");
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      if (!token) {
+        if (!cancelled) setAudioUrls(scenes.map(() => null));
+        return;
+      }
+      const urls = await Promise.all(
+        scenes.map(async (scene) => {
+          try {
+            const res = await fetch("/api/public/launch-narration", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify({ text: scene.narration }),
+            });
+            if (!res.ok) return null;
+            const blob = await res.blob();
+            return URL.createObjectURL(blob);
+          } catch {
+            return null;
+          }
+        }),
+      );
       if (!cancelled) setAudioUrls(urls);
-    });
+    })();
     return () => {
       cancelled = true;
     };

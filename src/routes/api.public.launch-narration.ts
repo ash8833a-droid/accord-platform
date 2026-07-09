@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { createClient } from "@supabase/supabase-js";
 
 // Server route that proxies a text-to-speech request to the Lovable AI Gateway.
 // Returns a single MP3 file (audio/mpeg). Called by the launch video sequence
@@ -13,6 +14,39 @@ export const Route = createFileRoute("/api/public/launch-narration")({
             JSON.stringify({ error: "LOVABLE_API_KEY is not configured" }),
             { status: 500, headers: { "Content-Type": "application/json" } },
           );
+        }
+
+        // Require an authenticated Supabase session to prevent anonymous
+        // abuse of the paid Lovable AI TTS API. The launch-narration flow
+        // is only used by signed-in admins driving the ceremonial launch.
+        const authHeader = request.headers.get("authorization") ?? "";
+        const token = authHeader.toLowerCase().startsWith("bearer ")
+          ? authHeader.slice(7).trim()
+          : "";
+        if (!token) {
+          return new Response(JSON.stringify({ error: "Unauthorized" }), {
+            status: 401,
+            headers: { "Content-Type": "application/json" },
+          });
+        }
+        const supabaseUrl = process.env.SUPABASE_URL;
+        const supabasePublishableKey = process.env.SUPABASE_PUBLISHABLE_KEY;
+        if (!supabaseUrl || !supabasePublishableKey) {
+          return new Response(
+            JSON.stringify({ error: "Auth not configured" }),
+            { status: 500, headers: { "Content-Type": "application/json" } },
+          );
+        }
+        const supabase = createClient(supabaseUrl, supabasePublishableKey, {
+          auth: { persistSession: false, autoRefreshToken: false, storage: undefined },
+          global: { headers: { Authorization: `Bearer ${token}` } },
+        });
+        const { data: userData, error: userErr } = await supabase.auth.getUser(token);
+        if (userErr || !userData?.user) {
+          return new Response(JSON.stringify({ error: "Unauthorized" }), {
+            status: 401,
+            headers: { "Content-Type": "application/json" },
+          });
         }
 
         let body: { text?: string };
