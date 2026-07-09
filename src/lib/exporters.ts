@@ -888,7 +888,7 @@ export function exportFinanceSummaryPDF(
   const E = data.expenses;
   const groomsCount = data.grooms.length;
   const balance = data.balance;
-  const GIFT_PER_GROOM = 500; // هدية ثابتة لكل عريس
+  const GIFT_PER_GROOM = 500; // هدية لكل عريس
   // فائض من الميزانية موزّع على العرسان
   const surplusPerGroom = groomsCount > 0 ? Math.round((balance / groomsCount) * 100) / 100 : 0;
   const totalPerGroom = surplusPerGroom + GIFT_PER_GROOM;
@@ -961,7 +961,7 @@ export function exportFinanceSummaryPDF(
         <tr><td class="ttl">عدد العرسان</td><td class="amt">${fmt(groomsCount)}</td></tr>
         <tr><td class="ttl">عدد المساهمين من أفراد القبيلة</td><td class="amt">${fmt(contributorsCount)}</td></tr>
         <tr><td class="ttl">فائض الميزانية لكل عريس (الرصيد ÷ عدد العرسان)</td><td class="amt">${fmt(surplusPerGroom)}</td></tr>
-        <tr><td class="ttl">هدية ثابتة لكل عريس</td><td class="amt">${fmt(GIFT_PER_GROOM)}</td></tr>
+        <tr><td class="ttl">هدية لكل عريس</td><td class="amt">${fmt(GIFT_PER_GROOM)}</td></tr>
         <tr class="tot"><td class="ttl"><b>إجمالي نصيب كل عريس (فائض + هدية)</b></td><td class="amt"><b>${fmt(totalPerGroom)}</b></td></tr>
       </tbody>
     </table>
