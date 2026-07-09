@@ -877,3 +877,214 @@ export function exportFinanceComprehensivePDF(
   win.document.write(html);
   win.document.close();
 }
+
+/* ---------- Summary Finance PDF (تقرير ملخص) ---------- */
+export function exportFinanceSummaryPDF(
+  data: FinanceComprehensiveData,
+  filename: string,
+  signature?: ReportSignature,
+) {
+  const R = data.revenues;
+  const E = data.expenses;
+  const groomsCount = data.grooms.length;
+  const perGroom = groomsCount > 0 ? Math.round((E.total / groomsCount) * 100) / 100 : 0;
+  const surplus = data.balance;
+
+  const kpiCards = [
+    { label: "إجمالي الإيرادات", value: fmtM(R.total), accent: "teal" },
+    { label: "إجمالي المصروفات", value: fmtM(E.total), accent: "gold" },
+    { label: surplus >= 0 ? "الفائض" : "العجز", value: fmtM(Math.abs(surplus)), accent: surplus < 0 ? "danger" : "teal" },
+    { label: "نصيب كل عريس", value: fmtM(perGroom), accent: "gold" },
+  ];
+
+  const section = (title: string, body: string) => `
+    <div class="title-bar"><div class="bar"></div><h2>${escapeHtml(title)}</h2></div>
+    ${body}
+  `;
+
+  const revenuesTable = `
+    <table>
+      <thead><tr><th>بند الإيراد</th><th>القيمة (ر.س)</th></tr></thead>
+      <tbody>
+        <tr><td class="ttl">اشتراكات العرسان</td><td class="amt">${fmt(R.groomSubs)}</td></tr>
+        <tr><td class="ttl">مساهمات أفراد القبيلة</td><td class="amt">${fmt(R.familyContrib)}</td></tr>
+        <tr><td class="ttl">حصص العجز</td><td class="amt">${fmt(R.deficitShare)}</td></tr>
+        ${R.sheepRevenue && R.sheepRevenue > 0 ? `<tr><td class="ttl">قيمة الذبائح المضافة من العرسان</td><td class="amt">${fmt(R.sheepRevenue)}</td></tr>` : ""}
+        <tr class="tot"><td class="ttl"><b>إجمالي الإيرادات</b></td><td class="amt"><b>${fmt(R.total)}</b></td></tr>
+      </tbody>
+    </table>
+  `;
+
+  // مصاريف كل لجنة (تفصيل حسب اللجنة فقط)
+  const committeesRows = data.committees
+    .slice()
+    .sort((a, b) => Number(b.spent || 0) - Number(a.spent || 0))
+    .map((c, i) => `<tr>
+      <td>${i + 1}</td>
+      <td class="ttl">${escapeHtml(c.name)}</td>
+      <td class="amt">${fmt(Number(c.allocated || 0))}</td>
+      <td class="amt">${fmt(Number(c.spent || 0))}</td>
+    </tr>`).join("");
+  const committeesSpent = data.committees.reduce((s, c) => s + Number(c.spent || 0), 0);
+  const committeesAlloc = data.committees.reduce((s, c) => s + Number(c.allocated || 0), 0);
+
+  const expensesTable = data.committees.length === 0
+    ? `<div class="empty">لا توجد لجان مسجّلة</div>`
+    : `<table>
+      <thead><tr><th style="width:6%">#</th><th>اللجنة</th><th>المخصّص (ر.س)</th><th>المصروف (ر.س)</th></tr></thead>
+      <tbody>
+        ${committeesRows}
+        <tr class="tot">
+          <td colspan="2" class="ttl"><b>إجمالي مصاريف اللجان</b></td>
+          <td class="amt"><b>${fmt(committeesAlloc)}</b></td>
+          <td class="amt"><b>${fmt(committeesSpent)}</b></td>
+        </tr>
+        <tr class="tot">
+          <td colspan="3" class="ttl"><b>إجمالي المصروفات (شاملاً طلبات الصرف والبنود)</b></td>
+          <td class="amt"><b>${fmt(E.total)}</b></td>
+        </tr>
+      </tbody>
+    </table>`;
+
+  const summaryTable = `
+    <table>
+      <thead><tr><th>البند</th><th>القيمة (ر.س)</th></tr></thead>
+      <tbody>
+        <tr><td class="ttl">إجمالي الإيرادات</td><td class="amt">${fmt(R.total)}</td></tr>
+        <tr><td class="ttl">إجمالي المصروفات</td><td class="amt">${fmt(E.total)}</td></tr>
+        <tr class="tot"><td class="ttl"><b>${surplus >= 0 ? "الفائض" : "العجز"}</b></td><td class="amt"><b>${fmt(Math.abs(surplus))}</b></td></tr>
+        <tr><td class="ttl">عدد العرسان</td><td class="amt">${fmt(groomsCount)}</td></tr>
+        <tr><td class="ttl">نصيب كل عريس من المصروفات</td><td class="amt">${fmt(perGroom)}</td></tr>
+      </tbody>
+    </table>
+  `;
+
+  const html = `<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8"/>
+<title>${escapeHtml(filename)}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  @page { size: A4; margin: 12mm 10mm; }
+  * { box-sizing: border-box; }
+  html, body { font-family: 'Tajawal','Segoe UI',Tahoma,Arial,sans-serif; color:#1f2937; margin:0; padding:0;
+    -webkit-print-color-adjust: exact; print-color-adjust: exact; background:#fff; }
+  .header { position: relative; padding: 6px 0 14px; margin-bottom: 14px; border-bottom: 2px solid ${exportBrand.primary_color}; }
+  .header::after { content:""; position:absolute; left:0; right:0; bottom:-5px; height:2px; background:${exportBrand.gold_color}; }
+  .h-row { display:flex; justify-content:space-between; align-items:center; gap:20px; }
+  .brand { display:flex; align-items:center; gap:16px; }
+  .logo-img { width:80px; height:80px; }
+  .logo-img img { width:100%; height:100%; object-fit:contain; }
+  .brand h1 { margin:0; font-size:18pt; font-weight:900; color:${exportBrand.primary_color}; }
+  .brand p { margin:3px 0 0; font-size:10pt; color:#475569; font-weight:500; }
+  .h-meta { text-align:left; font-size:9pt; color:#475569; line-height:1.7; border-right:3px solid ${exportBrand.gold_color}; padding-right:12px; }
+  .h-meta b { display:block; font-size:10.5pt; color:${exportBrand.primary_color}; margin-bottom:4px; font-weight:800; }
+
+  .title-bar { display:flex; align-items:center; gap:10px; margin:18px 0 8px; page-break-after:avoid; }
+  .title-bar .bar { width:5px; height:24px; background:linear-gradient(180deg,${exportBrand.gold_color},${exportBrand.primary_color}); border-radius:3px; }
+  .title-bar h2 { margin:0; font-size:13pt; font-weight:800; color:${exportBrand.primary_color}; }
+
+  .cards { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:14px; }
+  .card { border-radius:10px; padding:12px 10px; background:#fff; border:1px solid #E5E7EB; border-top:3px solid ${exportBrand.primary_color}; text-align:center; }
+  .card.gold { border-top-color:${exportBrand.gold_color}; }
+  .card.danger { border-top-color:#B91C1C; }
+  .card .label { font-size:9pt; color:#64748B; margin-bottom:5px; font-weight:600; }
+  .card .value { font-size:13pt; font-weight:900; color:${exportBrand.primary_color}; }
+  .card.gold .value { color:#8C6E2E; }
+  .card.danger .value { color:#B91C1C; }
+
+  table { width:100%; border-collapse:collapse; font-size:9.5pt; margin-top:4px; background:#fff; page-break-inside:auto; }
+  thead th { background:${exportBrand.primary_color}; color:#fff; padding:8px 6px; text-align:center; font-weight:700; font-size:9.5pt; border:1px solid ${exportBrand.primary_color}; }
+  tbody td { padding:7px 6px; text-align:center; border:1px solid #E5E7EB; vertical-align:middle; }
+  tbody tr:nth-child(even) td { background:#FAFAF7; }
+  td.ttl { text-align:right; font-weight:600; }
+  td.amt { font-weight:800; color:${exportBrand.primary_color}; font-variant-numeric:tabular-nums; }
+  tr.tot td { background:${hexToRgba(exportBrand.gold_color,0.15)} !important; font-size:10pt; }
+  .empty { text-align:center; padding:20px; color:#9CA3AF; font-size:10pt; border:2px dashed #E5E7EB; border-radius:10px; }
+
+  .footer { margin-top:22px; padding-top:12px; border-top:2px dashed ${exportBrand.gold_color}; font-size:8.5pt; color:#6B7280; }
+  .signatures { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:10px; }
+  .sig-box { border:1px solid ${hexToRgba(exportBrand.gold_color,0.55)}; border-radius:10px; padding:12px 14px; background:#fff; }
+  .sig-box .sig-label { font-size:9pt; color:#6B7280; margin-bottom:4px; }
+  .sig-box .sig-name { font-size:11pt; font-weight:800; color:${exportBrand.primary_color}; margin-bottom:2px; }
+  .sig-box .sig-title { font-size:9pt; color:#8C6E2E; font-weight:600; margin-bottom:30px; }
+  .sig-line { border-top:1.5px dotted ${exportBrand.primary_color}; padding-top:4px; text-align:center; font-size:8pt; color:#9CA3AF; }
+
+  .toolbar { position:fixed; top:12px; left:12px; z-index:10; display:flex; gap:8px; }
+  .toolbar button { background:${exportBrand.primary_color}; color:#fff; border:0; padding:10px 18px; border-radius:10px; font-family:inherit; font-weight:700; cursor:pointer; box-shadow:0 4px 12px rgba(0,0,0,0.15); font-size:11pt; }
+  .toolbar button.gold { background:${exportBrand.gold_color}; color:${exportBrand.primary_color}; }
+  @media print { .no-print { display:none !important; } }
+</style>
+</head>
+<body>
+  <div class="toolbar no-print">
+    <button onclick="window.print()">🖨️ طباعة / حفظ PDF</button>
+    <button class="gold" onclick="window.close()">إغلاق</button>
+  </div>
+
+  <div class="header">
+    <div class="h-row">
+      <div class="brand">
+        <div class="logo-img"><img id="brand-logo" src="${exportLogoSrc}" alt="${escapeHtml(exportBrand.name)}"/></div>
+        <div>
+          <h1>${escapeHtml(exportBrand.name)}</h1>
+          <p>التقرير الملخص للإدارة المالية — إيرادات ومصروفات اللجان</p>
+        </div>
+      </div>
+      <div class="h-meta">
+        <b>مرجع التقرير</b>
+        ${escapeHtml(filename)}<br/>
+        ${todayAr()}
+      </div>
+    </div>
+  </div>
+
+  <div class="title-bar"><div class="bar"></div><h2>الملخص التنفيذي</h2></div>
+  <div class="cards">
+    ${kpiCards.map(c=>`<div class="card ${c.accent}"><div class="label">${c.label}</div><div class="value">${c.value}</div></div>`).join("")}
+  </div>
+
+  ${section("١) إجمالي الإيرادات — تفصيل البنود", revenuesTable)}
+  ${section("٢) إجمالي المصروفات — تفصيل حسب اللجان", expensesTable)}
+  ${section("٣) خلاصة الميزان ونصيب كل عريس", summaryTable)}
+
+  <div class="footer">
+    <div class="signatures">
+      <div class="sig-box">
+        <div class="sig-label">اعتمد من قِبل</div>
+        <div class="sig-name">${escapeHtml(signature?.name ?? "................................")}</div>
+        <div class="sig-title">${escapeHtml(signature?.title ?? "رئيس اللجنة المالية")}${signature?.committee ? " — " + escapeHtml(signature.committee) : ""}</div>
+        <div class="sig-line">التوقيع والتاريخ</div>
+      </div>
+      <div class="sig-box">
+        <div class="sig-label">اطّلع عليه</div>
+        <div class="sig-name">................................</div>
+        <div class="sig-title">رئيس اللجنة العليا للبرنامج</div>
+        <div class="sig-line">التوقيع والتاريخ</div>
+      </div>
+    </div>
+    <div style="margin-top:14px; display:flex; justify-content:space-between;">
+      <div><b style="color:${exportBrand.primary_color}">${escapeHtml(exportBrand.name)}</b> — وثيقة رسمية تمثّل بيانات اللحظة وقت التصدير</div>
+      <div>جودة وشفافية</div>
+    </div>
+  </div>
+
+  <script>
+    window.addEventListener('load', function(){
+      var img = document.getElementById('brand-logo');
+      var go = function(){ setTimeout(function(){ window.print(); }, 500); };
+      if (img && !img.complete) { img.onload = go; img.onerror = go; } else { go(); }
+    });
+  </script>
+</body>
+</html>`;
+
+  const win = window.open("", "_blank", "width=1100,height=800");
+  if (!win) { alert("يرجى السماح بالنوافذ المنبثقة لتصدير التقرير"); return; }
+  win.document.open();
+  win.document.write(html);
+  win.document.close();
+}
