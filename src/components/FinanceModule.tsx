@@ -373,7 +373,8 @@ export function FinanceModule() {
         groomSubs: groomSubsTotal,
         familyContrib: familyContribTotal,
         deficitShare: deficitShareTotal,
-        total: groomSubsTotal + familyContribTotal + deficitShareTotal,
+        sheepRevenue: sheepRevenueTotal,
+        total: groomSubsTotal + familyContribTotal + deficitShareTotal + sheepRevenueTotal,
       };
       const expenses = {
         paidRequests: totalPaid,
