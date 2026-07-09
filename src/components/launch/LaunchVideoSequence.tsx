@@ -114,12 +114,12 @@ export function LaunchVideoSequence({
               },
               body: JSON.stringify({ text: scene.narration }),
             });
-          if (!res.ok) return null;
-          const blob = await res.blob();
-          return URL.createObjectURL(blob);
-        } catch {
-          return null;
-        }
+            if (!res.ok) return null;
+            const blob = await res.blob();
+            return URL.createObjectURL(blob);
+          } catch {
+            return null;
+          }
         }),
       );
       if (!cancelled) setAudioUrls(urls);
