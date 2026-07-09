@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as WeddingFeedbackRouteImport } from './routes/wedding-feedback'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as RegisterGroomRouteImport } from './routes/register-groom'
 import { Route as PendingRouteImport } from './routes/pending'
 import { Route as LaunchRouteImport } from './routes/launch'
@@ -48,6 +49,11 @@ import { Route as ApiPublicHooksTaskDeadlineCheckRouteImport } from './routes/ap
 const WeddingFeedbackRoute = WeddingFeedbackRouteImport.update({
   id: '/wedding-feedback',
   path: '/wedding-feedback',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RegisterGroomRoute = RegisterGroomRouteImport.update({
@@ -232,6 +238,7 @@ export interface FileRoutesByFullPath {
   '/launch': typeof LaunchRoute
   '/pending': typeof PendingRoute
   '/register-groom': typeof RegisterGroomRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/wedding-feedback': typeof WeddingFeedbackRoute
   '/admin': typeof AppAdminRouteWithChildren
   '/archive': typeof AppArchiveRoute
@@ -268,6 +275,7 @@ export interface FileRoutesByTo {
   '/launch': typeof LaunchRoute
   '/pending': typeof PendingRoute
   '/register-groom': typeof RegisterGroomRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/wedding-feedback': typeof WeddingFeedbackRoute
   '/admin': typeof AppAdminRouteWithChildren
   '/archive': typeof AppArchiveRoute
@@ -306,6 +314,7 @@ export interface FileRoutesById {
   '/launch': typeof LaunchRoute
   '/pending': typeof PendingRoute
   '/register-groom': typeof RegisterGroomRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/wedding-feedback': typeof WeddingFeedbackRoute
   '/_app/admin': typeof AppAdminRouteWithChildren
   '/_app/archive': typeof AppArchiveRoute
@@ -344,6 +353,7 @@ export interface FileRouteTypes {
     | '/launch'
     | '/pending'
     | '/register-groom'
+    | '/sitemap.xml'
     | '/wedding-feedback'
     | '/admin'
     | '/archive'
@@ -380,6 +390,7 @@ export interface FileRouteTypes {
     | '/launch'
     | '/pending'
     | '/register-groom'
+    | '/sitemap.xml'
     | '/wedding-feedback'
     | '/admin'
     | '/archive'
@@ -417,6 +428,7 @@ export interface FileRouteTypes {
     | '/launch'
     | '/pending'
     | '/register-groom'
+    | '/sitemap.xml'
     | '/wedding-feedback'
     | '/_app/admin'
     | '/_app/archive'
@@ -455,6 +467,7 @@ export interface RootRouteChildren {
   LaunchRoute: typeof LaunchRoute
   PendingRoute: typeof PendingRoute
   RegisterGroomRoute: typeof RegisterGroomRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   WeddingFeedbackRoute: typeof WeddingFeedbackRoute
   ContributeSharesYearRoute: typeof ContributeSharesYearRoute
   SurveyWomenTalentsRoute: typeof SurveyWomenTalentsRoute
@@ -469,6 +482,13 @@ declare module '@tanstack/react-router' {
       path: '/wedding-feedback'
       fullPath: '/wedding-feedback'
       preLoaderRoute: typeof WeddingFeedbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/register-groom': {
@@ -801,6 +821,7 @@ const rootRouteChildren: RootRouteChildren = {
   LaunchRoute: LaunchRoute,
   PendingRoute: PendingRoute,
   RegisterGroomRoute: RegisterGroomRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   WeddingFeedbackRoute: WeddingFeedbackRoute,
   ContributeSharesYearRoute: ContributeSharesYearRoute,
   SurveyWomenTalentsRoute: SurveyWomenTalentsRoute,
