@@ -509,6 +509,7 @@ export function exportFinanceComprehensivePDF(
         <tr><td class="ttl">اشتراكات العرسان (تحصيل الممثلين + مساهمات العرسان)</td><td class="amt">${fmt(R.groomSubs)}</td><td>${fmt(data.delegates.length)} ممثل — ${fmt(data.grooms.length)} عريس</td></tr>
         <tr><td class="ttl">مساهمات أفراد القبيلة</td><td class="amt">${fmt(R.familyContrib)}</td><td>${fmt(data.familyContributions.length + data.historicalShareholders.length)} مساهمة مسجّلة</td></tr>
         <tr><td class="ttl">حصص العجز</td><td class="amt">${fmt(R.deficitShare)}</td><td>موزّعة على العرسان</td></tr>
+        ${R.sheepRevenue && R.sheepRevenue > 0 ? `<tr><td class="ttl">قيمة الذبائح المضافة من العرسان</td><td class="amt">${fmt(R.sheepRevenue)}</td><td>مبالغ محصّلة من العرسان</td></tr>` : ""}
         <tr class="tot"><td class="ttl"><b>الإجمالي</b></td><td class="amt"><b>${fmt(R.total)}</b></td><td></td></tr>
       </tbody>
     </table>
