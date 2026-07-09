@@ -958,7 +958,10 @@ export function exportFinanceSummaryPDF(
         <tr><td class="ttl">إجمالي المصروفات</td><td class="amt">${fmt(E.total)}</td></tr>
         <tr class="tot"><td class="ttl"><b>${surplus >= 0 ? "الفائض" : "العجز"}</b></td><td class="amt"><b>${fmt(Math.abs(surplus))}</b></td></tr>
         <tr><td class="ttl">عدد العرسان</td><td class="amt">${fmt(groomsCount)}</td></tr>
-        <tr><td class="ttl">نصيب كل عريس من المصروفات</td><td class="amt">${fmt(perGroom)}</td></tr>
+        <tr><td class="ttl">إجمالي مساهمات العرسان</td><td class="amt">${fmt(totalGroomContribs)}</td></tr>
+        <tr><td class="ttl">إجمالي حصص العجز على العرسان</td><td class="amt">${fmt(totalDeficitShares)}</td></tr>
+        <tr><td class="ttl">إجمالي التزامات العرسان (مساهمة + عجز)</td><td class="amt">${fmt(totalGroomsObligations)}</td></tr>
+        <tr class="tot"><td class="ttl"><b>متوسط نصيب كل عريس</b></td><td class="amt"><b>${fmt(perGroom)}</b></td></tr>
       </tbody>
     </table>
   `;
