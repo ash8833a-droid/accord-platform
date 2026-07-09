@@ -887,14 +887,18 @@ export function exportFinanceSummaryPDF(
   const R = data.revenues;
   const E = data.expenses;
   const groomsCount = data.grooms.length;
-  const perGroom = groomsCount > 0 ? Math.round((E.total / groomsCount) * 100) / 100 : 0;
+  // نصيب كل عريس = (مساهمة العريس + حصة العجز) بحسب البيانات الفعلية للعرسان
+  const totalGroomContribs = data.grooms.reduce((s, g) => s + Number(g.groom_contribution || 0), 0);
+  const totalDeficitShares = data.grooms.reduce((s, g) => s + Number(g.deficit_share || 0), 0);
+  const totalGroomsObligations = totalGroomContribs + totalDeficitShares;
+  const perGroom = groomsCount > 0 ? Math.round((totalGroomsObligations / groomsCount) * 100) / 100 : 0;
   const surplus = data.balance;
 
   const kpiCards = [
     { label: "إجمالي الإيرادات", value: fmtM(R.total), accent: "teal" },
     { label: "إجمالي المصروفات", value: fmtM(E.total), accent: "gold" },
     { label: surplus >= 0 ? "الفائض" : "العجز", value: fmtM(Math.abs(surplus)), accent: surplus < 0 ? "danger" : "teal" },
-    { label: "نصيب كل عريس", value: fmtM(perGroom), accent: "gold" },
+    { label: "متوسط نصيب كل عريس", value: fmtM(perGroom), accent: "gold" },
   ];
 
   const section = (title: string, body: string) => `
