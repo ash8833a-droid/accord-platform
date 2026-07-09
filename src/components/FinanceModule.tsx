@@ -494,7 +494,13 @@ export function FinanceModule() {
 
         <TabsContent value="overview" className="mt-5 space-y-4">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <StatCard variant="teal" label="إجمالي المحصّل" value={`${fmt(totalCollected)} ر.س`} icon={Wallet} hint={`${totalSubs} اشتراك مؤكد`} />
+            <StatCard
+              variant="teal"
+              label="إجمالي المحصّل"
+              value={`${fmt(groomSubsTotal + familyContribTotal + sheepRevenueTotal)} ر.س`}
+              icon={Wallet}
+              hint="عرسان + مساهمون + قيمة الذبائح"
+            />
             <StatCard variant="gold" label="ممثلو الأسر النشطون" value={delegates.length} icon={Users2} hint="في قاعدة البيانات" />
             <StatCard label="طلبات قيد المراجعة" value={pendingCount} icon={Clock} hint="بانتظار قرار المالية" />
             <StatCard label="إجمالي المصروف" value={`${fmt(expensesTotal)} ر.س`} icon={TrendingUp} hint="مجموع بنود ميزانيات اللجان (المصروف الفعلي)" />
