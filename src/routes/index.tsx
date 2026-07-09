@@ -34,7 +34,9 @@ export const Route = createFileRoute("/")({
         content:
           "أرقام تروي قصة برنامج الزواج الجماعي: مساهمون وعرسان ولجان تعمل بروح الفريق.",
       },
+      { property: "og:url", content: "https://lajnat-zawaj.org/" },
     ],
+    links: [{ rel: "canonical", href: "https://lajnat-zawaj.org/" }],
   }),
   component: PublicHome,
 });

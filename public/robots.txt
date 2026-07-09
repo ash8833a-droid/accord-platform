@@ -1,0 +1,21 @@
+User-agent: *
+Allow: /
+
+Disallow: /admin
+Disallow: /dashboard
+Disallow: /finance
+Disallow: /finance-management
+Disallow: /reports
+Disallow: /communications
+Disallow: /archive
+Disallow: /ideas
+Disallow: /grooms
+Disallow: /payment-requests
+Disallow: /procurement-requests
+Disallow: /budget-entry
+Disallow: /contribute-shares
+Disallow: /groom-edit
+Disallow: /pending
+Disallow: /api/
+
+Sitemap: https://lajnat-zawaj.org/sitemap.xml

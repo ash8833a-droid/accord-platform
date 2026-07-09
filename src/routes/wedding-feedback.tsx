@@ -17,9 +17,10 @@ export const Route = createFileRoute("/wedding-feedback")({
   component: WeddingFeedbackPage,
   head: () => {
     const title = "رأيك يهمّنا | الزواج الجماعي";
-    const description = "شاركنا تقييمك لتجربة أفضل";
-    const image = "https://www.lajnat-zawaj.org/__l5e/assets-v1/6be359cf-47ce-4a4f-806d-4205d334eaf6/wedding-logo.png";
-    const url = "https://www.lajnat-zawaj.org/wedding-feedback";
+    const description =
+      "شاركنا انطباعك عن حفل الزواج الجماعي: تقييم التنظيم والاستقبال والبرامج والضيافة، لنحسّن التجربة في الحفلات القادمة.";
+    const image = "https://lajnat-zawaj.org/og-wedding-feedback.jpg";
+    const url = "https://lajnat-zawaj.org/wedding-feedback";
     return {
       meta: [
         { title },
