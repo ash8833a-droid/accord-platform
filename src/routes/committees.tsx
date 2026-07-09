@@ -24,7 +24,9 @@ export const Route = createFileRoute("/committees")({
         content:
           "ميثاق كل لجنة وفق منهجية PMP: رؤية، رسالة، أهداف استراتيجية، مستهدفات قابلة للقياس، وقائمة الأعضاء.",
       },
+      { property: "og:url", content: "https://lajnat-zawaj.org/committees" },
     ],
+    links: [{ rel: "canonical", href: "https://lajnat-zawaj.org/committees" }],
   }),
   component: PublicCommitteesPage,
 });
