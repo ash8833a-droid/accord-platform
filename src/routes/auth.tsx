@@ -16,6 +16,25 @@ import { DotsPattern } from "@/components/decor/DotsPattern";
 
 export const Route = createFileRoute("/auth")({
   component: AuthPage,
+  head: () => ({
+    meta: [
+      { title: "تسجيل الدخول — لجنة الزواج الجماعي" },
+      {
+        name: "description",
+        content:
+          "بوابة أعضاء لجنة الزواج الجماعي: سجّل الدخول بحسابك أو أنشئ طلب انضمام إلى إحدى اللجان لمتابعة المهام والبرامج.",
+      },
+      { property: "og:title", content: "تسجيل الدخول — لجنة الزواج الجماعي" },
+      {
+        property: "og:description",
+        content:
+          "بوابة أعضاء لجنة الزواج الجماعي لتسجيل الدخول أو تقديم طلب انضمام إلى إحدى اللجان.",
+      },
+      { property: "og:url", content: "https://lajnat-zawaj.org/auth" },
+      { property: "og:type", content: "website" },
+    ],
+    links: [{ rel: "canonical", href: "https://lajnat-zawaj.org/auth" }],
+  }),
 });
 
 const isValidSaPhone = (p: string) => /^05\d{8}$/.test(p.trim());
