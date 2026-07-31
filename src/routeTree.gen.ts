@@ -44,6 +44,7 @@ import { Route as AppAdminUsersRouteImport } from './routes/_app.admin.users'
 import { Route as AppAdminTasksRouteImport } from './routes/_app.admin.tasks'
 import { Route as AppAdminSupremeMinutesRouteImport } from './routes/_app.admin.supreme-minutes'
 import { Route as AppAdminAlbumRouteImport } from './routes/_app.admin.album'
+import { Route as ApiPublicHooksWeeklyCommitteeDigestRouteImport } from './routes/api.public.hooks.weekly-committee-digest'
 import { Route as ApiPublicHooksTaskDeadlineCheckRouteImport } from './routes/api.public.hooks.task-deadline-check'
 
 const WeddingFeedbackRoute = WeddingFeedbackRouteImport.update({
@@ -221,6 +222,12 @@ const AppAdminAlbumRoute = AppAdminAlbumRouteImport.update({
   path: '/album',
   getParentRoute: () => AppAdminRoute,
 } as any)
+const ApiPublicHooksWeeklyCommitteeDigestRoute =
+  ApiPublicHooksWeeklyCommitteeDigestRouteImport.update({
+    id: '/api/public/hooks/weekly-committee-digest',
+    path: '/api/public/hooks/weekly-committee-digest',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHooksTaskDeadlineCheckRoute =
   ApiPublicHooksTaskDeadlineCheckRouteImport.update({
     id: '/api/public/hooks/task-deadline-check',
@@ -264,6 +271,7 @@ export interface FileRoutesByFullPath {
   '/committee/$type': typeof AppCommitteeTypeRoute
   '/api/public/launch-narration': typeof ApiPublicLaunchNarrationRoute
   '/api/public/hooks/task-deadline-check': typeof ApiPublicHooksTaskDeadlineCheckRoute
+  '/api/public/hooks/weekly-committee-digest': typeof ApiPublicHooksWeeklyCommitteeDigestRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -301,6 +309,7 @@ export interface FileRoutesByTo {
   '/committee/$type': typeof AppCommitteeTypeRoute
   '/api/public/launch-narration': typeof ApiPublicLaunchNarrationRoute
   '/api/public/hooks/task-deadline-check': typeof ApiPublicHooksTaskDeadlineCheckRoute
+  '/api/public/hooks/weekly-committee-digest': typeof ApiPublicHooksWeeklyCommitteeDigestRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -340,6 +349,7 @@ export interface FileRoutesById {
   '/_app/committee/$type': typeof AppCommitteeTypeRoute
   '/api/public/launch-narration': typeof ApiPublicLaunchNarrationRoute
   '/api/public/hooks/task-deadline-check': typeof ApiPublicHooksTaskDeadlineCheckRoute
+  '/api/public/hooks/weekly-committee-digest': typeof ApiPublicHooksWeeklyCommitteeDigestRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -379,6 +389,7 @@ export interface FileRouteTypes {
     | '/committee/$type'
     | '/api/public/launch-narration'
     | '/api/public/hooks/task-deadline-check'
+    | '/api/public/hooks/weekly-committee-digest'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -416,6 +427,7 @@ export interface FileRouteTypes {
     | '/committee/$type'
     | '/api/public/launch-narration'
     | '/api/public/hooks/task-deadline-check'
+    | '/api/public/hooks/weekly-committee-digest'
   id:
     | '__root__'
     | '/'
@@ -454,6 +466,7 @@ export interface FileRouteTypes {
     | '/_app/committee/$type'
     | '/api/public/launch-narration'
     | '/api/public/hooks/task-deadline-check'
+    | '/api/public/hooks/weekly-committee-digest'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -473,6 +486,7 @@ export interface RootRouteChildren {
   SurveyWomenTalentsRoute: typeof SurveyWomenTalentsRoute
   ApiPublicLaunchNarrationRoute: typeof ApiPublicLaunchNarrationRoute
   ApiPublicHooksTaskDeadlineCheckRoute: typeof ApiPublicHooksTaskDeadlineCheckRoute
+  ApiPublicHooksWeeklyCommitteeDigestRoute: typeof ApiPublicHooksWeeklyCommitteeDigestRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -722,6 +736,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAdminAlbumRouteImport
       parentRoute: typeof AppAdminRoute
     }
+    '/api/public/hooks/weekly-committee-digest': {
+      id: '/api/public/hooks/weekly-committee-digest'
+      path: '/api/public/hooks/weekly-committee-digest'
+      fullPath: '/api/public/hooks/weekly-committee-digest'
+      preLoaderRoute: typeof ApiPublicHooksWeeklyCommitteeDigestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/task-deadline-check': {
       id: '/api/public/hooks/task-deadline-check'
       path: '/api/public/hooks/task-deadline-check'
@@ -827,16 +848,9 @@ const rootRouteChildren: RootRouteChildren = {
   SurveyWomenTalentsRoute: SurveyWomenTalentsRoute,
   ApiPublicLaunchNarrationRoute: ApiPublicLaunchNarrationRoute,
   ApiPublicHooksTaskDeadlineCheckRoute: ApiPublicHooksTaskDeadlineCheckRoute,
+  ApiPublicHooksWeeklyCommitteeDigestRoute:
+    ApiPublicHooksWeeklyCommitteeDigestRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}

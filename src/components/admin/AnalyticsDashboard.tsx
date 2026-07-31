@@ -19,6 +19,7 @@ import { AdminAlertsPanel } from "@/components/admin/AdminAlertsPanel";
 import { SmartRecommendations } from "@/components/admin/SmartRecommendations";
 import { ReportGenerationOverlay } from "@/components/admin/ReportGenerationOverlay";
 import { useAuth } from "@/lib/auth";
+import { MyActionCenter } from "@/components/MyActionCenter";
 import { toast } from "sonner";
 import {
   Bar, BarChart, CartesianGrid, Legend, Line, LineChart,
@@ -367,6 +368,7 @@ function Inner() {
   return (
     <div className="bg-[#F8FAFC] min-h-screen -m-4 sm:-m-6 lg:-m-8 p-6 sm:p-8 lg:p-10 space-y-8 text-right" dir="rtl">
       <ReportGenerationOverlay open={exporting} />
+      <MyActionCenter />
       {/* Header — flat, no card wrapper */}
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
         <div>
