@@ -51,6 +51,10 @@ function AuthPage() {
   const [notes, setNotes] = useState("");
   const [busy, setBusy] = useState(false);
   const [agreed, setAgreed] = useState(true);
+  const [rememberMe, setRememberMe] = useState(() => {
+    if (typeof window === "undefined") return true;
+    return window.localStorage.getItem("rememberMe") !== "false";
+  });
 
   useEffect(() => {
     if (user && !loading && accessLoaded) {
@@ -168,6 +172,22 @@ function AuthPage() {
               <Label htmlFor="pw" className="text-slate-700 text-xs">كلمة المرور</Label>
               <Input id="pw" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" required minLength={6} dir="ltr" className="h-11 rounded-xl bg-slate-50 border-slate-200 text-right" />
             </div>
+
+            <label className="flex items-center gap-2 pt-1 cursor-pointer">
+              <Checkbox
+                id="remember"
+                checked={rememberMe}
+                onCheckedChange={(v) => {
+                  const checked = v === true;
+                  setRememberMe(checked);
+                  if (typeof window !== "undefined") {
+                    window.localStorage.setItem("rememberMe", String(checked));
+                  }
+                }}
+                className="data-[state=checked]:bg-emerald-600 data-[state=checked]:border-emerald-600"
+              />
+              <span className="text-xs text-slate-700">تذكرني على هذا الجهاز</span>
+            </label>
 
             <label className="flex items-start gap-2 pt-1 cursor-pointer">
               <Checkbox
