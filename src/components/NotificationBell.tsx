@@ -53,17 +53,27 @@ export function NotificationBell() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [notifs, setNotifs] = useState<Notif[]>([]);
+  const [unreadTotal, setUnreadTotal] = useState(0);
+  const [onlyUnread, setOnlyUnread] = useState(false);
   const [open, setOpen] = useState(false);
 
   const load = async () => {
     if (!user) return;
-    const { data } = await supabase
-      .from("notifications")
-      .select("id, type, title, body, link, is_read, created_at")
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false })
-      .limit(15);
+    const [{ data }, { count }] = await Promise.all([
+      supabase
+        .from("notifications")
+        .select("id, type, title, body, link, is_read, created_at")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(60),
+      supabase
+        .from("notifications")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", user.id)
+        .eq("is_read", false),
+    ]);
     setNotifs((data ?? []) as Notif[]);
+    setUnreadTotal(count ?? 0);
   };
 
   useEffect(() => {
@@ -80,7 +90,26 @@ export function NotificationBell() {
     return () => { supabase.removeChannel(ch); };
   }, [user]);
 
-  const unread = notifs.filter((n) => !n.is_read).length;
+  // Collapse repeated notifications of the same kind into one row with a counter,
+  // so a burst of 40 task updates reads as one line instead of flooding the list.
+  const groups: NotifGroup[] = [];
+  const byKey = new Map<string, NotifGroup>();
+  for (const n of onlyUnread ? notifs.filter((x) => !x.is_read) : notifs) {
+    const key = `${n.type}|${n.title}`;
+    const existing = byKey.get(key);
+    if (existing) {
+      existing.count += 1;
+      existing.ids.push(n.id);
+      if (!n.is_read) existing.latest.is_read = false;
+      continue;
+    }
+    const g: NotifGroup = { key, latest: { ...n }, count: 1, ids: [n.id] };
+    byKey.set(key, g);
+    groups.push(g);
+  }
+  const visibleGroups = groups.slice(0, 20);
+
+  const unread = unreadTotal;
   const hasUrgent = notifs.some(
     (n) => !n.is_read && (n.type === "task_deadline" || n.type === "task_reminder" || /عاجل|urgent/i.test(n.title)),
   );
@@ -91,20 +120,23 @@ export function NotificationBell() {
     load();
   };
 
-  const markOne = async (id: string) => {
-    await supabase.from("notifications").update({ is_read: true }).eq("id", id);
-    setNotifs((prev) => prev.map((n) => n.id === id ? { ...n, is_read: true } : n));
+  const markGroup = async (ids: string[]) => {
+    await supabase.from("notifications").update({ is_read: true }).in("id", ids);
+    setNotifs((prev) => prev.map((n) => ids.includes(n.id) ? { ...n, is_read: true } : n));
+    setUnreadTotal((prev) => Math.max(0, prev - ids.length));
   };
 
   const clearAll = async () => {
     if (!user || notifs.length === 0) return;
     await supabase.from("notifications").delete().eq("user_id", user.id);
     setNotifs([]);
+    setUnreadTotal(0);
   };
 
-  const deleteOne = async (id: string) => {
-    await supabase.from("notifications").delete().eq("id", id);
-    setNotifs((prev) => prev.filter((n) => n.id !== id));
+  const deleteGroup = async (ids: string[]) => {
+    await supabase.from("notifications").delete().in("id", ids);
+    setNotifs((prev) => prev.filter((n) => !ids.includes(n.id)));
+    load();
   };
 
   if (!user) return null;
