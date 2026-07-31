@@ -23,14 +23,6 @@ function PendingPage() {
     if (!loading && user && accessLoaded && approved) nav({ to: "/admin" });
   }, [user, approved, accessLoaded, loading, nav]);
 
-  if (loading || !accessLoaded) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <RefreshCw className="h-6 w-6 animate-spin text-primary" />
-      </div>
-    );
-  }
-
   useEffect(() => {
     if (!user) return;
     supabase
@@ -40,6 +32,14 @@ function PendingPage() {
       .maybeSingle()
       .then(({ data }) => data?.status && setStatus(data.status));
   }, [user]);
+
+  if (loading || !accessLoaded) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <RefreshCw className="h-6 w-6 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   const recheck = async () => {
     if (checking) return;
