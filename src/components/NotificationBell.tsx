@@ -18,6 +18,13 @@ interface Notif {
   created_at: string;
 }
 
+interface NotifGroup {
+  key: string;
+  latest: Notif;
+  count: number;
+  ids: string[];
+}
+
 /** Arabic relative time, e.g. "منذ 10 دقائق". */
 function relativeAr(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime();
