@@ -87,6 +87,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     });
 
+    const rememberMe = typeof window !== "undefined" && window.localStorage.getItem("rememberMe") !== "false";
+
+    const handleBeforeUnload = () => {
+      if (typeof window !== "undefined" && window.localStorage.getItem("rememberMe") === "false") {
+        supabase.auth.signOut();
+      }
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
     supabase.auth
       .getSession()
       .then(async ({ data, error }) => {
@@ -100,8 +109,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setSession(data.session);
           setUser(data.session?.user ?? null);
           if (data.session?.user) {
-            currentUserId = data.session.user.id;
-            await loadAccess(data.session.user.id);
+            // If user chose not to be remembered, sign them out immediately on the next visit
+            if (!rememberMe) {
+              await supabase.auth.signOut().catch(() => {});
+              setSession(null);
+              setUser(null);
+              setAccessLoaded(true);
+            } else {
+              currentUserId = data.session.user.id;
+              await loadAccess(data.session.user.id);
+            }
           } else {
             setAccessLoaded(true);
           }
@@ -113,7 +130,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       })
       .finally(() => setLoading(false));
 
-    return () => sub.subscription.unsubscribe();
+    return () => {
+      sub.subscription.unsubscribe();
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
   }, [loadAccess]);
 
   const signIn = async (phone: string, password: string) => {
