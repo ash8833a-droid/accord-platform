@@ -181,6 +181,12 @@ export function NotificationBell() {
         <div className="flex items-center justify-between gap-3 px-5 py-3.5 border-b border-slate-100">
           <h3 className="text-[15px] font-bold text-slate-800">التنبيهات</h3>
           <div className="flex items-center gap-3">
+            <button
+              onClick={() => setOnlyUnread((v) => !v)}
+              className={`text-[11px] font-semibold transition-colors ${onlyUnread ? "text-teal-700" : "text-slate-400 hover:text-slate-600"}`}
+            >
+              {onlyUnread ? "عرض الكل" : "غير المقروء فقط"}
+            </button>
             {unread > 0 && (
               <button
                 onClick={markAll}
@@ -203,24 +209,27 @@ export function NotificationBell() {
 
         {/* List */}
         <div className="max-h-[420px] overflow-y-auto scrollbar-hide">
-          {notifs.length === 0 ? (
+          {visibleGroups.length === 0 ? (
             <div className="flex flex-col items-center justify-center text-center py-12 px-5">
               <div className="h-12 w-12 rounded-full bg-slate-50 flex items-center justify-center mb-3">
                 <BellOff className="h-5 w-5 text-slate-400" />
               </div>
-              <p className="text-[13px] font-semibold text-slate-700">لا توجد تنبيهات</p>
+              <p className="text-[13px] font-semibold text-slate-700">
+                {onlyUnread ? "لا توجد تنبيهات غير مقروءة" : "لا توجد تنبيهات"}
+              </p>
               <p className="text-[11px] text-slate-400 mt-1">سنعلمك فور وصول أي تحديث جديد</p>
             </div>
           ) : (
             <ul className="divide-y divide-slate-100">
-              {notifs.map((n) => {
+              {visibleGroups.map((g) => {
+                const n = g.latest;
                 const { Icon, tone } = iconForType(n.type);
                 const target = n.link && n.link.startsWith("/") ? n.link : null;
                 return (
-                  <li key={n.id}>
+                  <li key={g.key}>
                     <button
                       onClick={() => {
-                        if (!n.is_read) markOne(n.id);
+                        if (!n.is_read) markGroup(g.ids);
                         setOpen(false);
                         if (target) navigate({ to: target });
                       }}
@@ -236,6 +245,11 @@ export function NotificationBell() {
                           <p className="flex-1 text-[12.5px] font-bold leading-snug text-slate-800 line-clamp-1">
                             {n.title}
                           </p>
+                          {g.count > 1 && (
+                            <span className="mt-0.5 px-1.5 h-[17px] rounded-full bg-slate-200 text-slate-700 text-[10px] font-bold inline-flex items-center shrink-0">
+                              ×{g.count}
+                            </span>
+                          )}
                           {!n.is_read && (
                             <span aria-hidden className="mt-1.5 h-2 w-2 rounded-full bg-teal-600 shrink-0" />
                           )}
@@ -250,8 +264,8 @@ export function NotificationBell() {
                       <span
                         role="button"
                         tabIndex={0}
-                        onClick={(e) => { e.stopPropagation(); e.preventDefault(); deleteOne(n.id); }}
-                        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.stopPropagation(); e.preventDefault(); deleteOne(n.id); } }}
+                        onClick={(e) => { e.stopPropagation(); e.preventDefault(); deleteGroup(g.ids); }}
+                        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.stopPropagation(); e.preventDefault(); deleteGroup(g.ids); } }}
                         title="حذف"
                         aria-label="حذف الإشعار"
                         className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-md text-slate-300 hover:text-rose-500 hover:bg-rose-50 shrink-0 self-start cursor-pointer"
