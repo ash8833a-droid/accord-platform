@@ -9,6 +9,7 @@ import { useAuth } from "@/lib/auth";
 import { committeeByType } from "@/lib/committees";
 import { resolveActiveCommitteeId } from "@/lib/active-committee";
 import { PageGate } from "@/components/PageGate";
+import { MyActionCenter } from "@/components/MyActionCenter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -297,6 +298,7 @@ function TaskCenterInner({ canEdit }: { canEdit: boolean }) {
 
   return (
     <div className="p-3 sm:p-4 lg:p-10 space-y-4 lg:space-y-8 bg-[#F8FAFC] min-h-screen overscroll-y-contain" dir="rtl">
+      <MyActionCenter />
       {/* ============ MOBILE: Sleek institutional toolbar (no hero, no clutter) ============ */}
       <div className="lg:hidden -mx-3 sm:-mx-4 px-3 sm:px-4 sticky top-0 z-40 backdrop-blur-md bg-white/85 supports-[backdrop-filter]:bg-white/75 border-b border-slate-100/80 py-2.5">
         <div className="flex items-center gap-2">

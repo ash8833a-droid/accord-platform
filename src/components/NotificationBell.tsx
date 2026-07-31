@@ -18,6 +18,13 @@ interface Notif {
   created_at: string;
 }
 
+interface NotifGroup {
+  key: string;
+  latest: Notif;
+  count: number;
+  ids: string[];
+}
+
 /** Arabic relative time, e.g. "منذ 10 دقائق". */
 function relativeAr(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime();
@@ -53,17 +60,27 @@ export function NotificationBell() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [notifs, setNotifs] = useState<Notif[]>([]);
+  const [unreadTotal, setUnreadTotal] = useState(0);
+  const [onlyUnread, setOnlyUnread] = useState(false);
   const [open, setOpen] = useState(false);
 
   const load = async () => {
     if (!user) return;
-    const { data } = await supabase
-      .from("notifications")
-      .select("id, type, title, body, link, is_read, created_at")
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false })
-      .limit(15);
+    const [{ data }, { count }] = await Promise.all([
+      supabase
+        .from("notifications")
+        .select("id, type, title, body, link, is_read, created_at")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(60),
+      supabase
+        .from("notifications")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", user.id)
+        .eq("is_read", false),
+    ]);
     setNotifs((data ?? []) as Notif[]);
+    setUnreadTotal(count ?? 0);
   };
 
   useEffect(() => {
@@ -80,7 +97,26 @@ export function NotificationBell() {
     return () => { supabase.removeChannel(ch); };
   }, [user]);
 
-  const unread = notifs.filter((n) => !n.is_read).length;
+  // Collapse repeated notifications of the same kind into one row with a counter,
+  // so a burst of 40 task updates reads as one line instead of flooding the list.
+  const groups: NotifGroup[] = [];
+  const byKey = new Map<string, NotifGroup>();
+  for (const n of onlyUnread ? notifs.filter((x) => !x.is_read) : notifs) {
+    const key = `${n.type}|${n.title}`;
+    const existing = byKey.get(key);
+    if (existing) {
+      existing.count += 1;
+      existing.ids.push(n.id);
+      if (!n.is_read) existing.latest.is_read = false;
+      continue;
+    }
+    const g: NotifGroup = { key, latest: { ...n }, count: 1, ids: [n.id] };
+    byKey.set(key, g);
+    groups.push(g);
+  }
+  const visibleGroups = groups.slice(0, 20);
+
+  const unread = unreadTotal;
   const hasUrgent = notifs.some(
     (n) => !n.is_read && (n.type === "task_deadline" || n.type === "task_reminder" || /عاجل|urgent/i.test(n.title)),
   );
@@ -91,20 +127,23 @@ export function NotificationBell() {
     load();
   };
 
-  const markOne = async (id: string) => {
-    await supabase.from("notifications").update({ is_read: true }).eq("id", id);
-    setNotifs((prev) => prev.map((n) => n.id === id ? { ...n, is_read: true } : n));
+  const markGroup = async (ids: string[]) => {
+    await supabase.from("notifications").update({ is_read: true }).in("id", ids);
+    setNotifs((prev) => prev.map((n) => ids.includes(n.id) ? { ...n, is_read: true } : n));
+    setUnreadTotal((prev) => Math.max(0, prev - ids.length));
   };
 
   const clearAll = async () => {
     if (!user || notifs.length === 0) return;
     await supabase.from("notifications").delete().eq("user_id", user.id);
     setNotifs([]);
+    setUnreadTotal(0);
   };
 
-  const deleteOne = async (id: string) => {
-    await supabase.from("notifications").delete().eq("id", id);
-    setNotifs((prev) => prev.filter((n) => n.id !== id));
+  const deleteGroup = async (ids: string[]) => {
+    await supabase.from("notifications").delete().in("id", ids);
+    setNotifs((prev) => prev.filter((n) => !ids.includes(n.id)));
+    load();
   };
 
   if (!user) return null;
@@ -142,6 +181,12 @@ export function NotificationBell() {
         <div className="flex items-center justify-between gap-3 px-5 py-3.5 border-b border-slate-100">
           <h3 className="text-[15px] font-bold text-slate-800">التنبيهات</h3>
           <div className="flex items-center gap-3">
+            <button
+              onClick={() => setOnlyUnread((v) => !v)}
+              className={`text-[11px] font-semibold transition-colors ${onlyUnread ? "text-teal-700" : "text-slate-400 hover:text-slate-600"}`}
+            >
+              {onlyUnread ? "عرض الكل" : "غير المقروء فقط"}
+            </button>
             {unread > 0 && (
               <button
                 onClick={markAll}
@@ -164,24 +209,27 @@ export function NotificationBell() {
 
         {/* List */}
         <div className="max-h-[420px] overflow-y-auto scrollbar-hide">
-          {notifs.length === 0 ? (
+          {visibleGroups.length === 0 ? (
             <div className="flex flex-col items-center justify-center text-center py-12 px-5">
               <div className="h-12 w-12 rounded-full bg-slate-50 flex items-center justify-center mb-3">
                 <BellOff className="h-5 w-5 text-slate-400" />
               </div>
-              <p className="text-[13px] font-semibold text-slate-700">لا توجد تنبيهات</p>
+              <p className="text-[13px] font-semibold text-slate-700">
+                {onlyUnread ? "لا توجد تنبيهات غير مقروءة" : "لا توجد تنبيهات"}
+              </p>
               <p className="text-[11px] text-slate-400 mt-1">سنعلمك فور وصول أي تحديث جديد</p>
             </div>
           ) : (
             <ul className="divide-y divide-slate-100">
-              {notifs.map((n) => {
+              {visibleGroups.map((g) => {
+                const n = g.latest;
                 const { Icon, tone } = iconForType(n.type);
                 const target = n.link && n.link.startsWith("/") ? n.link : null;
                 return (
-                  <li key={n.id}>
+                  <li key={g.key}>
                     <button
                       onClick={() => {
-                        if (!n.is_read) markOne(n.id);
+                        if (!n.is_read) markGroup(g.ids);
                         setOpen(false);
                         if (target) navigate({ to: target });
                       }}
@@ -197,6 +245,11 @@ export function NotificationBell() {
                           <p className="flex-1 text-[12.5px] font-bold leading-snug text-slate-800 line-clamp-1">
                             {n.title}
                           </p>
+                          {g.count > 1 && (
+                            <span className="mt-0.5 px-1.5 h-[17px] rounded-full bg-slate-200 text-slate-700 text-[10px] font-bold inline-flex items-center shrink-0">
+                              ×{g.count}
+                            </span>
+                          )}
                           {!n.is_read && (
                             <span aria-hidden className="mt-1.5 h-2 w-2 rounded-full bg-teal-600 shrink-0" />
                           )}
@@ -211,8 +264,8 @@ export function NotificationBell() {
                       <span
                         role="button"
                         tabIndex={0}
-                        onClick={(e) => { e.stopPropagation(); e.preventDefault(); deleteOne(n.id); }}
-                        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.stopPropagation(); e.preventDefault(); deleteOne(n.id); } }}
+                        onClick={(e) => { e.stopPropagation(); e.preventDefault(); deleteGroup(g.ids); }}
+                        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.stopPropagation(); e.preventDefault(); deleteGroup(g.ids); } }}
                         title="حذف"
                         aria-label="حذف الإشعار"
                         className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-md text-slate-300 hover:text-rose-500 hover:bg-rose-50 shrink-0 self-start cursor-pointer"
